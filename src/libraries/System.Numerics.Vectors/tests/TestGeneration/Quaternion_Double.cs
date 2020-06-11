@@ -1,0 +1,1 @@
+using QuaternionDouble = Quaternion<Double>;
