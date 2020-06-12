@@ -1,0 +1,1174 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+{EndLicense}
+
+[Fact]
+public void {TestType}CopyToTest()
+{
+    {TestType} v1 = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    var a = new {ScalarType}[3];
+    var b = new {ScalarType}[2];
+
+    Assert.Throws<ArgumentOutOfRangeException>(() => v1.CopyTo(a, -1));
+    Assert.Throws<ArgumentOutOfRangeException>(() => v1.CopyTo(a, a.Length));
+
+    v1.CopyTo(a, 1);
+    v1.CopyTo(b);
+    Assert.Equal(0.0, a[0]);
+    Assert.Equal(2.0, a[1]);
+    Assert.Equal(3.0, a[2]);
+    Assert.Equal(2.0, b[0]);
+    Assert.Equal(3.0, b[1]);
+}
+
+[Fact]
+public void {TestType}GetHashCodeTest()
+{
+    {TestType} v1 = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    {TestType} v2 = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    {TestType} v3 = new {TestType}(3.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    Assert.Equal(v1.GetHashCode(), v1.GetHashCode());
+    Assert.Equal(v1.GetHashCode(), v2.GetHashCode());
+    Assert.NotEqual(v1.GetHashCode(), v3.GetHashCode());
+    {TestType} v4 = new {TestType}(0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    {TestType} v6 = new {TestType}(1.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    {TestType} v7 = new {TestType}(0.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    {TestType} v8 = new {TestType}(1.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    Assert.NotEqual(v4.GetHashCode(), v6.GetHashCode());
+    Assert.NotEqual(v4.GetHashCode(), v7.GetHashCode());
+    Assert.NotEqual(v4.GetHashCode(), v8.GetHashCode());
+    Assert.NotEqual(v7.GetHashCode(), v6.GetHashCode());
+    Assert.NotEqual(v8.GetHashCode(), v6.GetHashCode());
+    Assert.NotEqual(v8.GetHashCode(), v7.GetHashCode());
+}
+
+[Fact]
+public void {TestType}ToStringTest()
+{
+    string separator = CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator;
+    CultureInfo enUsCultureInfo = new CultureInfo("en-US");
+
+    {TestType} v1 = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    string v1str = v1.ToString();
+    string expectedv1 = string.Format(CultureInfo.CurrentCulture
+        , "<{1:G}{0} {2:G}>"
+        , new object[] { separator, 2, 3 });
+    Assert.Equal(expectedv1, v1str);
+
+    string v1strformatted = v1.ToString("c", CultureInfo.CurrentCulture);
+    string expectedv1{ScalarSuffix}ormatted = string.Format(CultureInfo.CurrentCulture
+        , "<{1:c}{0} {2:c}>"
+        , new object[] { separator, 2, 3 });
+    Assert.Equal(expectedv1{ScalarSuffix}ormatted, v1strformatted);
+
+    string v2strformatted = v1.ToString("c", enUsCultureInfo);
+    string expectedv2{ScalarSuffix}ormatted = string.Format(enUsCultureInfo
+        , "<{1:c}{0} {2:c}>"
+        , new object[] { enUsCultureInfo.NumberFormat.NumberGroupSeparator, 2, 3 });
+    Assert.Equal(expectedv2{ScalarSuffix}ormatted, v2strformatted);
+
+    string v3strformatted = v1.ToString("c");
+    string expectedv3{ScalarSuffix}ormatted = string.Format(CultureInfo.CurrentCulture
+        , "<{1:c}{0} {2:c}>"
+        , new object[] { separator, 2, 3 });
+    Assert.Equal(expectedv3{ScalarSuffix}ormatted, v3strformatted);
+}
+
+// A test for Distance ({TestType}, {TestType})
+[Fact]
+public void {TestType}DistanceTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(3.0{ScalarSuffix}, 4.0{ScalarSuffix});
+
+    {ScalarType} expected = ({ScalarType})System.Math.Sqrt(8);
+    {ScalarType} actual;
+
+    actual = {TestType}.Distance(a, b);
+    Assert.True(MathHelper.EqualScalar(expected, actual), "{TestType}.Distance did not return the expected value.");
+}
+
+// A test for Distance ({TestType}, {TestType})
+// Distance from the same point
+[Fact]
+public void {TestType}DistanceTest2()
+{
+    {TestType} a = new {TestType}(1.051{ScalarSuffix}, 2.05{ScalarSuffix});
+    {TestType} b = new {TestType}(1.051{ScalarSuffix}, 2.05{ScalarSuffix});
+
+    {ScalarType} actual = {TestType}.Distance(a, b);
+    Assert.Equal(0.0{ScalarSuffix}, actual);
+}
+
+// A test for DistanceSquared ({TestType}, {TestType})
+[Fact]
+public void {TestType}DistanceSquaredTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(3.0{ScalarSuffix}, 4.0{ScalarSuffix});
+
+    {ScalarType} expected = 8.0{ScalarSuffix};
+    {ScalarType} actual;
+
+    actual = {TestType}.DistanceSquared(a, b);
+    Assert.True(MathHelper.EqualScalar(expected, actual), "{TestType}.DistanceSquared did not return the expected value.");
+}
+
+// A test for Dot ({TestType}, {TestType})
+[Fact]
+public void {TestType}DotTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(3.0{ScalarSuffix}, 4.0{ScalarSuffix});
+
+    {ScalarType} expected = 11.0{ScalarSuffix};
+    {ScalarType} actual;
+
+    actual = {TestType}.Dot(a, b);
+    Assert.True(MathHelper.EqualScalar(expected, actual), "{TestType}.Dot did not return the expected value.");
+}
+
+// A test for Dot ({TestType}, {TestType})
+// Dot test for perpendicular vector
+[Fact]
+public void {TestType}DotTest1()
+{
+    {TestType} a = new {TestType}(1.55{ScalarSuffix}, 1.55{ScalarSuffix});
+    {TestType} b = new {TestType}(-1.55{ScalarSuffix}, 1.55{ScalarSuffix});
+
+    {ScalarType} expected = 0.0{ScalarSuffix};
+    {ScalarType} actual = {TestType}.Dot(a, b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Dot ({TestType}, {TestType})
+// Dot test with special {ScalarType} values
+[Fact]
+public void {TestType}DotTest2()
+{
+    {TestType} a = new {TestType}({ScalarType}.MinValue, {ScalarType}.MinValue);
+    {TestType} b = new {TestType}({ScalarType}.MaxValue, {ScalarType}.MaxValue);
+
+    {ScalarType} actual = {TestType}.Dot(a, b);
+    Assert.True({ScalarType}.IsNegativeInfinity(actual), "{TestType}.Dot did not return the expected value.");
+}
+
+// A test for Length ()
+[Fact]
+public void {TestType}LengthTest()
+{
+    {TestType} a = new {TestType}(2.0{ScalarSuffix}, 4.0{ScalarSuffix});
+
+    {TestType} target = a;
+
+    {ScalarType} expected = ({ScalarType})System.Math.Sqrt(20);
+    {ScalarType} actual;
+
+    actual = target.Length();
+
+    Assert.True(MathHelper.EqualScalar(expected, actual), "{TestType}.Length did not return the expected value.");
+}
+
+// A test for Length ()
+// Length test where length is zero
+[Fact]
+public void {TestType}LengthTest1()
+{
+    {TestType} target = {TestType}.Zero;
+
+    {ScalarType} expected = 0.0{ScalarSuffix};
+    {ScalarType} actual;
+
+    actual = target.Length();
+
+    Assert.True(MathHelper.EqualScalar(expected, actual), "{TestType}.Length did not return the expected value.");
+}
+
+// A test for LengthSquared ()
+[Fact]
+public void {TestType}LengthSquaredTest()
+{
+    {TestType} a = new {TestType}(2.0{ScalarSuffix}, 4.0{ScalarSuffix});
+
+    {TestType} target = a;
+
+    {ScalarType} expected = 20.0{ScalarSuffix};
+    {ScalarType} actual;
+
+    actual = target.LengthSquared();
+
+    Assert.True(MathHelper.EqualScalar(expected, actual), "{TestType}.LengthSquared did not return the expected value.");
+}
+
+// A test for LengthSquared ()
+// LengthSquared test where the result is zero
+[Fact]
+public void {TestType}LengthSquaredTest1()
+{
+    {TestType} a = new {TestType}(0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+
+    {ScalarType} expected = 0.0{ScalarSuffix};
+    {ScalarType} actual = a.LengthSquared();
+
+    Assert.Equal(expected, actual);
+}
+
+// A test for Min ({TestType}, {TestType})
+[Fact]
+public void {TestType}MinTest()
+{
+    {TestType} a = new {TestType}(-1.0{ScalarSuffix}, 4.0{ScalarSuffix});
+    {TestType} b = new {TestType}(2.0{ScalarSuffix}, 1.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(-1.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    {TestType} actual;
+    actual = {TestType}.Min(a, b);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Min did not return the expected value.");
+}
+
+[Fact]
+public void {TestType}MinMaxCodeCoverageTest()
+{
+    {TestType} min = new {TestType}(0, 0);
+    {TestType} max = new {TestType}(1, 1);
+    {TestType} actual;
+
+    // Min.
+    actual = {TestType}.Min(min, max);
+    Assert.Equal(actual, min);
+
+    actual = {TestType}.Min(max, min);
+    Assert.Equal(actual, min);
+
+    // Max.
+    actual = {TestType}.Max(min, max);
+    Assert.Equal(actual, max);
+
+    actual = {TestType}.Max(max, min);
+    Assert.Equal(actual, max);
+}
+
+// A test for Max ({TestType}, {TestType})
+[Fact]
+public void {TestType}MaxTest()
+{
+    {TestType} a = new {TestType}(-1.0{ScalarSuffix}, 4.0{ScalarSuffix});
+    {TestType} b = new {TestType}(2.0{ScalarSuffix}, 1.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(2.0{ScalarSuffix}, 4.0{ScalarSuffix});
+    {TestType} actual;
+    actual = {TestType}.Max(a, b);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Max did not return the expected value.");
+}
+
+// A test for Clamp ({TestType}, {TestType}, {TestType})
+[Fact]
+public void {TestType}ClampTest()
+{
+    {TestType} a = new {TestType}(0.5{ScalarSuffix}, 0.3{ScalarSuffix});
+    {TestType} min = new {TestType}(0.0{ScalarSuffix}, 0.1{ScalarSuffix});
+    {TestType} max = new {TestType}(1.0{ScalarSuffix}, 1.1{ScalarSuffix});
+
+    // Normal case.
+    // Case N1: specified value is in the range.
+    {TestType} expected = new {TestType}(0.5{ScalarSuffix}, 0.3{ScalarSuffix});
+    {TestType} actual = {TestType}.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Clamp did not return the expected value.");
+    // Normal case.
+    // Case N2: specified value is bigger than max value.
+    a = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    expected = max;
+    actual = {TestType}.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Clamp did not return the expected value.");
+    // Case N3: specified value is smaller than max value.
+    a = new {TestType}(-1.0{ScalarSuffix}, -2.0{ScalarSuffix});
+    expected = min;
+    actual = {TestType}.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Clamp did not return the expected value.");
+    // Case N4: combination case.
+    a = new {TestType}(-2.0{ScalarSuffix}, 4.0{ScalarSuffix});
+    expected = new {TestType}(min.X, max.Y);
+    actual = {TestType}.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Clamp did not return the expected value.");
+    // User specified min value is bigger than max value.
+    max = new {TestType}(0.0{ScalarSuffix}, 0.1{ScalarSuffix});
+    min = new {TestType}(1.0{ScalarSuffix}, 1.1{ScalarSuffix});
+
+    // Case W1: specified value is in the range.
+    a = new {TestType}(0.5{ScalarSuffix}, 0.3{ScalarSuffix});
+    expected = max;
+    actual = {TestType}.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Clamp did not return the expected value.");
+
+    // Normal case.
+    // Case W2: specified value is bigger than max and min value.
+    a = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    expected = max;
+    actual = {TestType}.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Clamp did not return the expected value.");
+
+    // Case W3: specified value is smaller than min and max value.
+    a = new {TestType}(-1.0{ScalarSuffix}, -2.0{ScalarSuffix});
+    expected = max;
+    actual = {TestType}.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Clamp did not return the expected value.");
+}
+
+// A test for Lerp ({TestType}, {TestType}, {ScalarType})
+[Fact]
+public void {TestType}LerpTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(3.0{ScalarSuffix}, 4.0{ScalarSuffix});
+
+    {ScalarType} t = 0.5{ScalarSuffix};
+
+    {TestType} expected = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    {TestType} actual;
+    actual = {TestType}.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp ({TestType}, {TestType}, {ScalarType})
+// Lerp test with factor zero
+[Fact]
+public void {TestType}LerpTest1()
+{
+    {TestType} a = new {TestType}(0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    {TestType} b = new {TestType}(3.18{ScalarSuffix}, 4.25{ScalarSuffix});
+
+    {ScalarType} t = 0.0{ScalarSuffix};
+    {TestType} expected = {TestType}.Zero;
+    {TestType} actual = {TestType}.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp ({TestType}, {TestType}, {ScalarType})
+// Lerp test with factor one
+[Fact]
+public void {TestType}LerpTest2()
+{
+    {TestType} a = new {TestType}(0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    {TestType} b = new {TestType}(3.18{ScalarSuffix}, 4.25{ScalarSuffix});
+
+    {ScalarType} t = 1.0{ScalarSuffix};
+    {TestType} expected = new {TestType}(3.18{ScalarSuffix}, 4.25{ScalarSuffix});
+    {TestType} actual = {TestType}.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp ({TestType}, {TestType}, {ScalarType})
+// Lerp test with factor > 1
+[Fact]
+public void {TestType}LerpTest3()
+{
+    {TestType} a = new {TestType}(0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    {TestType} b = new {TestType}(3.18{ScalarSuffix}, 4.25{ScalarSuffix});
+
+    {ScalarType} t = 2.0{ScalarSuffix};
+    {TestType} expected = b * 2.0{ScalarSuffix};
+    {TestType} actual = {TestType}.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp ({TestType}, {TestType}, {ScalarType})
+// Lerp test with factor < 0
+[Fact]
+public void {TestType}LerpTest4()
+{
+    {TestType} a = new {TestType}(0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    {TestType} b = new {TestType}(3.18{ScalarSuffix}, 4.25{ScalarSuffix});
+
+    {ScalarType} t = -2.0{ScalarSuffix};
+    {TestType} expected = -(b * 2.0{ScalarSuffix});
+    {TestType} actual = {TestType}.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp ({TestType}, {TestType}, {ScalarType})
+// Lerp test with special {ScalarType} value
+[Fact]
+public void {TestType}LerpTest5()
+{
+    {TestType} a = new {TestType}(45.67{ScalarSuffix}, 90.0{ScalarSuffix});
+    {TestType} b = new {TestType}({ScalarType}.PositiveInfinity, {ScalarType}.NegativeInfinity);
+
+    {ScalarType} t = 0.408{ScalarSuffix};
+    {TestType} actual = {TestType}.Lerp(a, b, t);
+    Assert.True({ScalarType}.IsPositiveInfinity(actual.X), "{TestType}.Lerp did not return the expected value.");
+    Assert.True({ScalarType}.IsNegativeInfinity(actual.Y), "{TestType}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp ({TestType}, {TestType}, {ScalarType})
+// Lerp test from the same point
+[Fact]
+public void {TestType}LerpTest6()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    {ScalarType} t = 0.5{ScalarSuffix};
+
+    {TestType} expected = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} actual = {TestType}.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp ({TestType}, {TestType}, {ScalarType})
+// Lerp test with values known to be innacurate with the old lerp impl
+[Fact]
+public void {TestType}LerpTest7()
+{
+    {TestType} a = new {TestType}(0.44728136{ScalarSuffix});
+    {TestType} b = new {TestType}(0.46345946{ScalarSuffix});
+
+    {ScalarType} t = 0.26402435{ScalarSuffix};
+
+    {TestType} expected = new {TestType}(0.45155275{ScalarSuffix});
+    {TestType} actual = {TestType}.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp ({TestType}, {TestType}, {ScalarType})
+// Lerp test with values known to be innacurate with the old lerp impl
+// (Old code incorrectly gets 0.33333588)
+[Fact]
+public void {TestType}LerpTest8()
+{
+    {TestType} a = new {TestType}(-100);
+    {TestType} b = new {TestType}(0.33333334{ScalarSuffix});
+
+    {ScalarType} t = 1{ScalarSuffix};
+
+    {TestType} expected = new {TestType}(0.33333334{ScalarSuffix});
+    {TestType} actual = {TestType}.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Lerp did not return the expected value.");
+}
+
+// // A test for Transform({TestType}, Matrix4x4)
+// [Fact]
+// public void {TestType}TransformTest()
+// {
+//     {TestType} v = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+//     Matrix4x4 m =
+//         Matrix4x4.CreateRotationX(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+//         Matrix4x4.CreateRotationY(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+//         Matrix4x4.CreateRotationZ(MathHelper.ToRadians(30.0{ScalarSuffix}));
+//     m.M41 = 10.0{ScalarSuffix};
+//     m.M42 = 20.0{ScalarSuffix};
+//     m.M43 = 30.0{ScalarSuffix};
+
+//     {TestType} expected = new {TestType}(10.316987{ScalarSuffix}, 22.183012{ScalarSuffix});
+//     {TestType} actual;
+
+//     actual = {TestType}.Transform(v, m);
+//     Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Transform did not return the expected value.");
+// }
+
+// // A test for Transform({TestType}, Matrix3x2)
+// [Fact]
+// public void {TestType}Transform3x2Test()
+// {
+//     {TestType} v = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+//     Matrix3x2 m = Matrix3x2.CreateRotation(MathHelper.ToRadians(30.0{ScalarSuffix}));
+//     m.M31 = 10.0{ScalarSuffix};
+//     m.M32 = 20.0{ScalarSuffix};
+
+//     {TestType} expected = new {TestType}(9.866025{ScalarSuffix}, 22.23205{ScalarSuffix});
+//     {TestType} actual;
+
+//     actual = {TestType}.Transform(v, m);
+//     Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Transform did not return the expected value.");
+// }
+
+// // A test for TransformNormal ({TestType}, Matrix4x4)
+// [Fact]
+// public void {TestType}TransformNormalTest()
+// {
+//     {TestType} v = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+//     Matrix4x4 m =
+//         Matrix4x4.CreateRotationX(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+//         Matrix4x4.CreateRotationY(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+//         Matrix4x4.CreateRotationZ(MathHelper.ToRadians(30.0{ScalarSuffix}));
+//     m.M41 = 10.0{ScalarSuffix};
+//     m.M42 = 20.0{ScalarSuffix};
+//     m.M43 = 30.0{ScalarSuffix};
+
+//     {TestType} expected = new {TestType}(0.3169873{ScalarSuffix}, 2.18301272{ScalarSuffix});
+//     {TestType} actual;
+
+//     actual = {TestType}.TransformNormal(v, m);
+//     Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Tranform did not return the expected value.");
+// }
+
+// // A test for TransformNormal ({TestType}, Matrix3x2)
+// [Fact]
+// public void {TestType}TransformNormal3x2Test()
+// {
+//     {TestType} v = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+//     Matrix3x2 m = Matrix3x2.CreateRotation(MathHelper.ToRadians(30.0{ScalarSuffix}));
+//     m.M31 = 10.0{ScalarSuffix};
+//     m.M32 = 20.0{ScalarSuffix};
+
+//     {TestType} expected = new {TestType}(-0.133974612{ScalarSuffix}, 2.232051{ScalarSuffix});
+//     {TestType} actual;
+
+//     actual = {TestType}.TransformNormal(v, m);
+//     Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Transform did not return the expected value.");
+// }
+
+// // A test for Transform ({TestType}, Quaternion)
+// [Fact]
+// public void {TestType}TransformByQuaternionTest()
+// {
+//     {TestType} v = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+//     Matrix4x4 m =
+//         Matrix4x4.CreateRotationX(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+//         Matrix4x4.CreateRotationY(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+//         Matrix4x4.CreateRotationZ(MathHelper.ToRadians(30.0{ScalarSuffix}));
+//     Quaternion q = Quaternion.CreateFromRotationMatrix(m);
+
+//     {TestType} expected = {TestType}.Transform(v, m);
+//     {TestType} actual = {TestType}.Transform(v, q);
+//     Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Transform did not return the expected value.");
+// }
+
+// // A test for Transform ({TestType}, Quaternion)
+// // Transform {TestType} with zero quaternion
+// [Fact]
+// public void {TestType}TransformByQuaternionTest1()
+// {
+//     {TestType} v = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+//     Quaternion q = new Quaternion();
+//     {TestType} expected = v;
+
+//     {TestType} actual = {TestType}.Transform(v, q);
+//     Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Transform did not return the expected value.");
+// }
+
+// // A test for Transform ({TestType}, Quaternion)
+// // Transform {TestType} with identity quaternion
+// [Fact]
+// public void {TestType}TransformByQuaternionTest2()
+// {
+//     {TestType} v = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+//     Quaternion q = Quaternion.Identity;
+//     {TestType} expected = v;
+
+//     {TestType} actual = {TestType}.Transform(v, q);
+//     Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Transform did not return the expected value.");
+// }
+
+// A test for Normalize ({TestType})
+[Fact]
+public void {TestType}NormalizeTest()
+{
+    {TestType} a = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    {TestType} expected = new {TestType}(0.554700196225229122018341733457{ScalarSuffix}, 0.8320502943378436830275126001855{ScalarSuffix});
+    {TestType} actual;
+
+    actual = {TestType}.Normalize(a);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Normalize did not return the expected value.");
+}
+
+// A test for Normalize ({TestType})
+// Normalize zero length vector
+[Fact]
+public void {TestType}NormalizeTest1()
+{
+    {TestType} a = new {TestType}(); // no parameter, default to 0.0{ScalarSuffix}
+    {TestType} actual = {TestType}.Normalize(a);
+    Assert.True({ScalarType}.IsNaN(actual.X) && {ScalarType}.IsNaN(actual.Y), "{TestType}.Normalize did not return the expected value.");
+}
+
+// A test for Normalize ({TestType})
+// Normalize infinite length vector
+[Fact]
+public void {TestType}NormalizeTest2()
+{
+    {TestType} a = new {TestType}({ScalarType}.MaxValue, {ScalarType}.MaxValue);
+    {TestType} actual = {TestType}.Normalize(a);
+    {TestType} expected = new {TestType}(0, 0);
+    Assert.Equal(expected, actual);
+}
+
+// A test for operator - ({TestType})
+[Fact]
+public void {TestType}UnaryNegationTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(-1.0{ScalarSuffix}, -2.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = -a;
+
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.operator - did not return the expected value.");
+}
+
+
+
+// A test for operator - ({TestType})
+// Negate test with special {ScalarType} value
+[Fact]
+public void {TestType}UnaryNegationTest1()
+{
+    {TestType} a = new {TestType}({ScalarType}.PositiveInfinity, {ScalarType}.NegativeInfinity);
+
+    {TestType} actual = -a;
+
+    Assert.True({ScalarType}.IsNegativeInfinity(actual.X), "{TestType}.operator - did not return the expected value.");
+    Assert.True({ScalarType}.IsPositiveInfinity(actual.Y), "{TestType}.operator - did not return the expected value.");
+}
+
+// A test for operator - ({TestType})
+// Negate test with special {ScalarType} value
+[Fact]
+public void {TestType}UnaryNegationTest2()
+{
+    {TestType} a = new {TestType}({ScalarType}.NaN, 0.0{ScalarSuffix});
+    {TestType} actual = -a;
+
+    Assert.True({ScalarType}.IsNaN(actual.X), "{TestType}.operator - did not return the expected value.");
+    Assert.True({ScalarType}.Equals(0.0{ScalarSuffix}, actual.Y), "{TestType}.operator - did not return the expected value.");
+}
+
+// A test for operator - ({TestType}, {TestType})
+[Fact]
+public void {TestType}SubtractionTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    {TestType} b = new {TestType}(2.0{ScalarSuffix}, 1.5{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(-1.0{ScalarSuffix}, 1.5{ScalarSuffix});
+    {TestType} actual;
+
+    actual = a - b;
+
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.operator - did not return the expected value.");
+}
+
+// A test for operator * ({TestType}, {ScalarType})
+[Fact]
+public void {TestType}MultiplyOperatorTest()
+{
+    {TestType} a = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    const {ScalarType} factor = 2.0{ScalarSuffix};
+
+    {TestType} expected = new {TestType}(4.0{ScalarSuffix}, 6.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = a * factor;
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.operator * did not return the expected value.");
+}
+
+// A test for operator * ({ScalarType}, {TestType})
+[Fact]
+public void {TestType}MultiplyOperatorTest2()
+{
+    {TestType} a = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    const {ScalarType} factor = 2.0{ScalarSuffix};
+
+    {TestType} expected = new {TestType}(4.0{ScalarSuffix}, 6.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = factor * a;
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.operator * did not return the expected value.");
+}
+
+// A test for operator * ({TestType}, {TestType})
+[Fact]
+public void {TestType}MultiplyOperatorTest3()
+{
+    {TestType} a = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    {TestType} b = new {TestType}(4.0{ScalarSuffix}, 5.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(8.0{ScalarSuffix}, 15.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = a * b;
+
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.operator * did not return the expected value.");
+}
+
+// A test for operator / ({TestType}, {ScalarType})
+[Fact]
+public void {TestType}DivisionTest()
+{
+    {TestType} a = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    {ScalarType} div = 2.0{ScalarSuffix};
+
+    {TestType} expected = new {TestType}(1.0{ScalarSuffix}, 1.5{ScalarSuffix});
+    {TestType} actual;
+
+    actual = a / div;
+
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.operator / did not return the expected value.");
+}
+
+// A test for operator / ({TestType}, {TestType})
+[Fact]
+public void {TestType}DivisionTest1()
+{
+    {TestType} a = new {TestType}(2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    {TestType} b = new {TestType}(4.0{ScalarSuffix}, 5.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(2.0{ScalarSuffix} / 4.0{ScalarSuffix}, 3.0{ScalarSuffix} / 5.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = a / b;
+
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.operator / did not return the expected value.");
+}
+
+// A test for operator / ({TestType}, {ScalarType})
+// Divide by zero
+[Fact]
+public void {TestType}DivisionTest2()
+{
+    {TestType} a = new {TestType}(-2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    {ScalarType} div = 0.0{ScalarSuffix};
+
+    {TestType} actual = a / div;
+
+    Assert.True({ScalarType}.IsNegativeInfinity(actual.X), "{TestType}.operator / did not return the expected value.");
+    Assert.True({ScalarType}.IsPositiveInfinity(actual.Y), "{TestType}.operator / did not return the expected value.");
+}
+
+// A test for operator / ({TestType}, {TestType})
+// Divide by zero
+[Fact]
+public void {TestType}DivisionTest3()
+{
+    {TestType} a = new {TestType}(0.047{ScalarSuffix}, -3.0{ScalarSuffix});
+    {TestType} b = new {TestType}();
+
+    {TestType} actual = a / b;
+
+    Assert.True({ScalarType}.IsInfinity(actual.X), "{TestType}.operator / did not return the expected value.");
+    Assert.True({ScalarType}.IsInfinity(actual.Y), "{TestType}.operator / did not return the expected value.");
+}
+
+// A test for operator + ({TestType}, {TestType})
+[Fact]
+public void {TestType}AdditionTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(3.0{ScalarSuffix}, 4.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(4.0{ScalarSuffix}, 6.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = a + b;
+
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.operator + did not return the expected value.");
+}
+
+// A test for {TestType} ({ScalarType}, {ScalarType})
+[Fact]
+public void {TestType}ConstructorTest()
+{
+    {ScalarType} x = 1.0{ScalarSuffix};
+    {ScalarType} y = 2.0{ScalarSuffix};
+
+    {TestType} target = new {TestType}(x, y);
+    Assert.True(MathHelper.Equal(target.X, x) && MathHelper.Equal(target.Y, y), "{TestType}(x,y) constructor did not return the expected value.");
+}
+
+// A test for {TestType} ()
+// Constructor with no parameter
+[Fact]
+public void {TestType}ConstructorTest2()
+{
+    {TestType} target = new {TestType}();
+    Assert.Equal(0.0{ScalarSuffix}, target.X);
+    Assert.Equal(0.0{ScalarSuffix}, target.Y);
+}
+
+// A test for {TestType} ({ScalarType}, {ScalarType})
+// Constructor with special {ScalarType}ing values
+[Fact]
+public void {TestType}ConstructorTest3()
+{
+    {TestType} target = new {TestType}({ScalarType}.NaN, {ScalarType}.MaxValue);
+    Assert.Equal(target.X, {ScalarType}.NaN);
+    Assert.Equal(target.Y, {ScalarType}.MaxValue);
+}
+
+// A test for {TestType} ({ScalarType})
+[Fact]
+public void {TestType}ConstructorTest4()
+{
+    {ScalarType} value = 1.0{ScalarSuffix};
+    {TestType} target = new {TestType}(value);
+
+    {TestType} expected = new {TestType}(value, value);
+    Assert.Equal(expected, target);
+
+    value = 2.0{ScalarSuffix};
+    target = new {TestType}(value);
+    expected = new {TestType}(value, value);
+    Assert.Equal(expected, target);
+}
+
+// A test for Add ({TestType}, {TestType})
+[Fact]
+public void {TestType}AddTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(6.0{ScalarSuffix}, 8.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = {TestType}.Add(a, b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Divide ({TestType}, {ScalarType})
+[Fact]
+public void {TestType}DivideTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {ScalarType} div = 2.0{ScalarSuffix};
+    {TestType} expected = new {TestType}(0.5{ScalarSuffix}, 1.0{ScalarSuffix});
+    {TestType} actual;
+    actual = {TestType}.Divide(a, div);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Divide ({TestType}, {TestType})
+[Fact]
+public void {TestType}DivideTest1()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 6.0{ScalarSuffix});
+    {TestType} b = new {TestType}(5.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(1.0{ScalarSuffix} / 5.0{ScalarSuffix}, 6.0{ScalarSuffix} / 2.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = {TestType}.Divide(a, b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Equals (object)
+[Fact]
+public void {TestType}EqualsTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    // case 1: compare between same values
+    object obj = b;
+
+    bool expected = true;
+    bool actual = a.Equals(obj);
+    Assert.Equal(expected, actual);
+
+    // case 2: compare between different values
+    b = new {TestType}(b.X, 10);
+    obj = b;
+    expected = false;
+    actual = a.Equals(obj);
+    Assert.Equal(expected, actual);
+
+    // case 3: compare between different types.
+    obj = new Quaternion();
+    expected = false;
+    actual = a.Equals(obj);
+    Assert.Equal(expected, actual);
+
+    // case 3: compare against null.
+    obj = null;
+    expected = false;
+    actual = a.Equals(obj);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Multiply ({TestType}, {ScalarType})
+[Fact]
+public void {TestType}MultiplyTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    const {ScalarType} factor = 2.0{ScalarSuffix};
+    {TestType} expected = new {TestType}(2.0{ScalarSuffix}, 4.0{ScalarSuffix});
+    {TestType} actual = {TestType}.Multiply(a, factor);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Multiply ({ScalarType}, {TestType})
+[Fact]
+public void {TestType}MultiplyTest2()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    const {ScalarType} factor = 2.0{ScalarSuffix};
+    {TestType} expected = new {TestType}(2.0{ScalarSuffix}, 4.0{ScalarSuffix});
+    {TestType} actual = {TestType}.Multiply(factor, a);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Multiply ({TestType}, {TestType})
+[Fact]
+public void {TestType}MultiplyTest3()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(5.0{ScalarSuffix}, 12.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = {TestType}.Multiply(a, b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Negate ({TestType})
+[Fact]
+public void {TestType}NegateTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(-1.0{ScalarSuffix}, -2.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = {TestType}.Negate(a);
+    Assert.Equal(expected, actual);
+}
+
+// A test for operator != ({TestType}, {TestType})
+[Fact]
+public void {TestType}InequalityTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    // case 1: compare between same values
+    bool expected = false;
+    bool actual = a != b;
+    Assert.Equal(expected, actual);
+
+    // case 2: compare between different values
+    b = new {TestType}(b.X, 10);
+    expected = true;
+    actual = a != b;
+    Assert.Equal(expected, actual);
+}
+
+// A test for operator == ({TestType}, {TestType})
+[Fact]
+public void {TestType}EqualityTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    // case 1: compare between same values
+    bool expected = true;
+    bool actual = a == b;
+    Assert.Equal(expected, actual);
+
+    // case 2: compare between different values
+    b = new {TestType}(b.X, 10);
+    expected = false;
+    actual = a == b;
+    Assert.Equal(expected, actual);
+}
+
+// A test for Subtract ({TestType}, {TestType})
+[Fact]
+public void {TestType}SubtractTest()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 6.0{ScalarSuffix});
+    {TestType} b = new {TestType}(5.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    {TestType} expected = new {TestType}(-4.0{ScalarSuffix}, 4.0{ScalarSuffix});
+    {TestType} actual;
+
+    actual = {TestType}.Subtract(a, b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for UnitX
+[Fact]
+public void {TestType}UnitXTest()
+{
+    {TestType} val = new {TestType}(1.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Assert.Equal(val, {TestType}.UnitX);
+}
+
+// A test for UnitY
+[Fact]
+public void {TestType}UnitYTest()
+{
+    {TestType} val = new {TestType}(0.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    Assert.Equal(val, {TestType}.UnitY);
+}
+
+// A test for One
+[Fact]
+public void {TestType}OneTest()
+{
+    {TestType} val = new {TestType}(1.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    Assert.Equal(val, {TestType}.One);
+}
+
+// A test for Zero
+[Fact]
+public void {TestType}ZeroTest()
+{
+    {TestType} val = new {TestType}(0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Assert.Equal(val, {TestType}.Zero);
+}
+
+// A test for Equals ({TestType})
+[Fact]
+public void {TestType}EqualsTest1()
+{
+    {TestType} a = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} b = new {TestType}(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    // case 1: compare between same values
+    bool expected = true;
+    bool actual = a.Equals(b);
+    Assert.Equal(expected, actual);
+
+    // case 2: compare between different values
+    b = new {TestType}(b.X, 10);
+    expected = false;
+    actual = a.Equals(b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for {TestType} comparison involving NaN values
+[Fact]
+public void {TestType}EqualsNanTest()
+{
+    {TestType} a = new {TestType}({ScalarType}.NaN, 0);
+    {TestType} b = new {TestType}(0, {ScalarType}.NaN);
+
+    Assert.False(a == {TestType}.Zero);
+    Assert.False(b == {TestType}.Zero);
+
+    Assert.True(a != {TestType}.Zero);
+    Assert.True(b != {TestType}.Zero);
+
+    Assert.False(a.Equals({TestType}.Zero));
+    Assert.False(b.Equals({TestType}.Zero));
+
+    // Counterintuitive result - IEEE rules for NaN comparison are weird!
+    Assert.False(a.Equals(a));
+    Assert.False(b.Equals(b));
+}
+
+// A test for Reflect ({TestType}, {TestType})
+[Fact]
+public void {TestType}ReflectTest()
+{
+    {TestType} a = {TestType}.Normalize(new {TestType}(1.0{ScalarSuffix}, 1.0{ScalarSuffix}));
+
+    // Reflect on XZ plane.
+    {TestType} n = new {TestType}(0.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    {TestType} expected = new {TestType}(a.X, -a.Y);
+    {TestType} actual = {TestType}.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Reflect did not return the expected value.");
+
+    // Reflect on XY plane.
+    n = new {TestType}(0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    expected = new {TestType}(a.X, a.Y);
+    actual = {TestType}.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Reflect did not return the expected value.");
+
+    // Reflect on YZ plane.
+    n = new {TestType}(1.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    expected = new {TestType}(-a.X, a.Y);
+    actual = {TestType}.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Reflect did not return the expected value.");
+}
+
+// A test for Reflect ({TestType}, {TestType})
+// Reflection when normal and source are the same
+[Fact]
+public void {TestType}ReflectTest1()
+{
+    {TestType} n = new {TestType}(0.45{ScalarSuffix}, 1.28{ScalarSuffix});
+    n = {TestType}.Normalize(n);
+    {TestType} a = n;
+
+    {TestType} expected = -n;
+    {TestType} actual = {TestType}.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Reflect did not return the expected value.");
+}
+
+// A test for Reflect ({TestType}, {TestType})
+// Reflection when normal and source are negation
+[Fact]
+public void {TestType}ReflectTest2()
+{
+    {TestType} n = new {TestType}(0.45{ScalarSuffix}, 1.28{ScalarSuffix});
+    n = {TestType}.Normalize(n);
+    {TestType} a = -n;
+
+    {TestType} expected = n;
+    {TestType} actual = {TestType}.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "{TestType}.Reflect did not return the expected value.");
+}
+
+[Fact]
+public void {TestType}AbsTest()
+{
+    {TestType} v1 = new {TestType}(-2.5{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} v3 = {TestType}.Abs(new {TestType}(0.0{ScalarSuffix}, {ScalarType}.NegativeInfinity));
+    {TestType} v = {TestType}.Abs(v1);
+    Assert.Equal(2.5{ScalarSuffix}, v.X);
+    Assert.Equal(2.0{ScalarSuffix}, v.Y);
+    Assert.Equal(0.0{ScalarSuffix}, v3.X);
+    Assert.Equal({ScalarType}.PositiveInfinity, v3.Y);
+}
+
+[Fact]
+public void {TestType}SqrtTest()
+{
+    {TestType} v1 = new {TestType}(-2.5{ScalarSuffix}, 2.0{ScalarSuffix});
+    {TestType} v2 = new {TestType}(5.5{ScalarSuffix}, 4.5{ScalarSuffix});
+    Assert.Equal(2, (int){TestType}.SquareRoot(v2).X);
+    Assert.Equal(2, (int){TestType}.SquareRoot(v2).Y);
+    Assert.Equal({ScalarType}.NaN, {TestType}.SquareRoot(v1).X);
+}
+
+#pragma warning disable xUnit2000 // 'sizeof(constant) should be argument 'expected'' error
+// A test to make sure these types are blittable directly into GPU buffer memory layouts
+[Fact]
+public unsafe void {TestType}SizeofTest()
+{
+    Assert.Equal(sizeof({ScalarType}) * 2, sizeof({TestType}));
+    Assert.Equal(sizeof({ScalarType}) * 2 * 2, sizeof({TestType}_2x));
+    Assert.Equal(sizeof({ScalarType}) * 2 + sizeof({ScalarType}), sizeof({TestType}Plus{ScalarType}));
+    Assert.Equal((sizeof({ScalarType}) * 2 + sizeof({ScalarType})) * 2, sizeof({TestType}Plus{ScalarType}_2x));
+}
+#pragma warning restore xUnit2000 // 'sizeof(constant) should be argument 'expected'' error
+
+[StructLayout(LayoutKind.Sequential)]
+struct {TestType}_2x
+{
+    private {TestType} _a;
+    private {TestType} _b;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+struct {TestType}Plus{ScalarType}
+{
+    private {TestType} _v;
+    private {ScalarType} _f;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+struct {TestType}Plus{ScalarType}_2x
+{
+    private {TestType}Plus{ScalarType} _a;
+    private {TestType}Plus{ScalarType} _b;
+}
+{GenericSpecific}

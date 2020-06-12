@@ -1,1 +1,0 @@
-using PlaneDouble = Plane<Double>;

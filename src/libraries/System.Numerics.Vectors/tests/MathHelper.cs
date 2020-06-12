@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
+
 namespace System.Numerics
 {
     static class MathHelper
@@ -24,6 +26,21 @@ namespace System.Numerics
             return (Math.Abs(a - b) < 1e-5);
         }
 
+        public static bool Equal<T>(T a, T b)
+        {
+            if (typeof(T) == typeof(float))
+            {
+                return (Math.Abs((float)(object)a - (float)(object)b) < 1e-5);
+            }
+            else if (typeof(T) == typeof(double))
+            {
+                return (Math.Abs((double)(object)a - (double)(object)b) < 1e-5);
+            }
+
+            Debug.Fail("Type has not been added");
+            return false;
+        }
+
         public static bool Equal(Vector2 a, Vector2 b)
         {
             return Equal(a.X, b.X) && Equal(a.Y, b.Y);
@@ -38,6 +55,21 @@ namespace System.Numerics
         {
             return Equal(a.X, b.X) && Equal(a.Y, b.Y) && Equal(a.Z, b.Z) && Equal(a.W, b.W);
         }
+
+        public static bool Equal<T>(Vector2<T> a, Vector2<T> b) where T : struct
+        {
+            return Equal(a.X, b.X) && Equal(a.Y, b.Y);
+        }
+
+        // public static bool Equal<T>(Vector3<T> a, Vector3<T> b) where T : struct
+        // {
+        //     return Equal(a.X, b.X) && Equal(a.Y, b.Y) && Equal(a.Z, b.Z);
+        // }
+
+        // public static bool Equal<T>(Vector4<T> a, Vector4<T> b) where T : struct
+        // {
+        //     return Equal(a.X, b.X) && Equal(a.Y, b.Y) && Equal(a.Z, b.Z) && Equal(a.W, b.W);
+        // }
 
         public static bool Equal(Matrix4x4 a, Matrix4x4 b)
         {

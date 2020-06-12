@@ -1,0 +1,1160 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+{EndLicense}
+
+[Fact]
+public void Vector3CopyToTest()
+{
+    Vector3 v1 = new Vector3(2.0{ScalarSuffix}, 3.0{ScalarSuffix}, 3.3{ScalarSuffix});
+
+    var a = new {ScalarType}[4];
+    var b = new {ScalarType}[3];
+
+    Assert.Throws<ArgumentOutOfRangeException>(() => v1.CopyTo(a, -1));
+    Assert.Throws<ArgumentOutOfRangeException>(() => v1.CopyTo(a, a.Length));
+
+    v1.CopyTo(a, 1);
+    v1.CopyTo(b);
+    Assert.Equal(0.0{ScalarSuffix}, a[0]);
+    Assert.Equal(2.0{ScalarSuffix}, a[1]);
+    Assert.Equal(3.0{ScalarSuffix}, a[2]);
+    Assert.Equal(3.3{ScalarSuffix}, a[3]);
+    Assert.Equal(2.0{ScalarSuffix}, b[0]);
+    Assert.Equal(3.0{ScalarSuffix}, b[1]);
+    Assert.Equal(3.3{ScalarSuffix}, b[2]);
+}
+
+[Fact]
+public void Vector3GetHashCodeTest()
+{
+    Vector3 v1 = new Vector3(2.0{ScalarSuffix}, 3.0{ScalarSuffix}, 3.3{ScalarSuffix});
+    Vector3 v2 = new Vector3(2.0{ScalarSuffix}, 3.0{ScalarSuffix}, 3.3{ScalarSuffix});
+    Vector3 v3 = new Vector3(2.0{ScalarSuffix}, 3.0{ScalarSuffix}, 3.3{ScalarSuffix});
+    Vector3 v5 = new Vector3(3.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.3{ScalarSuffix});
+    Assert.Equal(v1.GetHashCode(), v1.GetHashCode());
+    Assert.Equal(v1.GetHashCode(), v2.GetHashCode());
+    Assert.NotEqual(v1.GetHashCode(), v5.GetHashCode());
+    Assert.Equal(v1.GetHashCode(), v3.GetHashCode());
+    Vector3 v4 = new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 v6 = new Vector3(1.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 v7 = new Vector3(0.0{ScalarSuffix}, 1.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 v8 = new Vector3(1.0{ScalarSuffix}, 1.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    Vector3 v9 = new Vector3(1.0{ScalarSuffix}, 1.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Assert.NotEqual(v4.GetHashCode(), v6.GetHashCode());
+    Assert.NotEqual(v4.GetHashCode(), v7.GetHashCode());
+    Assert.NotEqual(v4.GetHashCode(), v8.GetHashCode());
+    Assert.NotEqual(v7.GetHashCode(), v6.GetHashCode());
+    Assert.NotEqual(v8.GetHashCode(), v6.GetHashCode());
+    Assert.NotEqual(v8.GetHashCode(), v9.GetHashCode());
+    Assert.NotEqual(v7.GetHashCode(), v9.GetHashCode());
+}
+
+[Fact]
+public void Vector3ToStringTest()
+{
+    string separator = CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator;
+    CultureInfo enUsCultureInfo = new CultureInfo("en-US");
+
+    Vector3 v1 = new Vector3(2.0{ScalarSuffix}, 3.0{ScalarSuffix}, 3.3{ScalarSuffix});
+    string v1str = v1.ToString();
+    string expectedv1 = string.Format(CultureInfo.CurrentCulture
+        , "<{1:G}{0} {2:G}{0} {3:G}>"
+        , separator, 2, 3, 3.3);
+    Assert.Equal(expectedv1, v1str);
+
+    string v1strformatted = v1.ToString("c", CultureInfo.CurrentCulture);
+    string expectedv1{ScalarSuffix}ormatted = string.Format(CultureInfo.CurrentCulture
+        , "<{1:c}{0} {2:c}{0} {3:c}>"
+        , separator, 2, 3, 3.3);
+    Assert.Equal(expectedv1{ScalarSuffix}ormatted, v1strformatted);
+
+    string v2strformatted = v1.ToString("c", enUsCultureInfo);
+    string expectedv2{ScalarSuffix}ormatted = string.Format(enUsCultureInfo
+        , "<{1:c}{0} {2:c}{0} {3:c}>"
+        , enUsCultureInfo.NumberFormat.NumberGroupSeparator, 2, 3, 3.3);
+    Assert.Equal(expectedv2{ScalarSuffix}ormatted, v2strformatted);
+
+    string v3strformatted = v1.ToString("c");
+    string expectedv3{ScalarSuffix}ormatted = string.Format(CultureInfo.CurrentCulture
+        , "<{1:c}{0} {2:c}{0} {3:c}>"
+        , separator, 2, 3, 3.3);
+    Assert.Equal(expectedv3{ScalarSuffix}ormatted, v3strformatted);
+}
+
+// A test for Cross (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3CrossTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 b = new Vector3(0.0{ScalarSuffix}, 1.0{ScalarSuffix}, 0.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = Vector3.Cross(a, b);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Cross did not return the expected value.");
+}
+
+// A test for Cross (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+// Cross test of the same vector
+[Fact]
+public void Vector3CrossTest1()
+{
+    Vector3 a = new Vector3(0.0{ScalarSuffix}, 1.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 b = new Vector3(0.0{ScalarSuffix}, 1.0{ScalarSuffix}, 0.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 actual = Vector3.Cross(a, b);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Cross did not return the expected value.");
+}
+
+// A test for Distance (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3DistanceTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    {ScalarType} expected = ({ScalarType})System.Math.Sqrt(27);
+    {ScalarType} actual;
+
+    actual = Vector3.Distance(a, b);
+    Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3{ScalarSuffix}.Distance did not return the expected value.");
+}
+
+// A test for Distance (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+// Distance from the same point
+[Fact]
+public void Vector3DistanceTest1()
+{
+    Vector3 a = new Vector3(1.051{ScalarSuffix}, 2.05{ScalarSuffix}, 3.478{ScalarSuffix});
+    Vector3 b = new Vector3(new Vector2(1.051{ScalarSuffix}, 0.0{ScalarSuffix}), 1);
+    b.Y = 2.05{ScalarSuffix};
+    b.Z = 3.478{ScalarSuffix};
+
+    {ScalarType} actual = Vector3.Distance(a, b);
+    Assert.Equal(0.0{ScalarSuffix}, actual);
+}
+
+// A test for DistanceSquared (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3DistanceSquaredTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    {ScalarType} expected = 27.0{ScalarSuffix};
+    {ScalarType} actual;
+
+    actual = Vector3.DistanceSquared(a, b);
+    Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3{ScalarSuffix}.DistanceSquared did not return the expected value.");
+}
+
+// A test for Dot (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3DotTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    {ScalarType} expected = 32.0{ScalarSuffix};
+    {ScalarType} actual;
+
+    actual = Vector3.Dot(a, b);
+    Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3{ScalarSuffix}.Dot did not return the expected value.");
+}
+
+// A test for Dot (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+// Dot test for perpendicular vector
+[Fact]
+public void Vector3DotTest1()
+{
+    Vector3 a = new Vector3(1.55{ScalarSuffix}, 1.55{ScalarSuffix}, 1);
+    Vector3 b = new Vector3(2.5{ScalarSuffix}, 3, 1.5{ScalarSuffix});
+    Vector3 c = Vector3.Cross(a, b);
+
+    {ScalarType} expected = 0.0{ScalarSuffix};
+    {ScalarType} actual1 = Vector3.Dot(a, c);
+    {ScalarType} actual2 = Vector3.Dot(b, c);
+    Assert.True(MathHelper.EqualScalar(expected, actual1), "Vector3{ScalarSuffix}.Dot did not return the expected value.");
+    Assert.True(MathHelper.EqualScalar(expected, actual2), "Vector3{ScalarSuffix}.Dot did not return the expected value.");
+}
+
+// A test for Length ()
+[Fact]
+public void Vector3LengthTest()
+{
+    Vector2 a = new Vector2(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    {ScalarType} z = 3.0{ScalarSuffix};
+
+    Vector3 target = new Vector3(a, z);
+
+    {ScalarType} expected = ({ScalarType})System.Math.Sqrt(14.0{ScalarSuffix});
+    {ScalarType} actual;
+
+    actual = target.Length();
+    Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3{ScalarSuffix}.Length did not return the expected value.");
+}
+
+// A test for Length ()
+// Length test where length is zero
+[Fact]
+public void Vector3LengthTest1()
+{
+    Vector3 target = new Vector3();
+
+    {ScalarType} expected = 0.0{ScalarSuffix};
+    {ScalarType} actual = target.Length();
+    Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3{ScalarSuffix}.Length did not return the expected value.");
+}
+
+// A test for LengthSquared ()
+[Fact]
+public void Vector3LengthSquaredTest()
+{
+    Vector2 a = new Vector2(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    {ScalarType} z = 3.0{ScalarSuffix};
+
+    Vector3 target = new Vector3(a, z);
+
+    {ScalarType} expected = 14.0{ScalarSuffix};
+    {ScalarType} actual;
+
+    actual = target.LengthSquared();
+    Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3{ScalarSuffix}.LengthSquared did not return the expected value.");
+}
+
+// A test for Min (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3MinTest()
+{
+    Vector3 a = new Vector3(-1.0{ScalarSuffix}, 4.0{ScalarSuffix}, -3.0{ScalarSuffix});
+    Vector3 b = new Vector3(2.0{ScalarSuffix}, 1.0{ScalarSuffix}, -1.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(-1.0{ScalarSuffix}, 1.0{ScalarSuffix}, -3.0{ScalarSuffix});
+    Vector3 actual;
+    actual = Vector3.Min(a, b);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Min did not return the expected value.");
+}
+
+// A test for Max (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3MaxTest()
+{
+    Vector3 a = new Vector3(-1.0{ScalarSuffix}, 4.0{ScalarSuffix}, -3.0{ScalarSuffix});
+    Vector3 b = new Vector3(2.0{ScalarSuffix}, 1.0{ScalarSuffix}, -1.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(2.0{ScalarSuffix}, 4.0{ScalarSuffix}, -1.0{ScalarSuffix});
+    Vector3 actual;
+    actual = Vector3.Max(a, b);
+    Assert.True(MathHelper.Equal(expected, actual), "vector3.Max did not return the expected value.");
+}
+
+[Fact]
+public void Vector3MinMaxCodeCoverageTest()
+{
+    Vector3 min = Vector3.Zero;
+    Vector3 max = Vector3.One;
+    Vector3 actual;
+
+    // Min.
+    actual = Vector3.Min(min, max);
+    Assert.Equal(actual, min);
+
+    actual = Vector3.Min(max, min);
+    Assert.Equal(actual, min);
+
+    // Max.
+    actual = Vector3.Max(min, max);
+    Assert.Equal(actual, max);
+
+    actual = Vector3.Max(max, min);
+    Assert.Equal(actual, max);
+}
+
+// A test for Lerp (Vector3{ScalarSuffix}, Vector3{ScalarSuffix}, {ScalarType})
+[Fact]
+public void Vector3LerpTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    {ScalarType} t = 0.5{ScalarSuffix};
+
+    Vector3 expected = new Vector3(2.5{ScalarSuffix}, 3.5{ScalarSuffix}, 4.5{ScalarSuffix});
+    Vector3 actual;
+
+    actual = Vector3.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp (Vector3{ScalarSuffix}, Vector3{ScalarSuffix}, {ScalarType})
+// Lerp test with factor zero
+[Fact]
+public void Vector3LerpTest1()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    {ScalarType} t = 0.0{ScalarSuffix};
+    Vector3 expected = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 actual = Vector3.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp (Vector3{ScalarSuffix}, Vector3{ScalarSuffix}, {ScalarType})
+// Lerp test with factor one
+[Fact]
+public void Vector3LerpTest2()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    {ScalarType} t = 1.0{ScalarSuffix};
+    Vector3 expected = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+    Vector3 actual = Vector3.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp (Vector3{ScalarSuffix}, Vector3{ScalarSuffix}, {ScalarType})
+// Lerp test with factor > 1
+[Fact]
+public void Vector3LerpTest3()
+{
+    Vector3 a = new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 b = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    {ScalarType} t = 2.0{ScalarSuffix};
+    Vector3 expected = new Vector3(8.0{ScalarSuffix}, 10.0{ScalarSuffix}, 12.0{ScalarSuffix});
+    Vector3 actual = Vector3.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp (Vector3{ScalarSuffix}, Vector3{ScalarSuffix}, {ScalarType})
+// Lerp test with factor < 0
+[Fact]
+public void Vector3LerpTest4()
+{
+    Vector3 a = new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 b = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    {ScalarType} t = -2.0{ScalarSuffix};
+    Vector3 expected = new Vector3(-8.0{ScalarSuffix}, -10.0{ScalarSuffix}, -12.0{ScalarSuffix});
+    Vector3 actual = Vector3.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Lerp did not return the expected value.");
+}
+
+// A test for Lerp (Vector3{ScalarSuffix}, Vector3{ScalarSuffix}, {ScalarType})
+// Lerp test from the same point
+[Fact]
+public void Vector3LerpTest5()
+{
+    Vector3 a = new Vector3(1.68{ScalarSuffix}, 2.34{ScalarSuffix}, 5.43{ScalarSuffix});
+    Vector3 b = a;
+
+    {ScalarType} t = 0.18{ScalarSuffix};
+    Vector3 expected = new Vector3(1.68{ScalarSuffix}, 2.34{ScalarSuffix}, 5.43{ScalarSuffix});
+    Vector3 actual = Vector3.Lerp(a, b, t);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Lerp did not return the expected value.");
+}
+
+// A test for Reflect (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3ReflectTest()
+{
+    Vector3 a = Vector3.Normalize(new Vector3(1.0{ScalarSuffix}, 1.0{ScalarSuffix}, 1.0{ScalarSuffix}));
+
+    // Reflect on XZ plane.
+    Vector3 n = new Vector3(0.0{ScalarSuffix}, 1.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 expected = new Vector3(a.X, -a.Y, a.Z);
+    Vector3 actual = Vector3.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Reflect did not return the expected value.");
+
+    // Reflect on XY plane.
+    n = new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    expected = new Vector3(a.X, a.Y, -a.Z);
+    actual = Vector3.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Reflect did not return the expected value.");
+
+    // Reflect on YZ plane.
+    n = new Vector3(1.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    expected = new Vector3(-a.X, a.Y, a.Z);
+    actual = Vector3.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Reflect did not return the expected value.");
+}
+
+// A test for Reflect (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+// Reflection when normal and source are the same
+[Fact]
+public void Vector3ReflectTest1()
+{
+    Vector3 n = new Vector3(0.45{ScalarSuffix}, 1.28{ScalarSuffix}, 0.86{ScalarSuffix});
+    n = Vector3.Normalize(n);
+    Vector3 a = n;
+
+    Vector3 expected = -n;
+    Vector3 actual = Vector3.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Reflect did not return the expected value.");
+}
+
+// A test for Reflect (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+// Reflection when normal and source are negation
+[Fact]
+public void Vector3ReflectTest2()
+{
+    Vector3 n = new Vector3(0.45{ScalarSuffix}, 1.28{ScalarSuffix}, 0.86{ScalarSuffix});
+    n = Vector3.Normalize(n);
+    Vector3 a = -n;
+
+    Vector3 expected = n;
+    Vector3 actual = Vector3.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Reflect did not return the expected value.");
+}
+
+// A test for Reflect (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+// Reflection when normal and source are perpendicular (a dot n = 0)
+[Fact]
+public void Vector3ReflectTest3()
+{
+    Vector3 n = new Vector3(0.45{ScalarSuffix}, 1.28{ScalarSuffix}, 0.86{ScalarSuffix});
+    Vector3 temp = new Vector3(1.28{ScalarSuffix}, 0.45{ScalarSuffix}, 0.01{ScalarSuffix});
+    // find a perpendicular vector of n
+    Vector3 a = Vector3.Cross(temp, n);
+
+    Vector3 expected = a;
+    Vector3 actual = Vector3.Reflect(a, n);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Reflect did not return the expected value.");
+}
+
+// A test for Transform(Vector3{ScalarSuffix}, Matrix4x4)
+[Fact]
+public void Vector3TransformTest()
+{
+    Vector3 v = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Matrix4x4 m =
+        Matrix4x4.CreateRotationX(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+        Matrix4x4.CreateRotationY(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+        Matrix4x4.CreateRotationZ(MathHelper.ToRadians(30.0{ScalarSuffix}));
+    m.M41 = 10.0{ScalarSuffix};
+    m.M42 = 20.0{ScalarSuffix};
+    m.M43 = 30.0{ScalarSuffix};
+
+    Vector3 expected = new Vector3(12.191987{ScalarSuffix}, 21.533493{ScalarSuffix}, 32.616024{ScalarSuffix});
+    Vector3 actual;
+
+    actual = Vector3.Transform(v, m);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Transform did not return the expected value.");
+}
+
+// A test for Clamp (Vector3{ScalarSuffix}, Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3ClampTest()
+{
+    Vector3 a = new Vector3(0.5{ScalarSuffix}, 0.3{ScalarSuffix}, 0.33{ScalarSuffix});
+    Vector3 min = new Vector3(0.0{ScalarSuffix}, 0.1{ScalarSuffix}, 0.13{ScalarSuffix});
+    Vector3 max = new Vector3(1.0{ScalarSuffix}, 1.1{ScalarSuffix}, 1.13{ScalarSuffix});
+
+    // Normal case.
+    // Case N1: specified value is in the range.
+    Vector3 expected = new Vector3(0.5{ScalarSuffix}, 0.3{ScalarSuffix}, 0.33{ScalarSuffix});
+    Vector3 actual = Vector3.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Clamp did not return the expected value.");
+
+    // Normal case.
+    // Case N2: specified value is bigger than max value.
+    a = new Vector3(2.0{ScalarSuffix}, 3.0{ScalarSuffix}, 4.0{ScalarSuffix});
+    expected = max;
+    actual = Vector3.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Clamp did not return the expected value.");
+
+    // Case N3: specified value is smaller than max value.
+    a = new Vector3(-2.0{ScalarSuffix}, -3.0{ScalarSuffix}, -4.0{ScalarSuffix});
+    expected = min;
+    actual = Vector3.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Clamp did not return the expected value.");
+
+    // Case N4: combination case.
+    a = new Vector3(-2.0{ScalarSuffix}, 0.5{ScalarSuffix}, 4.0{ScalarSuffix});
+    expected = new Vector3(min.X, a.Y, max.Z);
+    actual = Vector3.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Clamp did not return the expected value.");
+
+    // User specified min value is bigger than max value.
+    max = new Vector3(0.0{ScalarSuffix}, 0.1{ScalarSuffix}, 0.13{ScalarSuffix});
+    min = new Vector3(1.0{ScalarSuffix}, 1.1{ScalarSuffix}, 1.13{ScalarSuffix});
+
+    // Case W1: specified value is in the range.
+    a = new Vector3(0.5{ScalarSuffix}, 0.3{ScalarSuffix}, 0.33{ScalarSuffix});
+    expected = max;
+    actual = Vector3.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Clamp did not return the expected value.");
+
+    // Normal case.
+    // Case W2: specified value is bigger than max and min value.
+    a = new Vector3(2.0{ScalarSuffix}, 3.0{ScalarSuffix}, 4.0{ScalarSuffix});
+    expected = max;
+    actual = Vector3.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Clamp did not return the expected value.");
+
+    // Case W3: specified value is smaller than min and max value.
+    a = new Vector3(-2.0{ScalarSuffix}, -3.0{ScalarSuffix}, -4.0{ScalarSuffix});
+    expected = max;
+    actual = Vector3.Clamp(a, min, max);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Clamp did not return the expected value.");
+}
+
+// A test for TransformNormal (Vector3{ScalarSuffix}, Matrix4x4)
+[Fact]
+public void Vector3TransformNormalTest()
+{
+    Vector3 v = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Matrix4x4 m =
+        Matrix4x4.CreateRotationX(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+        Matrix4x4.CreateRotationY(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+        Matrix4x4.CreateRotationZ(MathHelper.ToRadians(30.0{ScalarSuffix}));
+    m.M41 = 10.0{ScalarSuffix};
+    m.M42 = 20.0{ScalarSuffix};
+    m.M43 = 30.0{ScalarSuffix};
+
+    Vector3 expected = new Vector3(2.19198728{ScalarSuffix}, 1.53349364{ScalarSuffix}, 2.61602545{ScalarSuffix});
+    Vector3 actual;
+
+    actual = Vector3.TransformNormal(v, m);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.TransformNormal did not return the expected value.");
+}
+
+// A test for Transform (Vector3{ScalarSuffix}, Quaternion)
+[Fact]
+public void Vector3TransformByQuaternionTest()
+{
+    Vector3 v = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    Matrix4x4 m =
+        Matrix4x4.CreateRotationX(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+        Matrix4x4.CreateRotationY(MathHelper.ToRadians(30.0{ScalarSuffix})) *
+        Matrix4x4.CreateRotationZ(MathHelper.ToRadians(30.0{ScalarSuffix}));
+    Quaternion q = Quaternion.CreateFromRotationMatrix(m);
+
+    Vector3 expected = Vector3.Transform(v, m);
+    Vector3 actual = Vector3.Transform(v, q);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Transform did not return the expected value.");
+}
+
+// A test for Transform (Vector3{ScalarSuffix}, Quaternion)
+// Transform vector3 with zero quaternion
+[Fact]
+public void Vector3TransformByQuaternionTest1()
+{
+    Vector3 v = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Quaternion q = new Quaternion();
+    Vector3 expected = v;
+
+    Vector3 actual = Vector3.Transform(v, q);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Transform did not return the expected value.");
+}
+
+// A test for Transform (Vector3{ScalarSuffix}, Quaternion)
+// Transform vector3 with identity quaternion
+[Fact]
+public void Vector3TransformByQuaternionTest2()
+{
+    Vector3 v = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Quaternion q = Quaternion.Identity;
+    Vector3 expected = v;
+
+    Vector3 actual = Vector3.Transform(v, q);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Transform did not return the expected value.");
+}
+
+// A test for Normalize (Vector3{ScalarSuffix})
+[Fact]
+public void Vector3NormalizeTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(
+        0.26726124191242438468455348087975{ScalarSuffix},
+        0.53452248382484876936910696175951{ScalarSuffix},
+        0.80178372573727315405366044263926{ScalarSuffix});
+    Vector3 actual;
+
+    actual = Vector3.Normalize(a);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Normalize did not return the expected value.");
+}
+
+// A test for Normalize (Vector3{ScalarSuffix})
+// Normalize vector of length one
+[Fact]
+public void Vector3NormalizeTest1()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(1.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 actual = Vector3.Normalize(a);
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.Normalize did not return the expected value.");
+}
+
+// A test for Normalize (Vector3{ScalarSuffix})
+// Normalize vector of length zero
+[Fact]
+public void Vector3NormalizeTest2()
+{
+    Vector3 a = new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 actual = Vector3.Normalize(a);
+    Assert.True({ScalarType}.IsNaN(actual.X) && {ScalarType}.IsNaN(actual.Y) && {ScalarType}.IsNaN(actual.Z), "Vector3{ScalarSuffix}.Normalize did not return the expected value.");
+}
+
+// A test for operator - (Vector3{ScalarSuffix})
+[Fact]
+public void Vector3UnaryNegationTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(-1.0{ScalarSuffix}, -2.0{ScalarSuffix}, -3.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = -a;
+
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.operator - did not return the expected value.");
+}
+
+[Fact]
+public void Vector3UnaryNegationTest1()
+{
+    Vector3 a = -new Vector3({ScalarType}.NaN, {ScalarType}.PositiveInfinity, {ScalarType}.NegativeInfinity);
+    Vector3 b = -new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Assert.Equal({ScalarType}.NaN, a.X);
+    Assert.Equal({ScalarType}.NegativeInfinity, a.Y);
+    Assert.Equal({ScalarType}.PositiveInfinity, a.Z);
+    Assert.Equal(0.0{ScalarSuffix}, b.X);
+    Assert.Equal(0.0{ScalarSuffix}, b.Y);
+    Assert.Equal(0.0{ScalarSuffix}, b.Z);
+}
+
+// A test for operator - (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3SubtractionTest()
+{
+    Vector3 a = new Vector3(4.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    Vector3 b = new Vector3(1.0{ScalarSuffix}, 5.0{ScalarSuffix}, 7.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(3.0{ScalarSuffix}, -3.0{ScalarSuffix}, -4.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = a - b;
+
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.operator - did not return the expected value.");
+}
+
+// A test for operator * (Vector3{ScalarSuffix}, {ScalarType})
+[Fact]
+public void Vector3MultiplyOperatorTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    {ScalarType} factor = 2.0{ScalarSuffix};
+
+    Vector3 expected = new Vector3(2.0{ScalarSuffix}, 4.0{ScalarSuffix}, 6.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = a * factor;
+
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.operator * did not return the expected value.");
+}
+
+// A test for operator * ({ScalarType}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3MultiplyOperatorTest2()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    const {ScalarType} factor = 2.0{ScalarSuffix};
+
+    Vector3 expected = new Vector3(2.0{ScalarSuffix}, 4.0{ScalarSuffix}, 6.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = factor * a;
+
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.operator * did not return the expected value.");
+}
+
+// A test for operator * (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3MultiplyOperatorTest3()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    Vector3 b = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(4.0{ScalarSuffix}, 10.0{ScalarSuffix}, 18.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = a * b;
+
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.operator * did not return the expected value.");
+}
+
+// A test for operator / (Vector3{ScalarSuffix}, {ScalarType})
+[Fact]
+public void Vector3DivisionTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    {ScalarType} div = 2.0{ScalarSuffix};
+
+    Vector3 expected = new Vector3(0.5{ScalarSuffix}, 1.0{ScalarSuffix}, 1.5{ScalarSuffix});
+    Vector3 actual;
+
+    actual = a / div;
+
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.operator / did not return the expected value.");
+}
+
+// A test for operator / (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3DivisionTest1()
+{
+    Vector3 a = new Vector3(4.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    Vector3 b = new Vector3(1.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(4.0{ScalarSuffix}, 0.4{ScalarSuffix}, 0.5{ScalarSuffix});
+    Vector3 actual;
+
+    actual = a / b;
+
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.operator / did not return the expected value.");
+}
+
+// A test for operator / (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+// Divide by zero
+[Fact]
+public void Vector3DivisionTest2()
+{
+    Vector3 a = new Vector3(-2.0{ScalarSuffix}, 3.0{ScalarSuffix}, {ScalarType}.MaxValue);
+
+    {ScalarType} div = 0.0{ScalarSuffix};
+
+    Vector3 actual = a / div;
+
+    Assert.True({ScalarType}.IsNegativeInfinity(actual.X), "Vector3{ScalarSuffix}.operator / did not return the expected value.");
+    Assert.True({ScalarType}.IsPositiveInfinity(actual.Y), "Vector3{ScalarSuffix}.operator / did not return the expected value.");
+    Assert.True({ScalarType}.IsPositiveInfinity(actual.Z), "Vector3{ScalarSuffix}.operator / did not return the expected value.");
+}
+
+// A test for operator / (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+// Divide by zero
+[Fact]
+public void Vector3DivisionTest3()
+{
+    Vector3 a = new Vector3(0.047{ScalarSuffix}, -3.0{ScalarSuffix}, {ScalarType}.NegativeInfinity);
+    Vector3 b = new Vector3();
+
+    Vector3 actual = a / b;
+
+    Assert.True({ScalarType}.IsPositiveInfinity(actual.X), "Vector3{ScalarSuffix}.operator / did not return the expected value.");
+    Assert.True({ScalarType}.IsNegativeInfinity(actual.Y), "Vector3{ScalarSuffix}.operator / did not return the expected value.");
+    Assert.True({ScalarType}.IsNegativeInfinity(actual.Z), "Vector3{ScalarSuffix}.operator / did not return the expected value.");
+}
+
+// A test for operator + (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3AdditionTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(4.0{ScalarSuffix}, 5.0{ScalarSuffix}, 6.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(5.0{ScalarSuffix}, 7.0{ScalarSuffix}, 9.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = a + b;
+
+    Assert.True(MathHelper.Equal(expected, actual), "Vector3{ScalarSuffix}.operator + did not return the expected value.");
+}
+
+// A test for Vector3{ScalarSuffix} ({ScalarType}, {ScalarType}, {ScalarType})
+[Fact]
+public void Vector3ConstructorTest()
+{
+    {ScalarType} x = 1.0{ScalarSuffix};
+    {ScalarType} y = 2.0{ScalarSuffix};
+    {ScalarType} z = 3.0{ScalarSuffix};
+
+    Vector3 target = new Vector3(x, y, z);
+    Assert.True(MathHelper.Equal(target.X, x) && MathHelper.Equal(target.Y, y) && MathHelper.Equal(target.Z, z), "Vector3{ScalarSuffix}.constructor (x,y,z) did not return the expected value.");
+}
+
+// A test for Vector3{ScalarSuffix} (Vector2{ScalarSuffix}, {ScalarType})
+[Fact]
+public void Vector3ConstructorTest1()
+{
+    Vector2 a = new Vector2(1.0{ScalarSuffix}, 2.0{ScalarSuffix});
+
+    {ScalarType} z = 3.0{ScalarSuffix};
+
+    Vector3 target = new Vector3(a, z);
+    Assert.True(MathHelper.Equal(target.X, a.X) && MathHelper.Equal(target.Y, a.Y) && MathHelper.Equal(target.Z, z), "Vector3{ScalarSuffix}.constructor (Vector2{ScalarSuffix},z) did not return the expected value.");
+}
+
+// A test for Vector3{ScalarSuffix} ()
+// Constructor with no parameter
+[Fact]
+public void Vector3ConstructorTest3()
+{
+    Vector3 a = new Vector3();
+
+    Assert.Equal(0.0{ScalarSuffix}, a.X);
+    Assert.Equal(0.0{ScalarSuffix}, a.Y);
+    Assert.Equal(0.0{ScalarSuffix}, a.Z);
+}
+
+// A test for Vector2{ScalarSuffix} ({ScalarType}, {ScalarType})
+// Constructor with special {ScalarType}ing values
+[Fact]
+public void Vector3ConstructorTest4()
+{
+    Vector3 target = new Vector3({ScalarType}.NaN, {ScalarType}.MaxValue, {ScalarType}.PositiveInfinity);
+
+    Assert.True({ScalarType}.IsNaN(target.X), "Vector3{ScalarSuffix}.constructor (Vector3{ScalarSuffix}) did not return the expected value.");
+    Assert.True({ScalarType}.Equals({ScalarType}.MaxValue, target.Y), "Vector3{ScalarSuffix}.constructor (Vector3{ScalarSuffix}) did not return the expected value.");
+    Assert.True({ScalarType}.IsPositiveInfinity(target.Z), "Vector3{ScalarSuffix}.constructor (Vector3{ScalarSuffix}) did not return the expected value.");
+}
+
+// A test for Add (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3AddTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(5.0{ScalarSuffix}, 6.0{ScalarSuffix}, 7.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(6.0{ScalarSuffix}, 8.0{ScalarSuffix}, 10.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = Vector3.Add(a, b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Divide (Vector3{ScalarSuffix}, {ScalarType})
+[Fact]
+public void Vector3DivideTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    {ScalarType} div = 2.0{ScalarSuffix};
+    Vector3 expected = new Vector3(0.5{ScalarSuffix}, 1.0{ScalarSuffix}, 1.5{ScalarSuffix});
+    Vector3 actual;
+    actual = Vector3.Divide(a, div);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Divide (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3DivideTest1()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 6.0{ScalarSuffix}, 7.0{ScalarSuffix});
+    Vector3 b = new Vector3(5.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(1.0{ScalarSuffix} / 5.0{ScalarSuffix}, 6.0{ScalarSuffix} / 2.0{ScalarSuffix}, 7.0{ScalarSuffix} / 3.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = Vector3.Divide(a, b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Equals (object)
+[Fact]
+public void Vector3EqualsTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    // case 1: compare between same values
+    object obj = b;
+
+    bool expected = true;
+    bool actual = a.Equals(obj);
+    Assert.Equal(expected, actual);
+
+    // case 2: compare between different values
+    b = new {TestType}(b.X, 10);
+    obj = b;
+    expected = false;
+    actual = a.Equals(obj);
+    Assert.Equal(expected, actual);
+
+    // case 3: compare between different types.
+    obj = new Quaternion();
+    expected = false;
+    actual = a.Equals(obj);
+    Assert.Equal(expected, actual);
+
+    // case 3: compare against null.
+    obj = null;
+    expected = false;
+    actual = a.Equals(obj);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Multiply (Vector3{ScalarSuffix}, {ScalarType})
+[Fact]
+public void Vector3MultiplyTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    const {ScalarType} factor = 2.0{ScalarSuffix};
+    Vector3 expected = new Vector3(2.0{ScalarSuffix}, 4.0{ScalarSuffix}, 6.0{ScalarSuffix});
+    Vector3 actual = Vector3.Multiply(a, factor);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Multiply ({ScalarType}, Vector3{ScalarSuffix})
+[Fact]
+public static void Vector3MultiplyTest2()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    const {ScalarType} factor = 2.0{ScalarSuffix};
+    Vector3 expected = new Vector3(2.0{ScalarSuffix}, 4.0{ScalarSuffix}, 6.0{ScalarSuffix});
+    Vector3 actual = Vector3.Multiply(factor, a);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Multiply (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3MultiplyTest3()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(5.0{ScalarSuffix}, 6.0{ScalarSuffix}, 7.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(5.0{ScalarSuffix}, 12.0{ScalarSuffix}, 21.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = Vector3.Multiply(a, b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Negate (Vector3{ScalarSuffix})
+[Fact]
+public void Vector3NegateTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(-1.0{ScalarSuffix}, -2.0{ScalarSuffix}, -3.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = Vector3.Negate(a);
+    Assert.Equal(expected, actual);
+}
+
+// A test for operator != (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3InequalityTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    // case 1: compare between same values
+    bool expected = false;
+    bool actual = a != b;
+    Assert.Equal(expected, actual);
+
+    // case 2: compare between different values
+    b = new {TestType}(b.X, 10);
+    expected = true;
+    actual = a != b;
+    Assert.Equal(expected, actual);
+}
+
+// A test for operator == (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3EqualityTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    // case 1: compare between same values
+    bool expected = true;
+    bool actual = a == b;
+    Assert.Equal(expected, actual);
+
+    // case 2: compare between different values
+    b = new {TestType}(b.X, 10);
+    expected = false;
+    actual = a == b;
+    Assert.Equal(expected, actual);
+}
+
+// A test for Subtract (Vector3{ScalarSuffix}, Vector3{ScalarSuffix})
+[Fact]
+public void Vector3SubtractTest()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 6.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(5.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    Vector3 expected = new Vector3(-4.0{ScalarSuffix}, 4.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Vector3 actual;
+
+    actual = Vector3.Subtract(a, b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for One
+[Fact]
+public void Vector3OneTest()
+{
+    Vector3 val = new Vector3(1.0{ScalarSuffix}, 1.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    Assert.Equal(val, Vector3.One);
+}
+
+// A test for UnitX
+[Fact]
+public void Vector3UnitXTest()
+{
+    Vector3 val = new Vector3(1.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Assert.Equal(val, Vector3.UnitX);
+}
+
+// A test for UnitY
+[Fact]
+public void Vector3UnitYTest()
+{
+    Vector3 val = new Vector3(0.0{ScalarSuffix}, 1.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Assert.Equal(val, Vector3.UnitY);
+}
+
+// A test for UnitZ
+[Fact]
+public void Vector3UnitZTest()
+{
+    Vector3 val = new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 1.0{ScalarSuffix});
+    Assert.Equal(val, Vector3.UnitZ);
+}
+
+// A test for Zero
+[Fact]
+public void Vector3ZeroTest()
+{
+    Vector3 val = new Vector3(0.0{ScalarSuffix}, 0.0{ScalarSuffix}, 0.0{ScalarSuffix});
+    Assert.Equal(val, Vector3.Zero);
+}
+
+// A test for Equals (Vector3{ScalarSuffix})
+[Fact]
+public void Vector3EqualsTest1()
+{
+    Vector3 a = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+    Vector3 b = new Vector3(1.0{ScalarSuffix}, 2.0{ScalarSuffix}, 3.0{ScalarSuffix});
+
+    // case 1: compare between same values
+    bool expected = true;
+    bool actual = a.Equals(b);
+    Assert.Equal(expected, actual);
+
+    // case 2: compare between different values
+    b = new {TestType}(b.X, 10);
+    expected = false;
+    actual = a.Equals(b);
+    Assert.Equal(expected, actual);
+}
+
+// A test for Vector3{ScalarSuffix} ({ScalarType})
+[Fact]
+public void Vector3ConstructorTest5()
+{
+    {ScalarType} value = 1.0{ScalarSuffix};
+    Vector3 target = new Vector3(value);
+
+    Vector3 expected = new Vector3(value, value, value);
+    Assert.Equal(expected, target);
+
+    value = 2.0{ScalarSuffix};
+    target = new Vector3(value);
+    expected = new Vector3(value, value, value);
+    Assert.Equal(expected, target);
+}
+
+// A test for Vector3{ScalarSuffix} comparison involving NaN values
+[Fact]
+public void Vector3EqualsNanTest()
+{
+    Vector3 a = new Vector3({ScalarType}.NaN, 0, 0);
+    Vector3 b = new Vector3(0, {ScalarType}.NaN, 0);
+    Vector3 c = new Vector3(0, 0, {ScalarType}.NaN);
+
+    Assert.False(a == Vector3.Zero);
+    Assert.False(b == Vector3.Zero);
+    Assert.False(c == Vector3.Zero);
+
+    Assert.True(a != Vector3.Zero);
+    Assert.True(b != Vector3.Zero);
+    Assert.True(c != Vector3.Zero);
+
+    Assert.False(a.Equals(Vector3.Zero));
+    Assert.False(b.Equals(Vector3.Zero));
+    Assert.False(c.Equals(Vector3.Zero));
+
+    // Counterintuitive result - IEEE rules for NaN comparison are weird!
+    Assert.False(a.Equals(a));
+    Assert.False(b.Equals(b));
+    Assert.False(c.Equals(c));
+}
+
+[Fact]
+public void Vector3AbsTest()
+{
+    Vector3 v1 = new Vector3(-2.5{ScalarSuffix}, 2.0{ScalarSuffix}, 0.5{ScalarSuffix});
+    Vector3 v3 = Vector3.Abs(new Vector3(0.0{ScalarSuffix}, {ScalarType}.NegativeInfinity, {ScalarType}.NaN));
+    Vector3 v = Vector3.Abs(v1);
+    Assert.Equal(2.5{ScalarSuffix}, v.X);
+    Assert.Equal(2.0{ScalarSuffix}, v.Y);
+    Assert.Equal(0.5{ScalarSuffix}, v.Z);
+    Assert.Equal(0.0{ScalarSuffix}, v3.X);
+    Assert.Equal({ScalarType}.PositiveInfinity, v3.Y);
+    Assert.Equal({ScalarType}.NaN, v3.Z);
+}
+
+[Fact]
+public void Vector3SqrtTest()
+{
+    Vector3 a = new Vector3(-2.5{ScalarSuffix}, 2.0{ScalarSuffix}, 0.5{ScalarSuffix});
+    Vector3 b = new Vector3(5.5{ScalarSuffix}, 4.5{ScalarSuffix}, 16.5{ScalarSuffix});
+    Assert.Equal(2, (int)Vector3.SquareRoot(b).X);
+    Assert.Equal(2, (int)Vector3.SquareRoot(b).Y);
+    Assert.Equal(4, (int)Vector3.SquareRoot(b).Z);
+    Assert.Equal({ScalarType}.NaN, Vector3.SquareRoot(a).X);
+}
+
+// A test to make sure these types are blittable directly into GPU buffer memory layouts
+[Fact]
+public unsafe void Vector3SizeofTest()
+{
+    Assert.Equal(12, sizeof(Vector3));
+    Assert.Equal(24, sizeof(Vector3_2x));
+    Assert.Equal(16, sizeof(Vector3Plus{ScalarType}));
+    Assert.Equal(32, sizeof(Vector3Plus{ScalarType}_2x));
+}
+
+[StructLayout(LayoutKind.Sequential)]
+struct Vector3_2x
+{
+    private Vector3 _a;
+    private Vector3 _b;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+struct Vector3Plus{ScalarType}
+{
+    private Vector3 _v;
+    private {ScalarType} _f;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+struct Vector3Plus{ScalarType}_2x
+{
+    private Vector3Plus{ScalarType} _a;
+    private Vector3Plus{ScalarType} _b;
+}
+{GenericSpecific}
