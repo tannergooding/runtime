@@ -16,16 +16,10 @@
   <ItemGroup>
     <ILLinkSubstitutionsXmls Include="$(ILLinkSharedDirectory)ILLink.Substitutions.Shared.xml" />
     <!-- TODO: Enable these substitutions files for more platforms once https://github.com/mono/linker/issues/1260 is fixed -->
-    <ILLinkSubstitutionsXmls Include="$(ILLinkSharedDirectory)ILLink.Substitutions.LittleEndian.xml"
-                             Condition="'$(Platform)' == 'wasm'" />
-
-    <ILLinkSubstitutionsXmls Include="$(ILLinkSharedDirectory)ILLink.Substitutions.32bit.xml"
-                             Condition="'$(Platform)' == 'wasm'" />
-
-    <ILLinkSubstitutionsXmls Include="$(ILLinkSharedDirectory)ILLink.Substitutions.NoArmIntrinsics.xml"
-                             Condition="'$(Platform)' == 'wasm'" />
-    <ILLinkSubstitutionsXmls Include="$(ILLinkSharedDirectory)ILLink.Substitutions.NoX86Intrinsics.xml"
-                             Condition="'$(Platform)' == 'wasm'" />
+    <ILLinkSubstitutionsXmls Include="$(ILLinkSharedDirectory)ILLink.Substitutions.LittleEndian.xml" Condition="'$(Platform)' == 'wasm'" />
+    <ILLinkSubstitutionsXmls Include="$(ILLinkSharedDirectory)ILLink.Substitutions.32bit.xml" Condition="'$(Platform)' == 'wasm'" />
+    <ILLinkSubstitutionsXmls Include="$(ILLinkSharedDirectory)ILLink.Substitutions.NoArmIntrinsics.xml" Condition="'$(Platform)' == 'wasm'" />
+    <ILLinkSubstitutionsXmls Include="$(ILLinkSharedDirectory)ILLink.Substitutions.NoX86Intrinsics.xml" Condition="'$(Platform)' == 'wasm'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Internal\IO\File.cs" />
@@ -447,6 +441,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\Vector2_Intrinsics.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\Vector3.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\Vector3_Intrinsics.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\Vector3`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\Vector4.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\Vector4_Intrinsics.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\VectorMath.cs" />
