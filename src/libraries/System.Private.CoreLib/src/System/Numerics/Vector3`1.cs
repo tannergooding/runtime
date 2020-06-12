@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace System.Numerics
 {
-    public class Vector3<T> : IEquatable<Vector3<T>>, IFormattable
+    public struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable
         where T : struct
     {
         public T X { get; }
