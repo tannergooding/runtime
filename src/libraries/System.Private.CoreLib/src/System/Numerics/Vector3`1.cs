@@ -665,8 +665,8 @@ namespace System.Numerics
         public readonly T LengthSquared() => Dot(this, this);
 
         public readonly override string ToString() => ToString("G");
-        public readonly string ToString(string format) => ToString(format, CultureInfo.CurrentCulture);
-        public readonly string ToString(string format, IFormatProvider formatProvider)
+        public readonly string ToString(string? format) => ToString(format, CultureInfo.CurrentCulture);
+        public readonly string ToString(string? format, IFormatProvider? formatProvider)
         {
             var sb = new StringBuilder();
             string separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
