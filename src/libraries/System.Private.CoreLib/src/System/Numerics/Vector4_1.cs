@@ -65,40 +65,129 @@ namespace System.Numerics
             W = value[3];
         }
 
-        static Vector4()
-        {
-            ThrowForUnsupportedVectorBaseType();
-
-            T one = default;
-            T zero = default;
-            if (typeof(T) == typeof(float))
-            {
-                one = (T)(object)1.0f;
-            }
-            else if (typeof(T) == typeof(double))
-            {
-                one = (T)(object)1.0d;
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-
-            One = new Vector4<T>(one);
-            UnitX = new Vector4<T>(one, zero, zero, zero);
-            UnitY = new Vector4<T>(zero, one, zero, zero);
-            UnitZ = new Vector4<T>(zero, zero, one, zero);
-            UnitW = new Vector4<T>(zero, zero, zero, one);
-            Zero = new Vector4<T>(zero);
-        }
-
         // Static Properties
-        public static Vector4<T> One { get; }
-        public static Vector4<T> UnitX { get; }
-        public static Vector4<T> UnitY { get; }
-        public static Vector4<T> UnitZ { get; }
-        public static Vector4<T> UnitW { get; }
-        public static Vector4<T> Zero { get; }
+        public static Vector4<T> One
+        {
+            get
+            {
+                ThrowForUnsupportedVectorBaseType();
+                T one = default;
+                if (typeof(T) == typeof(float))
+                {
+                    one = (T)(object)1.0f;
+                }
+                else if (typeof(T) == typeof(double))
+                {
+                    one = (T)(object)1.0d;
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+                return new Vector4<T>(one, one, one, one);
+            }
+        }
+        public static Vector4<T> UnitX
+        {
+            get
+            {
+                ThrowForUnsupportedVectorBaseType();
+                T one = default;
+                T zero = default;
+                if (typeof(T) == typeof(float))
+                {
+                    one = (T)(object)1.0f;
+                }
+                else if (typeof(T) == typeof(double))
+                {
+                    one = (T)(object)1.0d;
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+                return new Vector4<T>(one, zero, zero, zero);
+            }
+        }
+        public static Vector4<T> UnitY
+        {
+            get
+            {
+                ThrowForUnsupportedVectorBaseType();
+                T one = default;
+                T zero = default;
+                if (typeof(T) == typeof(float))
+                {
+                    one = (T)(object)1.0f;
+                }
+                else if (typeof(T) == typeof(double))
+                {
+                    one = (T)(object)1.0d;
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+                return new Vector4<T>(zero, one, zero, zero);
+            }
+        }
+        public static Vector4<T> UnitZ
+        {
+            get
+            {
+                ThrowForUnsupportedVectorBaseType();
+                T one = default;
+                T zero = default;
+                if (typeof(T) == typeof(float))
+                {
+                    one = (T)(object)1.0f;
+                }
+                else if (typeof(T) == typeof(double))
+                {
+                    one = (T)(object)1.0d;
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+                return new Vector4<T>(zero, zero, one, zero);
+            }
+        }
+        public static Vector4<T> UnitW
+        {
+            get
+            {
+                ThrowForUnsupportedVectorBaseType();
+                T one = default;
+                T zero = default;
+                if (typeof(T) == typeof(float))
+                {
+                    one = (T)(object)1.0f;
+                }
+                else if (typeof(T) == typeof(double))
+                {
+                    one = (T)(object)1.0d;
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+                return new Vector4<T>(zero, zero, zero, one);
+            }
+        }
+        public static Vector4<T> Zero
+        {
+            get
+            {
+                ThrowForUnsupportedVectorBaseType();
+                return default;
+            }
+        }
 
         // With methods
         public Vector4<T> WithX(T x) => new Vector4<T>(x, Y, Z, W);
