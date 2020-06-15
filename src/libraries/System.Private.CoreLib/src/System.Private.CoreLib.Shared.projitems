@@ -444,6 +444,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\Vector3`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\Vector4.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\Vector4_Intrinsics.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\Vector4_1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Numerics\VectorMath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Object.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\ObjectDisposedException.cs" />
