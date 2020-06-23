@@ -1184,6 +1184,5 @@ namespace System.Numerics.Tests
 		    private Vector2PlusSingle _a;
 		    private Vector2PlusSingle _b;
 		}
-		
     }
 }
