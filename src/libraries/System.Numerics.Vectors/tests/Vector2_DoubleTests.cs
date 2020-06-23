@@ -617,8 +617,6 @@ namespace System.Numerics.Tests
 		    Assert.True(MathHelper.Equal(expected, actual), "Vector2<double>.operator - did not return the expected value.");
 		}
 
-
-
 		// A test for operator - (Vector2<double>)
 		// Negate test with special Double value
 		[Fact]
@@ -1178,34 +1176,35 @@ namespace System.Numerics.Tests
 		    private Vector2<double>PlusDouble _a;
 		    private Vector2<double>PlusDouble _b;
 		}
+
 		[Fact]
-public void SetFieldsTest()
-{
-    Vector2<double> v3 = new Vector2<double>(4f, 5f);
-    v3 = v3.WithX(1.0d);
-    v3 = v3.WithY(2.0d);
-    Assert.Equal(1.0f, v3.X);
-    Assert.Equal(2.0f, v3.Y);
-    Vector2<double> v4 = v3;
-    v4 = v4.WithY(0.5d);
-    Assert.Equal(1.0f, v4.X);
-    Assert.Equal(0.5f, v4.Y);
-    Assert.Equal(2.0f, v3.Y);
-}
+		public void SetFieldsTest()
+		{
+			Vector2<double> v3 = new Vector2<double>(4f, 5f);
+			v3 = v3.WithX(1.0d);
+			v3 = v3.WithY(2.0d);
+			Assert.Equal(1.0f, v3.X);
+			Assert.Equal(2.0f, v3.Y);
+			Vector2<double> v4 = v3;
+			v4 = v4.WithY(0.5d);
+			Assert.Equal(1.0f, v4.X);
+			Assert.Equal(0.5f, v4.Y);
+			Assert.Equal(2.0f, v3.Y);
+		}
 
-[Fact]
-public void EmbeddedVectorSetFields()
-{
-    EmbeddedVectorObject evo = new EmbeddedVectorObject();
-    evo.FieldVector = evo.FieldVector.WithX(5.0d);
-    evo.FieldVector = evo.FieldVector.WithY(5.0d);
-    Assert.Equal(5.0f, evo.FieldVector.X);
-    Assert.Equal(5.0f, evo.FieldVector.Y);
-}
+		[Fact]
+		public void EmbeddedVectorSetFields()
+		{
+			EmbeddedVectorObject evo = new EmbeddedVectorObject();
+			evo.FieldVector = evo.FieldVector.WithX(5.0d);
+			evo.FieldVector = evo.FieldVector.WithY(5.0d);
+			Assert.Equal(5.0f, evo.FieldVector.X);
+			Assert.Equal(5.0f, evo.FieldVector.Y);
+		}
 
-private class EmbeddedVectorObject
-{
-    public Vector2<double> FieldVector;
-}
+		private class EmbeddedVectorObject
+		{
+			public Vector2<double> FieldVector;
+		}
     }
 }
