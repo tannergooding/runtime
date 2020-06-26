@@ -26,7 +26,7 @@ namespace System.Numerics
             return (Math.Abs(a - b) < 1e-5);
         }
 
-        public static bool Equal<T>(T a, T b)
+        public static bool EqualScalar<T>(T a, T b)
         {
             if (typeof(T) == typeof(float))
             {
