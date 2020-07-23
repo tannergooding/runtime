@@ -8,27 +8,18 @@ using Xunit;
 
 namespace System.Numerics.Tests
 {
-    public class Vector3Tests
+    public partial class Vector3Tests
     {
-        [Fact]
-        public void Vector3MarshalSizeTest()
-        {
-            Assert.Equal(12, Marshal.SizeOf<Vector3>());
-            Assert.Equal(12, Marshal.SizeOf<Vector3>(new Vector3()));
-        }
-
         [Fact]
         public void Vector3CopyToTest()
         {
             Vector3 v1 = new Vector3(2.0f, 3.0f, 3.3f);
 
-            float[] a = new float[4];
-            float[] b = new float[3];
+            var a = new Single[4];
+            var b = new Single[3];
 
-            Assert.Throws<NullReferenceException>(() => v1.CopyTo(null, 0));
             Assert.Throws<ArgumentOutOfRangeException>(() => v1.CopyTo(a, -1));
             Assert.Throws<ArgumentOutOfRangeException>(() => v1.CopyTo(a, a.Length));
-            AssertExtensions.Throws<ArgumentException>(null, () => v1.CopyTo(a, a.Length - 2));
 
             v1.CopyTo(a, 1);
             v1.CopyTo(b);
@@ -132,11 +123,11 @@ namespace System.Numerics.Tests
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
             Vector3 b = new Vector3(4.0f, 5.0f, 6.0f);
 
-            float expected = (float)System.Math.Sqrt(27);
-            float actual;
+            Single expected = (Single)System.Math.Sqrt(27);
+            Single actual;
 
             actual = Vector3.Distance(a, b);
-            Assert.True(MathHelper.Equal(expected, actual), "Vector3f.Distance did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3f.Distance did not return the expected value.");
         }
 
         // A test for Distance (Vector3f, Vector3f)
@@ -149,7 +140,7 @@ namespace System.Numerics.Tests
             b.Y = 2.05f;
             b.Z = 3.478f;
 
-            float actual = Vector3.Distance(a, b);
+            Single actual = Vector3.Distance(a, b);
             Assert.Equal(0.0f, actual);
         }
 
@@ -160,11 +151,11 @@ namespace System.Numerics.Tests
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
             Vector3 b = new Vector3(4.0f, 5.0f, 6.0f);
 
-            float expected = 27.0f;
-            float actual;
+            Single expected = 27.0f;
+            Single actual;
 
             actual = Vector3.DistanceSquared(a, b);
-            Assert.True(MathHelper.Equal(expected, actual), "Vector3f.DistanceSquared did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3f.DistanceSquared did not return the expected value.");
         }
 
         // A test for Dot (Vector3f, Vector3f)
@@ -174,11 +165,11 @@ namespace System.Numerics.Tests
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
             Vector3 b = new Vector3(4.0f, 5.0f, 6.0f);
 
-            float expected = 32.0f;
-            float actual;
+            Single expected = 32.0f;
+            Single actual;
 
             actual = Vector3.Dot(a, b);
-            Assert.True(MathHelper.Equal(expected, actual), "Vector3f.Dot did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3f.Dot did not return the expected value.");
         }
 
         // A test for Dot (Vector3f, Vector3f)
@@ -190,11 +181,11 @@ namespace System.Numerics.Tests
             Vector3 b = new Vector3(2.5f, 3, 1.5f);
             Vector3 c = Vector3.Cross(a, b);
 
-            float expected = 0.0f;
-            float actual1 = Vector3.Dot(a, c);
-            float actual2 = Vector3.Dot(b, c);
-            Assert.True(MathHelper.Equal(expected, actual1), "Vector3f.Dot did not return the expected value.");
-            Assert.True(MathHelper.Equal(expected, actual2), "Vector3f.Dot did not return the expected value.");
+            Single expected = 0.0f;
+            Single actual1 = Vector3.Dot(a, c);
+            Single actual2 = Vector3.Dot(b, c);
+            Assert.True(MathHelper.EqualScalar(expected, actual1), "Vector3f.Dot did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual2), "Vector3f.Dot did not return the expected value.");
         }
 
         // A test for Length ()
@@ -203,15 +194,15 @@ namespace System.Numerics.Tests
         {
             Vector2 a = new Vector2(1.0f, 2.0f);
 
-            float z = 3.0f;
+            Single z = 3.0f;
 
             Vector3 target = new Vector3(a, z);
 
-            float expected = (float)System.Math.Sqrt(14.0f);
-            float actual;
+            Single expected = (Single)System.Math.Sqrt(14.0f);
+            Single actual;
 
             actual = target.Length();
-            Assert.True(MathHelper.Equal(expected, actual), "Vector3f.Length did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3f.Length did not return the expected value.");
         }
 
         // A test for Length ()
@@ -221,9 +212,9 @@ namespace System.Numerics.Tests
         {
             Vector3 target = new Vector3();
 
-            float expected = 0.0f;
-            float actual = target.Length();
-            Assert.True(MathHelper.Equal(expected, actual), "Vector3f.Length did not return the expected value.");
+            Single expected = 0.0f;
+            Single actual = target.Length();
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3f.Length did not return the expected value.");
         }
 
         // A test for LengthSquared ()
@@ -232,15 +223,15 @@ namespace System.Numerics.Tests
         {
             Vector2 a = new Vector2(1.0f, 2.0f);
 
-            float z = 3.0f;
+            Single z = 3.0f;
 
             Vector3 target = new Vector3(a, z);
 
-            float expected = 14.0f;
-            float actual;
+            Single expected = 14.0f;
+            Single actual;
 
             actual = target.LengthSquared();
-            Assert.True(MathHelper.Equal(expected, actual), "Vector3f.LengthSquared did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector3f.LengthSquared did not return the expected value.");
         }
 
         // A test for Min (Vector3f, Vector3f)
@@ -291,14 +282,14 @@ namespace System.Numerics.Tests
             Assert.Equal(actual, max);
         }
 
-        // A test for Lerp (Vector3f, Vector3f, float)
+        // A test for Lerp (Vector3f, Vector3f, Single)
         [Fact]
         public void Vector3LerpTest()
         {
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
             Vector3 b = new Vector3(4.0f, 5.0f, 6.0f);
 
-            float t = 0.5f;
+            Single t = 0.5f;
 
             Vector3 expected = new Vector3(2.5f, 3.5f, 4.5f);
             Vector3 actual;
@@ -307,7 +298,7 @@ namespace System.Numerics.Tests
             Assert.True(MathHelper.Equal(expected, actual), "Vector3f.Lerp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector3f, Vector3f, float)
+        // A test for Lerp (Vector3f, Vector3f, Single)
         // Lerp test with factor zero
         [Fact]
         public void Vector3LerpTest1()
@@ -315,13 +306,13 @@ namespace System.Numerics.Tests
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
             Vector3 b = new Vector3(4.0f, 5.0f, 6.0f);
 
-            float t = 0.0f;
+            Single t = 0.0f;
             Vector3 expected = new Vector3(1.0f, 2.0f, 3.0f);
             Vector3 actual = Vector3.Lerp(a, b, t);
             Assert.True(MathHelper.Equal(expected, actual), "Vector3f.Lerp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector3f, Vector3f, float)
+        // A test for Lerp (Vector3f, Vector3f, Single)
         // Lerp test with factor one
         [Fact]
         public void Vector3LerpTest2()
@@ -329,13 +320,13 @@ namespace System.Numerics.Tests
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
             Vector3 b = new Vector3(4.0f, 5.0f, 6.0f);
 
-            float t = 1.0f;
+            Single t = 1.0f;
             Vector3 expected = new Vector3(4.0f, 5.0f, 6.0f);
             Vector3 actual = Vector3.Lerp(a, b, t);
             Assert.True(MathHelper.Equal(expected, actual), "Vector3f.Lerp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector3f, Vector3f, float)
+        // A test for Lerp (Vector3f, Vector3f, Single)
         // Lerp test with factor > 1
         [Fact]
         public void Vector3LerpTest3()
@@ -343,13 +334,13 @@ namespace System.Numerics.Tests
             Vector3 a = new Vector3(0.0f, 0.0f, 0.0f);
             Vector3 b = new Vector3(4.0f, 5.0f, 6.0f);
 
-            float t = 2.0f;
+            Single t = 2.0f;
             Vector3 expected = new Vector3(8.0f, 10.0f, 12.0f);
             Vector3 actual = Vector3.Lerp(a, b, t);
             Assert.True(MathHelper.Equal(expected, actual), "Vector3f.Lerp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector3f, Vector3f, float)
+        // A test for Lerp (Vector3f, Vector3f, Single)
         // Lerp test with factor < 0
         [Fact]
         public void Vector3LerpTest4()
@@ -357,13 +348,13 @@ namespace System.Numerics.Tests
             Vector3 a = new Vector3(0.0f, 0.0f, 0.0f);
             Vector3 b = new Vector3(4.0f, 5.0f, 6.0f);
 
-            float t = -2.0f;
+            Single t = -2.0f;
             Vector3 expected = new Vector3(-8.0f, -10.0f, -12.0f);
             Vector3 actual = Vector3.Lerp(a, b, t);
             Assert.True(MathHelper.Equal(expected, actual), "Vector3f.Lerp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector3f, Vector3f, float)
+        // A test for Lerp (Vector3f, Vector3f, Single)
         // Lerp test from the same point
         [Fact]
         public void Vector3LerpTest5()
@@ -371,7 +362,7 @@ namespace System.Numerics.Tests
             Vector3 a = new Vector3(1.68f, 2.34f, 5.43f);
             Vector3 b = a;
 
-            float t = 0.18f;
+            Single t = 0.18f;
             Vector3 expected = new Vector3(1.68f, 2.34f, 5.43f);
             Vector3 actual = Vector3.Lerp(a, b, t);
             Assert.True(MathHelper.Equal(expected, actual), "Vector3f.Lerp did not return the expected value.");
@@ -622,7 +613,7 @@ namespace System.Numerics.Tests
 
             Vector3 expected = new Vector3(0.0f, 0.0f, 0.0f);
             Vector3 actual = Vector3.Normalize(a);
-            Assert.True(float.IsNaN(actual.X) && float.IsNaN(actual.Y) && float.IsNaN(actual.Z), "Vector3f.Normalize did not return the expected value.");
+            Assert.True(Single.IsNaN(actual.X) && Single.IsNaN(actual.Y) && Single.IsNaN(actual.Z), "Vector3f.Normalize did not return the expected value.");
         }
 
         // A test for operator - (Vector3f)
@@ -642,11 +633,11 @@ namespace System.Numerics.Tests
         [Fact]
         public void Vector3UnaryNegationTest1()
         {
-            Vector3 a = -new Vector3(float.NaN, float.PositiveInfinity, float.NegativeInfinity);
+            Vector3 a = -new Vector3(Single.NaN, Single.PositiveInfinity, Single.NegativeInfinity);
             Vector3 b = -new Vector3(0.0f, 0.0f, 0.0f);
-            Assert.Equal(float.NaN, a.X);
-            Assert.Equal(float.NegativeInfinity, a.Y);
-            Assert.Equal(float.PositiveInfinity, a.Z);
+            Assert.Equal(Single.NaN, a.X);
+            Assert.Equal(Single.NegativeInfinity, a.Y);
+            Assert.Equal(Single.PositiveInfinity, a.Z);
             Assert.Equal(0.0f, b.X);
             Assert.Equal(0.0f, b.Y);
             Assert.Equal(0.0f, b.Z);
@@ -668,13 +659,13 @@ namespace System.Numerics.Tests
             Assert.True(MathHelper.Equal(expected, actual), "Vector3f.operator - did not return the expected value.");
         }
 
-        // A test for operator * (Vector3f, float)
+        // A test for operator * (Vector3f, Single)
         [Fact]
         public void Vector3MultiplyOperatorTest()
         {
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
 
-            float factor = 2.0f;
+            Single factor = 2.0f;
 
             Vector3 expected = new Vector3(2.0f, 4.0f, 6.0f);
             Vector3 actual;
@@ -684,13 +675,13 @@ namespace System.Numerics.Tests
             Assert.True(MathHelper.Equal(expected, actual), "Vector3f.operator * did not return the expected value.");
         }
 
-        // A test for operator * (float, Vector3f)
+        // A test for operator * (Single, Vector3f)
         [Fact]
         public void Vector3MultiplyOperatorTest2()
         {
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
 
-            const float factor = 2.0f;
+            const Single factor = 2.0f;
 
             Vector3 expected = new Vector3(2.0f, 4.0f, 6.0f);
             Vector3 actual;
@@ -716,13 +707,13 @@ namespace System.Numerics.Tests
             Assert.True(MathHelper.Equal(expected, actual), "Vector3f.operator * did not return the expected value.");
         }
 
-        // A test for operator / (Vector3f, float)
+        // A test for operator / (Vector3f, Single)
         [Fact]
         public void Vector3DivisionTest()
         {
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
 
-            float div = 2.0f;
+            Single div = 2.0f;
 
             Vector3 expected = new Vector3(0.5f, 1.0f, 1.5f);
             Vector3 actual;
@@ -753,15 +744,15 @@ namespace System.Numerics.Tests
         [Fact]
         public void Vector3DivisionTest2()
         {
-            Vector3 a = new Vector3(-2.0f, 3.0f, float.MaxValue);
+            Vector3 a = new Vector3(-2.0f, 3.0f, Single.MaxValue);
 
-            float div = 0.0f;
+            Single div = 0.0f;
 
             Vector3 actual = a / div;
 
-            Assert.True(float.IsNegativeInfinity(actual.X), "Vector3f.operator / did not return the expected value.");
-            Assert.True(float.IsPositiveInfinity(actual.Y), "Vector3f.operator / did not return the expected value.");
-            Assert.True(float.IsPositiveInfinity(actual.Z), "Vector3f.operator / did not return the expected value.");
+            Assert.True(Single.IsNegativeInfinity(actual.X), "Vector3f.operator / did not return the expected value.");
+            Assert.True(Single.IsPositiveInfinity(actual.Y), "Vector3f.operator / did not return the expected value.");
+            Assert.True(Single.IsPositiveInfinity(actual.Z), "Vector3f.operator / did not return the expected value.");
         }
 
         // A test for operator / (Vector3f, Vector3f)
@@ -769,14 +760,14 @@ namespace System.Numerics.Tests
         [Fact]
         public void Vector3DivisionTest3()
         {
-            Vector3 a = new Vector3(0.047f, -3.0f, float.NegativeInfinity);
+            Vector3 a = new Vector3(0.047f, -3.0f, Single.NegativeInfinity);
             Vector3 b = new Vector3();
 
             Vector3 actual = a / b;
 
-            Assert.True(float.IsPositiveInfinity(actual.X), "Vector3f.operator / did not return the expected value.");
-            Assert.True(float.IsNegativeInfinity(actual.Y), "Vector3f.operator / did not return the expected value.");
-            Assert.True(float.IsNegativeInfinity(actual.Z), "Vector3f.operator / did not return the expected value.");
+            Assert.True(Single.IsPositiveInfinity(actual.X), "Vector3f.operator / did not return the expected value.");
+            Assert.True(Single.IsNegativeInfinity(actual.Y), "Vector3f.operator / did not return the expected value.");
+            Assert.True(Single.IsNegativeInfinity(actual.Z), "Vector3f.operator / did not return the expected value.");
         }
 
         // A test for operator + (Vector3f, Vector3f)
@@ -794,25 +785,25 @@ namespace System.Numerics.Tests
             Assert.True(MathHelper.Equal(expected, actual), "Vector3f.operator + did not return the expected value.");
         }
 
-        // A test for Vector3f (float, float, float)
+        // A test for Vector3f (Single, Single, Single)
         [Fact]
         public void Vector3ConstructorTest()
         {
-            float x = 1.0f;
-            float y = 2.0f;
-            float z = 3.0f;
+            Single x = 1.0f;
+            Single y = 2.0f;
+            Single z = 3.0f;
 
             Vector3 target = new Vector3(x, y, z);
             Assert.True(MathHelper.Equal(target.X, x) && MathHelper.Equal(target.Y, y) && MathHelper.Equal(target.Z, z), "Vector3f.constructor (x,y,z) did not return the expected value.");
         }
 
-        // A test for Vector3f (Vector2f, float)
+        // A test for Vector3f (Vector2f, Single)
         [Fact]
         public void Vector3ConstructorTest1()
         {
             Vector2 a = new Vector2(1.0f, 2.0f);
 
-            float z = 3.0f;
+            Single z = 3.0f;
 
             Vector3 target = new Vector3(a, z);
             Assert.True(MathHelper.Equal(target.X, a.X) && MathHelper.Equal(target.Y, a.Y) && MathHelper.Equal(target.Z, z), "Vector3f.constructor (Vector2f,z) did not return the expected value.");
@@ -830,16 +821,16 @@ namespace System.Numerics.Tests
             Assert.Equal(0.0f, a.Z);
         }
 
-        // A test for Vector2f (float, float)
-        // Constructor with special floating values
+        // A test for Vector2f (Single, Single)
+        // Constructor with special Singleing values
         [Fact]
         public void Vector3ConstructorTest4()
         {
-            Vector3 target = new Vector3(float.NaN, float.MaxValue, float.PositiveInfinity);
+            Vector3 target = new Vector3(Single.NaN, Single.MaxValue, Single.PositiveInfinity);
 
-            Assert.True(float.IsNaN(target.X), "Vector3f.constructor (Vector3f) did not return the expected value.");
-            Assert.True(float.Equals(float.MaxValue, target.Y), "Vector3f.constructor (Vector3f) did not return the expected value.");
-            Assert.True(float.IsPositiveInfinity(target.Z), "Vector3f.constructor (Vector3f) did not return the expected value.");
+            Assert.True(Single.IsNaN(target.X), "Vector3f.constructor (Vector3f) did not return the expected value.");
+            Assert.True(Single.Equals(Single.MaxValue, target.Y), "Vector3f.constructor (Vector3f) did not return the expected value.");
+            Assert.True(Single.IsPositiveInfinity(target.Z), "Vector3f.constructor (Vector3f) did not return the expected value.");
         }
 
         // A test for Add (Vector3f, Vector3f)
@@ -856,12 +847,12 @@ namespace System.Numerics.Tests
             Assert.Equal(expected, actual);
         }
 
-        // A test for Divide (Vector3f, float)
+        // A test for Divide (Vector3f, Single)
         [Fact]
         public void Vector3DivideTest()
         {
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
-            float div = 2.0f;
+            Single div = 2.0f;
             Vector3 expected = new Vector3(0.5f, 1.0f, 1.5f);
             Vector3 actual;
             actual = Vector3.Divide(a, div);
@@ -897,7 +888,7 @@ namespace System.Numerics.Tests
             Assert.Equal(expected, actual);
 
             // case 2: compare between different values
-            b.X = 10.0f;
+            b = new Vector3(b.X, 10);
             obj = b;
             expected = false;
             actual = a.Equals(obj);
@@ -916,23 +907,23 @@ namespace System.Numerics.Tests
             Assert.Equal(expected, actual);
         }
 
-        // A test for Multiply (Vector3f, float)
+        // A test for Multiply (Vector3f, Single)
         [Fact]
         public void Vector3MultiplyTest()
         {
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
-            const float factor = 2.0f;
+            const Single factor = 2.0f;
             Vector3 expected = new Vector3(2.0f, 4.0f, 6.0f);
             Vector3 actual = Vector3.Multiply(a, factor);
             Assert.Equal(expected, actual);
         }
 
-        // A test for Multiply (float, Vector3f)
+        // A test for Multiply (Single, Vector3f)
         [Fact]
         public static void Vector3MultiplyTest2()
         {
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
-            const float factor = 2.0f;
+            const Single factor = 2.0f;
             Vector3 expected = new Vector3(2.0f, 4.0f, 6.0f);
             Vector3 actual = Vector3.Multiply(factor, a);
             Assert.Equal(expected, actual);
@@ -978,7 +969,7 @@ namespace System.Numerics.Tests
             Assert.Equal(expected, actual);
 
             // case 2: compare between different values
-            b.X = 10.0f;
+            b = new Vector3(b.X, 10);
             expected = true;
             actual = a != b;
             Assert.Equal(expected, actual);
@@ -997,7 +988,7 @@ namespace System.Numerics.Tests
             Assert.Equal(expected, actual);
 
             // case 2: compare between different values
-            b.X = 10.0f;
+            b = new Vector3(b.X, 10);
             expected = false;
             actual = a == b;
             Assert.Equal(expected, actual);
@@ -1070,17 +1061,17 @@ namespace System.Numerics.Tests
             Assert.Equal(expected, actual);
 
             // case 2: compare between different values
-            b.X = 10.0f;
+            b = new Vector3(b.X, 10);
             expected = false;
             actual = a.Equals(b);
             Assert.Equal(expected, actual);
         }
 
-        // A test for Vector3f (float)
+        // A test for Vector3f (Single)
         [Fact]
         public void Vector3ConstructorTest5()
         {
-            float value = 1.0f;
+            Single value = 1.0f;
             Vector3 target = new Vector3(value);
 
             Vector3 expected = new Vector3(value, value, value);
@@ -1096,9 +1087,9 @@ namespace System.Numerics.Tests
         [Fact]
         public void Vector3EqualsNanTest()
         {
-            Vector3 a = new Vector3(float.NaN, 0, 0);
-            Vector3 b = new Vector3(0, float.NaN, 0);
-            Vector3 c = new Vector3(0, 0, float.NaN);
+            Vector3 a = new Vector3(Single.NaN, 0, 0);
+            Vector3 b = new Vector3(0, Single.NaN, 0);
+            Vector3 c = new Vector3(0, 0, Single.NaN);
 
             Assert.False(a == Vector3.Zero);
             Assert.False(b == Vector3.Zero);
@@ -1122,14 +1113,14 @@ namespace System.Numerics.Tests
         public void Vector3AbsTest()
         {
             Vector3 v1 = new Vector3(-2.5f, 2.0f, 0.5f);
-            Vector3 v3 = Vector3.Abs(new Vector3(0.0f, float.NegativeInfinity, float.NaN));
+            Vector3 v3 = Vector3.Abs(new Vector3(0.0f, Single.NegativeInfinity, Single.NaN));
             Vector3 v = Vector3.Abs(v1);
             Assert.Equal(2.5f, v.X);
             Assert.Equal(2.0f, v.Y);
             Assert.Equal(0.5f, v.Z);
             Assert.Equal(0.0f, v3.X);
-            Assert.Equal(float.PositiveInfinity, v3.Y);
-            Assert.Equal(float.NaN, v3.Z);
+            Assert.Equal(Single.PositiveInfinity, v3.Y);
+            Assert.Equal(Single.NaN, v3.Z);
         }
 
         [Fact]
@@ -1140,7 +1131,7 @@ namespace System.Numerics.Tests
             Assert.Equal(2, (int)Vector3.SquareRoot(b).X);
             Assert.Equal(2, (int)Vector3.SquareRoot(b).Y);
             Assert.Equal(4, (int)Vector3.SquareRoot(b).Z);
-            Assert.Equal(float.NaN, Vector3.SquareRoot(a).X);
+            Assert.Equal(Single.NaN, Vector3.SquareRoot(a).X);
         }
 
         // A test to make sure these types are blittable directly into GPU buffer memory layouts
@@ -1149,8 +1140,8 @@ namespace System.Numerics.Tests
         {
             Assert.Equal(12, sizeof(Vector3));
             Assert.Equal(24, sizeof(Vector3_2x));
-            Assert.Equal(16, sizeof(Vector3PlusFloat));
-            Assert.Equal(32, sizeof(Vector3PlusFloat_2x));
+            Assert.Equal(16, sizeof(Vector3PlusSingle));
+            Assert.Equal(32, sizeof(Vector3PlusSingle_2x));
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -1161,58 +1152,17 @@ namespace System.Numerics.Tests
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct Vector3PlusFloat
+        struct Vector3PlusSingle
         {
             private Vector3 _v;
-            private float _f;
+            private Single _f;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct Vector3PlusFloat_2x
+        struct Vector3PlusSingle_2x
         {
-            private Vector3PlusFloat _a;
-            private Vector3PlusFloat _b;
-        }
-
-        [Fact]
-        public void SetFieldsTest()
-        {
-            Vector3 v3 = new Vector3(4f, 5f, 6f);
-            v3.X = 1.0f;
-            v3.Y = 2.0f;
-            v3.Z = 3.0f;
-            Assert.Equal(1.0f, v3.X);
-            Assert.Equal(2.0f, v3.Y);
-            Assert.Equal(3.0f, v3.Z);
-            Vector3 v4 = v3;
-            v4.Y = 0.5f;
-            v4.Z = 2.2f;
-            Assert.Equal(1.0f, v4.X);
-            Assert.Equal(0.5f, v4.Y);
-            Assert.Equal(2.2f, v4.Z);
-            Assert.Equal(2.0f, v3.Y);
-
-            Vector3 before = new Vector3(1f, 2f, 3f);
-            Vector3 after = before;
-            after.X = 500.0f;
-            Assert.NotEqual(before, after);
-        }
-
-        [Fact]
-        public void EmbeddedVectorSetFields()
-        {
-            EmbeddedVectorObject evo = new EmbeddedVectorObject();
-            evo.FieldVector.X = 5.0f;
-            evo.FieldVector.Y = 5.0f;
-            evo.FieldVector.Z = 5.0f;
-            Assert.Equal(5.0f, evo.FieldVector.X);
-            Assert.Equal(5.0f, evo.FieldVector.Y);
-            Assert.Equal(5.0f, evo.FieldVector.Z);
-        }
-
-        private class EmbeddedVectorObject
-        {
-            public Vector3 FieldVector;
+            private Vector3PlusSingle _a;
+            private Vector3PlusSingle _b;
         }
     }
 }

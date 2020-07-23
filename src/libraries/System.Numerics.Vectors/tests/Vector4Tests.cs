@@ -1,3 +1,9 @@
+/*********************************************************************************
+ * This file is auto-generated from a template file by the GenerateTests.csx     *
+ * script in tests\src\libraries\System.Numerics.Vectors\tests. In order to make *
+ * changes, please update the corresponding template and run according to the    *
+ * directions listed in the file.                                                *
+ *********************************************************************************/
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -8,27 +14,18 @@ using Xunit;
 
 namespace System.Numerics.Tests
 {
-    public class Vector4Tests
+    public partial class Vector4Tests
     {
-        [Fact]
-        public void Vector4MarshalSizeTest()
-        {
-            Assert.Equal(16, Marshal.SizeOf<Vector4>());
-            Assert.Equal(16, Marshal.SizeOf<Vector4>(new Vector4()));
-        }
-
         [Fact]
         public void Vector4CopyToTest()
         {
             Vector4 v1 = new Vector4(2.5f, 2.0f, 3.0f, 3.3f);
 
-            float[] a = new float[5];
-            float[] b = new float[4];
+            var a = new Single[5];
+            var b = new Single[4];
 
-            Assert.Throws<NullReferenceException>(() => v1.CopyTo(null, 0));
             Assert.Throws<ArgumentOutOfRangeException>(() => v1.CopyTo(a, -1));
             Assert.Throws<ArgumentOutOfRangeException>(() => v1.CopyTo(a, a.Length));
-            AssertExtensions.Throws<ArgumentException>(null, () => v1.CopyTo(a, a.Length - 2));
 
             v1.CopyTo(a, 1);
             v1.CopyTo(b);
@@ -108,11 +105,11 @@ namespace System.Numerics.Tests
             Vector4 a = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
             Vector4 b = new Vector4(5.0f, 6.0f, 7.0f, 8.0f);
 
-            float expected = 64.0f;
-            float actual;
+            Single expected = 64.0f;
+            Single actual;
 
             actual = Vector4.DistanceSquared(a, b);
-            Assert.True(MathHelper.Equal(expected, actual), "Vector4f.DistanceSquared did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector4f.DistanceSquared did not return the expected value.");
         }
 
         // A test for Distance (Vector4f, Vector4f)
@@ -122,11 +119,11 @@ namespace System.Numerics.Tests
             Vector4 a = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
             Vector4 b = new Vector4(5.0f, 6.0f, 7.0f, 8.0f);
 
-            float expected = 8.0f;
-            float actual;
+            Single expected = 8.0f;
+            Single actual;
 
             actual = Vector4.Distance(a, b);
-            Assert.True(MathHelper.Equal(expected, actual), "Vector4f.Distance did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector4f.Distance did not return the expected value.");
         }
 
         // A test for Distance (Vector4f, Vector4f)
@@ -138,7 +135,7 @@ namespace System.Numerics.Tests
             Vector4 b = new Vector4(new Vector3(1.051f, 2.05f, 3.478f), 0.0f);
             b.W = 1.0f;
 
-            float actual = Vector4.Distance(a, b);
+            Single actual = Vector4.Distance(a, b);
             Assert.Equal(0.0f, actual);
         }
 
@@ -149,11 +146,11 @@ namespace System.Numerics.Tests
             Vector4 a = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
             Vector4 b = new Vector4(5.0f, 6.0f, 7.0f, 8.0f);
 
-            float expected = 70.0f;
-            float actual;
+            Single expected = 70.0f;
+            Single actual;
 
             actual = Vector4.Dot(a, b);
-            Assert.True(MathHelper.Equal(expected, actual), "Vector4f.Dot did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector4f.Dot did not return the expected value.");
         }
 
         // A test for Dot (Vector4f, Vector4f)
@@ -168,8 +165,8 @@ namespace System.Numerics.Tests
             Vector4 d = new Vector4(a, 0);
             Vector4 e = new Vector4(c, 0);
 
-            float actual = Vector4.Dot(d, e);
-            Assert.True(MathHelper.Equal(0.0f, actual), "Vector4f.Dot did not return the expected value.");
+            Single actual = Vector4.Dot(d, e);
+            Assert.True(MathHelper.EqualScalar(0.0f, actual), "Vector4f.Dot did not return the expected value.");
         }
 
         // A test for Length ()
@@ -177,12 +174,12 @@ namespace System.Numerics.Tests
         public void Vector4LengthTest()
         {
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
-            float w = 4.0f;
+            Single w = 4.0f;
 
             Vector4 target = new Vector4(a, w);
 
-            float expected = (float)System.Math.Sqrt(30.0f);
-            float actual;
+            Single expected = (Single)System.Math.Sqrt(30.0f);
+            Single actual;
 
             actual = target.Length();
 
@@ -196,10 +193,10 @@ namespace System.Numerics.Tests
         {
             Vector4 target = new Vector4();
 
-            float expected = 0.0f;
-            float actual = target.Length();
+            Single expected = 0.0f;
+            Single actual = target.Length();
 
-            Assert.True(MathHelper.Equal(expected, actual), "Vector4f.Length did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector4f.Length did not return the expected value.");
         }
 
         // A test for LengthSquared ()
@@ -207,16 +204,16 @@ namespace System.Numerics.Tests
         public void Vector4LengthSquaredTest()
         {
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
-            float w = 4.0f;
+            Single w = 4.0f;
 
             Vector4 target = new Vector4(a, w);
 
-            float expected = 30;
-            float actual;
+            Single expected = 30;
+            Single actual;
 
             actual = target.LengthSquared();
 
-            Assert.True(MathHelper.Equal(expected, actual), "Vector4f.LengthSquared did not return the expected value.");
+            Assert.True(MathHelper.EqualScalar(expected, actual), "Vector4f.LengthSquared did not return the expected value.");
         }
 
         // A test for Min (Vector4f, Vector4f)
@@ -324,14 +321,14 @@ namespace System.Numerics.Tests
             Assert.True(MathHelper.Equal(expected, actual), "Vector4f.Clamp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector4f, Vector4f, float)
+        // A test for Lerp (Vector4f, Vector4f, Single)
         [Fact]
         public void Vector4LerpTest()
         {
             Vector4 a = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
             Vector4 b = new Vector4(5.0f, 6.0f, 7.0f, 8.0f);
 
-            float t = 0.5f;
+            Single t = 0.5f;
 
             Vector4 expected = new Vector4(3.0f, 4.0f, 5.0f, 6.0f);
             Vector4 actual;
@@ -340,7 +337,7 @@ namespace System.Numerics.Tests
             Assert.True(MathHelper.Equal(expected, actual), "Vector4f.Lerp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector4f, Vector4f, float)
+        // A test for Lerp (Vector4f, Vector4f, Single)
         // Lerp test with factor zero
         [Fact]
         public void Vector4LerpTest1()
@@ -348,13 +345,13 @@ namespace System.Numerics.Tests
             Vector4 a = new Vector4(new Vector3(1.0f, 2.0f, 3.0f), 4.0f);
             Vector4 b = new Vector4(4.0f, 5.0f, 6.0f, 7.0f);
 
-            float t = 0.0f;
+            Single t = 0.0f;
             Vector4 expected = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
             Vector4 actual = Vector4.Lerp(a, b, t);
             Assert.True(MathHelper.Equal(expected, actual), "Vector4f.Lerp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector4f, Vector4f, float)
+        // A test for Lerp (Vector4f, Vector4f, Single)
         // Lerp test with factor one
         [Fact]
         public void Vector4LerpTest2()
@@ -362,13 +359,13 @@ namespace System.Numerics.Tests
             Vector4 a = new Vector4(new Vector3(1.0f, 2.0f, 3.0f), 4.0f);
             Vector4 b = new Vector4(4.0f, 5.0f, 6.0f, 7.0f);
 
-            float t = 1.0f;
+            Single t = 1.0f;
             Vector4 expected = new Vector4(4.0f, 5.0f, 6.0f, 7.0f);
             Vector4 actual = Vector4.Lerp(a, b, t);
             Assert.True(MathHelper.Equal(expected, actual), "Vector4f.Lerp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector4f, Vector4f, float)
+        // A test for Lerp (Vector4f, Vector4f, Single)
         // Lerp test with factor > 1
         [Fact]
         public void Vector4LerpTest3()
@@ -376,13 +373,13 @@ namespace System.Numerics.Tests
             Vector4 a = new Vector4(new Vector3(0.0f, 0.0f, 0.0f), 0.0f);
             Vector4 b = new Vector4(4.0f, 5.0f, 6.0f, 7.0f);
 
-            float t = 2.0f;
+            Single t = 2.0f;
             Vector4 expected = new Vector4(8.0f, 10.0f, 12.0f, 14.0f);
             Vector4 actual = Vector4.Lerp(a, b, t);
             Assert.True(MathHelper.Equal(expected, actual), "Vector4f.Lerp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector4f, Vector4f, float)
+        // A test for Lerp (Vector4f, Vector4f, Single)
         // Lerp test with factor < 0
         [Fact]
         public void Vector4LerpTest4()
@@ -390,13 +387,13 @@ namespace System.Numerics.Tests
             Vector4 a = new Vector4(new Vector3(0.0f, 0.0f, 0.0f), 0.0f);
             Vector4 b = new Vector4(4.0f, 5.0f, 6.0f, 7.0f);
 
-            float t = -2.0f;
+            Single t = -2.0f;
             Vector4 expected = -(b * 2);
             Vector4 actual = Vector4.Lerp(a, b, t);
             Assert.True(MathHelper.Equal(expected, actual), "Vector4f.Lerp did not return the expected value.");
         }
 
-        // A test for Lerp (Vector4f, Vector4f, float)
+        // A test for Lerp (Vector4f, Vector4f, Single)
         // Lerp test from the same point
         [Fact]
         public void Vector4LerpTest5()
@@ -404,7 +401,7 @@ namespace System.Numerics.Tests
             Vector4 a = new Vector4(4.0f, 5.0f, 6.0f, 7.0f);
             Vector4 b = new Vector4(4.0f, 5.0f, 6.0f, 7.0f);
 
-            float t = 0.85f;
+            Single t = 0.85f;
             Vector4 expected = a;
             Vector4 actual = Vector4.Lerp(a, b, t);
             Assert.True(MathHelper.Equal(expected, actual), "Vector4f.Lerp did not return the expected value.");
@@ -814,7 +811,7 @@ namespace System.Numerics.Tests
 
             Vector4 expected = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
             Vector4 actual = Vector4.Normalize(a);
-            Assert.True(float.IsNaN(actual.X) && float.IsNaN(actual.Y) && float.IsNaN(actual.Z) && float.IsNaN(actual.W), "Vector4f.Normalize did not return the expected value.");
+            Assert.True(Single.IsNaN(actual.X) && Single.IsNaN(actual.Y) && Single.IsNaN(actual.Z) && Single.IsNaN(actual.W), "Vector4f.Normalize did not return the expected value.");
         }
 
         // A test for operator - (Vector4f)
@@ -846,13 +843,13 @@ namespace System.Numerics.Tests
             Assert.True(MathHelper.Equal(expected, actual), "Vector4f.operator - did not return the expected value.");
         }
 
-        // A test for operator * (Vector4f, float)
+        // A test for operator * (Vector4f, Single)
         [Fact]
         public void Vector4MultiplyOperatorTest()
         {
             Vector4 a = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
 
-            const float factor = 2.0f;
+            const Single factor = 2.0f;
 
             Vector4 expected = new Vector4(2.0f, 4.0f, 6.0f, 8.0f);
             Vector4 actual;
@@ -861,13 +858,13 @@ namespace System.Numerics.Tests
             Assert.True(MathHelper.Equal(expected, actual), "Vector4f.operator * did not return the expected value.");
         }
 
-        // A test for operator * (float, Vector4f)
+        // A test for operator * (Single, Vector4f)
         [Fact]
         public void Vector4MultiplyOperatorTest2()
         {
             Vector4 a = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
 
-            const float factor = 2.0f;
+            const Single factor = 2.0f;
             Vector4 expected = new Vector4(2.0f, 4.0f, 6.0f, 8.0f);
             Vector4 actual;
 
@@ -890,13 +887,13 @@ namespace System.Numerics.Tests
             Assert.True(MathHelper.Equal(expected, actual), "Vector4f.operator * did not return the expected value.");
         }
 
-        // A test for operator / (Vector4f, float)
+        // A test for operator / (Vector4f, Single)
         [Fact]
         public void Vector4DivisionTest()
         {
             Vector4 a = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
 
-            float div = 2.0f;
+            Single div = 2.0f;
 
             Vector4 expected = new Vector4(0.5f, 1.0f, 1.5f, 2.0f);
             Vector4 actual;
@@ -926,16 +923,16 @@ namespace System.Numerics.Tests
         [Fact]
         public void Vector4DivisionTest2()
         {
-            Vector4 a = new Vector4(-2.0f, 3.0f, float.MaxValue, float.NaN);
+            Vector4 a = new Vector4(-2.0f, 3.0f, Single.MaxValue, Single.NaN);
 
-            float div = 0.0f;
+            Single div = 0.0f;
 
             Vector4 actual = a / div;
 
-            Assert.True(float.IsNegativeInfinity(actual.X), "Vector4f.operator / did not return the expected value.");
-            Assert.True(float.IsPositiveInfinity(actual.Y), "Vector4f.operator / did not return the expected value.");
-            Assert.True(float.IsPositiveInfinity(actual.Z), "Vector4f.operator / did not return the expected value.");
-            Assert.True(float.IsNaN(actual.W), "Vector4f.operator / did not return the expected value.");
+            Assert.True(Single.IsNegativeInfinity(actual.X), "Vector4f.operator / did not return the expected value.");
+            Assert.True(Single.IsPositiveInfinity(actual.Y), "Vector4f.operator / did not return the expected value.");
+            Assert.True(Single.IsPositiveInfinity(actual.Z), "Vector4f.operator / did not return the expected value.");
+            Assert.True(Single.IsNaN(actual.W), "Vector4f.operator / did not return the expected value.");
         }
 
         // A test for operator / (Vector4f, Vector4f)
@@ -943,15 +940,15 @@ namespace System.Numerics.Tests
         [Fact]
         public void Vector4DivisionTest3()
         {
-            Vector4 a = new Vector4(0.047f, -3.0f, float.NegativeInfinity, float.MinValue);
+            Vector4 a = new Vector4(0.047f, -3.0f, Single.NegativeInfinity, Single.MinValue);
             Vector4 b = new Vector4();
 
             Vector4 actual = a / b;
 
-            Assert.True(float.IsPositiveInfinity(actual.X), "Vector4f.operator / did not return the expected value.");
-            Assert.True(float.IsNegativeInfinity(actual.Y), "Vector4f.operator / did not return the expected value.");
-            Assert.True(float.IsNegativeInfinity(actual.Z), "Vector4f.operator / did not return the expected value.");
-            Assert.True(float.IsNegativeInfinity(actual.W), "Vector4f.operator / did not return the expected value.");
+            Assert.True(Single.IsPositiveInfinity(actual.X), "Vector4f.operator / did not return the expected value.");
+            Assert.True(Single.IsNegativeInfinity(actual.Y), "Vector4f.operator / did not return the expected value.");
+            Assert.True(Single.IsNegativeInfinity(actual.Z), "Vector4f.operator / did not return the expected value.");
+            Assert.True(Single.IsNegativeInfinity(actual.W), "Vector4f.operator / did not return the expected value.");
         }
 
         // A test for operator + (Vector4f, Vector4f)
@@ -976,7 +973,7 @@ namespace System.Numerics.Tests
             Vector4 v2 = new Vector4(5.5f, 4.5f, 6.5f, 7.5f);
 
             Vector4 v3 = v1 + v2;
-            Vector4 v5 = new Vector4(-1.0f, 0.0f, 0.0f, float.NaN);
+            Vector4 v5 = new Vector4(-1.0f, 0.0f, 0.0f, Single.NaN);
             Vector4 v4 = v1 + v5;
             Assert.Equal(8.0f, v3.X);
             Assert.Equal(6.5f, v3.Y);
@@ -985,17 +982,17 @@ namespace System.Numerics.Tests
             Assert.Equal(1.5f, v4.X);
             Assert.Equal(2.0f, v4.Y);
             Assert.Equal(3.0f, v4.Z);
-            Assert.Equal(float.NaN, v4.W);
+            Assert.Equal(Single.NaN, v4.W);
         }
 
-        // A test for Vector4f (float, float, float, float)
+        // A test for Vector4f (Single, Single, Single, Single)
         [Fact]
         public void Vector4ConstructorTest()
         {
-            float x = 1.0f;
-            float y = 2.0f;
-            float z = 3.0f;
-            float w = 4.0f;
+            Single x = 1.0f;
+            Single y = 2.0f;
+            Single z = 3.0f;
+            Single w = 4.0f;
 
             Vector4 target = new Vector4(x, y, z, w);
 
@@ -1003,25 +1000,25 @@ namespace System.Numerics.Tests
                 "Vector4f constructor(x,y,z,w) did not return the expected value.");
         }
 
-        // A test for Vector4f (Vector2f, float, float)
+        // A test for Vector4f (Vector2f, Single, Single)
         [Fact]
         public void Vector4ConstructorTest1()
         {
             Vector2 a = new Vector2(1.0f, 2.0f);
-            float z = 3.0f;
-            float w = 4.0f;
+            Single z = 3.0f;
+            Single w = 4.0f;
 
             Vector4 target = new Vector4(a, z, w);
             Assert.True(MathHelper.Equal(target.X, a.X) && MathHelper.Equal(target.Y, a.Y) && MathHelper.Equal(target.Z, z) && MathHelper.Equal(target.W, w),
                 "Vector4f constructor(Vector2f,z,w) did not return the expected value.");
         }
 
-        // A test for Vector4f (Vector3f, float)
+        // A test for Vector4f (Vector3f, Single)
         [Fact]
         public void Vector4ConstructorTest2()
         {
             Vector3 a = new Vector3(1.0f, 2.0f, 3.0f);
-            float w = 4.0f;
+            Single w = 4.0f;
 
             Vector4 target = new Vector4(a, w);
 
@@ -1043,16 +1040,16 @@ namespace System.Numerics.Tests
         }
 
         // A test for Vector4f ()
-        // Constructor with special floating values
+        // Constructor with special Singleing values
         [Fact]
         public void Vector4ConstructorTest5()
         {
-            Vector4 target = new Vector4(float.NaN, float.MaxValue, float.PositiveInfinity, float.Epsilon);
+            Vector4 target = new Vector4(Single.NaN, Single.MaxValue, Single.PositiveInfinity, Single.Epsilon);
 
-            Assert.True(float.IsNaN(target.X), "Vector4f.constructor (float, float, float, float) did not return the expected value.");
-            Assert.True(float.Equals(float.MaxValue, target.Y), "Vector4f.constructor (float, float, float, float) did not return the expected value.");
-            Assert.True(float.IsPositiveInfinity(target.Z), "Vector4f.constructor (float, float, float, float) did not return the expected value.");
-            Assert.True(float.Equals(float.Epsilon, target.W), "Vector4f.constructor (float, float, float, float) did not return the expected value.");
+            Assert.True(Single.IsNaN(target.X), "Vector4f.constructor (Single, Single, Single, Single) did not return the expected value.");
+            Assert.True(Single.Equals(Single.MaxValue, target.Y), "Vector4f.constructor (Single, Single, Single, Single) did not return the expected value.");
+            Assert.True(Single.IsPositiveInfinity(target.Z), "Vector4f.constructor (Single, Single, Single, Single) did not return the expected value.");
+            Assert.True(Single.Equals(Single.Epsilon, target.W), "Vector4f.constructor (Single, Single, Single, Single) did not return the expected value.");
         }
 
         // A test for Add (Vector4f, Vector4f)
@@ -1069,12 +1066,12 @@ namespace System.Numerics.Tests
             Assert.Equal(expected, actual);
         }
 
-        // A test for Divide (Vector4f, float)
+        // A test for Divide (Vector4f, Single)
         [Fact]
         public void Vector4DivideTest()
         {
             Vector4 a = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
-            float div = 2.0f;
+            Single div = 2.0f;
             Vector4 expected = new Vector4(0.5f, 1.0f, 1.5f, 2.0f);
             Vector4 actual;
             actual = Vector4.Divide(a, div);
@@ -1129,23 +1126,23 @@ namespace System.Numerics.Tests
             Assert.Equal(expected, actual);
         }
 
-        // A test for Multiply (float, Vector4f)
+        // A test for Multiply (Single, Vector4f)
         [Fact]
         public void Vector4MultiplyTest()
         {
             Vector4 a = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
-            const float factor = 2.0f;
+            const Single factor = 2.0f;
             Vector4 expected = new Vector4(2.0f, 4.0f, 6.0f, 8.0f);
             Vector4 actual = Vector4.Multiply(factor, a);
             Assert.Equal(expected, actual);
         }
 
-        // A test for Multiply (Vector4f, float)
+        // A test for Multiply (Vector4f, Single)
         [Fact]
         public void Vector4MultiplyTest2()
         {
             Vector4 a = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
-            const float factor = 2.0f;
+            const Single factor = 2.0f;
             Vector4 expected = new Vector4(2.0f, 4.0f, 6.0f, 8.0f);
             Vector4 actual = Vector4.Multiply(a, factor);
             Assert.Equal(expected, actual);
@@ -1294,11 +1291,11 @@ namespace System.Numerics.Tests
             Assert.False(a.Equals(b));
         }
 
-        // A test for Vector4f (float)
+        // A test for Vector4f (Single)
         [Fact]
         public void Vector4ConstructorTest6()
         {
-            float value = 1.0f;
+            Single value = 1.0f;
             Vector4 target = new Vector4(value);
 
             Vector4 expected = new Vector4(value, value, value, value);
@@ -1314,10 +1311,10 @@ namespace System.Numerics.Tests
         [Fact]
         public void Vector4EqualsNanTest()
         {
-            Vector4 a = new Vector4(float.NaN, 0, 0, 0);
-            Vector4 b = new Vector4(0, float.NaN, 0, 0);
-            Vector4 c = new Vector4(0, 0, float.NaN, 0);
-            Vector4 d = new Vector4(0, 0, 0, float.NaN);
+            Vector4 a = new Vector4(Single.NaN, 0, 0, 0);
+            Vector4 b = new Vector4(0, Single.NaN, 0, 0);
+            Vector4 c = new Vector4(0, 0, Single.NaN, 0);
+            Vector4 d = new Vector4(0, 0, 0, Single.NaN);
 
             Assert.False(a == Vector4.Zero);
             Assert.False(b == Vector4.Zero);
@@ -1345,16 +1342,16 @@ namespace System.Numerics.Tests
         public void Vector4AbsTest()
         {
             Vector4 v1 = new Vector4(-2.5f, 2.0f, 3.0f, 3.3f);
-            Vector4 v3 = Vector4.Abs(new Vector4(float.PositiveInfinity, 0.0f, float.NegativeInfinity, float.NaN));
+            Vector4 v3 = Vector4.Abs(new Vector4(Single.PositiveInfinity, 0.0f, Single.NegativeInfinity, Single.NaN));
             Vector4 v = Vector4.Abs(v1);
             Assert.Equal(2.5f, v.X);
             Assert.Equal(2.0f, v.Y);
             Assert.Equal(3.0f, v.Z);
             Assert.Equal(3.3f, v.W);
-            Assert.Equal(float.PositiveInfinity, v3.X);
+            Assert.Equal(Single.PositiveInfinity, v3.X);
             Assert.Equal(0.0f, v3.Y);
-            Assert.Equal(float.PositiveInfinity, v3.Z);
-            Assert.Equal(float.NaN, v3.W);
+            Assert.Equal(Single.PositiveInfinity, v3.Z);
+            Assert.Equal(Single.NaN, v3.W);
         }
 
         [Fact]
@@ -1366,7 +1363,7 @@ namespace System.Numerics.Tests
             Assert.Equal(2, (int)Vector4.SquareRoot(v2).Y);
             Assert.Equal(2, (int)Vector4.SquareRoot(v2).Z);
             Assert.Equal(2, (int)Vector4.SquareRoot(v2).W);
-            Assert.Equal(float.NaN, Vector4.SquareRoot(v1).X);
+            Assert.Equal(Single.NaN, Vector4.SquareRoot(v1).X);
         }
 
         // A test to make sure these types are blittable directly into GPU buffer memory layouts
@@ -1375,8 +1372,8 @@ namespace System.Numerics.Tests
         {
             Assert.Equal(16, sizeof(Vector4));
             Assert.Equal(32, sizeof(Vector4_2x));
-            Assert.Equal(20, sizeof(Vector4PlusFloat));
-            Assert.Equal(40, sizeof(Vector4PlusFloat_2x));
+            Assert.Equal(20, sizeof(Vector4PlusSingle));
+            Assert.Equal(40, sizeof(Vector4PlusSingle_2x));
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -1387,199 +1384,17 @@ namespace System.Numerics.Tests
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct Vector4PlusFloat
+        struct Vector4PlusSingle
         {
             private Vector4 _v;
-            private float _f;
+            private Single _f;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct Vector4PlusFloat_2x
+        struct Vector4PlusSingle_2x
         {
-            private Vector4PlusFloat _a;
-            private Vector4PlusFloat _b;
+            private Vector4PlusSingle _a;
+            private Vector4PlusSingle _b;
         }
-
-        [Fact]
-        public void SetFieldsTest()
-        {
-            Vector4 v3 = new Vector4(4f, 5f, 6f, 7f);
-            v3.X = 1.0f;
-            v3.Y = 2.0f;
-            v3.Z = 3.0f;
-            v3.W = 4.0f;
-            Assert.Equal(1.0f, v3.X);
-            Assert.Equal(2.0f, v3.Y);
-            Assert.Equal(3.0f, v3.Z);
-            Assert.Equal(4.0f, v3.W);
-            Vector4 v4 = v3;
-            v4.Y = 0.5f;
-            v4.Z = 2.2f;
-            v4.W = 3.5f;
-            Assert.Equal(1.0f, v4.X);
-            Assert.Equal(0.5f, v4.Y);
-            Assert.Equal(2.2f, v4.Z);
-            Assert.Equal(3.5f, v4.W);
-            Assert.Equal(2.0f, v3.Y);
-        }
-
-        [Fact]
-        public void EmbeddedVectorSetFields()
-        {
-            EmbeddedVectorObject evo = new EmbeddedVectorObject();
-            evo.FieldVector.X = 5.0f;
-            evo.FieldVector.Y = 5.0f;
-            evo.FieldVector.Z = 5.0f;
-            evo.FieldVector.W = 5.0f;
-            Assert.Equal(5.0f, evo.FieldVector.X);
-            Assert.Equal(5.0f, evo.FieldVector.Y);
-            Assert.Equal(5.0f, evo.FieldVector.Z);
-            Assert.Equal(5.0f, evo.FieldVector.W);
-        }
-
-        [Fact]
-        public void DeeplyEmbeddedObjectTest()
-        {
-            DeeplyEmbeddedClass obj = new DeeplyEmbeddedClass();
-            obj.L0.L1.L2.L3.L4.L5.L6.L7.EmbeddedVector.X = 5f;
-            Assert.Equal(5f, obj.RootEmbeddedObject.X);
-            Assert.Equal(5f, obj.RootEmbeddedObject.Y);
-            Assert.Equal(1f, obj.RootEmbeddedObject.Z);
-            Assert.Equal(-5f, obj.RootEmbeddedObject.W);
-            obj.L0.L1.L2.L3.L4.L5.L6.L7.EmbeddedVector = new Vector4(1, 2, 3, 4);
-            Assert.Equal(1f, obj.RootEmbeddedObject.X);
-            Assert.Equal(2f, obj.RootEmbeddedObject.Y);
-            Assert.Equal(3f, obj.RootEmbeddedObject.Z);
-            Assert.Equal(4f, obj.RootEmbeddedObject.W);
-        }
-
-        [Fact]
-        public void DeeplyEmbeddedStructTest()
-        {
-            DeeplyEmbeddedStruct obj = DeeplyEmbeddedStruct.Create();
-            obj.L0.L1.L2.L3.L4.L5.L6.L7.EmbeddedVector.X = 5f;
-            Assert.Equal(5f, obj.RootEmbeddedObject.X);
-            Assert.Equal(5f, obj.RootEmbeddedObject.Y);
-            Assert.Equal(1f, obj.RootEmbeddedObject.Z);
-            Assert.Equal(-5f, obj.RootEmbeddedObject.W);
-            obj.L0.L1.L2.L3.L4.L5.L6.L7.EmbeddedVector = new Vector4(1, 2, 3, 4);
-            Assert.Equal(1f, obj.RootEmbeddedObject.X);
-            Assert.Equal(2f, obj.RootEmbeddedObject.Y);
-            Assert.Equal(3f, obj.RootEmbeddedObject.Z);
-            Assert.Equal(4f, obj.RootEmbeddedObject.W);
-        }
-
-        private class EmbeddedVectorObject
-        {
-            public Vector4 FieldVector;
-        }
-
-        private class DeeplyEmbeddedClass
-        {
-            public readonly Level0 L0 = new Level0();
-            public Vector4 RootEmbeddedObject { get { return L0.L1.L2.L3.L4.L5.L6.L7.EmbeddedVector; } }
-            public class Level0
-            {
-                public readonly Level1 L1 = new Level1();
-                public class Level1
-                {
-                    public readonly Level2 L2 = new Level2();
-                    public class Level2
-                    {
-                        public readonly Level3 L3 = new Level3();
-                        public class Level3
-                        {
-                            public readonly Level4 L4 = new Level4();
-                            public class Level4
-                            {
-                                public readonly Level5 L5 = new Level5();
-                                public class Level5
-                                {
-                                    public readonly Level6 L6 = new Level6();
-                                    public class Level6
-                                    {
-                                        public readonly Level7 L7 = new Level7();
-                                        public class Level7
-                                        {
-                                            public Vector4 EmbeddedVector = new Vector4(1, 5, 1, -5);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Contrived test for strangely-sized and shaped embedded structures, with unused buffer fields.
-#pragma warning disable 0169
-        private struct DeeplyEmbeddedStruct
-        {
-            public static DeeplyEmbeddedStruct Create()
-            {
-                var obj = new DeeplyEmbeddedStruct();
-                obj.L0 = new Level0();
-                obj.L0.L1 = new Level0.Level1();
-                obj.L0.L1.L2 = new Level0.Level1.Level2();
-                obj.L0.L1.L2.L3 = new Level0.Level1.Level2.Level3();
-                obj.L0.L1.L2.L3.L4 = new Level0.Level1.Level2.Level3.Level4();
-                obj.L0.L1.L2.L3.L4.L5 = new Level0.Level1.Level2.Level3.Level4.Level5();
-                obj.L0.L1.L2.L3.L4.L5.L6 = new Level0.Level1.Level2.Level3.Level4.Level5.Level6();
-                obj.L0.L1.L2.L3.L4.L5.L6.L7 = new Level0.Level1.Level2.Level3.Level4.Level5.Level6.Level7();
-                obj.L0.L1.L2.L3.L4.L5.L6.L7.EmbeddedVector = new Vector4(1, 5, 1, -5);
-
-                return obj;
-            }
-
-            public Level0 L0;
-            public Vector4 RootEmbeddedObject { get { return L0.L1.L2.L3.L4.L5.L6.L7.EmbeddedVector; } }
-            public struct Level0
-            {
-                private float _buffer0, _buffer1;
-                public Level1 L1;
-                private float _buffer2;
-                public struct Level1
-                {
-                    private float _buffer0, _buffer1;
-                    public Level2 L2;
-                    private byte _buffer2;
-                    public struct Level2
-                    {
-                        public Level3 L3;
-                        private float _buffer0;
-                        private byte _buffer1;
-                        public struct Level3
-                        {
-                            public Level4 L4;
-                            public struct Level4
-                            {
-                                private float _buffer0;
-                                public Level5 L5;
-                                private long _buffer1;
-                                private byte _buffer2;
-                                private double _buffer3;
-                                public struct Level5
-                                {
-                                    private byte _buffer0;
-                                    public Level6 L6;
-                                    public struct Level6
-                                    {
-                                        private byte _buffer0;
-                                        public Level7 L7;
-                                        private byte _buffer1, _buffer2;
-                                        public struct Level7
-                                        {
-                                            public Vector4 EmbeddedVector;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-#pragma warning restore 0169
     }
 }

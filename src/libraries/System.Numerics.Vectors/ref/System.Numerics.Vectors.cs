@@ -7,6 +7,118 @@
 
 namespace System.Numerics
 {
+    public readonly struct Vector2<T> : IEquatable<Vector2<T>>, IFormattable
+        where T : struct
+    {
+        // Fields
+
+        public T X { get { throw null; } }     // Should this have a setter, a Vector2 WithX(T value), or be a public field like Vector2
+        public T Y { get { throw null; } }     // Should this have a setter, a Vector2 WithY(T value), or be a public field like Vector2
+
+        // Constructors
+
+        public Vector2(T value) { throw null; }
+        public Vector2(T x, T y) { throw null; }
+
+        public Vector2(T[] value) { throw null; }              // Doesn't exist for Vector2
+        public Vector2(T[] value, int offset) { throw null; }  // Doesn't exist for Vector2
+        public Vector2(ReadOnlySpan<T> value) { throw null; }  // Doesn't exist for Vector2
+
+        // Static Properties
+
+        public static Vector2<T> One { get { throw null; } }
+        public static Vector2<T> UnitX { get { throw null; } }
+        public static Vector2<T> UnitY { get { throw null; } }
+        public static Vector2<T> Zero { get { throw null; } }
+
+        // With methods
+        public Vector2<T> WithX(T x) { throw null; }
+        public Vector2<T> WithY(T y) { throw null; }
+
+        // Operators
+
+        public static bool operator ==(Vector2<T> left, Vector2<T> right) { throw null; }
+        public static bool operator !=(Vector2<T> left, Vector2<T> right) { throw null; }
+
+        public static Vector2<T> operator +(Vector2<T> value) { throw null; }  // Doesn't exist for Vector2
+        public static Vector2<T> operator -(Vector2<T> value) { throw null; }
+
+        public static Vector2<T> operator +(Vector2<T> left, Vector2<T> right) { throw null; }
+        public static Vector2<T> operator -(Vector2<T> left, Vector2<T> right) { throw null; }
+
+        public static Vector2<T> operator *(Vector2<T> left, Vector2<T> right) { throw null; }
+        public static Vector2<T> operator /(Vector2<T> left, Vector2<T> right) { throw null; }
+
+        public static Vector2<T> operator *(Vector2<T> left, T right) { throw null; }
+        public static Vector2<T> operator /(Vector2<T> left, T right) { throw null; }
+
+        public static Vector2<T> operator *(T left, Vector2<T> right) { throw null; }
+
+        // "Friendly" Operators
+
+        public static Vector2<T>     Plus(Vector2<T> value) { throw null; }    // Doesn't exist for Vector2
+        public static Vector2<T>   Negate(Vector2<T> value) { throw null; }
+
+        public static Vector2<T>      Add(Vector2<T> left, Vector2<T> right) { throw null; }
+        public static Vector2<T> Subtract(Vector2<T> left, Vector2<T> right) { throw null; }
+
+        public static Vector2<T> Multiply(Vector2<T> left, Vector2<T> right) { throw null; }
+        public static Vector2<T>   Divide(Vector2<T> left, Vector2<T> right) { throw null; }
+
+        public static Vector2<T> Multiply(Vector2<T> left, T right) { throw null; }
+        public static Vector2<T>   Divide(Vector2<T> left, T right) { throw null; }
+
+        public static Vector2<T> Multiply(T left, Vector2<T> right) { throw null; }
+
+        // Static Methods
+
+        public static Vector2<T> Abs(Vector2<T> value) { throw null; }
+
+        public static Vector2<T> Clamp(Vector2<T> value, Vector2<T> min, Vector2<T> max) { throw null; }
+
+        public static T        Distance(Vector2<T> left, Vector2<T> right) { throw null; }
+        public static T DistanceSquared(Vector2<T> left, Vector2<T> right) { throw null; }
+
+        public static T Dot(Vector2<T> left, Vector2<T> right) { throw null; }
+
+        public static Vector2<T> Lerp(Vector2<T> min, Vector2<T> max, T amount) { throw null; }
+
+        public static Vector2<T> Min(Vector2<T> left, Vector2<T> right) { throw null; }
+        public static Vector2<T> Max(Vector2<T> left, Vector2<T> right) { throw null; }
+
+        public static Vector2<T> Normalize(Vector2<T> value) { throw null; }
+
+        public static Vector2<T> Reflect(Vector2<T> incident, Vector2<T> normal) { throw null; }
+
+        public static Vector2<T> SquareRoot(Vector2<T> value) { throw null; }
+
+        //public static Vector2<T> Transform(Vector2<T> position, Matrix3x2<T>  matrix) { throw null; }
+        //public static Vector2<T> Transform(Vector2<T> position, Matrix4x4<T>  matrix) { throw null; }
+
+        //public static Vector2<T> Transform(Vector2<T> position, Quaternion<T> rotation) { throw null; } // Rotate is a better name?
+
+        //public static Vector2<T> TransformNormal(Vector2<T> normal, Matrix3x2<T> matrix) { throw null; }
+        //public static Vector2<T> TransformNormal(Vector2<T> normal, Matrix4x4<T> matrix) { throw null; }
+
+        // Methods
+
+        public readonly void CopyTo(T[] array) { throw null; }
+        public readonly void CopyTo(T[] array, int index) { throw null; }
+        public readonly void CopyTo(Span<T> destination) { throw null; }   // Doesn't exist for Vector2
+
+        public override readonly bool Equals(object? obj) { throw null; }
+        public readonly bool Equals(Vector2<T> other) { throw null; }
+
+        public override readonly int GetHashCode() { throw null; }
+
+        public readonly T Length() { throw null; }         // Better as a property?
+        public readonly T LengthSquared() { throw null; }  // Better as a property?
+
+        public readonly override string ToString() { throw null; }
+        public readonly string ToString(string? format) { throw null; }
+        public readonly string ToString(string? format, IFormatProvider? formatProvider) { throw null; }
+    }
+
     public partial struct Matrix3x2 : System.IEquatable<System.Numerics.Matrix3x2>
     {
         public float M11;

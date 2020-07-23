@@ -700,6 +700,10 @@ namespace System
                     return "prefix";
                 case ExceptionArgument.suffix:
                     return "suffix";
+                case ExceptionArgument.offset:
+                    return "offset";
+                case ExceptionArgument.destination:
+                    return "destination";
                 default:
                     Debug.Fail("The enum value is not defined, please check the ExceptionArgument Enum.");
                     return "";
@@ -958,6 +962,8 @@ namespace System
         options,
         prefix,
         suffix,
+        offset,
+        destination
     }
 
     //

@@ -16,9 +16,12 @@
       <DependentUpon>GenericVectorTests.tt</DependentUpon>
     </Compile>
     <Compile Include="Util.cs" />
+    <Compile Include="Vector2Tests_NonGeneric.cs" />
     <Compile Include="Vector2Tests.cs" />
-    <Compile Include="Vector3Tests.cs" />
-    <Compile Include="Vector4Tests.cs" />
+    <Compile Include="Vector2_SingleTests.cs" />
+    <Compile Include="Vector2_DoubleTests.cs" />
+    <!-- <Compile Include="Vector3Tests.cs" />
+    <Compile Include="Vector4Tests.cs" /> -->
     <Compile Include="MathHelper.cs" />
     <Compile Include="Matrix3x2Tests.cs" />
     <Compile Include="Matrix4x4Tests.cs" />
