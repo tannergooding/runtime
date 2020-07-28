@@ -367,6 +367,7 @@ namespace System
                         x = Round(x);
                         break;
                     }
+
                     // Rounds to the nearest value; if the number falls midway,
                     // it is rounded to the nearest value above (for positive numbers) or below (for negative numbers)
                     case MidpointRounding.AwayFromZero:
