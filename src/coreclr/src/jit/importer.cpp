@@ -3569,7 +3569,16 @@ GenTree* Compiler::impIntrinsic(GenTree*                newobjThis,
                 // These intrinsics aren't defined recursively and so they will never be mustExpand
                 // Instead, they provide software fallbacks that will be executed instead.
 
-                assert(!mustExpand);
+#if defined(TARGET_XARCH)
+                assert(!mustExpand || (ni == NI_VectorT128_get_IsHardwareAccelerated)
+                                   || (ni == NI_VectorT256_get_IsHardwareAccelerated));
+#elif defined(TARGET_ARM64)
+                assert(!mustExpand || (ni == NI_VectorT128_get_IsHardwareAccelerated));
+#else
+#error Unsupported platform
+#endif // !TARGET_XARCH && !TARGET_ARM64
+
+
                 return impSimdAsHWIntrinsic(ni, clsHnd, method, sig, newobjThis);
             }
 #endif // FEATURE_HW_INTRINSICS

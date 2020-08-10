@@ -170,10 +170,19 @@ GenTree* Compiler::impSimdAsHWIntrinsic(NamedIntrinsic        intrinsic,
                                         CORINFO_SIG_INFO*     sig,
                                         GenTree*              newobjThis)
 {
+#if defined(TARGET_XARCH)
+    bool isGetIsHardwareAccelerated = (intrinsic == NI_VectorT128_get_IsHardwareAccelerated) ||
+                                    (intrinsic == NI_VectorT256_get_IsHardwareAccelerated);
+#elif defined(TARGET_ARM64)
+    bool isGetIsHardwareAccelerated = (intrinsic == NI_VectorT128_get_IsHardwareAccelerated);
+#else
+#error Unsupported platform
+#endif // !TARGET_XARCH && !TARGET_ARM64
+
     if (!featureSIMD)
     {
         // We can't support SIMD intrinsics if the JIT doesn't support the feature
-        return nullptr;
+        return isGetIsHardwareAccelerated ? gtNewIconNode(false) : nullptr;
     }
 
 #if defined(TARGET_XARCH)
@@ -189,7 +198,11 @@ GenTree* Compiler::impSimdAsHWIntrinsic(NamedIntrinsic        intrinsic,
         // The user disabled support for the baseline ISA so
         // don't emit any SIMD intrinsics as they all require
         // this at a minimum
-        return nullptr;
+        return isGetIsHardwareAccelerated ? gtNewIconNode(false) : nullptr;
+    }
+    else if (isGetIsHardwareAccelerated)
+    {
+        return gtNewIconNode(true);
     }
 
     CORINFO_CLASS_HANDLE argClass         = NO_CLASS_HANDLE;

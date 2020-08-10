@@ -554,7 +554,7 @@ namespace System.Numerics
         public static bool IsHardwareAccelerated
         {
             [Intrinsic]
-            get => false;
+            get => IsHardwareAccelerated;
         }
 
         // Vector<T>

@@ -2178,7 +2178,7 @@ DWORD FilterNamedIntrinsicMethodAttribs(ZapInfo* pZapInfo, DWORD attribs, CORINF
             && (strncmp(className, "Vector128", _countof("Vector128") - 1) != 0);
 #else
         fTreatAsRegularMethodCall |= !fIsPlatformHWIntrinsic && fIsHWIntrinsic;
-#endif 
+#endif
 
         if (fIsPlatformHWIntrinsic)
         {
@@ -2271,7 +2271,7 @@ DWORD FilterNamedIntrinsicMethodAttribs(ZapInfo* pZapInfo, DWORD attribs, CORINF
                     fTreatAsRegularMethodCall = TRUE;
                 }
             }
-            else if ((strcmp(className, "Vector2") == 0) || (strcmp(className, "Vector") == 0) || (strcmp(className, "Vector`1") == 0))
+            else if (strcmp(className, "Vector2") == 0)
             {
                 if (strcmp(methodName, "Dot") == 0)
                 {
@@ -2279,6 +2279,12 @@ DWORD FilterNamedIntrinsicMethodAttribs(ZapInfo* pZapInfo, DWORD attribs, CORINF
                     // support. This must not be generated inline in R2R images that actually support an SSE2 only mode.
                     fTreatAsRegularMethodCall = TRUE;
                 }
+            }
+            else if ((strcmp(className, "Vector") == 0) || (strcmp(className, "Vector`1") == 0))
+            {
+                // Vector<T> is variable sized and should always be treated as a regular method call.
+                // Likewise, Vector is used to support Vector<T> and should be the same.
+                fTreatAsRegularMethodCall = TRUE;
             }
         }
 #endif // defined(TARGET_X86) || defined(TARGET_AMD64)
