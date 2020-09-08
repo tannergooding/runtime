@@ -615,6 +615,17 @@ INST3(lzcnt,            "lzcnt",            IUM_WR, BAD_CODE,     BAD_CODE,     
 // POPCNT
 INST3(popcnt,           "popcnt",           IUM_WR, BAD_CODE,     BAD_CODE,     SSEFLT(0xB8),                            INS_FLAGS_None)
 
+// SHA1
+INST3(sha1msg1,         "sha1msg1",         IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0x0F, 0x38, 0xC9),                 INS_FLAGS_None)
+INST3(sha1msg2,         "sha1msg2",         IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0x0F, 0x38, 0xCA),                 INS_FLAGS_None)
+INST3(sha1nexte,        "sha1nexte",        IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0x0F, 0x38, 0xC8),                 INS_FLAGS_None)
+INST3(sha1rnds4,        "sha1rnds4",        IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0x0F, 0x3A, 0xCC),                 INS_FLAGS_None)
+
+// SHA256
+INST3(sha256msg1,       "sha256msg1",       IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0x0F, 0x38, 0xCC),                 INS_FLAGS_None)
+INST3(sha256msg2,       "sha256msg2",       IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0x0F, 0x38, 0xCD),                 INS_FLAGS_None)
+INST3(sha256rnds2,      "sha256rnds2",      IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0x0F, 0x38, 0xCB),                 INS_FLAGS_None)
+
 //    id                nm                  um      mr            mi                                                     flags
 INST2(ret,              "ret",              IUM_RD, 0x0000C3,     0x0000C2,                                              INS_FLAGS_None)
 INST2(loop,             "loop",             IUM_RD, BAD_CODE,     0x0000E2,                                              INS_FLAGS_None)
