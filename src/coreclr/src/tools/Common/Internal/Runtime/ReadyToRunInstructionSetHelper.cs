@@ -1,3 +1,4 @@
+
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -83,6 +84,10 @@ namespace Internal.ReadyToRunConstants
                             case InstructionSet.X64_PCLMULQDQ_X64: return ReadyToRunInstructionSet.Pclmulqdq;
                             case InstructionSet.X64_POPCNT: return ReadyToRunInstructionSet.Popcnt;
                             case InstructionSet.X64_POPCNT_X64: return ReadyToRunInstructionSet.Popcnt;
+                            case InstructionSet.X64_SHA1: return ReadyToRunInstructionSet.Sha1;
+                            case InstructionSet.X64_SHA1_X64: return ReadyToRunInstructionSet.Sha1;
+                            case InstructionSet.X64_SHA256: return ReadyToRunInstructionSet.Sha256;
+                            case InstructionSet.X64_SHA256_X64: return ReadyToRunInstructionSet.Sha256;
                             case InstructionSet.X64_Vector128: return null;
                             case InstructionSet.X64_Vector256: return null;
 
@@ -110,6 +115,8 @@ namespace Internal.ReadyToRunConstants
                             case InstructionSet.X86_LZCNT: return ReadyToRunInstructionSet.Lzcnt;
                             case InstructionSet.X86_PCLMULQDQ: return ReadyToRunInstructionSet.Pclmulqdq;
                             case InstructionSet.X86_POPCNT: return ReadyToRunInstructionSet.Popcnt;
+                            case InstructionSet.X86_SHA1: return ReadyToRunInstructionSet.Sha1;
+                            case InstructionSet.X86_SHA256: return ReadyToRunInstructionSet.Sha256;
                             case InstructionSet.X86_Vector128: return null;
                             case InstructionSet.X86_Vector256: return null;
 

@@ -1,3 +1,4 @@
+
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -53,24 +54,28 @@ enum CORINFO_InstructionSet
     InstructionSet_LZCNT=14,
     InstructionSet_PCLMULQDQ=15,
     InstructionSet_POPCNT=16,
-    InstructionSet_Vector128=17,
-    InstructionSet_Vector256=18,
-    InstructionSet_X86Base_X64=19,
-    InstructionSet_SSE_X64=20,
-    InstructionSet_SSE2_X64=21,
-    InstructionSet_SSE3_X64=22,
-    InstructionSet_SSSE3_X64=23,
-    InstructionSet_SSE41_X64=24,
-    InstructionSet_SSE42_X64=25,
-    InstructionSet_AVX_X64=26,
-    InstructionSet_AVX2_X64=27,
-    InstructionSet_AES_X64=28,
-    InstructionSet_BMI1_X64=29,
-    InstructionSet_BMI2_X64=30,
-    InstructionSet_FMA_X64=31,
-    InstructionSet_LZCNT_X64=32,
-    InstructionSet_PCLMULQDQ_X64=33,
-    InstructionSet_POPCNT_X64=34,
+    InstructionSet_SHA1=17,
+    InstructionSet_SHA256=18,
+    InstructionSet_Vector128=19,
+    InstructionSet_Vector256=20,
+    InstructionSet_X86Base_X64=21,
+    InstructionSet_SSE_X64=22,
+    InstructionSet_SSE2_X64=23,
+    InstructionSet_SSE3_X64=24,
+    InstructionSet_SSSE3_X64=25,
+    InstructionSet_SSE41_X64=26,
+    InstructionSet_SSE42_X64=27,
+    InstructionSet_AVX_X64=28,
+    InstructionSet_AVX2_X64=29,
+    InstructionSet_AES_X64=30,
+    InstructionSet_BMI1_X64=31,
+    InstructionSet_BMI2_X64=32,
+    InstructionSet_FMA_X64=33,
+    InstructionSet_LZCNT_X64=34,
+    InstructionSet_PCLMULQDQ_X64=35,
+    InstructionSet_POPCNT_X64=36,
+    InstructionSet_SHA1_X64=37,
+    InstructionSet_SHA256_X64=38,
 #endif // TARGET_AMD64
 #ifdef TARGET_X86
     InstructionSet_X86Base=1,
@@ -89,24 +94,28 @@ enum CORINFO_InstructionSet
     InstructionSet_LZCNT=14,
     InstructionSet_PCLMULQDQ=15,
     InstructionSet_POPCNT=16,
-    InstructionSet_Vector128=17,
-    InstructionSet_Vector256=18,
-    InstructionSet_X86Base_X64=19,
-    InstructionSet_SSE_X64=20,
-    InstructionSet_SSE2_X64=21,
-    InstructionSet_SSE3_X64=22,
-    InstructionSet_SSSE3_X64=23,
-    InstructionSet_SSE41_X64=24,
-    InstructionSet_SSE42_X64=25,
-    InstructionSet_AVX_X64=26,
-    InstructionSet_AVX2_X64=27,
-    InstructionSet_AES_X64=28,
-    InstructionSet_BMI1_X64=29,
-    InstructionSet_BMI2_X64=30,
-    InstructionSet_FMA_X64=31,
-    InstructionSet_LZCNT_X64=32,
-    InstructionSet_PCLMULQDQ_X64=33,
-    InstructionSet_POPCNT_X64=34,
+    InstructionSet_SHA1=17,
+    InstructionSet_SHA256=18,
+    InstructionSet_Vector128=19,
+    InstructionSet_Vector256=20,
+    InstructionSet_X86Base_X64=21,
+    InstructionSet_SSE_X64=22,
+    InstructionSet_SSE2_X64=23,
+    InstructionSet_SSE3_X64=24,
+    InstructionSet_SSSE3_X64=25,
+    InstructionSet_SSE41_X64=26,
+    InstructionSet_SSE42_X64=27,
+    InstructionSet_AVX_X64=28,
+    InstructionSet_AVX2_X64=29,
+    InstructionSet_AES_X64=30,
+    InstructionSet_BMI1_X64=31,
+    InstructionSet_BMI2_X64=32,
+    InstructionSet_FMA_X64=33,
+    InstructionSet_LZCNT_X64=34,
+    InstructionSet_PCLMULQDQ_X64=35,
+    InstructionSet_POPCNT_X64=36,
+    InstructionSet_SHA1_X64=37,
+    InstructionSet_SHA256_X64=38,
 #endif // TARGET_X86
 
 };
@@ -204,6 +213,10 @@ public:
             AddInstructionSet(InstructionSet_PCLMULQDQ_X64);
         if (HasInstructionSet(InstructionSet_POPCNT))
             AddInstructionSet(InstructionSet_POPCNT_X64);
+        if (HasInstructionSet(InstructionSet_SHA1))
+            AddInstructionSet(InstructionSet_SHA1_X64);
+        if (HasInstructionSet(InstructionSet_SHA256))
+            AddInstructionSet(InstructionSet_SHA256_X64);
 #endif // TARGET_AMD64
 #ifdef TARGET_X86
 #endif // TARGET_X86
@@ -341,6 +354,14 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_POPCNT);
         if (resultflags.HasInstructionSet(InstructionSet_POPCNT_X64) && !resultflags.HasInstructionSet(InstructionSet_POPCNT))
             resultflags.RemoveInstructionSet(InstructionSet_POPCNT_X64);
+        if (resultflags.HasInstructionSet(InstructionSet_SHA1) && !resultflags.HasInstructionSet(InstructionSet_SHA1_X64))
+            resultflags.RemoveInstructionSet(InstructionSet_SHA1);
+        if (resultflags.HasInstructionSet(InstructionSet_SHA1_X64) && !resultflags.HasInstructionSet(InstructionSet_SHA1))
+            resultflags.RemoveInstructionSet(InstructionSet_SHA1_X64);
+        if (resultflags.HasInstructionSet(InstructionSet_SHA256) && !resultflags.HasInstructionSet(InstructionSet_SHA256_X64))
+            resultflags.RemoveInstructionSet(InstructionSet_SHA256);
+        if (resultflags.HasInstructionSet(InstructionSet_SHA256_X64) && !resultflags.HasInstructionSet(InstructionSet_SHA256))
+            resultflags.RemoveInstructionSet(InstructionSet_SHA256_X64);
         if (resultflags.HasInstructionSet(InstructionSet_SSE) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
             resultflags.RemoveInstructionSet(InstructionSet_SSE);
         if (resultflags.HasInstructionSet(InstructionSet_SSE2) && !resultflags.HasInstructionSet(InstructionSet_SSE))
@@ -369,6 +390,10 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_PCLMULQDQ);
         if (resultflags.HasInstructionSet(InstructionSet_POPCNT) && !resultflags.HasInstructionSet(InstructionSet_SSE42))
             resultflags.RemoveInstructionSet(InstructionSet_POPCNT);
+        if (resultflags.HasInstructionSet(InstructionSet_SHA1) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
+            resultflags.RemoveInstructionSet(InstructionSet_SHA1);
+        if (resultflags.HasInstructionSet(InstructionSet_SHA256) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
+            resultflags.RemoveInstructionSet(InstructionSet_SHA256);
         if (resultflags.HasInstructionSet(InstructionSet_Vector256) && !resultflags.HasInstructionSet(InstructionSet_AVX))
             resultflags.RemoveInstructionSet(InstructionSet_Vector256);
 #endif // TARGET_AMD64
@@ -401,6 +426,10 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_PCLMULQDQ);
         if (resultflags.HasInstructionSet(InstructionSet_POPCNT) && !resultflags.HasInstructionSet(InstructionSet_SSE42))
             resultflags.RemoveInstructionSet(InstructionSet_POPCNT);
+        if (resultflags.HasInstructionSet(InstructionSet_SHA1) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
+            resultflags.RemoveInstructionSet(InstructionSet_SHA1);
+        if (resultflags.HasInstructionSet(InstructionSet_SHA256) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
+            resultflags.RemoveInstructionSet(InstructionSet_SHA256);
         if (resultflags.HasInstructionSet(InstructionSet_Vector256) && !resultflags.HasInstructionSet(InstructionSet_AVX))
             resultflags.RemoveInstructionSet(InstructionSet_Vector256);
 #endif // TARGET_X86
@@ -523,6 +552,14 @@ inline const char *InstructionSetToString(CORINFO_InstructionSet instructionSet)
             return "POPCNT";
         case InstructionSet_POPCNT_X64 :
             return "POPCNT_X64";
+        case InstructionSet_SHA1 :
+            return "SHA1";
+        case InstructionSet_SHA1_X64 :
+            return "SHA1_X64";
+        case InstructionSet_SHA256 :
+            return "SHA256";
+        case InstructionSet_SHA256_X64 :
+            return "SHA256_X64";
         case InstructionSet_Vector128 :
             return "Vector128";
         case InstructionSet_Vector256 :
@@ -561,6 +598,10 @@ inline const char *InstructionSetToString(CORINFO_InstructionSet instructionSet)
             return "PCLMULQDQ";
         case InstructionSet_POPCNT :
             return "POPCNT";
+        case InstructionSet_SHA1 :
+            return "SHA1";
+        case InstructionSet_SHA256 :
+            return "SHA256";
         case InstructionSet_Vector128 :
             return "Vector128";
         case InstructionSet_Vector256 :
@@ -612,6 +653,8 @@ inline CORINFO_InstructionSet InstructionSetFromR2RInstructionSet(ReadyToRunInst
         case READYTORUN_INSTRUCTION_Lzcnt: return InstructionSet_LZCNT;
         case READYTORUN_INSTRUCTION_Pclmulqdq: return InstructionSet_PCLMULQDQ;
         case READYTORUN_INSTRUCTION_Popcnt: return InstructionSet_POPCNT;
+        case READYTORUN_INSTRUCTION_Sha1: return InstructionSet_SHA1;
+        case READYTORUN_INSTRUCTION_Sha256: return InstructionSet_SHA256;
 #endif // TARGET_AMD64
 #ifdef TARGET_X86
         case READYTORUN_INSTRUCTION_X86Base: return InstructionSet_X86Base;
@@ -630,6 +673,8 @@ inline CORINFO_InstructionSet InstructionSetFromR2RInstructionSet(ReadyToRunInst
         case READYTORUN_INSTRUCTION_Lzcnt: return InstructionSet_LZCNT;
         case READYTORUN_INSTRUCTION_Pclmulqdq: return InstructionSet_PCLMULQDQ;
         case READYTORUN_INSTRUCTION_Popcnt: return InstructionSet_POPCNT;
+        case READYTORUN_INSTRUCTION_Sha1: return InstructionSet_SHA1;
+        case READYTORUN_INSTRUCTION_Sha256: return InstructionSet_SHA256;
 #endif // TARGET_X86
 
         default:

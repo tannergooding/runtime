@@ -1,5 +1,5 @@
 ; Define the set of instruction sets available on a platform
-; Format is 
+; Format is
 ;
 ; Add new instruction set
 ; instructionset,<architecture>,<managed name>,<r2r name if different>,<R2R numeric value>, <jit instruction set name>, <public name>
@@ -38,6 +38,8 @@ instructionset     ,X86   ,Fma       ,        ,12 ,FMA      ,fma
 instructionset     ,X86   ,Lzcnt     ,        ,13 ,LZCNT    ,lzcnt
 instructionset     ,X86   ,Pclmulqdq ,        ,14 ,PCLMULQDQ,pclmul
 instructionset     ,X86   ,Popcnt    ,        ,15 ,POPCNT   ,popcnt
+instructionset     ,X86   ,Sha1      ,        ,19 ,SHA1     ,sha1
+instructionset     ,X86   ,Sha256    ,        ,20 ,SHA256   ,sha2
 instructionset     ,X86   ,          ,        ,   ,Vector128,
 instructionset     ,X86   ,          ,        ,   ,Vector256,
 
@@ -57,6 +59,8 @@ instructionset64bit,X86   ,FMA
 instructionset64bit,X86   ,LZCNT
 instructionset64bit,X86   ,PCLMULQDQ
 instructionset64bit,X86   ,POPCNT
+instructionset64bit,X86   ,SHA1
+instructionset64bit,X86   ,SHA256
 
 implication        ,X86   ,SSE       ,X86Base
 implication        ,X86   ,SSE2      ,SSE
@@ -72,6 +76,8 @@ implication        ,X86   ,BMI2      ,AVX
 implication        ,X86   ,FMA       ,AVX
 implication        ,X86   ,PCLMULQDQ ,SSE2
 implication        ,X86   ,POPCNT    ,SSE42
+implication        ,X86   ,SHA1      ,X86Base
+implication        ,X86   ,SHA256    ,X86Base
 implication        ,X86   ,Vector256 ,AVX
 
 ; Definition of X64 instruction sets
