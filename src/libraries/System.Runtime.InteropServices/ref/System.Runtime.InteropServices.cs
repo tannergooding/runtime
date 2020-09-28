@@ -155,6 +155,17 @@ namespace System.Runtime.InteropServices
         [System.ObsoleteAttribute("Support for IDispatch may be unavailable in future releases.")]
         AutoDual = 2,
     }
+    public readonly struct CLong : System.IEquatable<System.Runtime.InteropServices.CLong>
+    {
+        private readonly int _dummyPrimitive;
+        public CLong(int value) { throw null; }
+        public CLong(nint value) { throw null; }
+        public nint Value { get { throw null; } }
+        public override bool Equals(object? obj) { throw null; }
+        public bool Equals(System.Runtime.InteropServices.CLong other) { throw null; }
+        public override int GetHashCode() { throw null; }
+        public override string ToString() { throw null; }
+    }
     [System.AttributeUsageAttribute(System.AttributeTargets.Interface, Inherited=false)]
     public sealed partial class CoClassAttribute : System.Attribute
     {
@@ -276,6 +287,18 @@ namespace System.Runtime.InteropServices
     public sealed partial class ComUnregisterFunctionAttribute : System.Attribute
     {
         public ComUnregisterFunctionAttribute() { }
+    }
+    [System.CLSCompliantAttribute(false)]
+    public readonly struct CULong : System.IEquatable<System.Runtime.InteropServices.CULong>
+    {
+        private readonly int _dummyPrimitive;
+        public CULong(uint value) { throw null; }
+        public CULong(nuint value) { throw null; }
+        public nuint Value { get { throw null; } }
+        public override bool Equals(object? obj) { throw null; }
+        public bool Equals(System.Runtime.InteropServices.CULong other) { throw null; }
+        public override int GetHashCode() { throw null; }
+        public override string ToString() { throw null; }
     }
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
     [System.ObsoleteAttribute("CurrencyWrapper and support for marshalling to the VARIANT type may be unavailable in future releases.")]
@@ -730,6 +753,17 @@ namespace System.Runtime.InteropServices
         public static bool TryGetExport(System.IntPtr handle, string name, out System.IntPtr address) { throw null; }
         public static bool TryLoad(string libraryPath, out System.IntPtr handle) { throw null; }
         public static bool TryLoad(string libraryName, System.Reflection.Assembly assembly, System.Runtime.InteropServices.DllImportSearchPath? searchPath, out System.IntPtr handle) { throw null; }
+    }
+    public readonly struct NFloat : System.IEquatable<System.Runtime.InteropServices.NFloat>
+    {
+        private readonly int _dummyPrimitive;
+        public NFloat(float value) { throw null; }
+        public NFloat(double value) { throw null; }
+        public double Value { get { throw null; } }
+        public override bool Equals(object? obj) { throw null; }
+        public bool Equals(System.Runtime.InteropServices.NFloat other) { throw null; }
+        public override int GetHashCode() { throw null; }
+        public override string ToString() { throw null; }
     }
     [System.AttributeUsageAttribute(System.AttributeTargets.Parameter, Inherited=false)]
     public sealed partial class OptionalAttribute : System.Attribute
