@@ -116,7 +116,7 @@ namespace System.Runtime.Versioning
             identifier = identifier.Trim();
             if (identifier.Length == 0)
             {
-                throw new ArgumentException(SR.Format(SR.net_emptystringcall, nameof(identifier)), nameof(identifier));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("net_emptystringcall"), nameof(identifier)), nameof(identifier));
             }
             if (version == null)
             {
@@ -140,7 +140,7 @@ namespace System.Runtime.Versioning
             }
             if (frameworkName.Length == 0)
             {
-                throw new ArgumentException(SR.Format(SR.net_emptystringcall, nameof(frameworkName)), nameof(frameworkName));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("net_emptystringcall"), nameof(frameworkName)), nameof(frameworkName));
             }
 
             string[] components = frameworkName.Split(ComponentSeparator);
@@ -148,7 +148,7 @@ namespace System.Runtime.Versioning
             // Identifier and Version are required, Profile is optional.
             if (components.Length < 2 || components.Length > 3)
             {
-                throw new ArgumentException(SR.Argument_FrameworkNameTooShort, nameof(frameworkName));
+                throw new ArgumentException(SR.GetResourceString("Argument_FrameworkNameTooShort"), nameof(frameworkName));
             }
 
             //
@@ -158,7 +158,7 @@ namespace System.Runtime.Versioning
 
             if (_identifier.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_FrameworkNameInvalid, nameof(frameworkName));
+                throw new ArgumentException(SR.GetResourceString("Argument_FrameworkNameInvalid"), nameof(frameworkName));
             }
 
             bool versionFound = false;
@@ -175,7 +175,7 @@ namespace System.Runtime.Versioning
 
                 if (separatorIndex == -1 || separatorIndex != component.LastIndexOf(KeyValueSeparator))
                 {
-                    throw new ArgumentException(SR.Argument_FrameworkNameInvalid, nameof(frameworkName));
+                    throw new ArgumentException(SR.GetResourceString("Argument_FrameworkNameInvalid"), nameof(frameworkName));
                 }
 
                 // Get the key and value, trimming any whitespace
@@ -200,7 +200,7 @@ namespace System.Runtime.Versioning
                     }
                     catch (Exception e)
                     {
-                        throw new ArgumentException(SR.Argument_FrameworkNameInvalidVersion, nameof(frameworkName), e);
+                        throw new ArgumentException(SR.GetResourceString("Argument_FrameworkNameInvalidVersion"), nameof(frameworkName), e);
                     }
                 }
                 //
@@ -215,13 +215,13 @@ namespace System.Runtime.Versioning
                 }
                 else
                 {
-                    throw new ArgumentException(SR.Argument_FrameworkNameInvalid, nameof(frameworkName));
+                    throw new ArgumentException(SR.GetResourceString("Argument_FrameworkNameInvalid"), nameof(frameworkName));
                 }
             }
 
             if (!versionFound)
             {
-                throw new ArgumentException(SR.Argument_FrameworkNameMissingVersion, nameof(frameworkName));
+                throw new ArgumentException(SR.GetResourceString("Argument_FrameworkNameMissingVersion"), nameof(frameworkName));
             }
         }
 

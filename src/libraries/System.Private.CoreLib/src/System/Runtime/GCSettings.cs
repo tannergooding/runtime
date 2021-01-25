@@ -37,13 +37,13 @@ namespace System.Runtime
                 if ((value < GCLatencyMode.Batch) ||
                     (value > GCLatencyMode.SustainedLowLatency))
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_Enum);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_Enum"));
                 }
 
                 SetLatencyModeStatus status = SetGCLatencyMode(value);
                 if (status == SetLatencyModeStatus.NoGCInProgress)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_SetLatencyModeNoGC);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_SetLatencyModeNoGC"));
                 }
 
                 Debug.Assert(status == SetLatencyModeStatus.Succeeded, $"Unexpected return value '{status}' from {nameof(SetGCLatencyMode)}.");
@@ -58,7 +58,7 @@ namespace System.Runtime
                 if ((value < GCLargeObjectHeapCompactionMode.Default) ||
                     (value > GCLargeObjectHeapCompactionMode.CompactOnce))
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_Enum);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_Enum"));
                 }
 
                 SetLOHCompactionMode(value);

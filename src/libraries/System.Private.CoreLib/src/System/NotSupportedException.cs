@@ -19,7 +19,7 @@ namespace System
     public class NotSupportedException : SystemException
     {
         public NotSupportedException()
-            : base(SR.Arg_NotSupportedException)
+            : base(SR.GetResourceString("Arg_NotSupportedException"))
         {
             HResult = HResults.COR_E_NOTSUPPORTED;
         }

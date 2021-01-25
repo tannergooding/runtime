@@ -183,7 +183,7 @@ namespace Internal.Runtime.InteropServices
 
                 // Verify the function is properly marked.
                 if (null == methodInfo.GetCustomAttribute<UnmanagedCallersOnlyAttribute>())
-                    throw new InvalidOperationException(SR.InvalidOperation_FunctionMissingUnmanagedCallersOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_FunctionMissingUnmanagedCallersOnly"));
 
                 functionPtr = methodInfo.MethodHandle.GetFunctionPointer();
             }

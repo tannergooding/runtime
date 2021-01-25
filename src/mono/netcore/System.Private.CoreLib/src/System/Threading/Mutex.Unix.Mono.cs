@@ -13,7 +13,7 @@ namespace System.Threading
         public void ReleaseMutex()
         {
             if (!ReleaseMutex_internal(Handle))
-                throw new ApplicationException(SR.Arg_SynchronizationLockException);
+                throw new ApplicationException(SR.GetResourceString("Arg_SynchronizationLockException"));
         }
 
         private void CreateMutexCore(bool initiallyOwned, string? name, out bool createdNew) =>

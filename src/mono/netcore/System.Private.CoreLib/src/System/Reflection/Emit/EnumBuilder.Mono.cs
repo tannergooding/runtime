@@ -54,7 +54,7 @@ namespace System.Reflection.Emit
         internal EnumBuilder(ModuleBuilder mb, string name, TypeAttributes visibility, Type underlyingType)
         {
             if ((visibility & ~TypeAttributes.VisibilityMask) != 0)
-                throw new ArgumentException(SR.Argument_ShouldOnlySetVisibilityFlags, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_ShouldOnlySetVisibilityFlags"), nameof(name));
             if ((visibility & TypeAttributes.VisibilityMask) >= TypeAttributes.NestedPublic && (visibility & TypeAttributes.VisibilityMask) <= TypeAttributes.NestedFamORAssem)
                 throw new ArgumentException();
             _tb = new TypeBuilder(mb, name, (visibility | TypeAttributes.Sealed),
@@ -363,7 +363,7 @@ namespace System.Reflection.Emit
             Type? returnType, Type[]? types,
             ParameterModifier[]? modifiers)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         protected override bool HasElementTypeImpl()

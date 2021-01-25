@@ -30,10 +30,10 @@ namespace System.Reflection
             throw new PlatformNotSupportedException();
 
         public StrongNameKeyPair(string keyPairContainer) =>
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_StrongNameSigning);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_StrongNameSigning"));
 
         public byte[] PublicKey =>
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_StrongNameSigning);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_StrongNameSigning"));
 
         void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) =>
             throw new PlatformNotSupportedException();

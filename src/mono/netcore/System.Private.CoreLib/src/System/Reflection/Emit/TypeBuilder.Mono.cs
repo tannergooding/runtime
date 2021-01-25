@@ -121,7 +121,7 @@ namespace System.Reflection.Emit
             check_name(nameof(fullname), fullname);
 
             if (parent == null && (attr & TypeAttributes.Interface) != 0 && (attr & TypeAttributes.Abstract) == 0)
-                throw new InvalidOperationException(SR.InvalidOperation_BadInterfaceNotAbstract);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_BadInterfaceNotAbstract"));
 
             sep_index = fullname.LastIndexOf('.');
             if (sep_index != -1)
@@ -275,7 +275,7 @@ namespace System.Reflection.Emit
             if (interfaceType == null)
                 throw new ArgumentNullException(nameof(interfaceType));
             if (interfaceType.IsByRef)
-                throw new ArgumentException(SR.Argument_CannotGetTypeTokenForByRef);
+                throw new ArgumentException(SR.GetResourceString("Argument_CannotGetTypeTokenForByRef"));
             check_not_created();
 
             if (interfaces != null)
@@ -496,7 +496,7 @@ namespace System.Reflection.Emit
             if (IsInterface)
                 throw new InvalidOperationException();
             if ((attributes & (MethodAttributes.Static | MethodAttributes.Virtual)) > 0)
-                throw new ArgumentException(SR.Arg_NoStaticVirtual);
+                throw new ArgumentException(SR.GetResourceString("Arg_NoStaticVirtual"));
 
             if (parent != null)
                 parent_type = parent;
@@ -1562,7 +1562,7 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(eventtype));
             check_not_created();
             if (eventtype.IsByRef)
-                throw new ArgumentException(SR.Argument_CannotGetTypeTokenForByRef);
+                throw new ArgumentException(SR.GetResourceString("Argument_CannotGetTypeTokenForByRef"));
             EventBuilder res = new EventBuilder(this, name, attributes, eventtype);
             if (events != null)
             {
@@ -1637,7 +1637,7 @@ namespace System.Reflection.Emit
             else
             {
                 if (parent.IsInterface)
-                    throw new ArgumentException(SR.Argument_CannotSetParentToInterface);
+                    throw new ArgumentException(SR.GetResourceString("Argument_CannotSetParentToInterface"));
                 this.parent = parent;
             }
             this.parent = ResolveUserType(this.parent);
@@ -1699,7 +1699,7 @@ namespace System.Reflection.Emit
             if (name == null)
                 throw new ArgumentNullException(argName);
             if (name.Length == 0 || name[0] == ((char)0))
-                throw new ArgumentException(SR.Argument_EmptyName, argName);
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), argName);
         }
 
         public override string ToString()
@@ -1819,7 +1819,7 @@ namespace System.Reflection.Emit
             if (names == null)
                 throw new ArgumentNullException(nameof(names));
             if (names.Length == 0)
-                throw new ArgumentException(SR.Arg_EmptyArray, nameof(names));
+                throw new ArgumentException(SR.GetResourceString("Arg_EmptyArray"), nameof(names));
 
             generic_params = new GenericTypeParameterBuilder[names.Length];
             for (int i = 0; i < names.Length; i++)

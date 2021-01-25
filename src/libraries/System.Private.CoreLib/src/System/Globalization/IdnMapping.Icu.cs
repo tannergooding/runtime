@@ -36,7 +36,7 @@ namespace System.Globalization
             }
             if (actualLength == 0)
             {
-                throw new ArgumentException(SR.Argument_IdnIllegalName, nameof(unicode));
+                throw new ArgumentException(SR.GetResourceString("Argument_IdnIllegalName"), nameof(unicode));
             }
 
             char[] outputHeap = new char[actualLength];
@@ -45,7 +45,7 @@ namespace System.Globalization
                 actualLength = Interop.Globalization.ToAscii(flags, unicode, count, pOutputHeap, actualLength);
                 if (actualLength == 0 || actualLength > outputHeap.Length)
                 {
-                    throw new ArgumentException(SR.Argument_IdnIllegalName, nameof(unicode));
+                    throw new ArgumentException(SR.GetResourceString("Argument_IdnIllegalName"), nameof(unicode));
                 }
                 return GetStringForOutput(unicodeString, unicode, count, pOutputHeap, actualLength);
             }
@@ -86,7 +86,7 @@ namespace System.Globalization
 
             if (realLen == 0)
             {
-                throw new ArgumentException(SR.Argument_IdnIllegalName, nameof(ascii));
+                throw new ArgumentException(SR.GetResourceString("Argument_IdnIllegalName"), nameof(ascii));
             }
             else if (realLen <= outputLength)
             {
@@ -101,7 +101,7 @@ namespace System.Globalization
                 }
             }
 
-            throw new ArgumentException(SR.Argument_IdnIllegalName, nameof(ascii));
+            throw new ArgumentException(SR.GetResourceString("Argument_IdnIllegalName"), nameof(ascii));
         }
 
         private uint IcuFlags
@@ -134,7 +134,7 @@ namespace System.Globalization
                     // See https://msdn.microsoft.com/en-us/library/system.globalization.idnmapping.usestd3asciirules(v=vs.110).aspx
                     if (c <= 0x1F || c == 0x7F)
                     {
-                        throw new ArgumentException(SR.Argument_IdnIllegalName, paramName);
+                        throw new ArgumentException(SR.GetResourceString("Argument_IdnIllegalName"), paramName);
                     }
                 }
             }

@@ -122,7 +122,7 @@ namespace System.Globalization
             {
                 if (throwOnError)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(year), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(nameof(year), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 }
                 return -1;
             }
@@ -172,7 +172,7 @@ namespace System.Globalization
                         throw new ArgumentOutOfRangeException(
                                     nameof(year),
                                     SR.Format(
-                                        SR.ArgumentOutOfRange_Range,
+                                        SR.GetResourceString("ArgumentOutOfRange_Range"),
                                         m_EraInfo[i].minEraYear,
                                         m_EraInfo[i].maxEraYear));
                     }
@@ -183,7 +183,7 @@ namespace System.Globalization
 
             if (throwOnError)
             {
-                throw new ArgumentOutOfRangeException(nameof(era), SR.ArgumentOutOfRange_InvalidEraValue);
+                throw new ArgumentOutOfRangeException(nameof(era), SR.GetResourceString("ArgumentOutOfRange_InvalidEraValue"));
             }
             return -1;
         }
@@ -290,7 +290,7 @@ namespace System.Globalization
                     return absoluteDate;
                 }
             }
-            throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadYearMonthDay);
+            throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadYearMonthDay"));
         }
 
         // Returns the tick count corresponding to the given year, month, and day.
@@ -313,13 +313,13 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                                 nameof(millisecond),
                                 SR.Format(
-                                    SR.ArgumentOutOfRange_Range,
+                                    SR.GetResourceString("ArgumentOutOfRange_Range"),
                                     0,
                                     MillisPerSecond - 1));
                 }
                 return InternalGlobalizationHelper.TimeToTicks(hour, minute, second) + millisecond * TicksPerMillisecond;
             }
-            throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadHourMinuteSecond);
+            throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadHourMinuteSecond"));
         }
 
         internal void CheckTicksRange(long ticks)
@@ -330,7 +330,7 @@ namespace System.Globalization
                             "time",
                             SR.Format(
                                 CultureInfo.InvariantCulture,
-                                SR.ArgumentOutOfRange_CalendarRange,
+                                SR.GetResourceString("ArgumentOutOfRange_CalendarRange"),
                                 m_Cal.MinSupportedDateTime,
                                 m_Cal.MaxSupportedDateTime));
             }
@@ -360,7 +360,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                             nameof(months),
                             SR.Format(
-                                SR.ArgumentOutOfRange_Range,
+                                SR.GetResourceString("ArgumentOutOfRange_Range"),
                                 -120000,
                                 120000));
             }
@@ -443,7 +443,7 @@ namespace System.Globalization
             year = GetGregorianYear(year, era);
             if (month < 1 || month > 12)
             {
-                throw new ArgumentOutOfRangeException(nameof(month), SR.ArgumentOutOfRange_Month);
+                throw new ArgumentOutOfRangeException(nameof(month), SR.GetResourceString("ArgumentOutOfRange_Month"));
             }
             int[] days = ((year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) ? DaysToMonth366 : DaysToMonth365);
             return days[month] - days[month - 1];
@@ -473,7 +473,7 @@ namespace System.Globalization
                     return m_EraInfo[i].era;
                 }
             }
-            throw new ArgumentOutOfRangeException(nameof(time), SR.ArgumentOutOfRange_Era);
+            throw new ArgumentOutOfRangeException(nameof(time), SR.GetResourceString("ArgumentOutOfRange_Era"));
         }
 
         public int[] Eras
@@ -522,7 +522,7 @@ namespace System.Globalization
                     return year - m_EraInfo[i].yearOffset;
                 }
             }
-            throw new ArgumentException(SR.Argument_NoEra);
+            throw new ArgumentException(SR.GetResourceString("Argument_NoEra"));
         }
 
         // Returns the year that match the specified Gregorian year. The returned value is an
@@ -543,7 +543,7 @@ namespace System.Globalization
                     return year - m_EraInfo[i].yearOffset;
                 }
             }
-            throw new ArgumentException(SR.Argument_NoEra);
+            throw new ArgumentException(SR.GetResourceString("Argument_NoEra"));
         }
 
         // Checks whether a given day in the specified era is a leap day. This method returns true if
@@ -557,7 +557,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                             nameof(day),
                             SR.Format(
-                                SR.ArgumentOutOfRange_Range,
+                                SR.GetResourceString("ArgumentOutOfRange_Range"),
                                 1,
                                 GetDaysInMonth(year, month, era)));
             }
@@ -597,7 +597,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                             nameof(month),
                             SR.Format(
-                                SR.ArgumentOutOfRange_Range,
+                                SR.GetResourceString("ArgumentOutOfRange_Range"),
                                 1,
                                 12));
             }
@@ -636,7 +636,7 @@ namespace System.Globalization
             if (year < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(year),
-                    SR.ArgumentOutOfRange_NeedPosNum);
+                    SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
 
             if (year < 100)
@@ -649,7 +649,7 @@ namespace System.Globalization
             {
                 throw new ArgumentOutOfRangeException(
                             nameof(year),
-                            SR.Format(SR.ArgumentOutOfRange_Range, m_minYear, m_maxYear));
+                            SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), m_minYear, m_maxYear));
             }
             // If the year value is above 100, just return the year value.  Don't have to do
             // the TwoDigitYearMax comparison.

@@ -24,7 +24,7 @@ namespace System
     public sealed class ExecutionEngineException : SystemException
     {
         public ExecutionEngineException()
-            : base(SR.Arg_ExecutionEngineException)
+            : base(SR.GetResourceString("Arg_ExecutionEngineException"))
         {
             HResult = HResults.COR_E_EXECUTIONENGINE;
         }

@@ -78,7 +78,7 @@ namespace System
             FullSystemTime time;
             if (Interop.Kernel32.FileTimeToSystemTime(&fileTime, &time.systemTime) == Interop.BOOL.FALSE)
             {
-                throw new ArgumentOutOfRangeException(nameof(fileTime), SR.ArgumentOutOfRange_DateTimeBadTicks);
+                throw new ArgumentOutOfRangeException(nameof(fileTime), SR.GetResourceString("ArgumentOutOfRange_DateTimeBadTicks"));
             }
 
             // to keep the time precision
@@ -101,7 +101,7 @@ namespace System
 
             if (Interop.Kernel32.SystemTimeToFileTime(&time.systemTime, &fileTime) == Interop.BOOL.FALSE)
             {
-                throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_FileTimeInvalid);
+                throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_FileTimeInvalid"));
             }
 
             return fileTime + ticks % TicksPerMillisecond;

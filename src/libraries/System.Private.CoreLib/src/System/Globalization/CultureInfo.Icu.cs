@@ -13,7 +13,7 @@ namespace System.Globalization
 
             if (!Interop.Globalization.IsPredefinedLocale(name))
             {
-                throw new CultureNotFoundException(nameof(name), SR.Format(SR.Argument_InvalidPredefinedCultureName, name));
+                throw new CultureNotFoundException(nameof(name), SR.Format(SR.GetResourceString("Argument_InvalidPredefinedCultureName"), name));
             }
 
             return GetCultureInfo(name);

@@ -28,10 +28,10 @@ namespace System.Threading
                 // indicate that the specified handles are invalid.
 
                 if (ex.HResult == HResults.E_HANDLE)         // Bad handle
-                    throw new ArgumentException(SR.Argument_InvalidHandle, nameof(handle));
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidHandle"), nameof(handle));
 
                 if (ex.HResult == HResults.E_INVALIDARG)     // Handle already bound or sync handle
-                    throw new ArgumentException(SR.Argument_AlreadyBoundOrSyncHandle, nameof(handle));
+                    throw new ArgumentException(SR.GetResourceString("Argument_AlreadyBoundOrSyncHandle"), nameof(handle));
 
                 throw;
             }

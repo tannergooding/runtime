@@ -29,7 +29,7 @@ namespace System.Threading
         {
             int ret = SignalAndWait_Internal(waitHandleToSignal, waitHandleToWaitOn, millisecondsTimeout);
             if (ret == ERROR_TOO_MANY_POSTS)
-                throw new InvalidOperationException(SR.Threading_WaitHandleTooManyPosts);
+                throw new InvalidOperationException(SR.GetResourceString("Threading_WaitHandleTooManyPosts"));
             if (ret == ERROR_NOT_OWNED_BY_CALLER)
                 throw new ApplicationException("Attempt to release mutex not owned by caller");
             return ret;

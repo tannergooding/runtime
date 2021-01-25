@@ -90,15 +90,15 @@ namespace System.IO
             }
             if (offset < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(offset), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.ByteLength < (ulong)(offset + length))
             {
-                throw new ArgumentException(SR.Argument_InvalidSafeBufferOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidSafeBufferOffLen"));
             }
             if (access < FileAccess.Read || access > FileAccess.ReadWrite)
             {
@@ -107,7 +107,7 @@ namespace System.IO
 
             if (_isOpen)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_CalledTwice);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CalledTwice"));
             }
 
             // check for wraparound
@@ -119,7 +119,7 @@ namespace System.IO
                     buffer.AcquirePointer(ref pointer);
                     if ((pointer + offset + length) < pointer)
                     {
-                        throw new ArgumentException(SR.ArgumentOutOfRange_UnmanagedMemStreamWrapAround);
+                        throw new ArgumentException(SR.GetResourceString("ArgumentOutOfRange_UnmanagedMemStreamWrapAround"));
                     }
                 }
                 finally
@@ -166,16 +166,16 @@ namespace System.IO
             if (pointer == null)
                 throw new ArgumentNullException(nameof(pointer));
             if (length < 0 || capacity < 0)
-                throw new ArgumentOutOfRangeException((length < 0) ? nameof(length) : nameof(capacity), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException((length < 0) ? nameof(length) : nameof(capacity), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (length > capacity)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_LengthGreaterThanCapacity);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_LengthGreaterThanCapacity"));
             // Check for wraparound.
             if (((byte*)((long)pointer + capacity)) < pointer)
-                throw new ArgumentOutOfRangeException(nameof(capacity), SR.ArgumentOutOfRange_UnmanagedMemStreamWrapAround);
+                throw new ArgumentOutOfRangeException(nameof(capacity), SR.GetResourceString("ArgumentOutOfRange_UnmanagedMemStreamWrapAround"));
             if (access < FileAccess.Read || access > FileAccess.ReadWrite)
-                throw new ArgumentOutOfRangeException(nameof(access), SR.ArgumentOutOfRange_Enum);
+                throw new ArgumentOutOfRangeException(nameof(access), SR.GetResourceString("ArgumentOutOfRange_Enum"));
             if (_isOpen)
-                throw new InvalidOperationException(SR.InvalidOperation_CalledTwice);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CalledTwice"));
 
             _mem = pointer;
             _offset = 0;
@@ -295,7 +295,7 @@ namespace System.IO
             }
             set
             {
-                if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_NeedNonNegNum);
+                if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (!CanSeek) throw Error.GetStreamIsClosed();
 
                 Interlocked.Exchange(ref _position, value);
@@ -311,29 +311,29 @@ namespace System.IO
             get
             {
                 if (_buffer != null)
-                    throw new NotSupportedException(SR.NotSupported_UmsSafeBuffer);
+                    throw new NotSupportedException(SR.GetResourceString("NotSupported_UmsSafeBuffer"));
 
                 EnsureNotClosed();
 
                 // Use a temp to avoid a race
                 long pos = Interlocked.Read(ref _position);
                 if (pos > _capacity)
-                    throw new IndexOutOfRangeException(SR.IndexOutOfRange_UMSPosition);
+                    throw new IndexOutOfRangeException(SR.GetResourceString("IndexOutOfRange_UMSPosition"));
                 byte* ptr = _mem + pos;
                 return ptr;
             }
             set
             {
                 if (_buffer != null)
-                    throw new NotSupportedException(SR.NotSupported_UmsSafeBuffer);
+                    throw new NotSupportedException(SR.GetResourceString("NotSupported_UmsSafeBuffer"));
 
                 EnsureNotClosed();
 
                 if (value < _mem)
-                    throw new IOException(SR.IO_SeekBeforeBegin);
+                    throw new IOException(SR.GetResourceString("IO_SeekBeforeBegin"));
                 long newPosition = (long)value - (long)_mem;
                 if (newPosition < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_UnmanagedMemStreamLength);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_UnmanagedMemStreamLength"));
 
                 Interlocked.Exchange(ref _position, newPosition);
             }
@@ -542,26 +542,26 @@ namespace System.IO
             {
                 case SeekOrigin.Begin:
                     if (offset < 0)
-                        throw new IOException(SR.IO_SeekBeforeBegin);
+                        throw new IOException(SR.GetResourceString("IO_SeekBeforeBegin"));
                     Interlocked.Exchange(ref _position, offset);
                     break;
 
                 case SeekOrigin.Current:
                     long pos = Interlocked.Read(ref _position);
                     if (offset + pos < 0)
-                        throw new IOException(SR.IO_SeekBeforeBegin);
+                        throw new IOException(SR.GetResourceString("IO_SeekBeforeBegin"));
                     Interlocked.Exchange(ref _position, offset + pos);
                     break;
 
                 case SeekOrigin.End:
                     long len = Interlocked.Read(ref _length);
                     if (len + offset < 0)
-                        throw new IOException(SR.IO_SeekBeforeBegin);
+                        throw new IOException(SR.GetResourceString("IO_SeekBeforeBegin"));
                     Interlocked.Exchange(ref _position, len + offset);
                     break;
 
                 default:
-                    throw new ArgumentException(SR.Argument_InvalidSeekOrigin);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidSeekOrigin"));
             }
 
             long finalPos = Interlocked.Read(ref _position);
@@ -576,15 +576,15 @@ namespace System.IO
         public override void SetLength(long value)
         {
             if (value < 0)
-                throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (_buffer != null)
-                throw new NotSupportedException(SR.NotSupported_UmsSafeBuffer);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_UmsSafeBuffer"));
 
             EnsureNotClosed();
             EnsureWriteable();
 
             if (value > _capacity)
-                throw new IOException(SR.IO_FixedCapacity);
+                throw new IOException(SR.GetResourceString("IO_FixedCapacity"));
 
             long pos = Interlocked.Read(ref _position);
             long len = Interlocked.Read(ref _length);
@@ -641,12 +641,12 @@ namespace System.IO
             // Check for overflow
             if (n < 0)
             {
-                throw new IOException(SR.IO_StreamTooLong);
+                throw new IOException(SR.GetResourceString("IO_StreamTooLong"));
             }
 
             if (n > _capacity)
             {
-                throw new NotSupportedException(SR.IO_FixedCapacity);
+                throw new NotSupportedException(SR.GetResourceString("IO_FixedCapacity"));
             }
 
             if (_buffer == null)
@@ -670,7 +670,7 @@ namespace System.IO
                 long bytesLeft = _capacity - pos;
                 if (bytesLeft < buffer.Length)
                 {
-                    throw new ArgumentException(SR.Arg_BufferTooSmall);
+                    throw new ArgumentException(SR.GetResourceString("Arg_BufferTooSmall"));
                 }
 
                 byte* pointer = null;
@@ -771,10 +771,10 @@ namespace System.IO
             {
                 // Check for overflow
                 if (n < 0)
-                    throw new IOException(SR.IO_StreamTooLong);
+                    throw new IOException(SR.GetResourceString("IO_StreamTooLong"));
 
                 if (n > _capacity)
-                    throw new NotSupportedException(SR.IO_FixedCapacity);
+                    throw new NotSupportedException(SR.GetResourceString("IO_FixedCapacity"));
 
                 // Check to see whether we are now expanding the stream and must
                 // zero any memory in the middle.

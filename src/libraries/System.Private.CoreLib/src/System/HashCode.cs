@@ -412,11 +412,11 @@ namespace System
 
         [Obsolete("HashCode is a mutable struct and should not be compared with other HashCodes. Use ToHashCode to retrieve the computed hash code.", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override int GetHashCode() => throw new NotSupportedException(SR.HashCode_HashCodeNotSupported);
+        public override int GetHashCode() => throw new NotSupportedException(SR.GetResourceString("HashCode_HashCodeNotSupported"));
 
         [Obsolete("HashCode is a mutable struct and should not be compared with other HashCodes.", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override bool Equals(object? obj) => throw new NotSupportedException(SR.HashCode_EqualityNotSupported);
+        public override bool Equals(object? obj) => throw new NotSupportedException(SR.GetResourceString("HashCode_EqualityNotSupported"));
 #pragma warning restore 0809
     }
 }

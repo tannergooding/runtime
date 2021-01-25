@@ -660,7 +660,7 @@ namespace System
             if (startIndex < 0 || startIndex >= value.Length && startIndex > 0)
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.startIndex, ExceptionResource.ArgumentOutOfRange_Index);
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             if (startIndex > value.Length - length)
                 ThrowHelper.ThrowArgumentException(ExceptionResource.Arg_ArrayPlusOffTooSmall, ExceptionArgument.value);
 
@@ -672,7 +672,7 @@ namespace System
             if (length > (int.MaxValue / 3))
             {
                 // (int.MaxValue / 3) == 715,827,882 Bytes == 699 MB
-                throw new ArgumentOutOfRangeException(nameof(length), SR.Format(SR.ArgumentOutOfRange_LengthTooLarge, int.MaxValue / 3));
+                throw new ArgumentOutOfRangeException(nameof(length), SR.Format(SR.GetResourceString("ArgumentOutOfRange_LengthTooLarge"), int.MaxValue / 3));
             }
 
             return string.Create(length * 3 - 1, (value, startIndex, length), static (dst, state) =>

@@ -51,24 +51,24 @@ namespace System
         public virtual bool IsSZArray => throw NotImplemented.ByDesign;
         public virtual bool IsVariableBoundArray => IsArray && !IsSZArray;
 
-        public virtual bool IsByRefLike => throw new NotSupportedException(SR.NotSupported_SubclassOverride);
+        public virtual bool IsByRefLike => throw new NotSupportedException(SR.GetResourceString("NotSupported_SubclassOverride"));
 
         public bool HasElementType => HasElementTypeImpl();
         protected abstract bool HasElementTypeImpl();
         public abstract Type? GetElementType();
 
-        public virtual int GetArrayRank() => throw new NotSupportedException(SR.NotSupported_SubclassOverride);
+        public virtual int GetArrayRank() => throw new NotSupportedException(SR.GetResourceString("NotSupported_SubclassOverride"));
 
-        public virtual Type GetGenericTypeDefinition() => throw new NotSupportedException(SR.NotSupported_SubclassOverride);
+        public virtual Type GetGenericTypeDefinition() => throw new NotSupportedException(SR.GetResourceString("NotSupported_SubclassOverride"));
         public virtual Type[] GenericTypeArguments => (IsGenericType && !IsGenericTypeDefinition) ? GetGenericArguments() : Type.EmptyTypes;
-        public virtual Type[] GetGenericArguments() => throw new NotSupportedException(SR.NotSupported_SubclassOverride);
+        public virtual Type[] GetGenericArguments() => throw new NotSupportedException(SR.GetResourceString("NotSupported_SubclassOverride"));
 
-        public virtual int GenericParameterPosition => throw new InvalidOperationException(SR.Arg_NotGenericParameter);
+        public virtual int GenericParameterPosition => throw new InvalidOperationException(SR.GetResourceString("Arg_NotGenericParameter"));
         public virtual GenericParameterAttributes GenericParameterAttributes => throw new NotSupportedException();
         public virtual Type[] GetGenericParameterConstraints()
         {
             if (!IsGenericParameter)
-                throw new InvalidOperationException(SR.Arg_NotGenericParameter);
+                throw new InvalidOperationException(SR.GetResourceString("Arg_NotGenericParameter"));
             throw new InvalidOperationException();
         }
 
@@ -223,7 +223,7 @@ namespace System
         public virtual MemberInfo[] GetMember(string name, BindingFlags bindingAttr) => GetMember(name, MemberTypes.All, bindingAttr);
 
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-        public virtual MemberInfo[] GetMember(string name, MemberTypes type, BindingFlags bindingAttr) => throw new NotSupportedException(SR.NotSupported_SubclassOverride);
+        public virtual MemberInfo[] GetMember(string name, MemberTypes type, BindingFlags bindingAttr) => throw new NotSupportedException(SR.GetResourceString("NotSupported_SubclassOverride"));
 
         [DynamicallyAccessedMembers(
             DynamicallyAccessedMemberTypes.PublicFields
@@ -310,7 +310,7 @@ namespace System
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
             if (genericParameterCount < 0)
-                throw new ArgumentException(SR.ArgumentOutOfRange_NeedNonNegNum, nameof(genericParameterCount));
+                throw new ArgumentException(SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"), nameof(genericParameterCount));
             if (types == null)
                 throw new ArgumentNullException(nameof(types));
             for (int i = 0; i < types.Length; i++)
@@ -410,7 +410,7 @@ namespace System
         public static RuntimeTypeHandle GetTypeHandle(object o)
         {
             if (o == null)
-                throw new ArgumentNullException(null, SR.Arg_InvalidHandle);
+                throw new ArgumentNullException(null, SR.GetResourceString("Arg_InvalidHandle"));
             Type type = o.GetType();
             return type.TypeHandle;
         }
@@ -424,7 +424,7 @@ namespace System
             for (int i = 0; i < cls.Length; i++)
             {
                 if (args[i] == null)
-                    throw new ArgumentException(SR.ArgumentNull_ArrayValue, nameof(args));
+                    throw new ArgumentException(SR.GetResourceString("ArgumentNull_ArrayValue"), nameof(args));
                 cls[i] = args[i].GetType();
             }
             return cls;
@@ -483,7 +483,7 @@ namespace System
         public abstract Type? GetInterface(string name, bool ignoreCase);
         public abstract Type[] GetInterfaces();
 
-        public virtual InterfaceMapping GetInterfaceMap(Type interfaceType) => throw new NotSupportedException(SR.NotSupported_SubclassOverride);
+        public virtual InterfaceMapping GetInterfaceMap(Type interfaceType) => throw new NotSupportedException(SR.GetResourceString("NotSupported_SubclassOverride"));
 
         public virtual bool IsInstanceOfType([NotNullWhen(true)] object? o) => o == null ? false : IsAssignableFrom(o.GetType());
         public virtual bool IsEquivalentTo([NotNullWhen(true)] Type? other) => this == other;
@@ -493,18 +493,18 @@ namespace System
         public virtual Type GetEnumUnderlyingType()
         {
             if (!IsEnum)
-                throw new ArgumentException(SR.Arg_MustBeEnum, "enumType");
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeEnum"), "enumType");
 
             FieldInfo[] fields = GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             if (fields == null || fields.Length != 1)
-                throw new ArgumentException(SR.Argument_InvalidEnum, "enumType");
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidEnum"), "enumType");
 
             return fields[0].FieldType;
         }
         public virtual Array GetEnumValues()
         {
             if (!IsEnum)
-                throw new ArgumentException(SR.Arg_MustBeEnum, "enumType");
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeEnum"), "enumType");
 
             // We don't support GetEnumValues in the default implementation because we cannot create an array of
             // a non-runtime type. If there is strong need we can consider returning an object or int64 array.
@@ -514,7 +514,7 @@ namespace System
         public virtual Type MakeArrayType() => throw new NotSupportedException();
         public virtual Type MakeArrayType(int rank) => throw new NotSupportedException();
         public virtual Type MakeByRefType() => throw new NotSupportedException();
-        public virtual Type MakeGenericType(params Type[] typeArguments) => throw new NotSupportedException(SR.NotSupported_SubclassOverride);
+        public virtual Type MakeGenericType(params Type[] typeArguments) => throw new NotSupportedException(SR.GetResourceString("NotSupported_SubclassOverride"));
         public virtual Type MakePointerType() => throw new NotSupportedException();
 
         public static Type MakeGenericSignatureType(Type genericTypeDefinition, params Type[] typeArguments) => new SignatureConstructedGenericType(genericTypeDefinition, typeArguments);
@@ -522,7 +522,7 @@ namespace System
         public static Type MakeGenericMethodParameter(int position)
         {
             if (position < 0)
-                throw new ArgumentException(SR.ArgumentOutOfRange_NeedNonNegNum, nameof(position));
+                throw new ArgumentException(SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"), nameof(position));
             return new SignatureGenericMethodParameterType(position);
         }
 
@@ -557,7 +557,7 @@ namespace System
         }
         public virtual bool Equals(Type? o) => o == null ? false : object.ReferenceEquals(this.UnderlyingSystemType, o.UnderlyingSystemType);
 
-        public static Type? ReflectionOnlyGetType(string typeName, bool throwIfNotFound, bool ignoreCase) => throw new PlatformNotSupportedException(SR.PlatformNotSupported_ReflectionOnly);
+        public static Type? ReflectionOnlyGetType(string typeName, bool throwIfNotFound, bool ignoreCase) => throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ReflectionOnly"));
 
         public static Binder DefaultBinder
         {

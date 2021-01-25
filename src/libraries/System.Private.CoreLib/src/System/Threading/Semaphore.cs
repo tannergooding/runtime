@@ -22,13 +22,13 @@ namespace System.Threading
         public Semaphore(int initialCount, int maximumCount, string? name, out bool createdNew)
         {
             if (initialCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(initialCount), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(initialCount), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             if (maximumCount < 1)
-                throw new ArgumentOutOfRangeException(nameof(maximumCount), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(maximumCount), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
 
             if (initialCount > maximumCount)
-                throw new ArgumentException(SR.Argument_SemaphoreInitialMaximum);
+                throw new ArgumentException(SR.GetResourceString("Argument_SemaphoreInitialMaximum"));
 
             CreateSemaphoreCore(initialCount, maximumCount, name, out createdNew);
         }
@@ -41,9 +41,9 @@ namespace System.Threading
                 case OpenExistingResult.NameNotFound:
                     throw new WaitHandleCannotBeOpenedException();
                 case OpenExistingResult.NameInvalid:
-                    throw new WaitHandleCannotBeOpenedException(SR.Format(SR.Threading_WaitHandleCannotBeOpenedException_InvalidHandle, name));
+                    throw new WaitHandleCannotBeOpenedException(SR.Format(SR.GetResourceString("Threading_WaitHandleCannotBeOpenedException_InvalidHandle"), name));
                 case OpenExistingResult.PathNotFound:
-                    throw new IOException(SR.Format(SR.IO_PathNotFound_Path, name));
+                    throw new IOException(SR.Format(SR.GetResourceString("IO_PathNotFound_Path"), name));
                 default:
                     Debug.Assert(result != null, "result should be non-null on success");
                     return result;
@@ -60,7 +60,7 @@ namespace System.Threading
         public int Release(int releaseCount)
         {
             if (releaseCount < 1)
-                throw new ArgumentOutOfRangeException(nameof(releaseCount), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(releaseCount), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             return ReleaseCore(releaseCount);
         }

@@ -314,10 +314,10 @@ namespace System.Reflection.Emit
             if (name.Length == 0)
                 throw new ArgumentException("Empty name is not legal.", nameof(name));
             if (name[0] == '\0')
-                throw new ArgumentException(SR.Argument_InvalidName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidName"), nameof(name));
 
             if (manifest_module_used)
-                throw new InvalidOperationException(SR.InvalidOperation_NoMultiModuleAssembly);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NoMultiModuleAssembly"));
             manifest_module_used = true;
             return manifest_module;
         }

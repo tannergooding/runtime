@@ -19,7 +19,7 @@ namespace System
     public class PlatformNotSupportedException : NotSupportedException
     {
         public PlatformNotSupportedException()
-            : base(SR.Arg_PlatformNotSupported)
+            : base(SR.GetResourceString("Arg_PlatformNotSupported"))
         {
             HResult = HResults.COR_E_PLATFORMNOTSUPPORTED;
         }

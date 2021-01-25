@@ -505,7 +505,7 @@ namespace System
 
                 default:
                 {
-                    throw new FormatException(SR.Argument_BadFormatSpecifier);
+                    throw new FormatException(SR.GetResourceString("Argument_BadFormatSpecifier"));
                 }
             }
 
@@ -1860,7 +1860,7 @@ namespace System
                 }
 
                 default:
-                    throw new FormatException(SR.Argument_BadFormatSpecifier);
+                    throw new FormatException(SR.GetResourceString("Argument_BadFormatSpecifier"));
             }
         }
 

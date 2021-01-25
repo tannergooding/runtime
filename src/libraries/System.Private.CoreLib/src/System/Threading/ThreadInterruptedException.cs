@@ -16,7 +16,7 @@ namespace System.Threading
 #if CORECLR
             GetMessageFromNativeResources(ExceptionMessageKind.ThreadInterrupted)
 #else
-            SR.Threading_ThreadInterrupted
+            SR.GetResourceString("Threading_ThreadInterrupted")
 #endif
             )
         {

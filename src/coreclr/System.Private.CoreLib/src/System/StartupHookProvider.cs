@@ -73,13 +73,13 @@ namespace System
                     {
                         if (startupHookPart.Contains(disallowedSimpleAssemblyNameChars[j]))
                         {
-                            throw new ArgumentException(SR.Format(SR.Argument_InvalidStartupHookSimpleAssemblyName, startupHookPart));
+                            throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidStartupHookSimpleAssemblyName"), startupHookPart));
                         }
                     }
 
                     if (startupHookPart.EndsWith(DisallowedSimpleAssemblyNameSuffix, StringComparison.OrdinalIgnoreCase))
                     {
-                        throw new ArgumentException(SR.Format(SR.Argument_InvalidStartupHookSimpleAssemblyName, startupHookPart));
+                        throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidStartupHookSimpleAssemblyName"), startupHookPart));
                     }
 
                     try
@@ -89,7 +89,7 @@ namespace System
                     }
                     catch (Exception assemblyNameException)
                     {
-                        throw new ArgumentException(SR.Format(SR.Argument_InvalidStartupHookSimpleAssemblyName, startupHookPart), assemblyNameException);
+                        throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidStartupHookSimpleAssemblyName"), startupHookPart), assemblyNameException);
                     }
                 }
             }
@@ -129,7 +129,7 @@ namespace System
             catch (Exception assemblyLoadException)
             {
                 throw new ArgumentException(
-                    SR.Format(SR.Argument_StartupHookAssemblyLoadFailed, startupHook.Path ?? startupHook.AssemblyName!.ToString()),
+                    SR.Format(SR.GetResourceString("Argument_StartupHookAssemblyLoadFailed"), startupHook.Path ?? startupHook.AssemblyName!.ToString()),
                     assemblyLoadException);
             }
 
@@ -181,7 +181,7 @@ namespace System
 
             if (wrongSignature)
             {
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidStartupHookSignature,
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidStartupHookSignature"),
                                                       StartupHookTypeName + Type.Delimiter + InitializeMethodName,
                                                       startupHook.Path ?? startupHook.AssemblyName.ToString()));
             }

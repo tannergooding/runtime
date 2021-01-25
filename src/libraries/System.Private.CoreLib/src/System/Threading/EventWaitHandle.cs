@@ -23,7 +23,7 @@ namespace System.Threading
         public EventWaitHandle(bool initialState, EventResetMode mode, string? name, out bool createdNew)
         {
             if (mode != EventResetMode.AutoReset && mode != EventResetMode.ManualReset)
-                throw new ArgumentException(SR.Argument_InvalidFlag, nameof(mode));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidFlag"), nameof(mode));
 
             CreateEventCore(initialState, mode, name, out createdNew);
         }
@@ -36,9 +36,9 @@ namespace System.Threading
                 case OpenExistingResult.NameNotFound:
                     throw new WaitHandleCannotBeOpenedException();
                 case OpenExistingResult.NameInvalid:
-                    throw new WaitHandleCannotBeOpenedException(SR.Format(SR.Threading_WaitHandleCannotBeOpenedException_InvalidHandle, name));
+                    throw new WaitHandleCannotBeOpenedException(SR.Format(SR.GetResourceString("Threading_WaitHandleCannotBeOpenedException_InvalidHandle"), name));
                 case OpenExistingResult.PathNotFound:
-                    throw new DirectoryNotFoundException(SR.Format(SR.IO_PathNotFound_Path, name));
+                    throw new DirectoryNotFoundException(SR.Format(SR.GetResourceString("IO_PathNotFound_Path"), name));
                 default:
                     Debug.Assert(result != null, "result should be non-null on success");
                     return result;

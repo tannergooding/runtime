@@ -19,7 +19,7 @@ namespace System
     public class FormatException : SystemException
     {
         public FormatException()
-            : base(SR.Arg_FormatException)
+            : base(SR.GetResourceString("Arg_FormatException"))
         {
             HResult = HResults.COR_E_FORMAT;
         }

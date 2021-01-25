@@ -19,7 +19,7 @@ namespace System
     public sealed class StackOverflowException : SystemException
     {
         public StackOverflowException()
-            : base(SR.Arg_StackOverflowException)
+            : base(SR.GetResourceString("Arg_StackOverflowException"))
         {
             HResult = HResults.COR_E_STACKOVERFLOW;
         }

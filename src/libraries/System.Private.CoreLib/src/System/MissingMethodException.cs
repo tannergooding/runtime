@@ -19,7 +19,7 @@ namespace System
     public class MissingMethodException : MissingMemberException
     {
         public MissingMethodException()
-            : base(SR.Arg_MissingMethodException)
+            : base(SR.GetResourceString("Arg_MissingMethodException"))
         {
             HResult = HResults.COR_E_MISSINGMETHOD;
         }
@@ -50,7 +50,7 @@ namespace System
         public override string Message =>
             ClassName == null ?
                 base.Message :
-                SR.Format(SR.MissingMethod_Name, ClassName + "." + MemberName +
+                SR.Format(SR.GetResourceString("MissingMethod_Name"), ClassName + "." + MemberName +
                     (Signature != null ? " " + FormatSignature(Signature) : string.Empty));
     }
 }

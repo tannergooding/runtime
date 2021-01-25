@@ -150,7 +150,7 @@ namespace System
 
             if (!(other is Tuple<T1> objTuple))
             {
-                throw new ArgumentException(SR.Format(SR.ArgumentException_TupleIncorrectType, GetType()), nameof(other));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentException_TupleIncorrectType"), GetType()), nameof(other));
             }
 
             return comparer.Compare(m_Item1, objTuple.m_Item1);
@@ -270,7 +270,7 @@ namespace System
 
             if (!(other is Tuple<T1, T2> objTuple))
             {
-                throw new ArgumentException(SR.Format(SR.ArgumentException_TupleIncorrectType, GetType()), nameof(other));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentException_TupleIncorrectType"), GetType()), nameof(other));
             }
 
             int c = comparer.Compare(m_Item1, objTuple.m_Item1);
@@ -395,7 +395,7 @@ namespace System
 
             if (!(other is Tuple<T1, T2, T3> objTuple))
             {
-                throw new ArgumentException(SR.Format(SR.ArgumentException_TupleIncorrectType, GetType()), nameof(other));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentException_TupleIncorrectType"), GetType()), nameof(other));
             }
 
             int c = comparer.Compare(m_Item1, objTuple.m_Item1);
@@ -530,7 +530,7 @@ namespace System
 
             if (!(other is Tuple<T1, T2, T3, T4> objTuple))
             {
-                throw new ArgumentException(SR.Format(SR.ArgumentException_TupleIncorrectType, GetType()), nameof(other));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentException_TupleIncorrectType"), GetType()), nameof(other));
             }
 
             int c = comparer.Compare(m_Item1, objTuple.m_Item1);
@@ -675,7 +675,7 @@ namespace System
 
             if (!(other is Tuple<T1, T2, T3, T4, T5> objTuple))
             {
-                throw new ArgumentException(SR.Format(SR.ArgumentException_TupleIncorrectType, GetType()), nameof(other));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentException_TupleIncorrectType"), GetType()), nameof(other));
             }
 
             int c = comparer.Compare(m_Item1, objTuple.m_Item1);
@@ -830,7 +830,7 @@ namespace System
 
             if (!(other is Tuple<T1, T2, T3, T4, T5, T6> objTuple))
             {
-                throw new ArgumentException(SR.Format(SR.ArgumentException_TupleIncorrectType, GetType()), nameof(other));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentException_TupleIncorrectType"), GetType()), nameof(other));
             }
 
             int c = comparer.Compare(m_Item1, objTuple.m_Item1);
@@ -995,7 +995,7 @@ namespace System
 
             if (!(other is Tuple<T1, T2, T3, T4, T5, T6, T7> objTuple))
             {
-                throw new ArgumentException(SR.Format(SR.ArgumentException_TupleIncorrectType, GetType()), nameof(other));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentException_TupleIncorrectType"), GetType()), nameof(other));
             }
 
             int c = comparer.Compare(m_Item1, objTuple.m_Item1);
@@ -1124,7 +1124,7 @@ namespace System
         {
             if (!(rest is ITupleInternal))
             {
-                throw new ArgumentException(SR.ArgumentException_TupleLastArgumentNotATuple);
+                throw new ArgumentException(SR.GetResourceString("ArgumentException_TupleLastArgumentNotATuple"));
             }
 
             m_Item1 = item1;
@@ -1175,7 +1175,7 @@ namespace System
 
             if (!(other is Tuple<T1, T2, T3, T4, T5, T6, T7, TRest> objTuple))
             {
-                throw new ArgumentException(SR.Format(SR.ArgumentException_TupleIncorrectType, GetType()), nameof(other));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentException_TupleIncorrectType"), GetType()), nameof(other));
             }
 
             int c = comparer.Compare(m_Item1, objTuple.m_Item1);

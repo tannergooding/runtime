@@ -10,7 +10,7 @@ namespace System.IO
     public class IOException : SystemException
     {
         public IOException()
-            : base(SR.Arg_IOException)
+            : base(SR.GetResourceString("Arg_IOException"))
         {
             HResult = HResults.COR_E_IO;
         }

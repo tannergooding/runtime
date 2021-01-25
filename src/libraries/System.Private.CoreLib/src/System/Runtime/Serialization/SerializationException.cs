@@ -12,7 +12,7 @@ namespace System.Runtime.Serialization
         /// string set to a default message.
         /// </summary>
         public SerializationException()
-            : base(SR.SerializationException)
+            : base(SR.GetResourceString("SerializationException"))
         {
             HResult = HResults.COR_E_SERIALIZATION;
         }

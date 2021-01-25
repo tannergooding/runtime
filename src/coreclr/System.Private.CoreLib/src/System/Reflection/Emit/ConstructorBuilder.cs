@@ -75,7 +75,7 @@ namespace System.Reflection.Emit
         #region MethodBase Overrides
         public override object Invoke(object? obj, BindingFlags invokeAttr, Binder? binder, object?[]? parameters, CultureInfo? culture)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override ParameterInfo[] GetParameters()
@@ -98,7 +98,7 @@ namespace System.Reflection.Emit
         #region ConstructorInfo Overrides
         public override object Invoke(BindingFlags invokeAttr, Binder? binder, object?[]? parameters, CultureInfo? culture)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         #endregion
@@ -136,7 +136,7 @@ namespace System.Reflection.Emit
         public ILGenerator GetILGenerator()
         {
             if (m_isDefaultConstructor)
-                throw new InvalidOperationException(SR.InvalidOperation_DefaultConstructorILGen);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_DefaultConstructorILGen"));
 
             return m_methodBuilder.GetILGenerator();
         }
@@ -144,7 +144,7 @@ namespace System.Reflection.Emit
         public ILGenerator GetILGenerator(int streamSize)
         {
             if (m_isDefaultConstructor)
-                throw new InvalidOperationException(SR.InvalidOperation_DefaultConstructorILGen);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_DefaultConstructorILGen"));
 
             return m_methodBuilder.GetILGenerator(streamSize);
         }

@@ -18,7 +18,7 @@ namespace System.Security
         private const string UrlName = "Url";
 
         public SecurityException()
-            : base(SR.Arg_SecurityException)
+            : base(SR.GetResourceString("Arg_SecurityException"))
         {
             HResult = HResults.COR_E_SECURITY;
         }

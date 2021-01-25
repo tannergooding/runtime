@@ -88,12 +88,12 @@ namespace System.Reflection
                 {
                     if (target == null)
                     {
-                        throw new TargetException(SR.RFLCT_Targ_StatFldReqTarg);
+                        throw new TargetException(SR.GetResourceString("RFLCT_Targ_StatFldReqTarg"));
                     }
                     else
                     {
                         throw new ArgumentException(
-                            SR.Format(SR.Arg_FieldDeclTarget,
+                            SR.Format(SR.GetResourceString("Arg_FieldDeclTarget"),
                                 Name, DeclaringType, target.GetType()));
                     }
                 }
@@ -113,7 +113,7 @@ namespace System.Reflection
         public override void SetValueDirect(TypedReference obj, object value)
         {
             if (obj.IsNull)
-                throw new ArgumentException(SR.Arg_TypedReference_Null);
+                throw new ArgumentException(SR.GetResourceString("Arg_TypedReference_Null"));
 
             unsafe
             {
@@ -127,7 +127,7 @@ namespace System.Reflection
         public override object GetValueDirect(TypedReference obj)
         {
             if (obj.IsNull)
-                throw new ArgumentException(SR.Arg_TypedReference_Null);
+                throw new ArgumentException(SR.GetResourceString("Arg_TypedReference_Null"));
 
             unsafe
             {

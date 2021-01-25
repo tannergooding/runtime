@@ -50,7 +50,7 @@ namespace System.Reflection.Emit
         #region MethodBase Members
         public override ParameterInfo[] GetParameters() { throw new NotSupportedException(); }
         public override MethodImplAttributes GetMethodImplementationFlags() { return m_method.GetMethodImplementationFlags(); }
-        public override RuntimeMethodHandle MethodHandle => throw new NotSupportedException(SR.NotSupported_DynamicModule);
+        public override RuntimeMethodHandle MethodHandle => throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         public override MethodAttributes Attributes => m_method.Attributes;
         public override object Invoke(object? obj, BindingFlags invokeAttr, Binder? binder, object?[]? parameters, CultureInfo? culture)
         {
@@ -79,7 +79,7 @@ namespace System.Reflection.Emit
 
         public override MethodInfo MakeGenericMethod(params Type[] arguments)
         {
-            throw new InvalidOperationException(SR.Format(SR.Arg_NotGenericMethodDefinition, this));
+            throw new InvalidOperationException(SR.Format(SR.GetResourceString("Arg_NotGenericMethodDefinition"), this));
         }
 
         public override bool IsGenericMethod => true;

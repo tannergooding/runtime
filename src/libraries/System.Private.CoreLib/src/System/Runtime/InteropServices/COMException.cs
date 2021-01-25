@@ -17,7 +17,7 @@ namespace System.Runtime.InteropServices
     public class COMException : ExternalException
     {
         public COMException()
-            : base(SR.Arg_COMException)
+            : base(SR.GetResourceString("Arg_COMException"))
         {
             HResult = HResults.E_FAIL;
         }

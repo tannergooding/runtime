@@ -10,7 +10,7 @@ namespace System.IO
     public class EndOfStreamException : IOException
     {
         public EndOfStreamException()
-            : base(SR.Arg_EndOfStreamException)
+            : base(SR.GetResourceString("Arg_EndOfStreamException"))
         {
             HResult = HResults.COR_E_ENDOFSTREAM;
         }

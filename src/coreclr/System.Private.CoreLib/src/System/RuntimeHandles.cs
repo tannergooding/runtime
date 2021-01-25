@@ -20,7 +20,7 @@ namespace System
             // Create local copy to avoid a race condition
             RuntimeType type = m_type;
             if (type == null)
-                throw new ArgumentNullException(null, SR.Arg_InvalidHandle);
+                throw new ArgumentNullException(null, SR.GetResourceString("Arg_InvalidHandle"));
             return new RuntimeTypeHandle(type);
         }
 
@@ -30,7 +30,7 @@ namespace System
             // Create local copy to avoid a race condition
             RuntimeType type = m_type;
             if (type == null)
-                throw new ArgumentNullException(null, SR.Arg_InvalidHandle);
+                throw new ArgumentNullException(null, SR.GetResourceString("Arg_InvalidHandle"));
             return type;
         }
 
@@ -509,7 +509,7 @@ namespace System
             if (string.IsNullOrEmpty(name))
             {
                 if (throwOnError)
-                    throw new TypeLoadException(SR.Arg_TypeLoadNullStr);
+                    throw new TypeLoadException(SR.GetResourceString("Arg_TypeLoadNullStr"));
 
                 return null;
             }
@@ -667,7 +667,7 @@ namespace System
             RuntimeType type = GetTypeChecked();
 
             if (!IsGenericVariable(type))
-                throw new InvalidOperationException(SR.Arg_NotGenericParameter);
+                throw new InvalidOperationException(SR.GetResourceString("Arg_NotGenericParameter"));
 
             return GetGenericVariableIndex(type);
         }
@@ -792,7 +792,7 @@ namespace System
         internal static IRuntimeMethodInfo EnsureNonNullMethodInfo(IRuntimeMethodInfo method)
         {
             if (method == null)
-                throw new ArgumentNullException(null, SR.Arg_InvalidHandle);
+                throw new ArgumentNullException(null, SR.GetResourceString("Arg_InvalidHandle"));
             return method;
         }
 
@@ -1118,7 +1118,7 @@ namespace System
             // Create local copy to avoid a race condition
             IRuntimeFieldInfo field = m_ptr;
             if (field == null)
-                throw new ArgumentNullException(null, SR.Arg_InvalidHandle);
+                throw new ArgumentNullException(null, SR.GetResourceString("Arg_InvalidHandle"));
             return new RuntimeFieldHandle(field);
         }
 
@@ -1282,7 +1282,7 @@ namespace System
 
             [StackTraceHidden]
             [DoesNotReturn]
-            static void ThrowInvalidOperationException() => throw new InvalidOperationException(SR.InvalidOperation_NullModuleHandle);
+            static void ThrowInvalidOperationException() => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NullModuleHandle"));
         }
 
         // SQL-CLR LKG9 Compiler dependency
@@ -1324,7 +1324,7 @@ namespace System
                 {
                     if (!GetMetadataImport(module).IsValidToken(typeToken))
                         throw new ArgumentOutOfRangeException(nameof(typeToken),
-                            SR.Format(SR.Argument_InvalidToken, typeToken, new ModuleHandle(module)));
+                            SR.Format(SR.GetResourceString("Argument_InvalidToken"), typeToken, new ModuleHandle(module)));
                     throw;
                 }
             }
@@ -1374,7 +1374,7 @@ namespace System
             {
                 if (!ModuleHandle.GetMetadataImport(module).IsValidToken(methodToken))
                     throw new ArgumentOutOfRangeException(nameof(methodToken),
-                        SR.Format(SR.Argument_InvalidToken, methodToken, new ModuleHandle(module)));
+                        SR.Format(SR.GetResourceString("Argument_InvalidToken"), methodToken, new ModuleHandle(module)));
                 throw;
             }
         }
@@ -1426,7 +1426,7 @@ namespace System
                 {
                     if (!GetMetadataImport(module).IsValidToken(fieldToken))
                         throw new ArgumentOutOfRangeException(nameof(fieldToken),
-                            SR.Format(SR.Argument_InvalidToken, fieldToken, new ModuleHandle(module)));
+                            SR.Format(SR.GetResourceString("Argument_InvalidToken"), fieldToken, new ModuleHandle(module)));
                     throw;
                 }
             }

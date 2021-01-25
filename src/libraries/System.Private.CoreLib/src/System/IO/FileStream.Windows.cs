@@ -72,7 +72,7 @@ namespace System.IO
                     {
                         throw Win32Marshal.GetExceptionForWin32Error(errorCode);
                     }
-                    throw new NotSupportedException(SR.NotSupported_FileStreamOnNonFiles);
+                    throw new NotSupportedException(SR.GetResourceString("NotSupported_FileStreamOnNonFiles"));
                 }
             }
 
@@ -92,7 +92,7 @@ namespace System.IO
                 }
                 catch (ArgumentException ex)
                 {
-                    throw new IOException(SR.IO_BindHandleFailed, ex);
+                    throw new IOException(SR.GetResourceString("IO_BindHandleFailed"), ex);
                 }
                 finally
                 {
@@ -167,7 +167,7 @@ namespace System.IO
                 {
                     // If you passed in a synchronous handle and told us to use
                     // it asynchronously, throw here.
-                    throw new ArgumentException(SR.Arg_HandleNotAsync, nameof(handle), ex);
+                    throw new ArgumentException(SR.GetResourceString("Arg_HandleNotAsync"), nameof(handle), ex);
                 }
             }
             else if (!useAsyncIO)
@@ -373,7 +373,7 @@ namespace System.IO
             _readLength = 0;
 
             if (_appendStart != -1 && value < _appendStart)
-                throw new IOException(SR.IO_SetLengthAppendTruncate);
+                throw new IOException(SR.GetResourceString("IO_SetLengthAppendTruncate"));
             SetLengthCore(value);
         }
 
@@ -397,7 +397,7 @@ namespace System.IO
             {
                 int errorCode = Marshal.GetLastWin32Error();
                 if (errorCode == Interop.Errors.ERROR_INVALID_PARAMETER)
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_FileLengthTooBig);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_FileLengthTooBig"));
                 throw Win32Marshal.GetExceptionForWin32Error(errorCode, _path);
             }
 
@@ -510,7 +510,7 @@ namespace System.IO
                 else
                 {
                     if (errorCode == ERROR_INVALID_PARAMETER)
-                        throw new ArgumentException(SR.Arg_HandleNotSync, "_fileHandle");
+                        throw new ArgumentException(SR.GetResourceString("Arg_HandleNotSync"), "_fileHandle");
 
                     throw Win32Marshal.GetExceptionForWin32Error(errorCode, _path);
                 }
@@ -524,7 +524,7 @@ namespace System.IO
         public override long Seek(long offset, SeekOrigin origin)
         {
             if (origin < SeekOrigin.Begin || origin > SeekOrigin.End)
-                throw new ArgumentException(SR.Argument_InvalidSeekOrigin, nameof(origin));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidSeekOrigin"), nameof(origin));
             if (_fileHandle.IsClosed) throw Error.GetFileNotOpen();
             if (!CanSeek) throw Error.GetSeekNotSupported();
 
@@ -559,7 +559,7 @@ namespace System.IO
             if (_appendStart != -1 && pos < _appendStart)
             {
                 SeekCore(_fileHandle, oldPos, SeekOrigin.Begin);
-                throw new IOException(SR.IO_SeekAppendOverwrite);
+                throw new IOException(SR.GetResourceString("IO_SeekAppendOverwrite"));
             }
 
             // We now must update the read buffer.  We can in some cases simply
@@ -726,7 +726,7 @@ namespace System.IO
                     // where the position is too large or for synchronous writes
                     // to a handle opened asynchronously.
                     if (errorCode == ERROR_INVALID_PARAMETER)
-                        throw new IOException(SR.IO_FileTooLongOrHandleNotSync);
+                        throw new IOException(SR.GetResourceString("IO_FileTooLongOrHandleNotSync"));
                     throw Win32Marshal.GetExceptionForWin32Error(errorCode, _path);
                 }
             }

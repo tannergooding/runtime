@@ -54,18 +54,18 @@ namespace System
         public static void AddMemoryPressure(long bytesAllocated)
         {
             if (bytesAllocated <= 0)
-                throw new ArgumentOutOfRangeException(nameof(bytesAllocated), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(bytesAllocated), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             if (IntPtr.Size == 4 && bytesAllocated > int.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(bytesAllocated), SR.ArgumentOutOfRange_MustBeNonNegInt32);
+                throw new ArgumentOutOfRangeException(nameof(bytesAllocated), SR.GetResourceString("ArgumentOutOfRange_MustBeNonNegInt32"));
             RecordPressure(bytesAllocated);
         }
 
         public static void RemoveMemoryPressure(long bytesAllocated)
         {
             if (bytesAllocated <= 0)
-                throw new ArgumentOutOfRangeException(nameof(bytesAllocated), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(bytesAllocated), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             if (IntPtr.Size == 4 && bytesAllocated > int.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(bytesAllocated), SR.ArgumentOutOfRange_MustBeNonNegInt32);
+                throw new ArgumentOutOfRangeException(nameof(bytesAllocated), SR.GetResourceString("ArgumentOutOfRange_MustBeNonNegInt32"));
             RecordPressure(-bytesAllocated);
         }
 
@@ -89,9 +89,9 @@ namespace System
         public static void Collect(int generation, GCCollectionMode mode, bool blocking, bool compacting)
         {
             if (generation < 0)
-                throw new ArgumentOutOfRangeException(nameof(generation), "generation", SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(generation), "generation", SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             if ((mode < GCCollectionMode.Default) || (mode > GCCollectionMode.Optimized))
-                throw new ArgumentOutOfRangeException(nameof(mode), SR.ArgumentOutOfRange_Enum);
+                throw new ArgumentOutOfRangeException(nameof(mode), SR.GetResourceString("ArgumentOutOfRange_Enum"));
 
             InternalCollect(generation);
         }
@@ -99,7 +99,7 @@ namespace System
         public static int CollectionCount(int generation)
         {
             if (generation < 0)
-                throw new ArgumentOutOfRangeException(nameof(generation), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(generation), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             return GetCollectionCount(generation);
         }
 
@@ -174,19 +174,19 @@ namespace System
         {
             if ((maxGenerationThreshold <= 0) || (maxGenerationThreshold >= 100))
                 throw new ArgumentOutOfRangeException(nameof(maxGenerationThreshold),
-                                                       SR.Format(SR.ArgumentOutOfRange_Bounds_Lower_Upper, 1, 99));
+                                                       SR.Format(SR.GetResourceString("ArgumentOutOfRange_Bounds_Lower_Upper"), 1, 99));
             if ((largeObjectHeapThreshold <= 0) || (largeObjectHeapThreshold >= 100))
                 throw new ArgumentOutOfRangeException(nameof(largeObjectHeapThreshold),
-                                                       SR.Format(SR.ArgumentOutOfRange_Bounds_Lower_Upper, 1, 99));
+                                                       SR.Format(SR.GetResourceString("ArgumentOutOfRange_Bounds_Lower_Upper"), 1, 99));
 
             if (!_RegisterForFullGCNotification(maxGenerationThreshold, largeObjectHeapThreshold))
-                throw new InvalidOperationException(SR.InvalidOperation_NotWithConcurrentGC);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotWithConcurrentGC"));
         }
 
         public static void CancelFullGCNotification()
         {
             if (!_CancelFullGCNotification())
-                throw new InvalidOperationException(SR.InvalidOperation_NotWithConcurrentGC);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotWithConcurrentGC"));
         }
 
         public static GCNotificationStatus WaitForFullGCApproach()
@@ -197,7 +197,7 @@ namespace System
         public static GCNotificationStatus WaitForFullGCApproach(int millisecondsTimeout)
         {
             if (millisecondsTimeout < -1)
-                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
 
             return _WaitForFullGCApproach(millisecondsTimeout);
         }
@@ -210,7 +210,7 @@ namespace System
         public static GCNotificationStatus WaitForFullGCComplete(int millisecondsTimeout)
         {
             if (millisecondsTimeout < -1)
-                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
             return _WaitForFullGCComplete(millisecondsTimeout);
         }
 

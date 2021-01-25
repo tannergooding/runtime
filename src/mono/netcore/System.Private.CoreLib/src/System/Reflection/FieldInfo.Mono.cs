@@ -14,14 +14,14 @@ namespace System.Reflection
         public static FieldInfo GetFieldFromHandle(RuntimeFieldHandle handle)
         {
             if (handle.IsNullHandle())
-                throw new ArgumentException(SR.Argument_InvalidHandle);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidHandle"));
             return internal_from_handle_type(handle.Value, IntPtr.Zero);
         }
 
         public static FieldInfo GetFieldFromHandle(RuntimeFieldHandle handle, RuntimeTypeHandle declaringType)
         {
             if (handle.IsNullHandle())
-                throw new ArgumentException(SR.Argument_InvalidHandle);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidHandle"));
             FieldInfo fi = internal_from_handle_type(handle.Value, declaringType.Value);
             if (fi == null)
                 throw new ArgumentException("The field handle and the type handle are incompatible.");

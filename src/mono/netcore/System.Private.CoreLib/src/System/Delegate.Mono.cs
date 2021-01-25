@@ -94,13 +94,13 @@ namespace System
                 throw new ArgumentNullException(nameof(target));
 
             if (target.ContainsGenericParameters)
-                throw new ArgumentException(SR.Arg_UnboundGenParam, nameof(target));
+                throw new ArgumentException(SR.GetResourceString("Arg_UnboundGenParam"), nameof(target));
 
             if (method is null)
                 throw new ArgumentNullException(nameof(method));
 
             if (!target.IsRuntimeImplemented())
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(target));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(target));
 
             this.data = new DelegateData()
             {
@@ -131,17 +131,17 @@ namespace System
                 throw new ArgumentNullException(nameof(method));
 
             if (!(type is RuntimeType rtType))
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(type));
             if (!(method is RuntimeMethodInfo || method is System.Reflection.Emit.DynamicMethod))
-                throw new ArgumentException(SR.Argument_MustBeRuntimeMethodInfo, nameof(method));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeMethodInfo"), nameof(method));
 
             if (!rtType.IsDelegate())
-                throw new ArgumentException(SR.Arg_MustBeDelegate, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeDelegate"), nameof(type));
 
             if (!IsMatchingCandidate(rtType, firstArgument, method, allowClosed, out DelegateData? delegate_data))
             {
                 if (throwOnBindFailure)
-                    throw new ArgumentException(SR.Arg_DlgtTargMeth);
+                    throw new ArgumentException(SR.GetResourceString("Arg_DlgtTargMeth"));
 
                 return null;
             }
@@ -167,15 +167,15 @@ namespace System
                 throw new ArgumentNullException(nameof(method));
 
             if (!(type is RuntimeType rtType))
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(type));
             if (!rtType.IsDelegate())
-                throw new ArgumentException(SR.Arg_MustBeDelegate, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeDelegate"), nameof(type));
 
             MethodInfo? info = GetCandidateMethod(rtType, target.GetType(), method, BindingFlags.Instance, ignoreCase);
             if (info is null)
             {
                 if (throwOnBindFailure)
-                    throw new ArgumentException(SR.Arg_DlgtTargMeth);
+                    throw new ArgumentException(SR.GetResourceString("Arg_DlgtTargMeth"));
 
                 return null;
             }
@@ -190,23 +190,23 @@ namespace System
             if (target is null)
                 throw new ArgumentNullException(nameof(target));
             if (target.ContainsGenericParameters)
-                throw new ArgumentException(SR.Arg_UnboundGenParam, nameof(target));
+                throw new ArgumentException(SR.GetResourceString("Arg_UnboundGenParam"), nameof(target));
             if (method is null)
                 throw new ArgumentNullException(nameof(method));
 
             if (!(type is RuntimeType rtType))
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(type));
 
             if (!target.IsRuntimeImplemented())
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(target));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(target));
             if (!rtType.IsDelegate())
-                throw new ArgumentException(SR.Arg_MustBeDelegate, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeDelegate"), nameof(type));
 
             MethodInfo? info = GetCandidateMethod(rtType, target, method, BindingFlags.Static, ignoreCase);
             if (info is null)
             {
                 if (throwOnBindFailure)
-                    throw new ArgumentException(SR.Arg_DlgtTargMeth);
+                    throw new ArgumentException(SR.GetResourceString("Arg_DlgtTargMeth"));
 
                 return null;
             }

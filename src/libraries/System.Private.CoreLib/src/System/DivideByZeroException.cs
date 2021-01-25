@@ -19,7 +19,7 @@ namespace System
     public class DivideByZeroException : ArithmeticException
     {
         public DivideByZeroException()
-            : base(SR.Arg_DivideByZero)
+            : base(SR.GetResourceString("Arg_DivideByZero"))
         {
             HResult = HResults.COR_E_DIVIDEBYZERO;
         }

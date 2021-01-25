@@ -39,12 +39,12 @@ namespace System.Runtime.InteropServices
 
             if (f is null)
             {
-                throw new ArgumentException(SR.Format(SR.Argument_OffsetOfFieldNotFound, t.FullName), nameof(fieldName));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_OffsetOfFieldNotFound"), t.FullName), nameof(fieldName));
             }
 
             if (!(f is RtFieldInfo rtField))
             {
-                throw new ArgumentException(SR.Argument_MustBeRuntimeFieldInfo, nameof(fieldName));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeFieldInfo"), nameof(fieldName));
             }
 
             return OffsetOfHelper(rtField);
@@ -173,7 +173,7 @@ namespace System.Runtime.InteropServices
         {
             if (!(m is RuntimeMethodInfo rmi))
             {
-                throw new ArgumentException(SR.Argument_MustBeRuntimeMethodInfo, nameof(m));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeMethodInfo"), nameof(m));
             }
 
             InternalPrelink(((IRuntimeMethodInfo)rmi).Value);
@@ -452,7 +452,7 @@ namespace System.Runtime.InteropServices
             }
             if (!(o is __ComObject co))
             {
-                throw new ArgumentException(SR.Argument_ObjNotComObject, nameof(o));
+                throw new ArgumentException(SR.GetResourceString("Argument_ObjNotComObject"), nameof(o));
             }
 
             return co.ReleaseSelf();
@@ -474,7 +474,7 @@ namespace System.Runtime.InteropServices
             }
             if (!(o is __ComObject co))
             {
-                throw new ArgumentException(SR.Argument_ObjNotComObject, nameof(o));
+                throw new ArgumentException(SR.GetResourceString("Argument_ObjNotComObject"), nameof(o));
             }
 
             co.FinalReleaseSelf();
@@ -497,7 +497,7 @@ namespace System.Runtime.InteropServices
             }
             if (!(obj is __ComObject co))
             {
-                throw new ArgumentException(SR.Argument_ObjNotComObject, nameof(obj));
+                throw new ArgumentException(SR.GetResourceString("Argument_ObjNotComObject"), nameof(obj));
             }
 
             // Retrieve the data from the __ComObject.
@@ -523,7 +523,7 @@ namespace System.Runtime.InteropServices
             }
             if (!(obj is __ComObject co))
             {
-                throw new ArgumentException(SR.Argument_ObjNotComObject, nameof(obj));
+                throw new ArgumentException(SR.GetResourceString("Argument_ObjNotComObject"), nameof(obj));
             }
 
             // Retrieve the data from the __ComObject.
@@ -544,11 +544,11 @@ namespace System.Runtime.InteropServices
             }
             if (!t.IsCOMObject)
             {
-                throw new ArgumentException(SR.Argument_TypeNotComObject, nameof(t));
+                throw new ArgumentException(SR.GetResourceString("Argument_TypeNotComObject"), nameof(t));
             }
             if (t.IsGenericType)
             {
-                throw new ArgumentException(SR.Argument_NeedNonGenericType, nameof(t));
+                throw new ArgumentException(SR.GetResourceString("Argument_NeedNonGenericType"), nameof(t));
             }
 
             if (o is null)
@@ -558,7 +558,7 @@ namespace System.Runtime.InteropServices
 
             if (!o.GetType().IsCOMObject)
             {
-                throw new ArgumentException(SR.Argument_ObjNotComObject, nameof(o));
+                throw new ArgumentException(SR.GetResourceString("Argument_ObjNotComObject"), nameof(o));
             }
 
             // Check to see if we have nothing to do.

@@ -85,7 +85,7 @@ namespace System.IO
 
         [DoesNotReturn]
         private static void ThrowAsyncIOInProgress() =>
-            throw new InvalidOperationException(SR.InvalidOperation_AsyncIOInProgress);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_AsyncIOInProgress"));
 
         // StreamReader by default will ignore illegal UTF8 characters. We don't want to
         // throw here because we want to be able to read ill-formed data without choking.
@@ -146,7 +146,7 @@ namespace System.IO
             }
             if (!stream.CanRead)
             {
-                throw new ArgumentException(SR.Argument_StreamNotReadable);
+                throw new ArgumentException(SR.GetResourceString("Argument_StreamNotReadable"));
             }
             if (bufferSize == -1)
             {
@@ -154,7 +154,7 @@ namespace System.IO
             }
             else if (bufferSize <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
 
             _stream = stream;
@@ -205,9 +205,9 @@ namespace System.IO
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
             if (path.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyPath);
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyPath"));
             if (bufferSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
 
             return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultFileStreamBufferSize, FileOptions.SequentialScan);
         }
@@ -327,15 +327,15 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0 || count < 0)
             {
-                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             return ReadSpan(new Span<char>(buffer, index, count));
@@ -410,15 +410,15 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0 || count < 0)
             {
-                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
             ThrowIfDisposed();
             CheckAsyncTaskInProgress();
@@ -934,15 +934,15 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0 || count < 0)
             {
-                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             // If we have been inherited into a subclass, the following implementation could be incorrect
@@ -1157,15 +1157,15 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0 || count < 0)
             {
-                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             // If we have been inherited into a subclass, the following implementation could be incorrect
@@ -1295,7 +1295,7 @@ namespace System.IO
                 ThrowObjectDisposedException();
             }
 
-            void ThrowObjectDisposedException() => throw new ObjectDisposedException(GetType().Name, SR.ObjectDisposed_ReaderClosed);
+            void ThrowObjectDisposedException() => throw new ObjectDisposedException(GetType().Name, SR.GetResourceString("ObjectDisposed_ReaderClosed"));
         }
 
         // No data, class doesn't need to be serializable.

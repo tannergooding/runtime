@@ -98,7 +98,7 @@ namespace System.Text
 
             // The encoding name is not valid.
             throw new ArgumentException(
-                SR.Format(SR.Argument_EncodingNotSupported, name),
+                SR.Format(SR.GetResourceString("Argument_EncodingNotSupported"), name),
                 nameof(name));
         }
 

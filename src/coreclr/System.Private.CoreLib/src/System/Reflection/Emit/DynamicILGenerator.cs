@@ -41,7 +41,7 @@ namespace System.Reflection.Emit
             RuntimeType? rtType = localType as RuntimeType;
 
             if (rtType == null)
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"));
 
             localBuilder = new LocalBuilder(m_localCount, localType, m_methodBuilder);
             // add the localType to local signature
@@ -67,7 +67,7 @@ namespace System.Reflection.Emit
             {
                 RuntimeMethodInfo? rtMeth = meth as RuntimeMethodInfo;
                 if (rtMeth == null)
-                    throw new ArgumentException(SR.Argument_MustBeRuntimeMethodInfo, nameof(meth));
+                    throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeMethodInfo"), nameof(meth));
 
                 RuntimeType declaringType = rtMeth.GetRuntimeType();
                 if (declaringType != null && (declaringType.IsGenericType || declaringType.IsArray))
@@ -80,7 +80,7 @@ namespace System.Reflection.Emit
                 // rule out not allowed operations on DynamicMethods
                 if (opcode.Equals(OpCodes.Ldtoken) || opcode.Equals(OpCodes.Ldftn) || opcode.Equals(OpCodes.Ldvirtftn))
                 {
-                    throw new ArgumentException(SR.Argument_InvalidOpCodeOnDynamicMethod);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOpCodeOnDynamicMethod"));
                 }
                 token = GetTokenFor(dynMeth);
             }
@@ -117,7 +117,7 @@ namespace System.Reflection.Emit
 
             RuntimeConstructorInfo? rtConstructor = con as RuntimeConstructorInfo;
             if (rtConstructor == null)
-                throw new ArgumentException(SR.Argument_MustBeRuntimeMethodInfo, nameof(con));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeMethodInfo"), nameof(con));
 
             RuntimeType declaringType = rtConstructor.GetRuntimeType();
             int token;
@@ -145,7 +145,7 @@ namespace System.Reflection.Emit
             RuntimeType? rtType = type as RuntimeType;
 
             if (rtType == null)
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"));
 
             int token = GetTokenFor(rtType);
             EnsureCapacity(7);
@@ -160,7 +160,7 @@ namespace System.Reflection.Emit
 
             RuntimeFieldInfo? runtimeField = field as RuntimeFieldInfo;
             if (runtimeField == null)
-                throw new ArgumentException(SR.Argument_MustBeRuntimeFieldInfo, nameof(field));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeFieldInfo"), nameof(field));
 
             int token;
             if (field.DeclaringType == null)
@@ -199,7 +199,7 @@ namespace System.Reflection.Emit
             SignatureHelper sig;
             if (optionalParameterTypes != null)
                 if ((callingConvention & CallingConventions.VarArgs) == 0)
-                    throw new InvalidOperationException(SR.InvalidOperation_NotAVarArgCallingConvention);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotAVarArgCallingConvention"));
 
             sig = GetMemberRefSignature(callingConvention,
                                         returnType,
@@ -270,13 +270,13 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(methodInfo));
 
             if (!(opcode.Equals(OpCodes.Call) || opcode.Equals(OpCodes.Callvirt) || opcode.Equals(OpCodes.Newobj)))
-                throw new ArgumentException(SR.Argument_NotMethodCallOpcode, nameof(opcode));
+                throw new ArgumentException(SR.GetResourceString("Argument_NotMethodCallOpcode"), nameof(opcode));
 
             if (methodInfo.ContainsGenericParameters)
-                throw new ArgumentException(SR.Argument_GenericsInvalid, nameof(methodInfo));
+                throw new ArgumentException(SR.GetResourceString("Argument_GenericsInvalid"), nameof(methodInfo));
 
             if (methodInfo.DeclaringType != null && methodInfo.DeclaringType.ContainsGenericParameters)
-                throw new ArgumentException(SR.Argument_GenericsInvalid, nameof(methodInfo));
+                throw new ArgumentException(SR.GetResourceString("Argument_GenericsInvalid"), nameof(methodInfo));
 
             int tk;
             int stackchange = 0;
@@ -342,7 +342,7 @@ namespace System.Reflection.Emit
             // Begins an exception filter block. Emits a branch instruction to the end of the current exception block.
 
             if (CurrExcStackCount == 0)
-                throw new NotSupportedException(SR.Argument_NotInExceptionBlock);
+                throw new NotSupportedException(SR.GetResourceString("Argument_NotInExceptionBlock"));
 
             __ExceptionInfo current = CurrExcStack![CurrExcStackCount - 1];
 
@@ -356,7 +356,7 @@ namespace System.Reflection.Emit
         public override void BeginCatchBlock(Type exceptionType)
         {
             if (CurrExcStackCount == 0)
-                throw new NotSupportedException(SR.Argument_NotInExceptionBlock);
+                throw new NotSupportedException(SR.GetResourceString("Argument_NotInExceptionBlock"));
 
             __ExceptionInfo current = CurrExcStack![CurrExcStackCount - 1];
 
@@ -366,7 +366,7 @@ namespace System.Reflection.Emit
             {
                 if (exceptionType != null)
                 {
-                    throw new ArgumentException(SR.Argument_ShouldNotSpecifyExceptionType);
+                    throw new ArgumentException(SR.GetResourceString("Argument_ShouldNotSpecifyExceptionType"));
                 }
 
                 this.Emit(OpCodes.Endfilter);
@@ -380,7 +380,7 @@ namespace System.Reflection.Emit
                     throw new ArgumentNullException(nameof(exceptionType));
 
                 if (rtType == null)
-                    throw new ArgumentException(SR.Argument_MustBeRuntimeType);
+                    throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"));
 
                 Label endLabel = current.GetEndLabel();
                 this.Emit(OpCodes.Leave, endLabel);
@@ -403,7 +403,7 @@ namespace System.Reflection.Emit
         //
         public override void UsingNamespace(string ns)
         {
-            throw new NotSupportedException(SR.InvalidOperation_NotAllowedInDynamicMethod);
+            throw new NotSupportedException(SR.GetResourceString("InvalidOperation_NotAllowedInDynamicMethod"));
         }
 
         public override void MarkSequencePoint(ISymbolDocumentWriter document,
@@ -412,17 +412,17 @@ namespace System.Reflection.Emit
                                                int endLine,
                                                int endColumn)
         {
-            throw new NotSupportedException(SR.InvalidOperation_NotAllowedInDynamicMethod);
+            throw new NotSupportedException(SR.GetResourceString("InvalidOperation_NotAllowedInDynamicMethod"));
         }
 
         public override void BeginScope()
         {
-            throw new NotSupportedException(SR.InvalidOperation_NotAllowedInDynamicMethod);
+            throw new NotSupportedException(SR.GetResourceString("InvalidOperation_NotAllowedInDynamicMethod"));
         }
 
         public override void EndScope()
         {
-            throw new NotSupportedException(SR.InvalidOperation_NotAllowedInDynamicMethod);
+            throw new NotSupportedException(SR.GetResourceString("InvalidOperation_NotAllowedInDynamicMethod"));
         }
 
         private int GetMemberRefToken(MethodBase methodInfo, Type[]? optionalParameterTypes)
@@ -432,13 +432,13 @@ namespace System.Reflection.Emit
             Type[][]? optionalCustomModifiers;
 
             if (optionalParameterTypes != null && (methodInfo.CallingConvention & CallingConventions.VarArgs) == 0)
-                throw new InvalidOperationException(SR.InvalidOperation_NotAVarArgCallingConvention);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotAVarArgCallingConvention"));
 
             RuntimeMethodInfo? rtMeth = methodInfo as RuntimeMethodInfo;
             DynamicMethod? dm = methodInfo as DynamicMethod;
 
             if (rtMeth == null && dm == null)
-                throw new ArgumentException(SR.Argument_MustBeRuntimeMethodInfo, nameof(methodInfo));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeMethodInfo"), nameof(methodInfo));
 
             ParameterInfo[] paramInfo = methodInfo.GetParametersNoCopy();
             if (paramInfo != null && paramInfo.Length != 0)
@@ -903,7 +903,7 @@ namespace System.Reflection.Emit
         public unsafe void SetCode(byte* code, int codeSize, int maxStackSize)
         {
             if (codeSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(codeSize), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(codeSize), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             if (codeSize > 0 && code == null)
                 throw new ArgumentNullException(nameof(code));
 
@@ -920,7 +920,7 @@ namespace System.Reflection.Emit
         public unsafe void SetExceptions(byte* exceptions, int exceptionsSize)
         {
             if (exceptionsSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(exceptionsSize), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(exceptionsSize), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
 
             if (exceptionsSize > 0 && exceptions == null)
                 throw new ArgumentNullException(nameof(exceptions));
@@ -937,7 +937,7 @@ namespace System.Reflection.Emit
         public unsafe void SetLocalSignature(byte* localSignature, int signatureSize)
         {
             if (signatureSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(signatureSize), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(signatureSize), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
 
             if (signatureSize > 0 && localSignature == null)
                 throw new ArgumentNullException(nameof(localSignature));
@@ -1037,7 +1037,7 @@ namespace System.Reflection.Emit
                         MethodBase m = RuntimeType.GetMethodBase(methodReal)!;
                         Type t = m.DeclaringType!.GetGenericTypeDefinition();
 
-                        throw new ArgumentException(SR.Format(SR.Argument_MethodDeclaringTypeGenericLcg, m, t));
+                        throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_MethodDeclaringTypeGenericLcg"), m, t));
                     }
                 }
             }

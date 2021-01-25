@@ -39,7 +39,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(sexagenaryYear),
                     sexagenaryYear,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 1, 60));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, 60));
             }
 
             return ((sexagenaryYear - 1) % 10) + 1;
@@ -56,7 +56,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(sexagenaryYear),
                     sexagenaryYear,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 1, 60));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, 60));
             }
 
             return ((sexagenaryYear - 1) % 12) + 1;
@@ -102,7 +102,7 @@ namespace System.Globalization
                 }
             }
 
-            throw new ArgumentOutOfRangeException(nameof(era), era, SR.ArgumentOutOfRange_InvalidEraValue);
+            throw new ArgumentOutOfRangeException(nameof(era), era, SR.GetResourceString("ArgumentOutOfRange_InvalidEraValue"));
         }
 
         internal int MaxEraCalendarYear(int era)
@@ -132,7 +132,7 @@ namespace System.Globalization
                 }
             }
 
-            throw new ArgumentOutOfRangeException(nameof(era), era, SR.ArgumentOutOfRange_InvalidEraValue);
+            throw new ArgumentOutOfRangeException(nameof(era), era, SR.GetResourceString("ArgumentOutOfRange_InvalidEraValue"));
         }
 
         internal EastAsianLunisolarCalendar()
@@ -146,7 +146,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                                 "time",
                                 ticks,
-                                SR.Format(CultureInfo.InvariantCulture, SR.ArgumentOutOfRange_CalendarRange,
+                                SR.Format(CultureInfo.InvariantCulture, SR.GetResourceString("ArgumentOutOfRange_CalendarRange"),
                                 MinSupportedDateTime, MaxSupportedDateTime));
             }
         }
@@ -160,7 +160,7 @@ namespace System.Globalization
 
             if (era < GetEra(MinDate) || era > GetEra(MaxDate))
             {
-                throw new ArgumentOutOfRangeException(nameof(era), era, SR.ArgumentOutOfRange_InvalidEraValue);
+                throw new ArgumentOutOfRangeException(nameof(era), era, SR.GetResourceString("ArgumentOutOfRange_InvalidEraValue"));
             }
         }
 
@@ -174,7 +174,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(year),
                     year,
-                    SR.Format(SR.ArgumentOutOfRange_Range, MinEraCalendarYear(era), MaxEraCalendarYear(era)));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), MinEraCalendarYear(era), MaxEraCalendarYear(era)));
             }
             return year;
         }
@@ -188,13 +188,13 @@ namespace System.Globalization
                 // Reject if there is no leap month this year
                 if (GetYearInfo(year, LeapMonth) == 0)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(month), month, SR.ArgumentOutOfRange_Month);
+                    throw new ArgumentOutOfRangeException(nameof(month), month, SR.GetResourceString("ArgumentOutOfRange_Month"));
                 }
             }
 
             if (month < 1 || month > 13)
             {
-                throw new ArgumentOutOfRangeException(nameof(month), month, SR.ArgumentOutOfRange_Month);
+                throw new ArgumentOutOfRangeException(nameof(month), month, SR.GetResourceString("ArgumentOutOfRange_Month"));
             }
 
             return year;
@@ -251,12 +251,12 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(day),
                     day,
-                    SR.Format(SR.ArgumentOutOfRange_Day, daysInMonth, month));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Day"), daysInMonth, month));
             }
 
             if (!LunarToGregorian(year, month, day, out int gy, out int gm, out int gd))
             {
-                throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadYearMonthDay);
+                throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadYearMonthDay"));
             }
 
             return new DateTime(gy, gm, gd, hour, minute, second, millisecond);
@@ -429,7 +429,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(months),
                     months,
-                    SR.Format(SR.ArgumentOutOfRange_Range, -120000, 120000));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), -120000, 120000));
             }
 
             CheckTicksRange(time.Ticks);
@@ -602,7 +602,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(day),
                     day,
-                    SR.Format(SR.ArgumentOutOfRange_Day, daysInMonth, month));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Day"), daysInMonth, month));
             }
 
             int m = GetYearInfo(year, LeapMonth);
@@ -667,7 +667,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 99, MaxCalendarYear));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 99, MaxCalendarYear));
                 }
 
                 _twoDigitYearMax = value;
@@ -681,7 +681,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(year),
                     year,
-                    SR.ArgumentOutOfRange_NeedNonNegNum);
+                    SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             year = base.ToFourDigitYear(year);

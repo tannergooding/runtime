@@ -16,7 +16,7 @@ namespace System
     public class InvalidCastException : SystemException
     {
         public InvalidCastException()
-            : base(SR.Arg_InvalidCastException)
+            : base(SR.GetResourceString("Arg_InvalidCastException"))
         {
             HResult = HResults.COR_E_INVALIDCAST;
         }

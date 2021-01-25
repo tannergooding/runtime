@@ -423,7 +423,7 @@ namespace System
                 return AttributeUsageAttribute.Default;
 
             throw new FormatException(
-                SR.Format(SR.Format_AttributeUsage, type));
+                SR.Format(SR.GetResourceString("Format_AttributeUsage"), type));
         }
 
         private static Attribute[] CreateAttributeArrayHelper(Type elementType, int elementCount)
@@ -451,7 +451,7 @@ namespace System
                 throw new ArgumentNullException(nameof(attributeType));
 
             if (!attributeType.IsSubclassOf(typeof(Attribute)) && attributeType != typeof(Attribute))
-                throw new ArgumentException(SR.Argument_MustHaveAttributeBaseClass);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustHaveAttributeBaseClass"));
 
             return element.MemberType switch
             {
@@ -494,7 +494,7 @@ namespace System
                 throw new ArgumentNullException(nameof(attributeType));
 
             if (!attributeType.IsSubclassOf(typeof(Attribute)) && attributeType != typeof(Attribute))
-                throw new ArgumentException(SR.Argument_MustHaveAttributeBaseClass);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustHaveAttributeBaseClass"));
 
             return element.MemberType switch
             {
@@ -519,7 +519,7 @@ namespace System
             if (attrib.Length == 1)
                 return attrib[0];
 
-            throw new AmbiguousMatchException(SR.RFLCT_AmbigCust);
+            throw new AmbiguousMatchException(SR.GetResourceString("RFLCT_AmbigCust"));
         }
 
         #endregion
@@ -544,10 +544,10 @@ namespace System
                 throw new ArgumentNullException(nameof(attributeType));
 
             if (!attributeType.IsSubclassOf(typeof(Attribute)) && attributeType != typeof(Attribute))
-                throw new ArgumentException(SR.Argument_MustHaveAttributeBaseClass);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustHaveAttributeBaseClass"));
 
             if (element.Member == null)
-                throw new ArgumentException(SR.Argument_InvalidParameterInfo, nameof(element));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidParameterInfo"), nameof(element));
 
 
             MemberInfo member = element.Member;
@@ -563,7 +563,7 @@ namespace System
                 throw new ArgumentNullException(nameof(element));
 
             if (element.Member == null)
-                throw new ArgumentException(SR.Argument_InvalidParameterInfo, nameof(element));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidParameterInfo"), nameof(element));
 
 
             MemberInfo member = element.Member;
@@ -588,7 +588,7 @@ namespace System
                 throw new ArgumentNullException(nameof(attributeType));
 
             if (!attributeType.IsSubclassOf(typeof(Attribute)) && attributeType != typeof(Attribute))
-                throw new ArgumentException(SR.Argument_MustHaveAttributeBaseClass);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustHaveAttributeBaseClass"));
 
             MemberInfo member = element.Member;
 
@@ -605,7 +605,7 @@ namespace System
 
                 default:
                     Debug.Fail("Invalid type for ParameterInfo member in Attribute class");
-                    throw new ArgumentException(SR.Argument_InvalidParamInfo);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidParamInfo"));
             }
         }
 
@@ -629,7 +629,7 @@ namespace System
             if (attrib.Length == 1)
                 return attrib[0];
 
-            throw new AmbiguousMatchException(SR.RFLCT_AmbigCust);
+            throw new AmbiguousMatchException(SR.GetResourceString("RFLCT_AmbigCust"));
         }
 
         #endregion
@@ -662,7 +662,7 @@ namespace System
                 throw new ArgumentNullException(nameof(attributeType));
 
             if (!attributeType.IsSubclassOf(typeof(Attribute)) && attributeType != typeof(Attribute))
-                throw new ArgumentException(SR.Argument_MustHaveAttributeBaseClass);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustHaveAttributeBaseClass"));
 
             return (Attribute[])element.GetCustomAttributes(attributeType, inherit);
         }
@@ -682,7 +682,7 @@ namespace System
                 throw new ArgumentNullException(nameof(attributeType));
 
             if (!attributeType.IsSubclassOf(typeof(Attribute)) && attributeType != typeof(Attribute))
-                throw new ArgumentException(SR.Argument_MustHaveAttributeBaseClass);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustHaveAttributeBaseClass"));
 
             return element.IsDefined(attributeType, false);
         }
@@ -704,7 +704,7 @@ namespace System
             if (attrib.Length == 1)
                 return attrib[0];
 
-            throw new AmbiguousMatchException(SR.RFLCT_AmbigCust);
+            throw new AmbiguousMatchException(SR.GetResourceString("RFLCT_AmbigCust"));
         }
 
         #endregion
@@ -724,7 +724,7 @@ namespace System
                 throw new ArgumentNullException(nameof(attributeType));
 
             if (!attributeType.IsSubclassOf(typeof(Attribute)) && attributeType != typeof(Attribute))
-                throw new ArgumentException(SR.Argument_MustHaveAttributeBaseClass);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustHaveAttributeBaseClass"));
 
             return (Attribute[])element.GetCustomAttributes(attributeType, inherit);
         }
@@ -757,7 +757,7 @@ namespace System
                 throw new ArgumentNullException(nameof(attributeType));
 
             if (!attributeType.IsSubclassOf(typeof(Attribute)) && attributeType != typeof(Attribute))
-                throw new ArgumentException(SR.Argument_MustHaveAttributeBaseClass);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustHaveAttributeBaseClass"));
 
             return element.IsDefined(attributeType, false);
         }
@@ -779,7 +779,7 @@ namespace System
             if (attrib.Length == 1)
                 return attrib[0];
 
-            throw new AmbiguousMatchException(SR.RFLCT_AmbigCust);
+            throw new AmbiguousMatchException(SR.GetResourceString("RFLCT_AmbigCust"));
         }
 
         #endregion

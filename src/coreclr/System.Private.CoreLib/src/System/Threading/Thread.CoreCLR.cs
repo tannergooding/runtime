@@ -75,7 +75,7 @@ namespace System.Threading
             // This should never happen under normal circumstances.
             if (thread == IntPtr.Zero)
             {
-                throw new ArgumentException(null, SR.Argument_InvalidHandle);
+                throw new ArgumentException(null, SR.GetResourceString("Argument_InvalidHandle"));
             }
 
             return new ThreadHandle(thread);
@@ -265,7 +265,7 @@ namespace System.Threading
             {
                 if (throwOnError)
                 {
-                    string msg = SR.Format(SR.Thread_ApartmentState_ChangeFailed, retState);
+                    string msg = SR.Format(SR.GetResourceString("Thread_ApartmentState_ChangeFailed"), retState);
                     throw new InvalidOperationException(msg);
                 }
 
@@ -287,7 +287,7 @@ namespace System.Threading
              {
                 if (throwOnError)
                 {
-                    throw new PlatformNotSupportedException(SR.PlatformNotSupported_ComInterop);
+                    throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ComInterop"));
                 }
 
                 return false;

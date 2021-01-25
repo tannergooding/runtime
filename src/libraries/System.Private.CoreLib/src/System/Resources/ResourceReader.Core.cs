@@ -46,7 +46,7 @@ namespace System.Resources
         {
             if (!_permitDeserialization)
             {
-                throw new NotSupportedException(SR.NotSupported_ResourceObjectSerialization);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ResourceObjectSerialization"));
             }
 
             if (Volatile.Read(ref _binaryFormatter) is null)
@@ -57,7 +57,7 @@ namespace System.Resources
                     // We'll throw an exception with the same text that BinaryFormatter would have thrown
                     // had we been able to call into it. Keep this resource string in sync with the same
                     // resource from the Formatters assembly.
-                    throw new NotSupportedException(SR.BinaryFormatter_SerializationDisallowed);
+                    throw new NotSupportedException(SR.GetResourceString("BinaryFormatter_SerializationDisallowed"));
                 }
             }
 
@@ -67,7 +67,7 @@ namespace System.Resources
 
             // guard against corrupted resources
             if (graph.GetType() != type)
-                throw new BadImageFormatException(SR.Format(SR.BadImageFormat_ResType_SerBlobMismatch, type.FullName, graph.GetType().FullName));
+                throw new BadImageFormatException(SR.Format(SR.GetResourceString("BadImageFormat_ResType_SerBlobMismatch"), type.FullName, graph.GetType().FullName));
 
             return graph;
         }
@@ -117,7 +117,7 @@ namespace System.Resources
             if (resourceName == null)
                 throw new ArgumentNullException(nameof(resourceName));
             if (_resCache == null)
-                throw new InvalidOperationException(SR.ResourceReaderIsClosed);
+                throw new InvalidOperationException(SR.GetResourceString("ResourceReaderIsClosed"));
 
             // Get the type information from the data section.  Also,
             // sort all of the data section's indexes to compute length of
@@ -127,7 +127,7 @@ namespace System.Resources
             int dataPos = FindPosForResource(resourceName);
             if (dataPos == -1)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_ResourceNameNotExist, resourceName));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_ResourceNameNotExist"), resourceName));
             }
 
             lock (this)
@@ -140,14 +140,14 @@ namespace System.Resources
                     int numBytesToSkip = _store.Read7BitEncodedInt();
                     if (numBytesToSkip < 0)
                     {
-                        throw new FormatException(SR.Format(SR.BadImageFormat_ResourcesNameInvalidOffset, numBytesToSkip));
+                        throw new FormatException(SR.Format(SR.GetResourceString("BadImageFormat_ResourcesNameInvalidOffset"), numBytesToSkip));
                     }
                     _store.BaseStream.Position += numBytesToSkip;
 
                     int dPos = _store.ReadInt32();
                     if (dPos < 0 || dPos >= _store.BaseStream.Length - _dataSectionOffset)
                     {
-                        throw new FormatException(SR.Format(SR.BadImageFormat_ResourcesDataInvalidOffset, dPos));
+                        throw new FormatException(SR.Format(SR.GetResourceString("BadImageFormat_ResourcesDataInvalidOffset"), dPos));
                     }
                     sortedDataPositions[i] = dPos;
                 }
@@ -164,7 +164,7 @@ namespace System.Resources
                 ResourceTypeCode typeCode = (ResourceTypeCode)_store.Read7BitEncodedInt();
                 if (typeCode < 0 || typeCode >= ResourceTypeCode.StartOfUserTypes + _typeTable.Length)
                 {
-                    throw new BadImageFormatException(SR.BadImageFormat_InvalidType);
+                    throw new BadImageFormatException(SR.GetResourceString("BadImageFormat_InvalidType"));
                 }
                 resourceType = TypeNameFromTypeCode(typeCode);
 
@@ -173,7 +173,7 @@ namespace System.Resources
                 len -= (int)(_store.BaseStream.Position - (_dataSectionOffset + dataPos));
                 byte[] bytes = _store.ReadBytes(len);
                 if (bytes.Length != len)
-                    throw new FormatException(SR.BadImageFormat_ResourceNameCorrupted);
+                    throw new FormatException(SR.GetResourceString("BadImageFormat_ResourceNameCorrupted"));
                 resourceData = bytes;
             }
         }

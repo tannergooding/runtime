@@ -39,13 +39,13 @@ namespace System.Collections
                 throw new ArgumentNullException(nameof(array));
 
             if (array.Rank != 1)
-                throw new ArgumentException(SR.Arg_RankMultiDimNotSupported);
+                throw new ArgumentException(SR.GetResourceString("Arg_RankMultiDimNotSupported"));
 
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             if (array.Length - index < this.Count)
-                throw new ArgumentException(SR.ArgumentOutOfRange_Index, nameof(index));
+                throw new ArgumentException(SR.GetResourceString("ArgumentOutOfRange_Index"), nameof(index));
 
             // the actual copy is a NOP
         }
@@ -64,7 +64,7 @@ namespace System.Collections
             {
                 if (key == null)
                 {
-                    throw new ArgumentNullException(nameof(key), SR.ArgumentNull_Key);
+                    throw new ArgumentNullException(nameof(key), SR.GetResourceString("ArgumentNull_Key"));
                 }
                 return null;
             }
@@ -72,16 +72,16 @@ namespace System.Collections
             {
                 if (key == null)
                 {
-                    throw new ArgumentNullException(nameof(key), SR.ArgumentNull_Key);
+                    throw new ArgumentNullException(nameof(key), SR.GetResourceString("ArgumentNull_Key"));
                 }
 
                 if (!key.GetType().IsSerializable)
-                    throw new ArgumentException(SR.Argument_NotSerializable, nameof(key));
+                    throw new ArgumentException(SR.GetResourceString("Argument_NotSerializable"), nameof(key));
 
                 if ((value != null) && (!value.GetType().IsSerializable))
-                    throw new ArgumentException(SR.Argument_NotSerializable, nameof(value));
+                    throw new ArgumentException(SR.GetResourceString("Argument_NotSerializable"), nameof(value));
 
-                throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
             }
         }
 
@@ -98,21 +98,21 @@ namespace System.Collections
         {
             if (key == null)
             {
-                throw new ArgumentNullException(nameof(key), SR.ArgumentNull_Key);
+                throw new ArgumentNullException(nameof(key), SR.GetResourceString("ArgumentNull_Key"));
             }
 
             if (!key.GetType().IsSerializable)
-                throw new ArgumentException(SR.Argument_NotSerializable, nameof(key));
+                throw new ArgumentException(SR.GetResourceString("Argument_NotSerializable"), nameof(key));
 
             if ((value != null) && (!value.GetType().IsSerializable))
-                throw new ArgumentException(SR.Argument_NotSerializable, nameof(value));
+                throw new ArgumentException(SR.GetResourceString("Argument_NotSerializable"), nameof(value));
 
-            throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
         }
 
         public void Clear()
         {
-            throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
         }
 
         public bool IsReadOnly => true;
@@ -126,7 +126,7 @@ namespace System.Collections
 
         public void Remove(object key)
         {
-            throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
         }
 
         private sealed class NodeEnumerator : IDictionaryEnumerator
@@ -142,7 +142,7 @@ namespace System.Collections
                 return false;
             }
 
-            public object? Current => throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
+            public object? Current => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumOpCantHappen"));
 
             public void Reset()
             {
@@ -150,11 +150,11 @@ namespace System.Collections
 
             // IDictionaryEnumerator members
 
-            public object Key => throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
+            public object Key => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumOpCantHappen"));
 
-            public object? Value => throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
+            public object? Value => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumOpCantHappen"));
 
-            public DictionaryEntry Entry => throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
+            public DictionaryEntry Entry => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumOpCantHappen"));
         }
     }
 }

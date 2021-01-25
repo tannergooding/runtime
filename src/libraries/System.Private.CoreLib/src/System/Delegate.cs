@@ -50,7 +50,7 @@ namespace System
         public static Delegate CreateDelegate(Type type, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type target, string method) => CreateDelegate(type, target, method, ignoreCase: false, throwOnBindFailure: true)!;
         public static Delegate CreateDelegate(Type type, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type target, string method, bool ignoreCase) => CreateDelegate(type, target, method, ignoreCase, throwOnBindFailure: true)!;
 
-        protected virtual Delegate CombineImpl(Delegate? d) => throw new MulticastNotSupportedException(SR.Multicast_Combine);
+        protected virtual Delegate CombineImpl(Delegate? d) => throw new MulticastNotSupportedException(SR.GetResourceString("Multicast_Combine"));
 
         protected virtual Delegate? RemoveImpl(Delegate d) => d.Equals(this) ? null : this;
 
@@ -74,7 +74,7 @@ namespace System
                 return source;
 
             if (!InternalEqualTypes(source, value))
-                throw new ArgumentException(SR.Arg_DlgtTypeMis);
+                throw new ArgumentException(SR.GetResourceString("Arg_DlgtTypeMis"));
 
             return source.RemoveImpl(value);
         }

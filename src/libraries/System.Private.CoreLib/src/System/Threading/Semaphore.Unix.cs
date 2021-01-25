@@ -14,7 +14,7 @@ namespace System.Threading
         {
             if (name != null)
             {
-                throw new PlatformNotSupportedException(SR.PlatformNotSupported_NamedSynchronizationPrimitives);
+                throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_NamedSynchronizationPrimitives"));
             }
 
             SafeWaitHandle = WaitSubsystem.NewSemaphore(initialCount, maximumCount);
@@ -23,7 +23,7 @@ namespace System.Threading
 
         private static OpenExistingResult OpenExistingWorker(string name, out Semaphore result)
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_NamedSynchronizationPrimitives);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_NamedSynchronizationPrimitives"));
         }
 
         private int ReleaseCore(int releaseCount)

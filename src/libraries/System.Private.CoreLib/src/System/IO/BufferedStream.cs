@@ -70,7 +70,7 @@ namespace System.IO
                 throw new ArgumentNullException(nameof(stream));
 
             if (bufferSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.Format(SR.ArgumentOutOfRange_MustBePositive, nameof(bufferSize)));
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.Format(SR.GetResourceString("ArgumentOutOfRange_MustBePositive"), nameof(bufferSize)));
 
             _stream = stream;
             _bufferSize = bufferSize;
@@ -79,13 +79,13 @@ namespace System.IO
             // & writes are greater than or equal to buffer size.
 
             if (!_stream.CanRead && !_stream.CanWrite)
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_StreamClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_StreamClosed"));
         }
 
         private void EnsureNotClosed()
         {
             if (_stream == null)
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_StreamClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_StreamClosed"));
         }
 
         private void EnsureCanSeek()
@@ -93,7 +93,7 @@ namespace System.IO
             Debug.Assert(_stream != null);
 
             if (!_stream.CanSeek)
-                throw new NotSupportedException(SR.NotSupported_UnseekableStream);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_UnseekableStream"));
         }
 
         private void EnsureCanRead()
@@ -101,7 +101,7 @@ namespace System.IO
             Debug.Assert(_stream != null);
 
             if (!_stream.CanRead)
-                throw new NotSupportedException(SR.NotSupported_UnreadableStream);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_UnreadableStream"));
         }
 
         private void EnsureCanWrite()
@@ -109,7 +109,7 @@ namespace System.IO
             Debug.Assert(_stream != null);
 
             if (!_stream.CanWrite)
-                throw new NotSupportedException(SR.NotSupported_UnwritableStream);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_UnwritableStream"));
         }
 
         private void EnsureShadowBufferAllocated()
@@ -203,7 +203,7 @@ namespace System.IO
             set
             {
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
                 EnsureNotClosed();
                 EnsureCanSeek();
@@ -403,7 +403,7 @@ namespace System.IO
             // However, since the user did not call a method that is intuitively expected to seek, a better message is in order.
             // Ideally, we would throw an InvalidOperation here, but for backward compat we have to stick with NotSupported.
             if (!_stream.CanSeek)
-                throw new NotSupportedException(SR.NotSupported_CannotWriteToBufferedStreamIfReadBufferCannotBeFlushed);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_CannotWriteToBufferedStreamIfReadBufferCannotBeFlushed"));
 
             FlushRead();
         }
@@ -1236,7 +1236,7 @@ namespace System.IO
         public override void SetLength(long value)
         {
             if (value < 0)
-                throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             EnsureNotClosed();
             EnsureCanSeek();

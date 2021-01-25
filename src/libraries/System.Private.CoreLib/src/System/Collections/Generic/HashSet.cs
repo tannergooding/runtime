@@ -865,13 +865,13 @@ namespace System.Collections.Generic
             // Check array index valid index into array.
             if (arrayIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(arrayIndex), arrayIndex, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(arrayIndex), arrayIndex, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             // Also throw if count less than 0.
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), count, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), count, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             // Will the array, starting at arrayIndex, be able to hold elements? Note: not

@@ -41,7 +41,7 @@ namespace System
                 return 0;
             }
 
-            throw new ArgumentException(SR.Arg_MustBeInt64);
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeInt64"));
         }
 
         public int CompareTo(long value)
@@ -246,7 +246,7 @@ namespace System
 
         DateTime IConvertible.ToDateTime(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "Int64", "DateTime"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "Int64", "DateTime"));
         }
 
         object IConvertible.ToType(Type type, IFormatProvider? provider)

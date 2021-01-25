@@ -9,7 +9,7 @@ namespace System.Threading
     [System.Runtime.CompilerServices.TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
     public class WaitHandleCannotBeOpenedException : ApplicationException
     {
-        public WaitHandleCannotBeOpenedException() : base(SR.Threading_WaitHandleCannotBeOpenedException)
+        public WaitHandleCannotBeOpenedException() : base(SR.GetResourceString("Threading_WaitHandleCannotBeOpenedException"))
         {
             HResult = HResults.COR_E_WAITHANDLECANNOTBEOPENED;
         }

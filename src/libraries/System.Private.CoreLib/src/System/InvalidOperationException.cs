@@ -20,7 +20,7 @@ namespace System
     public class InvalidOperationException : SystemException
     {
         public InvalidOperationException()
-            : base(SR.Arg_InvalidOperationException)
+            : base(SR.GetResourceString("Arg_InvalidOperationException"))
         {
             HResult = HResults.COR_E_INVALIDOPERATION;
         }

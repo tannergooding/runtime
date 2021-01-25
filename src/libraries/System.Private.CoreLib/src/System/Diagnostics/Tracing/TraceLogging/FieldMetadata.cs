@@ -124,16 +124,16 @@ namespace System.Diagnostics.Tracing
             {
                 if (coreType == (int)TraceLoggingDataType.Nil)
                 {
-                    throw new NotSupportedException(SR.EventSource_NotSupportedArrayOfNil);
+                    throw new NotSupportedException(SR.GetResourceString("EventSource_NotSupportedArrayOfNil"));
                 }
                 if (coreType == (int)TraceLoggingDataType.Binary)
                 {
-                    throw new NotSupportedException(SR.EventSource_NotSupportedArrayOfBinary);
+                    throw new NotSupportedException(SR.GetResourceString("EventSource_NotSupportedArrayOfBinary"));
                 }
                 if (coreType == (int)TraceLoggingDataType.Utf16String ||
                     coreType == (int)TraceLoggingDataType.MbcsString)
                 {
-                    throw new NotSupportedException(SR.EventSource_NotSupportedArrayOfNullTerminatedString);
+                    throw new NotSupportedException(SR.GetResourceString("EventSource_NotSupportedArrayOfNullTerminatedString"));
                 }
             }
 
@@ -154,7 +154,7 @@ namespace System.Diagnostics.Tracing
             this.outType++;
             if ((this.outType & Statics.OutTypeMask) == 0)
             {
-                throw new NotSupportedException(SR.EventSource_TooManyFields);
+                throw new NotSupportedException(SR.GetResourceString("EventSource_TooManyFields"));
             }
         }
 

@@ -35,7 +35,7 @@ namespace System.Collections
             {
                 if (key == null)
                 {
-                    throw new ArgumentNullException(nameof(key), SR.ArgumentNull_Key);
+                    throw new ArgumentNullException(nameof(key), SR.GetResourceString("ArgumentNull_Key"));
                 }
                 DictionaryNode? node = head;
 
@@ -53,7 +53,7 @@ namespace System.Collections
             {
                 if (key == null)
                 {
-                    throw new ArgumentNullException(nameof(key), SR.ArgumentNull_Key);
+                    throw new ArgumentNullException(nameof(key), SR.GetResourceString("ArgumentNull_Key"));
                 }
 
                 version++;
@@ -107,7 +107,7 @@ namespace System.Collections
         {
             if (key == null)
             {
-                throw new ArgumentNullException(nameof(key), SR.ArgumentNull_Key);
+                throw new ArgumentNullException(nameof(key), SR.GetResourceString("ArgumentNull_Key"));
             }
 
             version++;
@@ -117,7 +117,7 @@ namespace System.Collections
             {
                 if (node.key.Equals(key))
                 {
-                    throw new ArgumentException(SR.Format(SR.Argument_AddingDuplicate__, node.key, key));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_AddingDuplicate__"), node.key, key));
                 }
                 last = node;
             }
@@ -153,7 +153,7 @@ namespace System.Collections
         {
             if (key == null)
             {
-                throw new ArgumentNullException(nameof(key), SR.ArgumentNull_Key);
+                throw new ArgumentNullException(nameof(key), SR.GetResourceString("ArgumentNull_Key"));
             }
             for (DictionaryNode? node = head; node != null; node = node.next)
             {
@@ -171,13 +171,13 @@ namespace System.Collections
                 throw new ArgumentNullException(nameof(array));
 
             if (array.Rank != 1)
-                throw new ArgumentException(SR.Arg_RankMultiDimNotSupported);
+                throw new ArgumentException(SR.GetResourceString("Arg_RankMultiDimNotSupported"));
 
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             if (array.Length - index < this.Count)
-                throw new ArgumentException(SR.ArgumentOutOfRange_Index, nameof(index));
+                throw new ArgumentException(SR.GetResourceString("ArgumentOutOfRange_Index"), nameof(index));
 
             for (DictionaryNode? node = head; node != null; node = node.next)
             {
@@ -200,7 +200,7 @@ namespace System.Collections
         {
             if (key == null)
             {
-                throw new ArgumentNullException(nameof(key), SR.ArgumentNull_Key);
+                throw new ArgumentNullException(nameof(key), SR.GetResourceString("ArgumentNull_Key"));
             }
             version++;
             DictionaryNode? last = null;
@@ -251,7 +251,7 @@ namespace System.Collections
                 {
                     if (current == null)
                     {
-                        throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumOpCantHappen"));
                     }
                     return new DictionaryEntry(current.key, current.value);
                 }
@@ -263,7 +263,7 @@ namespace System.Collections
                 {
                     if (current == null)
                     {
-                        throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumOpCantHappen"));
                     }
                     return current.key;
                 }
@@ -275,7 +275,7 @@ namespace System.Collections
                 {
                     if (current == null)
                     {
-                        throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumOpCantHappen"));
                     }
                     return current.value;
                 }
@@ -285,7 +285,7 @@ namespace System.Collections
             {
                 if (version != list.version)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumFailedVersion"));
                 }
                 if (start)
                 {
@@ -306,7 +306,7 @@ namespace System.Collections
             {
                 if (version != list.version)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumFailedVersion"));
                 }
                 start = true;
                 current = null;
@@ -329,11 +329,11 @@ namespace System.Collections
                 if (array == null)
                     throw new ArgumentNullException(nameof(array));
                 if (array.Rank != 1)
-                    throw new ArgumentException(SR.Arg_RankMultiDimNotSupported);
+                    throw new ArgumentException(SR.GetResourceString("Arg_RankMultiDimNotSupported"));
                 if (index < 0)
-                    throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (array.Length - index < list.Count)
-                    throw new ArgumentException(SR.ArgumentOutOfRange_Index, nameof(index));
+                    throw new ArgumentException(SR.GetResourceString("ArgumentOutOfRange_Index"), nameof(index));
                 for (DictionaryNode? node = list.head; node != null; node = node.next)
                 {
                     array.SetValue(isKeys ? node.key : node.value, index);
@@ -386,7 +386,7 @@ namespace System.Collections
                     {
                         if (current == null)
                         {
-                            throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
+                            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumOpCantHappen"));
                         }
                         return isKeys ? current.key : current.value;
                     }
@@ -396,7 +396,7 @@ namespace System.Collections
                 {
                     if (version != list.version)
                     {
-                        throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumFailedVersion"));
                     }
                     if (start)
                     {
@@ -417,7 +417,7 @@ namespace System.Collections
                 {
                     if (version != list.version)
                     {
-                        throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumFailedVersion"));
                     }
                     start = true;
                     current = null;

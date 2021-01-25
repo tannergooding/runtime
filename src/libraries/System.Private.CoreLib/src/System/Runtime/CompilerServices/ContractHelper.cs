@@ -32,7 +32,7 @@ namespace System.Runtime.CompilerServices
         public static string? RaiseContractFailedEvent(ContractFailureKind failureKind, string? userMessage, string? conditionText, Exception? innerException)
         {
             if (failureKind < ContractFailureKind.Precondition || failureKind > ContractFailureKind.Assume)
-                throw new ArgumentException(SR.Format(SR.Arg_EnumIllegalVal, failureKind), nameof(failureKind));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), failureKind), nameof(failureKind));
 
             string? returnValue;
             string displayMessage = "contract failed.";  // Incomplete, but in case of OOM during resource lookup...
@@ -100,26 +100,26 @@ namespace System.Runtime.CompilerServices
             switch (failureKind)
             {
                 case ContractFailureKind.Assert:
-                    return hasConditionText ? SR.Format(SR.AssertionFailed_Cnd, conditionText) : SR.AssertionFailed;
+                    return hasConditionText ? SR.Format(SR.GetResourceString("AssertionFailed_Cnd"), conditionText) : SR.GetResourceString("AssertionFailed");
 
                 case ContractFailureKind.Assume:
-                    return hasConditionText ? SR.Format(SR.AssumptionFailed_Cnd, conditionText) : SR.AssumptionFailed;
+                    return hasConditionText ? SR.Format(SR.GetResourceString("AssumptionFailed_Cnd"), conditionText) : SR.GetResourceString("AssumptionFailed");
 
                 case ContractFailureKind.Precondition:
-                    return hasConditionText ? SR.Format(SR.PreconditionFailed_Cnd, conditionText) : SR.PreconditionFailed;
+                    return hasConditionText ? SR.Format(SR.GetResourceString("PreconditionFailed_Cnd"), conditionText) : SR.GetResourceString("PreconditionFailed");
 
                 case ContractFailureKind.Postcondition:
-                    return hasConditionText ? SR.Format(SR.PostconditionFailed_Cnd, conditionText) : SR.PostconditionFailed;
+                    return hasConditionText ? SR.Format(SR.GetResourceString("PostconditionFailed_Cnd"), conditionText) : SR.GetResourceString("PostconditionFailed");
 
                 case ContractFailureKind.Invariant:
-                    return hasConditionText ? SR.Format(SR.InvariantFailed_Cnd, conditionText) : SR.InvariantFailed;
+                    return hasConditionText ? SR.Format(SR.GetResourceString("InvariantFailed_Cnd"), conditionText) : SR.GetResourceString("InvariantFailed");
 
                 case ContractFailureKind.PostconditionOnException:
-                    return hasConditionText ? SR.Format(SR.PostconditionOnExceptionFailed_Cnd, conditionText) : SR.PostconditionOnExceptionFailed;
+                    return hasConditionText ? SR.Format(SR.GetResourceString("PostconditionOnExceptionFailed_Cnd"), conditionText) : SR.GetResourceString("PostconditionOnExceptionFailed");
 
                 default:
                     Contract.Assume(false, "Unreachable code");
-                    return SR.AssumptionFailed;
+                    return SR.GetResourceString("AssumptionFailed");
             }
         }
 

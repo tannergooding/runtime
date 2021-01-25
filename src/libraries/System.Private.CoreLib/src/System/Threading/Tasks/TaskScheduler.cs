@@ -193,7 +193,7 @@ namespace System.Threading.Tasks
             // Otherwise the scheduler is buggy
             if (inlined && !(task.IsDelegateInvoked || task.IsCanceled))
             {
-                throw new InvalidOperationException(SR.TaskScheduler_InconsistentStateAfterTryExecuteTaskInline);
+                throw new InvalidOperationException(SR.GetResourceString("TaskScheduler_InconsistentStateAfterTryExecuteTaskInline"));
             }
 
             return inlined;
@@ -402,7 +402,7 @@ namespace System.Threading.Tasks
         {
             if (task.ExecutingTaskScheduler != this)
             {
-                throw new InvalidOperationException(SR.TaskScheduler_ExecuteTask_WrongTaskScheduler);
+                throw new InvalidOperationException(SR.GetResourceString("TaskScheduler_ExecuteTask_WrongTaskScheduler"));
             }
 
             return task.ExecuteEntry();
@@ -551,7 +551,7 @@ namespace System.Threading.Tasks
         {
             m_synchronizationContext = SynchronizationContext.Current ??
                 // make sure we have a synccontext to work with
-                throw new InvalidOperationException(SR.TaskScheduler_FromCurrentSynchronizationContext_NoCurrent);
+                throw new InvalidOperationException(SR.GetResourceString("TaskScheduler_FromCurrentSynchronizationContext_NoCurrent"));
         }
 
         /// <summary>

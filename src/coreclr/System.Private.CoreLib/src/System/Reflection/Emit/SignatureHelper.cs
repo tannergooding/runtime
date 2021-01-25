@@ -106,7 +106,7 @@ namespace System.Reflection.Emit
             }
             else
             {
-                throw new ArgumentException(SR.Argument_UnknownUnmanagedCallConv, nameof(unmanagedCallConv));
+                throw new ArgumentException(SR.GetResourceString("Argument_UnknownUnmanagedCallConv"), nameof(unmanagedCallConv));
             }
 
             return new SignatureHelper(mod, intCall, returnType, null, null);
@@ -207,7 +207,7 @@ namespace System.Reflection.Emit
             Init(mod, callingConvention, cGenericParameters);
 
             if (callingConvention == MdSigCallingConvention.Field)
-                throw new ArgumentException(SR.Argument_BadFieldSig);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadFieldSig"));
 
             AddOneArgTypeHelper(returnType, requiredCustomModifiers, optionalCustomModifiers);
         }
@@ -236,7 +236,7 @@ namespace System.Reflection.Emit
             m_sizeLoc = NO_SIZE_IN_SIG;
 
             if (m_module == null && mod != null)
-                throw new ArgumentException(SR.NotSupported_MustBeModuleBuilder);
+                throw new ArgumentException(SR.GetResourceString("NotSupported_MustBeModuleBuilder"));
         }
 
         [MemberNotNull(nameof(m_signature))]
@@ -294,10 +294,10 @@ namespace System.Reflection.Emit
                         throw new ArgumentNullException(nameof(optionalCustomModifiers));
 
                     if (t.HasElementType)
-                        throw new ArgumentException(SR.Argument_ArraysInvalid, nameof(optionalCustomModifiers));
+                        throw new ArgumentException(SR.GetResourceString("Argument_ArraysInvalid"), nameof(optionalCustomModifiers));
 
                     if (t.ContainsGenericParameters)
-                        throw new ArgumentException(SR.Argument_GenericsInvalid, nameof(optionalCustomModifiers));
+                        throw new ArgumentException(SR.GetResourceString("Argument_GenericsInvalid"), nameof(optionalCustomModifiers));
 
                     AddElementType(CorElementType.ELEMENT_TYPE_CMOD_OPT);
 
@@ -317,10 +317,10 @@ namespace System.Reflection.Emit
                         throw new ArgumentNullException(nameof(requiredCustomModifiers));
 
                     if (t.HasElementType)
-                        throw new ArgumentException(SR.Argument_ArraysInvalid, nameof(requiredCustomModifiers));
+                        throw new ArgumentException(SR.GetResourceString("Argument_ArraysInvalid"), nameof(requiredCustomModifiers));
 
                     if (t.ContainsGenericParameters)
-                        throw new ArgumentException(SR.Argument_GenericsInvalid, nameof(requiredCustomModifiers));
+                        throw new ArgumentException(SR.GetResourceString("Argument_GenericsInvalid"), nameof(requiredCustomModifiers));
 
                     AddElementType(CorElementType.ELEMENT_TYPE_CMOD_REQD);
 
@@ -498,7 +498,7 @@ namespace System.Reflection.Emit
             }
             else
             {
-                throw new ArgumentException(SR.Argument_LargeInteger);
+                throw new ArgumentException(SR.GetResourceString("Argument_LargeInteger"));
             }
         }
 
@@ -523,7 +523,7 @@ namespace System.Reflection.Emit
             if (rid > 0x3FFFFFF)
             {
                 // token is too big to be compressed
-                throw new ArgumentException(SR.Argument_LargeInteger);
+                throw new ArgumentException(SR.GetResourceString("Argument_LargeInteger"));
             }
 
             rid <<= 2;
@@ -734,7 +734,7 @@ namespace System.Reflection.Emit
                 temp[sigCopyIndex++] = (byte)(argCount & 0xFF);
             }
             else
-                throw new ArgumentException(SR.Argument_LargeInteger);
+                throw new ArgumentException(SR.GetResourceString("Argument_LargeInteger"));
             // copy the sig part of the sig
             Buffer.BlockCopy(m_signature, 2, temp, sigCopyIndex, currSigLength - 2);
             // mark the end of sig
@@ -763,10 +763,10 @@ namespace System.Reflection.Emit
         public void AddArguments(Type[]? arguments, Type[][]? requiredCustomModifiers, Type[][]? optionalCustomModifiers)
         {
             if (requiredCustomModifiers != null && (arguments == null || requiredCustomModifiers.Length != arguments.Length))
-                throw new ArgumentException(SR.Format(SR.Argument_MismatchedArrays, nameof(requiredCustomModifiers), nameof(arguments)));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_MismatchedArrays"), nameof(requiredCustomModifiers), nameof(arguments)));
 
             if (optionalCustomModifiers != null && (arguments == null || optionalCustomModifiers.Length != arguments.Length))
-                throw new ArgumentException(SR.Format(SR.Argument_MismatchedArrays, nameof(optionalCustomModifiers), nameof(arguments)));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_MismatchedArrays"), nameof(optionalCustomModifiers), nameof(arguments)));
 
             if (arguments != null)
             {
@@ -780,7 +780,7 @@ namespace System.Reflection.Emit
         public void AddArgument(Type argument, Type[]? requiredCustomModifiers, Type[]? optionalCustomModifiers)
         {
             if (m_sigDone)
-                throw new ArgumentException(SR.Argument_SigIsFinalized);
+                throw new ArgumentException(SR.GetResourceString("Argument_SigIsFinalized"));
 
             if (argument == null)
                 throw new ArgumentNullException(nameof(argument));

@@ -19,7 +19,7 @@ namespace System.Runtime.InteropServices
     public class MarshalDirectiveException : SystemException
     {
         public MarshalDirectiveException()
-            : base(SR.Arg_MarshalDirectiveException)
+            : base(SR.GetResourceString("Arg_MarshalDirectiveException"))
         {
             HResult = HResults.COR_E_MARSHALDIRECTIVE;
         }

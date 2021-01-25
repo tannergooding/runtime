@@ -68,7 +68,7 @@ namespace System.Reflection
                         return null;
 
                     default:
-                        throw new FormatException(SR.Arg_BadLiteralFormat);
+                        throw new FormatException(SR.GetResourceString("Arg_BadLiteralFormat"));
                         #endregion
                 }
 
@@ -97,7 +97,7 @@ namespace System.Reflection
                         return null;
 
                     default:
-                        throw new FormatException(SR.Arg_BadLiteralFormat);
+                        throw new FormatException(SR.GetResourceString("Arg_BadLiteralFormat"));
                         #endregion
                 }
 
@@ -122,7 +122,7 @@ namespace System.Reflection
                     CorElementType.ELEMENT_TYPE_R8 => *(double*)&buffer,
                     CorElementType.ELEMENT_TYPE_STRING => stringVal ?? string.Empty,
                     CorElementType.ELEMENT_TYPE_CLASS => null,
-                    _ => throw new FormatException(SR.Arg_BadLiteralFormat),
+                    _ => throw new FormatException(SR.GetResourceString("Arg_BadLiteralFormat")),
                 };
             }
         }

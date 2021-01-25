@@ -10,7 +10,7 @@ namespace System.IO
     public class PathTooLongException : IOException
     {
         public PathTooLongException()
-            : base(SR.IO_PathTooLong)
+            : base(SR.GetResourceString("IO_PathTooLong"))
         {
             HResult = HResults.COR_E_PATHTOOLONG;
         }

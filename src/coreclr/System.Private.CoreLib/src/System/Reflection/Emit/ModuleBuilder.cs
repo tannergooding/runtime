@@ -106,7 +106,7 @@ namespace System.Reflection.Emit
                 ReferenceEquals(foundType.DeclaringType, enclosingType))
             {
                 // Cannot have two types with the same name
-                throw new ArgumentException(SR.Argument_DuplicateTypeName);
+                throw new ArgumentException(SR.GetResourceString("Argument_DuplicateTypeName"));
             }
         }
 
@@ -286,7 +286,7 @@ namespace System.Reflection.Emit
                 ParameterInfo[] parameters = con.GetParameters();
                 if (parameters == null)
                 {
-                    throw new ArgumentException(SR.Argument_InvalidConstructorInfo);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidConstructorInfo"));
                 }
 
                 Type[] parameterTypes = new Type[parameters.Length];
@@ -297,7 +297,7 @@ namespace System.Reflection.Emit
                 {
                     if (parameters[i] == null)
                     {
-                        throw new ArgumentException(SR.Argument_InvalidConstructorInfo);
+                        throw new ArgumentException(SR.GetResourceString("Argument_InvalidConstructorInfo"));
                     }
 
                     parameterTypes[i] = parameters[i].ParameterType;
@@ -366,7 +366,7 @@ namespace System.Reflection.Emit
                 if ((method.CallingConvention & CallingConventions.VarArgs) == 0)
                 {
                     // Client should not supply optional parameter in default calling convention
-                    throw new InvalidOperationException(SR.InvalidOperation_NotAVarArgCallingConvention);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotAVarArgCallingConvention"));
                 }
             }
 
@@ -909,7 +909,7 @@ namespace System.Reflection.Emit
                 // Global methods must be static.
                 if ((attributes & MethodAttributes.Static) == 0)
                 {
-                    throw new ArgumentException(SR.Argument_GlobalFunctionHasToBeStatic);
+                    throw new ArgumentException(SR.GetResourceString("Argument_GlobalFunctionHasToBeStatic"));
                 }
 
                 AssemblyBuilder.CheckContext(returnType);
@@ -948,7 +948,7 @@ namespace System.Reflection.Emit
         {
             if (_moduleData._hasGlobalBeenCreated)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_GlobalsHaveBeenCreated);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_GlobalsHaveBeenCreated"));
             }
             if (name == null)
             {
@@ -956,11 +956,11 @@ namespace System.Reflection.Emit
             }
             if (name.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
             }
             if ((attributes & MethodAttributes.Static) == 0)
             {
-                throw new ArgumentException(SR.Argument_GlobalFunctionHasToBeStatic);
+                throw new ArgumentException(SR.GetResourceString("Argument_GlobalFunctionHasToBeStatic"));
             }
 
             AssemblyBuilder.CheckContext(returnType);
@@ -986,7 +986,7 @@ namespace System.Reflection.Emit
             if (_moduleData._hasGlobalBeenCreated)
             {
                 // cannot create globals twice
-                throw new InvalidOperationException(SR.InvalidOperation_NotADebugModule);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotADebugModule"));
             }
             _moduleData._globalTypeBuilder.CreateType();
             _moduleData._hasGlobalBeenCreated = true;
@@ -1015,7 +1015,7 @@ namespace System.Reflection.Emit
             // will be the signature for the Field.
             if (_moduleData._hasGlobalBeenCreated)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_GlobalsHaveBeenCreated);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_GlobalsHaveBeenCreated"));
             }
 
             return _moduleData._globalTypeBuilder.DefineInitializedData(name, data, attributes);
@@ -1037,7 +1037,7 @@ namespace System.Reflection.Emit
 
             if (_moduleData._hasGlobalBeenCreated)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_GlobalsHaveBeenCreated);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_GlobalsHaveBeenCreated"));
             }
 
             return _moduleData._globalTypeBuilder.DefineUninitializedData(name, size, attributes);
@@ -1089,7 +1089,7 @@ namespace System.Reflection.Emit
             // We should also be aware of multiple dynamic modules and multiple implementation of Type!!!
             if (type.IsByRef)
             {
-                throw new ArgumentException(SR.Argument_CannotGetTypeTokenForByRef);
+                throw new ArgumentException(SR.GetResourceString("Argument_CannotGetTypeTokenForByRef"));
             }
 
             if ((type.IsGenericType && (!type.IsGenericTypeDefinition || !getGenericDefinition)) ||
@@ -1192,7 +1192,7 @@ namespace System.Reflection.Emit
 
                 if (method.DeclaringType == null)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_CannotImportGlobalFromDifferentModule);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CannotImportGlobalFromDifferentModule"));
                 }
 
                 // method is defined in a different module
@@ -1218,7 +1218,7 @@ namespace System.Reflection.Emit
                 // We need to get the TypeRef tokens
                 if (declaringType == null)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_CannotImportGlobalFromDifferentModule);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CannotImportGlobalFromDifferentModule"));
                 }
 
                 if (declaringType.IsArray)
@@ -1367,11 +1367,11 @@ namespace System.Reflection.Emit
             }
             if (methodName.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(methodName));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(methodName));
             }
             if (!arrayClass.IsArray)
             {
-                throw new ArgumentException(SR.Argument_HasToBeArrayClass);
+                throw new ArgumentException(SR.GetResourceString("Argument_HasToBeArrayClass"));
             }
 
             AssemblyBuilder.CheckContext(returnType, arrayClass);
@@ -1447,7 +1447,7 @@ namespace System.Reflection.Emit
                     // field is defined in a different module
                     if (field.DeclaringType == null)
                     {
-                        throw new InvalidOperationException(SR.InvalidOperation_CannotImportGlobalFromDifferentModule);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CannotImportGlobalFromDifferentModule"));
                     }
                     tr = GetTypeTokenInternal(field.DeclaringType);
                     mr = GetMemberRef(field.ReflectedType!.Module, tr, fdBuilder.MetadataToken);
@@ -1459,7 +1459,7 @@ namespace System.Reflection.Emit
                 // We need to get the TypeRef tokens
                 if (field.DeclaringType == null)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_CannotImportGlobalFromDifferentModule);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CannotImportGlobalFromDifferentModule"));
                 }
 
                 if (field.DeclaringType != null && field.DeclaringType.IsGenericType)
@@ -1618,7 +1618,7 @@ namespace System.Reflection.Emit
             if (_iSymWriter == null)
             {
                 // Cannot DefineDocument when it is not a debug module
-                throw new InvalidOperationException(SR.InvalidOperation_NotADebugModule);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotADebugModule"));
             }
 
             return _iSymWriter.DefineDocument(url, language, languageVendor, documentType);

@@ -145,7 +145,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     "year",
                     lunarYear,
-                    SR.Format(SR.ArgumentOutOfRange_Range, MinLunisolarYear, MaxLunisolarYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), MinLunisolarYear, MaxLunisolarYear));
             }
 
             return s_yinfo[lunarYear - MinLunisolarYear, index];

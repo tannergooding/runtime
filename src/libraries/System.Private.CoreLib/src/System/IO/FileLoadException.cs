@@ -10,7 +10,7 @@ namespace System.IO
     public partial class FileLoadException : IOException
     {
         public FileLoadException()
-            : base(SR.IO_FileLoad)
+            : base(SR.GetResourceString("IO_FileLoad"))
         {
             HResult = HResults.COR_E_FILELOAD;
         }
@@ -50,7 +50,7 @@ namespace System.IO
             string s = GetType().ToString() + ": " + Message;
 
             if (!string.IsNullOrEmpty(FileName))
-                s += Environment.NewLineConst + SR.Format(SR.IO_FileName_Name, FileName);
+                s += Environment.NewLineConst + SR.Format(SR.GetResourceString("IO_FileName_Name"), FileName);
 
             if (InnerException != null)
                 s += Environment.NewLineConst + InnerExceptionPrefix + InnerException.ToString();

@@ -37,7 +37,7 @@ namespace System
                 return m_value - ((short)value).m_value;
             }
 
-            throw new ArgumentException(SR.Arg_MustBeInt16);
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeInt16"));
         }
 
         public int CompareTo(short value)
@@ -267,7 +267,7 @@ namespace System
 
         DateTime IConvertible.ToDateTime(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "Int16", "DateTime"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "Int16", "DateTime"));
         }
 
         object IConvertible.ToType(Type type, IFormatProvider? provider)

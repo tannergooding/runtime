@@ -177,7 +177,7 @@ namespace System.Buffers
                 // Check to see if the buffer is the correct size for this bucket
                 if (array.Length != _bucketArraySizes[bucketIndex])
                 {
-                    throw new ArgumentException(SR.ArgumentException_BufferNotFromPool, nameof(array));
+                    throw new ArgumentException(SR.GetResourceString("ArgumentException_BufferNotFromPool"), nameof(array));
                 }
 
                 // Write through the TLS bucket.  If there weren't any buckets, create them

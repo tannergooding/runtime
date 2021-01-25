@@ -30,11 +30,11 @@ namespace System.Security
             }
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (length > MaxLength)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_Length);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_Length"));
             }
 
             Initialize(new ReadOnlySpan<char>(value, length));
@@ -84,7 +84,7 @@ namespace System.Security
         {
             if (capacity > MaxLength)
             {
-                throw new ArgumentOutOfRangeException(nameof(capacity), SR.ArgumentOutOfRange_Capacity);
+                throw new ArgumentOutOfRangeException(nameof(capacity), SR.GetResourceString("ArgumentOutOfRange_Capacity"));
             }
 
             Debug.Assert(_buffer != null);
@@ -182,7 +182,7 @@ namespace System.Security
             {
                 if (index < 0 || index > _decryptedLength)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_IndexString);
+                    throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_IndexString"));
                 }
 
                 EnsureNotDisposed();
@@ -229,7 +229,7 @@ namespace System.Security
             {
                 if (index < 0 || index >= _decryptedLength)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_IndexString);
+                    throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_IndexString"));
                 }
 
                 EnsureNotDisposed();
@@ -261,7 +261,7 @@ namespace System.Security
             {
                 if (index < 0 || index >= _decryptedLength)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_IndexString);
+                    throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_IndexString"));
                 }
 
                 EnsureNotDisposed();
@@ -302,7 +302,7 @@ namespace System.Security
         {
             if (_readOnly)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
             }
         }
 

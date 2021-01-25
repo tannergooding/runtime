@@ -28,16 +28,16 @@ namespace System
         public Version(int major, int minor, int build, int revision)
         {
             if (major < 0)
-                throw new ArgumentOutOfRangeException(nameof(major), SR.ArgumentOutOfRange_Version);
+                throw new ArgumentOutOfRangeException(nameof(major), SR.GetResourceString("ArgumentOutOfRange_Version"));
 
             if (minor < 0)
-                throw new ArgumentOutOfRangeException(nameof(minor), SR.ArgumentOutOfRange_Version);
+                throw new ArgumentOutOfRangeException(nameof(minor), SR.GetResourceString("ArgumentOutOfRange_Version"));
 
             if (build < 0)
-                throw new ArgumentOutOfRangeException(nameof(build), SR.ArgumentOutOfRange_Version);
+                throw new ArgumentOutOfRangeException(nameof(build), SR.GetResourceString("ArgumentOutOfRange_Version"));
 
             if (revision < 0)
-                throw new ArgumentOutOfRangeException(nameof(revision), SR.ArgumentOutOfRange_Version);
+                throw new ArgumentOutOfRangeException(nameof(revision), SR.GetResourceString("ArgumentOutOfRange_Version"));
 
             _Major = major;
             _Minor = minor;
@@ -48,13 +48,13 @@ namespace System
         public Version(int major, int minor, int build)
         {
             if (major < 0)
-                throw new ArgumentOutOfRangeException(nameof(major), SR.ArgumentOutOfRange_Version);
+                throw new ArgumentOutOfRangeException(nameof(major), SR.GetResourceString("ArgumentOutOfRange_Version"));
 
             if (minor < 0)
-                throw new ArgumentOutOfRangeException(nameof(minor), SR.ArgumentOutOfRange_Version);
+                throw new ArgumentOutOfRangeException(nameof(minor), SR.GetResourceString("ArgumentOutOfRange_Version"));
 
             if (build < 0)
-                throw new ArgumentOutOfRangeException(nameof(build), SR.ArgumentOutOfRange_Version);
+                throw new ArgumentOutOfRangeException(nameof(build), SR.GetResourceString("ArgumentOutOfRange_Version"));
 
             _Major = major;
             _Minor = minor;
@@ -65,10 +65,10 @@ namespace System
         public Version(int major, int minor)
         {
             if (major < 0)
-                throw new ArgumentOutOfRangeException(nameof(major), SR.ArgumentOutOfRange_Version);
+                throw new ArgumentOutOfRangeException(nameof(major), SR.GetResourceString("ArgumentOutOfRange_Version"));
 
             if (minor < 0)
-                throw new ArgumentOutOfRangeException(nameof(minor), SR.ArgumentOutOfRange_Version);
+                throw new ArgumentOutOfRangeException(nameof(minor), SR.GetResourceString("ArgumentOutOfRange_Version"));
 
             _Major = major;
             _Minor = minor;
@@ -133,7 +133,7 @@ namespace System
                 return CompareTo(v);
             }
 
-            throw new ArgumentException(SR.Arg_MustBeVersion);
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeVersion"));
         }
 
         public int CompareTo(Version? value)
@@ -243,7 +243,7 @@ namespace System
             {
                 if (_Build == -1)
                 {
-                    throw new ArgumentException(SR.Format(SR.ArgumentOutOfRange_Bounds_Lower_Upper, "0", "2"), nameof(fieldCount));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentOutOfRange_Bounds_Lower_Upper"), "0", "2"), nameof(fieldCount));
                 }
 
                 if (fieldCount == 3)
@@ -259,7 +259,7 @@ namespace System
 
                 if (_Revision == -1)
                 {
-                    throw new ArgumentException(SR.Format(SR.ArgumentOutOfRange_Bounds_Lower_Upper, "0", "3"), nameof(fieldCount));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentOutOfRange_Bounds_Lower_Upper"), "0", "3"), nameof(fieldCount));
                 }
 
                 if (fieldCount == 4)
@@ -275,7 +275,7 @@ namespace System
                     return sb;
                 }
 
-                throw new ArgumentException(SR.Format(SR.ArgumentOutOfRange_Bounds_Lower_Upper, "0", "4"), nameof(fieldCount));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentOutOfRange_Bounds_Lower_Upper"), "0", "4"), nameof(fieldCount));
             }
         }
 
@@ -312,7 +312,7 @@ namespace System
             int majorEnd = input.IndexOf('.');
             if (majorEnd < 0)
             {
-                if (throwOnFailure) throw new ArgumentException(SR.Arg_VersionString, nameof(input));
+                if (throwOnFailure) throw new ArgumentException(SR.GetResourceString("Arg_VersionString"), nameof(input));
                 return null;
             }
 
@@ -329,7 +329,7 @@ namespace System
                     buildEnd += (minorEnd + 1);
                     if (input.Slice(buildEnd + 1).Contains('.'))
                     {
-                        if (throwOnFailure) throw new ArgumentException(SR.Arg_VersionString, nameof(input));
+                        if (throwOnFailure) throw new ArgumentException(SR.GetResourceString("Arg_VersionString"), nameof(input));
                         return null;
                     }
                 }
@@ -383,7 +383,7 @@ namespace System
             {
                 if ((parsedComponent = int.Parse(component, NumberStyles.Integer, CultureInfo.InvariantCulture)) < 0)
                 {
-                    throw new ArgumentOutOfRangeException(componentName, SR.ArgumentOutOfRange_Version);
+                    throw new ArgumentOutOfRangeException(componentName, SR.GetResourceString("ArgumentOutOfRange_Version"));
                 }
                 return true;
             }

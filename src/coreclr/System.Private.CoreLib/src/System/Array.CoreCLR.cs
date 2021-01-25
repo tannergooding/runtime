@@ -199,25 +199,25 @@ namespace System
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.destinationArray);
 
             if (sourceArray.GetType() != destinationArray.GetType() && sourceArray.Rank != destinationArray.Rank)
-                throw new RankException(SR.Rank_MustMatch);
+                throw new RankException(SR.GetResourceString("Rank_MustMatch"));
 
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             int srcLB = sourceArray.GetLowerBound(0);
             if (sourceIndex < srcLB || sourceIndex - srcLB < 0)
-                throw new ArgumentOutOfRangeException(nameof(sourceIndex), SR.ArgumentOutOfRange_ArrayLB);
+                throw new ArgumentOutOfRangeException(nameof(sourceIndex), SR.GetResourceString("ArgumentOutOfRange_ArrayLB"));
             sourceIndex -= srcLB;
 
             int dstLB = destinationArray.GetLowerBound(0);
             if (destinationIndex < dstLB || destinationIndex - dstLB < 0)
-                throw new ArgumentOutOfRangeException(nameof(destinationIndex), SR.ArgumentOutOfRange_ArrayLB);
+                throw new ArgumentOutOfRangeException(nameof(destinationIndex), SR.GetResourceString("ArgumentOutOfRange_ArrayLB"));
             destinationIndex -= dstLB;
 
             if ((uint)(sourceIndex + length) > (nuint)sourceArray.LongLength)
-                throw new ArgumentException(SR.Arg_LongerThanSrcArray, nameof(sourceArray));
+                throw new ArgumentException(SR.GetResourceString("Arg_LongerThanSrcArray"), nameof(sourceArray));
             if ((uint)(destinationIndex + length) > (nuint)destinationArray.LongLength)
-                throw new ArgumentException(SR.Arg_LongerThanDestArray, nameof(destinationArray));
+                throw new ArgumentException(SR.GetResourceString("Arg_LongerThanDestArray"), nameof(destinationArray));
 
             if (sourceArray.GetType() == destinationArray.GetType() || IsSimpleCopy(sourceArray, destinationArray))
             {
@@ -240,7 +240,7 @@ namespace System
             // If we were called from Array.ConstrainedCopy, ensure that the array copy
             // is guaranteed to succeed.
             if (reliable)
-                throw new ArrayTypeMismatchException(SR.ArrayTypeMismatch_ConstrainedCopy);
+                throw new ArrayTypeMismatchException(SR.GetResourceString("ArrayTypeMismatch_ConstrainedCopy"));
 
             // Rare
             CopySlow(sourceArray, sourceIndex, destinationArray, destinationIndex, length);
@@ -437,7 +437,7 @@ namespace System
                 return Length;
 
             if ((uint)dimension >= (uint)rank)
-                throw new IndexOutOfRangeException(SR.IndexOutOfRange_ArrayRankIndex);
+                throw new IndexOutOfRangeException(SR.GetResourceString("IndexOutOfRange_ArrayRankIndex"));
 
             return Unsafe.Add(ref RuntimeHelpers.GetMultiDimensionalArrayBounds(this), dimension);
         }
@@ -449,7 +449,7 @@ namespace System
                 return Length - 1;
 
             if ((uint)dimension >= (uint)rank)
-                throw new IndexOutOfRangeException(SR.IndexOutOfRange_ArrayRankIndex);
+                throw new IndexOutOfRangeException(SR.GetResourceString("IndexOutOfRange_ArrayRankIndex"));
 
             ref int bounds = ref RuntimeHelpers.GetMultiDimensionalArrayBounds(this);
             return Unsafe.Add(ref bounds, dimension) + Unsafe.Add(ref bounds, rank + dimension) - 1;
@@ -462,7 +462,7 @@ namespace System
                 return 0;
 
             if ((uint)dimension >= (uint)rank)
-                throw new IndexOutOfRangeException(SR.IndexOutOfRange_ArrayRankIndex);
+                throw new IndexOutOfRangeException(SR.GetResourceString("IndexOutOfRange_ArrayRankIndex"));
 
             return Unsafe.Add(ref RuntimeHelpers.GetMultiDimensionalArrayBounds(this), rank + dimension);
         }

@@ -105,7 +105,7 @@ namespace System.Threading
         {
             if (_pNativeOverlapped != null)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_Overlapped_Pack);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_Overlapped_Pack"));
             }
 
             if (iocb != null)
@@ -125,7 +125,7 @@ namespace System.Threading
         {
             if (_pNativeOverlapped != null)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_Overlapped_Pack);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_Overlapped_Pack"));
             }
             _userObject = userData;
             _callback = iocb;

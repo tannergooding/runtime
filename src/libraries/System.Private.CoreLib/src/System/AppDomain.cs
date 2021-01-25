@@ -86,7 +86,7 @@ namespace System
             }
             if (assemblyName.Length == 0 || assemblyName[0] == '\0')
             {
-                throw new ArgumentException(SR.Argument_StringZeroLength, nameof(assemblyName));
+                throw new ArgumentException(SR.GetResourceString("Argument_StringZeroLength"), nameof(assemblyName));
             }
 
             return assemblyName;
@@ -95,7 +95,7 @@ namespace System
         public static AppDomain CreateDomain(string friendlyName)
         {
             if (friendlyName == null) throw new ArgumentNullException(nameof(friendlyName));
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_AppDomains);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_AppDomains"));
         }
 
         [RequiresUnreferencedCode("Types and members the loaded assembly depends on might be removed")]
@@ -116,7 +116,7 @@ namespace System
         [RequiresUnreferencedCode("Types and members the loaded assembly depends on might be removed")]
         public int ExecuteAssembly(string assemblyFile, string?[]? args, byte[]? hashValue, Configuration.Assemblies.AssemblyHashAlgorithm hashAlgorithm)
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_CAS); // This api is only meaningful for very specific partial trust/CAS scenarios
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_CAS")); // This api is only meaningful for very specific partial trust/CAS scenarios
         }
 
         private static int ExecuteAssembly(Assembly assembly, string?[]? args)
@@ -124,7 +124,7 @@ namespace System
             MethodInfo? entry = assembly.EntryPoint;
             if (entry == null)
             {
-                throw new MissingMethodException(SR.Arg_EntryPointNotFoundException);
+                throw new MissingMethodException(SR.GetResourceString("Arg_EntryPointNotFoundException"));
             }
 
             object? result = entry.Invoke(
@@ -160,7 +160,7 @@ namespace System
         public bool IsFinalizingForUnload() => false;
 
         public override string ToString() =>
-            SR.AppDomain_Name + FriendlyName + Environment.NewLineConst + SR.AppDomain_NoContextPolicies;
+            SR.GetResourceString("AppDomain_Name") + FriendlyName + Environment.NewLineConst + SR.GetResourceString("AppDomain_NoContextPolicies");
 
         public static void Unload(AppDomain domain)
         {
@@ -168,7 +168,7 @@ namespace System
             {
                 throw new ArgumentNullException(nameof(domain));
             }
-            throw new CannotUnloadAppDomainException(SR.Arg_PlatformNotSupported);
+            throw new CannotUnloadAppDomainException(SR.GetResourceString("Arg_PlatformNotSupported"));
         }
 
         [RequiresUnreferencedCode("Types and members the loaded assembly depends on might be removed")]
@@ -190,7 +190,7 @@ namespace System
             {
                 if (!value)
                 {
-                    throw new ArgumentException(SR.Arg_MustBeTrue);
+                    throw new ArgumentException(SR.GetResourceString("Arg_MustBeTrue"));
                 }
             }
         }
@@ -274,7 +274,7 @@ namespace System
             // Set the principal while checking it has not been set previously.
             if (Interlocked.CompareExchange(ref _defaultPrincipal, principal, null) is not null)
             {
-                throw new SystemException(SR.AppDomain_Policy_PrincipalTwice);
+                throw new SystemException(SR.GetResourceString("AppDomain_Policy_PrincipalTwice"));
             }
         }
 
@@ -433,7 +433,7 @@ namespace System
                             MethodInfo? mi = type.GetMethod("GetDefaultInstance", BindingFlags.NonPublic | BindingFlags.Static);
                             if (mi == null)
                             {
-                                throw new PlatformNotSupportedException(SR.PlatformNotSupported_Principal);
+                                throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_Principal"));
                             }
                             Volatile.Write(ref s_getWindowsPrincipal,
                                 mi.CreateDelegate<Func<IPrincipal>>());

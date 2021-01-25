@@ -170,7 +170,7 @@ namespace System.StubHelpers
 
             if (defaultCharUsed != 0)
             {
-                throw new ArgumentException(SR.Interop_Marshal_Unmappable_Char);
+                throw new ArgumentException(SR.GetResourceString("Interop_Marshal_Unmappable_Char"));
             }
 
             if (cbWritten == (int)length)
@@ -542,7 +542,7 @@ namespace System.StubHelpers
         {
             if (Unsafe.IsNullRef(ref cleanupWorkList))
             {
-                throw new InvalidOperationException(SR.Interop_Marshal_SafeHandle_InvalidOperation);
+                throw new InvalidOperationException(SR.GetResourceString("Interop_Marshal_SafeHandle_InvalidOperation"));
             }
 
             if (handle is null)
@@ -555,12 +555,12 @@ namespace System.StubHelpers
 
         internal static unsafe void ThrowSafeHandleFieldChanged()
         {
-            throw new NotSupportedException(SR.Interop_Marshal_CannotCreateSafeHandleField);
+            throw new NotSupportedException(SR.GetResourceString("Interop_Marshal_CannotCreateSafeHandleField"));
         }
 
         internal static unsafe void ThrowCriticalHandleFieldChanged()
         {
-            throw new NotSupportedException(SR.Interop_Marshal_CannotCreateCriticalHandleField);
+            throw new NotSupportedException(SR.GetResourceString("Interop_Marshal_CannotCreateCriticalHandleField"));
         }
     }
 
@@ -782,7 +782,7 @@ namespace System.StubHelpers
                     }
 
                 default:
-                    throw new ArgumentException(SR.Arg_NDirectBadObject);
+                    throw new ArgumentException(SR.GetResourceString("Arg_NDirectBadObject"));
             }
 
             // marshal the object as C-style array (UnmanagedType.LPArray)
@@ -959,7 +959,7 @@ namespace System.StubHelpers
                 return IntPtr.Zero;
 
             if (pManagedHome is ArrayWithOffset)
-                throw new ArgumentException(SR.Arg_MarshalAsAnyRestriction);
+                throw new ArgumentException(SR.GetResourceString("Arg_MarshalAsAnyRestriction"));
 
             IntPtr pNativeHome;
 
@@ -988,7 +988,7 @@ namespace System.StubHelpers
                 else
                 {
                     // this type is not supported for AsAny marshaling
-                    throw new ArgumentException(SR.Arg_NDirectBadObject);
+                    throw new ArgumentException(SR.GetResourceString("Arg_NDirectBadObject"));
                 }
             }
 
@@ -1298,7 +1298,7 @@ namespace System.StubHelpers
         {
             if (length > 0x7ffffff0)
             {
-                throw new MarshalDirectiveException(SR.Marshaler_StringTooLong);
+                throw new MarshalDirectiveException(SR.GetResourceString("Marshaler_StringTooLong"));
             }
         }
 

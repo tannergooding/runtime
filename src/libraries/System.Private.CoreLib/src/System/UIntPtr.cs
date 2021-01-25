@@ -55,7 +55,7 @@ namespace System
             ulong l = info.GetUInt64("value");
 
             if (Size == 4 && l > uint.MaxValue)
-                throw new ArgumentException(SR.Serialization_InvalidPtrValue);
+                throw new ArgumentException(SR.GetResourceString("Serialization_InvalidPtrValue"));
 
             _value = (void*)l;
         }
@@ -186,7 +186,7 @@ namespace System
                 return 0;
             }
 
-            throw new ArgumentException(SR.Arg_MustBeUIntPtr);
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeUIntPtr"));
         }
 
         public unsafe int CompareTo(UIntPtr value) => ((nuint_t)_value).CompareTo((nuint_t)value);

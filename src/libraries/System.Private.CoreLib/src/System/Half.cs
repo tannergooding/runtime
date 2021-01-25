@@ -374,7 +374,7 @@ namespace System
         {
             if (!(obj is Half))
             {
-                return (obj is null) ? 1 : throw new ArgumentException(SR.Arg_MustBeHalf);
+                return (obj is null) ? 1 : throw new ArgumentException(SR.GetResourceString("Arg_MustBeHalf"));
             }
             return CompareTo((Half)(obj));
         }

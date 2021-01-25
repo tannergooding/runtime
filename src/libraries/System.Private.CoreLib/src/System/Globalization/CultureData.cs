@@ -519,7 +519,7 @@ namespace System.Globalization
                                                         CultureTypes.FrameworkCultures)) != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(types),
-                              SR.Format(SR.ArgumentOutOfRange_Range, CultureTypes.NeutralCultures, CultureTypes.FrameworkCultures));
+                              SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), CultureTypes.NeutralCultures, CultureTypes.FrameworkCultures));
             }
 
             // We have deprecated CultureTypes.FrameworkCultures.
@@ -727,7 +727,7 @@ namespace System.Globalization
             if (name.Length > LocaleNameMaxLength)
             {
                 // Theoretically we shouldn't hit this exception.
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidId, nameof(name)));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidId"), nameof(name)));
             }
 
             Span<char> normalizedName = stackalloc char[name.Length];
@@ -866,7 +866,7 @@ namespace System.Globalization
             if (GlobalizationMode.Invariant)
             {
                 // LCID is not supported in the InvariantMode
-                throw new CultureNotFoundException(nameof(culture), culture, SR.Argument_CultureNotSupported);
+                throw new CultureNotFoundException(nameof(culture), culture, SR.GetResourceString("Argument_CultureNotSupported"));
             }
 
             // Convert the lcid to a name, then use that
@@ -881,7 +881,7 @@ namespace System.Globalization
             // If not successful, throw
             if (retVal == null)
             {
-                throw new CultureNotFoundException(nameof(culture), culture, SR.Argument_CultureNotSupported);
+                throw new CultureNotFoundException(nameof(culture), culture, SR.GetResourceString("Argument_CultureNotSupported"));
             }
 
             // Return the one we found

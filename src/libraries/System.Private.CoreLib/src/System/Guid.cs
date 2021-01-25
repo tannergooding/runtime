@@ -45,7 +45,7 @@ namespace System
         {
             if ((uint)b.Length != 16)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_GuidArrayCtor, "16"), nameof(b));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_GuidArrayCtor"), "16"), nameof(b));
             }
 
             if (BitConverter.IsLittleEndian)
@@ -93,7 +93,7 @@ namespace System
             }
             if (d.Length != 8)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_GuidArrayCtor, "8"), nameof(d));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_GuidArrayCtor"), "8"), nameof(d));
             }
 
             _a = a;
@@ -180,7 +180,7 @@ namespace System
                         throw new OverflowException(SR.GetResourceString(failureMessageID));
                     }
 
-                    throw new FormatException(SR.Format_GuidUnrecognized);
+                    throw new FormatException(SR.GetResourceString("Format_GuidUnrecognized"));
                 }
 
                 throw new FormatException(SR.GetResourceString(failureMessageID));
@@ -262,7 +262,7 @@ namespace System
             if (format.Length != 1)
             {
                 // all acceptable format strings are of length 1
-                throw new FormatException(SR.Format_InvalidGuidFormatSpecification);
+                throw new FormatException(SR.GetResourceString("Format_InvalidGuidFormatSpecification"));
             }
 
             input = input.Trim();
@@ -275,7 +275,7 @@ namespace System
                 'b' => TryParseExactB(input, ref result),
                 'p' => TryParseExactP(input, ref result),
                 'x' => TryParseExactX(input, ref result),
-                _ => throw new FormatException(SR.Format_InvalidGuidFormatSpecification),
+                _ => throw new FormatException(SR.GetResourceString("Format_InvalidGuidFormatSpecification")),
             };
             Debug.Assert(success, "GuidParseThrowStyle.AllButOverflow means throw on all failures");
             return result.ToGuid();
@@ -824,7 +824,7 @@ namespace System
             }
             if (!(value is Guid))
             {
-                throw new ArgumentException(SR.Arg_MustBeGuid, nameof(value));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeGuid"), nameof(value));
             }
             Guid g = (Guid)value;
 
@@ -996,7 +996,7 @@ namespace System
             // all acceptable format strings are of length 1
             if (format.Length != 1)
             {
-                throw new FormatException(SR.Format_InvalidGuidFormatSpecification);
+                throw new FormatException(SR.GetResourceString("Format_InvalidGuidFormatSpecification"));
             }
 
             int guidSize;
@@ -1021,7 +1021,7 @@ namespace System
                     guidSize = 68;
                     break;
                 default:
-                    throw new FormatException(SR.Format_InvalidGuidFormatSpecification);
+                    throw new FormatException(SR.GetResourceString("Format_InvalidGuidFormatSpecification"));
             }
 
             string guidString = string.FastAllocateString(guidSize);
@@ -1042,7 +1042,7 @@ namespace System
             // all acceptable format strings are of length 1
             if (format.Length != 1)
             {
-                throw new FormatException(SR.Format_InvalidGuidFormatSpecification);
+                throw new FormatException(SR.GetResourceString("Format_InvalidGuidFormatSpecification"));
             }
 
             bool dash = true;
@@ -1080,7 +1080,7 @@ namespace System
                     guidSize = 68;
                     break;
                 default:
-                    throw new FormatException(SR.Format_InvalidGuidFormatSpecification);
+                    throw new FormatException(SR.GetResourceString("Format_InvalidGuidFormatSpecification"));
             }
 
             if (destination.Length < guidSize)

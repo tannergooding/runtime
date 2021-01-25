@@ -306,7 +306,7 @@ namespace System.Threading
             int id = ~_idComplement;
             if (id < 0)
             {
-                throw new ObjectDisposedException(SR.ThreadLocal_Disposed);
+                throw new ObjectDisposedException(SR.GetResourceString("ThreadLocal_Disposed"));
             }
 
             Debugger.NotifyOfCrossThreadDependency();
@@ -323,7 +323,7 @@ namespace System.Threading
 
                 if (IsValueCreated)
                 {
-                    throw new InvalidOperationException(SR.ThreadLocal_Value_RecursiveCallsToValue);
+                    throw new InvalidOperationException(SR.GetResourceString("ThreadLocal_Value_RecursiveCallsToValue"));
                 }
             }
 
@@ -339,7 +339,7 @@ namespace System.Threading
             // If the object has been disposed, id will be -1.
             if (id < 0)
             {
-                throw new ObjectDisposedException(SR.ThreadLocal_Disposed);
+                throw new ObjectDisposedException(SR.GetResourceString("ThreadLocal_Disposed"));
             }
 
             // If a slot array has not been created on this thread yet, create it.
@@ -378,7 +378,7 @@ namespace System.Threading
 
                 if (!_initialized)
                 {
-                    throw new ObjectDisposedException(SR.ThreadLocal_Disposed);
+                    throw new ObjectDisposedException(SR.GetResourceString("ThreadLocal_Disposed"));
                 }
 
                 slot!._value = value;
@@ -400,7 +400,7 @@ namespace System.Threading
                 // Dispose also executes under a lock.
                 if (!_initialized)
                 {
-                    throw new ObjectDisposedException(SR.ThreadLocal_Disposed);
+                    throw new ObjectDisposedException(SR.GetResourceString("ThreadLocal_Disposed"));
                 }
 
                 Debug.Assert(_linkedSlot != null, "Should only be null if disposed");
@@ -437,11 +437,11 @@ namespace System.Threading
             {
                 if (!_trackAllValues)
                 {
-                    throw new InvalidOperationException(SR.ThreadLocal_ValuesNotAvailable);
+                    throw new InvalidOperationException(SR.GetResourceString("ThreadLocal_ValuesNotAvailable"));
                 }
 
                 List<T>? list = GetValuesAsList(); // returns null if disposed
-                if (list == null) throw new ObjectDisposedException(SR.ThreadLocal_Disposed);
+                if (list == null) throw new ObjectDisposedException(SR.GetResourceString("ThreadLocal_Disposed"));
                 return list;
             }
         }
@@ -474,14 +474,14 @@ namespace System.Threading
             {
                 if (!_trackAllValues)
                 {
-                    throw new InvalidOperationException(SR.ThreadLocal_ValuesNotAvailable);
+                    throw new InvalidOperationException(SR.GetResourceString("ThreadLocal_ValuesNotAvailable"));
                 }
 
                 LinkedSlot? linkedSlot = _linkedSlot;
                 int id = ~_idComplement;
                 if (id == -1 || linkedSlot == null)
                 {
-                    throw new ObjectDisposedException(SR.ThreadLocal_Disposed);
+                    throw new ObjectDisposedException(SR.GetResourceString("ThreadLocal_Disposed"));
                 }
 
                 // Walk over the linked list of slots and gather the values associated with this ThreadLocal instance.
@@ -521,7 +521,7 @@ namespace System.Threading
                 int id = ~_idComplement;
                 if (id < 0)
                 {
-                    throw new ObjectDisposedException(SR.ThreadLocal_Disposed);
+                    throw new ObjectDisposedException(SR.GetResourceString("ThreadLocal_Disposed"));
                 }
 
                 LinkedSlotVolatile[]? slotArray = ts_slotArray;

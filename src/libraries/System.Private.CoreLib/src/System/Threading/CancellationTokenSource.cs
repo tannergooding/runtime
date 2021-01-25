@@ -472,7 +472,7 @@ namespace System.Threading
         /// <summary>Throws an <see cref="ObjectDisposedException"/>.  Separated out from ThrowIfDisposed to help with inlining.</summary>
         [DoesNotReturn]
         private static void ThrowObjectDisposedException() =>
-            throw new ObjectDisposedException(null, SR.CancellationTokenSource_Disposed);
+            throw new ObjectDisposedException(null, SR.GetResourceString("CancellationTokenSource_Disposed"));
 
         /// <summary>
         /// Registers a callback object. If cancellation has already occurred, the
@@ -780,7 +780,7 @@ namespace System.Threading
 
             return tokens.Length switch
             {
-                0 => throw new ArgumentException(SR.CancellationToken_CreateLinkedToken_TokensIsEmpty),
+                0 => throw new ArgumentException(SR.GetResourceString("CancellationToken_CreateLinkedToken_TokensIsEmpty")),
                 1 => CreateLinkedTokenSource(tokens[0]),
                 2 => CreateLinkedTokenSource(tokens[0], tokens[1]),
 

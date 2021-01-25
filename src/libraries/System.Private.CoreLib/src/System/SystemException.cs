@@ -10,7 +10,7 @@ namespace System
     public class SystemException : Exception
     {
         public SystemException()
-            : base(SR.Arg_SystemException)
+            : base(SR.GetResourceString("Arg_SystemException"))
         {
             HResult = HResults.COR_E_SYSTEM;
         }

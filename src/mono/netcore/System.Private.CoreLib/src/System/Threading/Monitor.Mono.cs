@@ -17,7 +17,7 @@ namespace System.Threading
         {
             // TODO: Interpreter is missing this intrinsic
             if (lockTaken)
-                throw new ArgumentException(SR.Argument_MustBeFalse, nameof(lockTaken));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeFalse"), nameof(lockTaken));
 
             ReliableEnterTimeout(obj, (int)Timeout.Infinite, ref lockTaken);
         }
@@ -35,7 +35,7 @@ namespace System.Threading
         public static void TryEnter(object obj, ref bool lockTaken)
         {
             if (lockTaken)
-                throw new ArgumentException(SR.Argument_MustBeFalse, nameof(lockTaken));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeFalse"), nameof(lockTaken));
 
             ReliableEnterTimeout(obj, 0, ref lockTaken);
         }
@@ -50,7 +50,7 @@ namespace System.Threading
         public static void TryEnter(object obj, int millisecondsTimeout, ref bool lockTaken)
         {
             if (lockTaken)
-                throw new ArgumentException(SR.Argument_MustBeFalse, nameof(lockTaken));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeFalse"), nameof(lockTaken));
             ReliableEnterTimeout(obj, millisecondsTimeout, ref lockTaken);
         }
 

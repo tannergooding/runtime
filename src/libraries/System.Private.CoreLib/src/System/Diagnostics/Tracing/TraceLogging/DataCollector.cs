@@ -83,7 +83,7 @@ namespace System.Diagnostics.Tracing
                 byte* scratchNew = scratchOld + size;
                 if (this.scratchEnd < scratchNew)
                 {
-                    throw new IndexOutOfRangeException(SR.EventSource_AddScalarOutOfRange);
+                    throw new IndexOutOfRangeException(SR.GetResourceString("EventSource_AddScalarOutOfRange"));
                 }
 
                 this.ScalarsBegin();
@@ -318,13 +318,13 @@ namespace System.Diagnostics.Tracing
             GCHandle* pinsTemp = this.pins;
             if (this.pinsEnd <= pinsTemp)
             {
-                throw new IndexOutOfRangeException(SR.EventSource_PinArrayOutOfRange);
+                throw new IndexOutOfRangeException(SR.GetResourceString("EventSource_PinArrayOutOfRange"));
             }
 
             EventSource.EventData* datasTemp = this.datas;
             if (this.datasEnd <= datasTemp)
             {
-                throw new IndexOutOfRangeException(SR.EventSource_DataDescriptorsOutOfRange);
+                throw new IndexOutOfRangeException(SR.GetResourceString("EventSource_DataDescriptorsOutOfRange"));
             }
 
             this.pins = pinsTemp + 1;
@@ -342,7 +342,7 @@ namespace System.Diagnostics.Tracing
                 EventSource.EventData* datasTemp = this.datas;
                 if (this.datasEnd <= datasTemp)
                 {
-                    throw new IndexOutOfRangeException(SR.EventSource_DataDescriptorsOutOfRange);
+                    throw new IndexOutOfRangeException(SR.GetResourceString("EventSource_DataDescriptorsOutOfRange"));
                 }
 
                 datasTemp->DataPointer = (IntPtr)this.scratch;

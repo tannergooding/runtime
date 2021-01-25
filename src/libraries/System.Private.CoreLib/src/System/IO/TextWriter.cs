@@ -160,19 +160,19 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             for (int i = 0; i < count; i++) Write(buffer[index + i]);

@@ -1429,7 +1429,7 @@ namespace System.Numerics
         [DoesNotReturn]
         internal static void ThrowInsufficientNumberOfElementsException(int requiredElementCount)
         {
-            throw new IndexOutOfRangeException(SR.Format(SR.Arg_InsufficientNumberOfElements, requiredElementCount, "values"));
+            throw new IndexOutOfRangeException(SR.Format(SR.GetResourceString("Arg_InsufficientNumberOfElements"), requiredElementCount, "values"));
         }
     }
 }

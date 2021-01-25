@@ -42,7 +42,7 @@ namespace System.Collections
                 return ia.CompareTo(b);
             }
 
-            throw new ArgumentException(SR.Argument_ImplementIComparable);
+            throw new ArgumentException(SR.GetResourceString("Argument_ImplementIComparable"));
         }
 
         public int GetHashCode(object obj)

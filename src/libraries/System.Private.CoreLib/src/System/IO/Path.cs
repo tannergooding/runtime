@@ -870,13 +870,13 @@ namespace System.IO
                 throw new ArgumentNullException(nameof(relativeTo));
 
             if (PathInternal.IsEffectivelyEmpty(relativeTo.AsSpan()))
-                throw new ArgumentException(SR.Arg_PathEmpty, nameof(relativeTo));
+                throw new ArgumentException(SR.GetResourceString("Arg_PathEmpty"), nameof(relativeTo));
 
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
 
             if (PathInternal.IsEffectivelyEmpty(path.AsSpan()))
-                throw new ArgumentException(SR.Arg_PathEmpty, nameof(path));
+                throw new ArgumentException(SR.GetResourceString("Arg_PathEmpty"), nameof(path));
 
             Debug.Assert(comparisonType == StringComparison.Ordinal || comparisonType == StringComparison.OrdinalIgnoreCase);
 

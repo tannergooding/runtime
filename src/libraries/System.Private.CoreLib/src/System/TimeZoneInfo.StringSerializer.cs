@@ -111,11 +111,11 @@ namespace System
                 }
                 catch (ArgumentException ex)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData, ex);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"), ex);
                 }
                 catch (InvalidTimeZoneException ex)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData, ex);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"), ex);
                 }
             }
 
@@ -180,7 +180,7 @@ namespace System
             {
                 if (c != Esc && c != Sep && c != Lhs && c != Rhs)
                 {
-                    throw new SerializationException(SR.Format(SR.Serialization_InvalidEscapeSequence, c));
+                    throw new SerializationException(SR.Format(SR.GetResourceString("Serialization_InvalidEscapeSequence"), c));
                 }
             }
 
@@ -193,7 +193,7 @@ namespace System
             {
                 if (_currentTokenStartIndex < 0 || _currentTokenStartIndex >= _serializedText.Length)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
                 State tokenState = State.NotEscaped;
 
@@ -235,7 +235,7 @@ namespace System
 
                             case '\0':
                                 // invalid character
-                                throw new SerializationException(SR.Serialization_InvalidData);
+                                throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
 
                             default:
                                 break;
@@ -243,7 +243,7 @@ namespace System
                     }
                 }
 
-                throw new SerializationException(SR.Serialization_InvalidData);
+                throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
             }
 
             /// <summary>
@@ -257,11 +257,11 @@ namespace System
                 // first verify the internal state of the object
                 if (_state == State.EndOfLine)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
                 if (_currentTokenStartIndex < 0 || _currentTokenStartIndex >= _serializedText.Length)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
                 State tokenState = State.NotEscaped;
                 var token = new ValueStringBuilder(stackalloc char[InitialCapacityForString]);
@@ -285,11 +285,11 @@ namespace System
 
                             case Lhs:
                                 // '[' is an unexpected character
-                                throw new SerializationException(SR.Serialization_InvalidData);
+                                throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
 
                             case Rhs:
                                 // ']' is an unexpected character
-                                throw new SerializationException(SR.Serialization_InvalidData);
+                                throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
 
                             case Sep:
                                 _currentTokenStartIndex = i + 1;
@@ -305,7 +305,7 @@ namespace System
 
                             case '\0':
                                 // invalid character
-                                throw new SerializationException(SR.Serialization_InvalidData);
+                                throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
 
                             default:
                                 token.Append(_serializedText[i]);
@@ -319,10 +319,10 @@ namespace System
                 if (tokenState == State.Escaped)
                 {
                     // we are at the end of the serialized text but we are in an escaped state
-                    throw new SerializationException(SR.Format(SR.Serialization_InvalidEscapeSequence, string.Empty));
+                    throw new SerializationException(SR.Format(SR.GetResourceString("Serialization_InvalidEscapeSequence"), string.Empty));
                 }
 
-                throw new SerializationException(SR.Serialization_InvalidData);
+                throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
             }
 
             /// <summary>
@@ -333,7 +333,7 @@ namespace System
                 string token = GetNextStringValue();
                 if (!DateTime.TryParseExact(token, format, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out DateTime time))
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
                 return time;
             }
@@ -350,7 +350,7 @@ namespace System
                 }
                 catch (ArgumentOutOfRangeException e)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData, e);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"), e);
                 }
             }
 
@@ -362,7 +362,7 @@ namespace System
                 string token = GetNextStringValue();
                 if (!int.TryParse(token, NumberStyles.AllowLeadingSign /* "[sign]digits" */, CultureInfo.InvariantCulture, out int value))
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
                 return value;
             }
@@ -388,11 +388,11 @@ namespace System
                 // the AdjustmentRule array must end with a separator
                 if (_state == State.EndOfLine)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
                 if (_currentTokenStartIndex < 0 || _currentTokenStartIndex >= _serializedText.Length)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
 
                 return count != 0 ? rules.ToArray() : null;
@@ -411,7 +411,7 @@ namespace System
 
                 if (_currentTokenStartIndex < 0 || _currentTokenStartIndex >= _serializedText.Length)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
 
                 // check to see if the very first token we see is the separator
@@ -423,7 +423,7 @@ namespace System
                 // verify the current token is a left-hand-side marker ("[")
                 if (_serializedText[_currentTokenStartIndex] != Lhs)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
                 _currentTokenStartIndex++;
 
@@ -439,7 +439,7 @@ namespace System
 
                 if (_state == State.EndOfLine || _currentTokenStartIndex >= _serializedText.Length)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
 
                 // Check if we have baseUtcOffsetDelta in the serialized string and then deserialize it
@@ -457,7 +457,7 @@ namespace System
 
                 if (_state == State.EndOfLine || _currentTokenStartIndex >= _serializedText.Length)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
 
                 if (_serializedText[_currentTokenStartIndex] != Rhs)
@@ -483,7 +483,7 @@ namespace System
                 }
                 catch (ArgumentException e)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData, e);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"), e);
                 }
 
                 // finally set the state to either EndOfLine or StartOfToken for the next caller
@@ -511,19 +511,19 @@ namespace System
                     //
                     // we are at the end of the line or we are starting at a "]" character
                     //
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
 
                 if (_currentTokenStartIndex < 0 || _currentTokenStartIndex >= _serializedText.Length)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
 
                 // verify the current token is a left-hand-side marker ("[")
 
                 if (_serializedText[_currentTokenStartIndex] != Lhs)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
                 _currentTokenStartIndex++;
 
@@ -531,7 +531,7 @@ namespace System
 
                 if (isFixedDate != 0 && isFixedDate != 1)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
 
                 TransitionTime transition;
@@ -551,7 +551,7 @@ namespace System
                     }
                     catch (ArgumentException e)
                     {
-                        throw new SerializationException(SR.Serialization_InvalidData, e);
+                        throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"), e);
                     }
                 }
                 else
@@ -565,7 +565,7 @@ namespace System
                     }
                     catch (ArgumentException e)
                     {
-                        throw new SerializationException(SR.Serialization_InvalidData, e);
+                        throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"), e);
                     }
                 }
 
@@ -573,7 +573,7 @@ namespace System
 
                 if (_state == State.EndOfLine || _currentTokenStartIndex >= _serializedText.Length)
                 {
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
 
                 if (_serializedText[_currentTokenStartIndex] != Rhs)
@@ -603,7 +603,7 @@ namespace System
                 if (!sepFound)
                 {
                     // we MUST end on a separator
-                    throw new SerializationException(SR.Serialization_InvalidData);
+                    throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"));
                 }
 
                 // finally set the state to either EndOfLine or StartOfToken for the next caller

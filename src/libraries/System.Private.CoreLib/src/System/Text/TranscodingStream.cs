@@ -74,12 +74,12 @@ namespace System.Text
 
         public override bool CanWrite => _innerStream?.CanWrite ?? false;
 
-        public override long Length => throw new NotSupportedException(SR.NotSupported_UnseekableStream);
+        public override long Length => throw new NotSupportedException(SR.GetResourceString("NotSupported_UnseekableStream"));
 
         public override long Position
         {
-            get => throw new NotSupportedException(SR.NotSupported_UnseekableStream);
-            set => throw new NotSupportedException(SR.NotSupported_UnseekableStream);
+            get => throw new NotSupportedException(SR.GetResourceString("NotSupported_UnseekableStream"));
+            set => throw new NotSupportedException(SR.GetResourceString("NotSupported_UnseekableStream"));
         }
 
         public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
@@ -425,10 +425,10 @@ namespace System.Text
         }
 
         public override long Seek(long offset, SeekOrigin origin)
-            => throw new NotSupportedException(SR.NotSupported_UnseekableStream);
+            => throw new NotSupportedException(SR.GetResourceString("NotSupported_UnseekableStream"));
 
         public override void SetLength(long value)
-            => throw new NotSupportedException(SR.NotSupported_UnseekableStream);
+            => throw new NotSupportedException(SR.GetResourceString("NotSupported_UnseekableStream"));
 
         [StackTraceHidden]
         private void ThrowIfDisposed()
@@ -445,7 +445,7 @@ namespace System.Text
         {
             throw new ObjectDisposedException(
                 objectName: GetType().Name,
-                message: SR.ObjectDisposed_StreamClosed);
+                message: SR.GetResourceString("ObjectDisposed_StreamClosed"));
         }
 
         public override void Write(byte[] buffer, int offset, int count)

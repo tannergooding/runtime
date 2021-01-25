@@ -137,7 +137,7 @@ namespace System
         public DateTime(long ticks)
         {
             if (ticks < MinTicks || ticks > MaxTicks)
-                throw new ArgumentOutOfRangeException(nameof(ticks), SR.ArgumentOutOfRange_DateTimeBadTicks);
+                throw new ArgumentOutOfRangeException(nameof(ticks), SR.GetResourceString("ArgumentOutOfRange_DateTimeBadTicks"));
             _dateData = (ulong)ticks;
         }
 
@@ -150,11 +150,11 @@ namespace System
         {
             if (ticks < MinTicks || ticks > MaxTicks)
             {
-                throw new ArgumentOutOfRangeException(nameof(ticks), SR.ArgumentOutOfRange_DateTimeBadTicks);
+                throw new ArgumentOutOfRangeException(nameof(ticks), SR.GetResourceString("ArgumentOutOfRange_DateTimeBadTicks"));
             }
             if (kind < DateTimeKind.Unspecified || kind > DateTimeKind.Local)
             {
-                throw new ArgumentException(SR.Argument_InvalidDateTimeKind, nameof(kind));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidDateTimeKind"), nameof(kind));
             }
             _dateData = ((ulong)ticks | ((ulong)kind << KindShift));
         }
@@ -163,7 +163,7 @@ namespace System
         {
             if (ticks < MinTicks || ticks > MaxTicks)
             {
-                throw new ArgumentOutOfRangeException(nameof(ticks), SR.ArgumentOutOfRange_DateTimeBadTicks);
+                throw new ArgumentOutOfRangeException(nameof(ticks), SR.GetResourceString("ArgumentOutOfRange_DateTimeBadTicks"));
             }
             Debug.Assert(kind == DateTimeKind.Local, "Internal Constructor is for local times only");
             _dateData = ((ulong)ticks | (isAmbiguousDst ? KindLocalAmbiguousDst : KindLocal));
@@ -206,7 +206,7 @@ namespace System
         {
             if (kind < DateTimeKind.Unspecified || kind > DateTimeKind.Local)
             {
-                throw new ArgumentException(SR.Argument_InvalidDateTimeKind, nameof(kind));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidDateTimeKind"), nameof(kind));
             }
 
             if (second == 60 && s_systemSupportsLeapSeconds && IsValidTimeWithLeapSeconds(year, month, day, hour, minute, second, kind))
@@ -244,7 +244,7 @@ namespace System
                 DateTime dt = new DateTime(_dateData);
                 if (!IsValidTimeWithLeapSeconds(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 60, DateTimeKind.Unspecified))
                 {
-                    throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadHourMinuteSecond);
+                    throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadHourMinuteSecond"));
                 }
             }
         }
@@ -256,7 +256,7 @@ namespace System
         {
             if (millisecond < 0 || millisecond >= MillisPerSecond)
             {
-                throw new ArgumentOutOfRangeException(nameof(millisecond), SR.Format(SR.ArgumentOutOfRange_Range, 0, MillisPerSecond - 1));
+                throw new ArgumentOutOfRangeException(nameof(millisecond), SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, MillisPerSecond - 1));
             }
 
             if (second == 60 && s_systemSupportsLeapSeconds && IsValidTimeWithLeapSeconds(year, month, day, hour, minute, second, DateTimeKind.Unspecified))
@@ -271,7 +271,7 @@ namespace System
             long ticks = DateToTicks(year, month, day) + TimeToTicks(hour, minute, second);
             ticks += millisecond * TicksPerMillisecond;
             if (ticks < MinTicks || ticks > MaxTicks)
-                throw new ArgumentException(SR.Arg_DateTimeRange);
+                throw new ArgumentException(SR.GetResourceString("Arg_DateTimeRange"));
             _dateData = (ulong)ticks;
         }
 
@@ -279,11 +279,11 @@ namespace System
         {
             if (millisecond < 0 || millisecond >= MillisPerSecond)
             {
-                throw new ArgumentOutOfRangeException(nameof(millisecond), SR.Format(SR.ArgumentOutOfRange_Range, 0, MillisPerSecond - 1));
+                throw new ArgumentOutOfRangeException(nameof(millisecond), SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, MillisPerSecond - 1));
             }
             if (kind < DateTimeKind.Unspecified || kind > DateTimeKind.Local)
             {
-                throw new ArgumentException(SR.Argument_InvalidDateTimeKind, nameof(kind));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidDateTimeKind"), nameof(kind));
             }
 
             if (second == 60 && s_systemSupportsLeapSeconds && IsValidTimeWithLeapSeconds(year, month, day, hour, minute, second, kind))
@@ -298,7 +298,7 @@ namespace System
             long ticks = DateToTicks(year, month, day) + TimeToTicks(hour, minute, second);
             ticks += millisecond * TicksPerMillisecond;
             if (ticks < MinTicks || ticks > MaxTicks)
-                throw new ArgumentException(SR.Arg_DateTimeRange);
+                throw new ArgumentException(SR.GetResourceString("Arg_DateTimeRange"));
             _dateData = ((ulong)ticks | ((ulong)kind << KindShift));
         }
 
@@ -311,7 +311,7 @@ namespace System
                 throw new ArgumentNullException(nameof(calendar));
             if (millisecond < 0 || millisecond >= MillisPerSecond)
             {
-                throw new ArgumentOutOfRangeException(nameof(millisecond), SR.Format(SR.ArgumentOutOfRange_Range, 0, MillisPerSecond - 1));
+                throw new ArgumentOutOfRangeException(nameof(millisecond), SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, MillisPerSecond - 1));
             }
 
             int originalSecond = second;
@@ -324,7 +324,7 @@ namespace System
             long ticks = calendar.ToDateTime(year, month, day, hour, minute, second, 0).Ticks;
             ticks += millisecond * TicksPerMillisecond;
             if (ticks < MinTicks || ticks > MaxTicks)
-                throw new ArgumentException(SR.Arg_DateTimeRange);
+                throw new ArgumentException(SR.GetResourceString("Arg_DateTimeRange"));
             _dateData = (ulong)ticks;
 
             if (originalSecond == 60)
@@ -332,7 +332,7 @@ namespace System
                 DateTime dt = new DateTime(_dateData);
                 if (!IsValidTimeWithLeapSeconds(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 60, DateTimeKind.Unspecified))
                 {
-                    throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadHourMinuteSecond);
+                    throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadHourMinuteSecond"));
                 }
             }
         }
@@ -343,11 +343,11 @@ namespace System
                 throw new ArgumentNullException(nameof(calendar));
             if (millisecond < 0 || millisecond >= MillisPerSecond)
             {
-                throw new ArgumentOutOfRangeException(nameof(millisecond), SR.Format(SR.ArgumentOutOfRange_Range, 0, MillisPerSecond - 1));
+                throw new ArgumentOutOfRangeException(nameof(millisecond), SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, MillisPerSecond - 1));
             }
             if (kind < DateTimeKind.Unspecified || kind > DateTimeKind.Local)
             {
-                throw new ArgumentException(SR.Argument_InvalidDateTimeKind, nameof(kind));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidDateTimeKind"), nameof(kind));
             }
 
             int originalSecond = second;
@@ -360,7 +360,7 @@ namespace System
             long ticks = calendar.ToDateTime(year, month, day, hour, minute, second, 0).Ticks;
             ticks += millisecond * TicksPerMillisecond;
             if (ticks < MinTicks || ticks > MaxTicks)
-                throw new ArgumentException(SR.Arg_DateTimeRange);
+                throw new ArgumentException(SR.GetResourceString("Arg_DateTimeRange"));
             _dateData = ((ulong)ticks | ((ulong)kind << KindShift));
 
             if (originalSecond == 60)
@@ -368,7 +368,7 @@ namespace System
                 DateTime dt = new DateTime(_dateData);
                 if (!IsValidTimeWithLeapSeconds(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 60, kind))
                 {
-                    throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadHourMinuteSecond);
+                    throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadHourMinuteSecond"));
                 }
             }
         }
@@ -412,12 +412,12 @@ namespace System
             }
             else
             {
-                throw new SerializationException(SR.Serialization_MissingDateTimeData);
+                throw new SerializationException(SR.GetResourceString("Serialization_MissingDateTimeData"));
             }
             long ticks = InternalTicks;
             if (ticks < MinTicks || ticks > MaxTicks)
             {
-                throw new SerializationException(SR.Serialization_DateTimeTicksOutOfRange);
+                throw new SerializationException(SR.GetResourceString("Serialization_DateTimeTicksOutOfRange"));
             }
         }
 
@@ -440,7 +440,7 @@ namespace System
             double millis_double = value * (double)scale + (value >= 0 ? 0.5 : -0.5);
 
             if (millis_double <= (double)-MaxMillis || millis_double >= (double)MaxMillis)
-                throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_AddValue);
+                throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_AddValue"));
 
             return AddTicks((long)millis_double * TicksPerMillisecond);
         }
@@ -508,7 +508,7 @@ namespace System
         //
         public DateTime AddMonths(int months)
         {
-            if (months < -120000 || months > 120000) throw new ArgumentOutOfRangeException(nameof(months), SR.ArgumentOutOfRange_DateTimeBadMonths);
+            if (months < -120000 || months > 120000) throw new ArgumentOutOfRangeException(nameof(months), SR.GetResourceString("ArgumentOutOfRange_DateTimeBadMonths"));
             GetDate(out int y, out int m, out int d);
             int i = m - 1 + months;
             if (i >= 0)
@@ -523,7 +523,7 @@ namespace System
             }
             if (y < 1 || y > 9999)
             {
-                throw new ArgumentOutOfRangeException(nameof(months), SR.ArgumentOutOfRange_DateArithmetic);
+                throw new ArgumentOutOfRangeException(nameof(months), SR.GetResourceString("ArgumentOutOfRange_DateArithmetic"));
             }
             int days = DaysInMonth(y, m);
             if (d > days) d = days;
@@ -550,7 +550,7 @@ namespace System
             long ticks = InternalTicks;
             if (value > MaxTicks - ticks || value < MinTicks - ticks)
             {
-                throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_DateArithmetic);
+                throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_DateArithmetic"));
             }
             return new DateTime((ulong)(ticks + value) | InternalKind);
         }
@@ -580,7 +580,7 @@ namespace System
         {
             if (value < -10000 || value > 10000)
             {
-                throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_DateTimeBadYears);
+                throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_DateTimeBadYears"));
             }
             return AddMonths(value * 12);
         }
@@ -608,7 +608,7 @@ namespace System
             if (value == null) return 1;
             if (!(value is DateTime))
             {
-                throw new ArgumentException(SR.Arg_MustBeDateTime);
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeDateTime"));
             }
 
             return Compare(this, (DateTime)value);
@@ -660,7 +660,7 @@ namespace System
         //
         public static int DaysInMonth(int year, int month)
         {
-            if (month < 1 || month > 12) throw new ArgumentOutOfRangeException(nameof(month), SR.ArgumentOutOfRange_Month);
+            if (month < 1 || month > 12) throw new ArgumentOutOfRangeException(nameof(month), SR.GetResourceString("ArgumentOutOfRange_Month"));
             // IsLeapYear checks the year argument
             int[] days = IsLeapYear(year) ? s_daysToMonth366 : s_daysToMonth365;
             return days[month] - days[month - 1];
@@ -672,7 +672,7 @@ namespace System
         {
             // The check done this way will take care of NaN
             if (!(value < OADateMaxAsDouble) || !(value > OADateMinAsDouble))
-                throw new ArgumentException(SR.Arg_OleAutDateInvalid);
+                throw new ArgumentException(SR.GetResourceString("Arg_OleAutDateInvalid"));
 
             // Conversion to long will not cause an overflow here, as at this point the "value" is in between OADateMinAsDouble and OADateMaxAsDouble
             long millis = (long)(value * MillisPerDay + (value >= 0 ? 0.5 : -0.5));
@@ -686,7 +686,7 @@ namespace System
 
             millis += DoubleDateOffset / TicksPerMillisecond;
 
-            if (millis < 0 || millis >= MaxMillis) throw new ArgumentException(SR.Arg_OleAutDateScale);
+            if (millis < 0 || millis >= MaxMillis) throw new ArgumentException(SR.GetResourceString("Arg_OleAutDateScale"));
             return millis * TicksPerMillisecond;
         }
 
@@ -760,7 +760,7 @@ namespace System
                 }
                 if (ticks < MinTicks || ticks > MaxTicks)
                 {
-                    throw new ArgumentException(SR.Argument_DateTimeBadBinaryData, nameof(dateData));
+                    throw new ArgumentException(SR.GetResourceString("Argument_DateTimeBadBinaryData"), nameof(dateData));
                 }
                 return new DateTime(ticks, DateTimeKind.Local, isAmbiguousLocalDst);
             }
@@ -776,7 +776,7 @@ namespace System
         {
             long ticks = dateData & (long)TicksMask;
             if (ticks < MinTicks || ticks > MaxTicks)
-                throw new ArgumentException(SR.Argument_DateTimeBadBinaryData, nameof(dateData));
+                throw new ArgumentException(SR.GetResourceString("Argument_DateTimeBadBinaryData"), nameof(dateData));
             return new DateTime((ulong)dateData);
         }
 
@@ -793,7 +793,7 @@ namespace System
         {
             if (fileTime < 0 || fileTime > MaxTicks - FileTimeOffset)
             {
-                throw new ArgumentOutOfRangeException(nameof(fileTime), SR.ArgumentOutOfRange_FileTimeInvalid);
+                throw new ArgumentOutOfRangeException(nameof(fileTime), SR.GetResourceString("ArgumentOutOfRange_FileTimeInvalid"));
             }
 
 #pragma warning disable 162 // Unrechable code on Unix
@@ -1219,7 +1219,7 @@ namespace System
             long valueTicks = value._ticks;
             if (ticks - MinTicks < valueTicks || ticks - MaxTicks > valueTicks)
             {
-                throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_DateArithmetic);
+                throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_DateArithmetic"));
             }
             return new DateTime((ulong)(ticks - valueTicks) | InternalKind);
         }
@@ -1232,7 +1232,7 @@ namespace System
             if (value < TicksPerDay) // This is a fix for VB. They want the default day to be 1/1/0001 rathar then 12/30/1899.
                 value += DoubleDateOffset; // We could have moved this fix down but we would like to keep the bounds check.
             if (value < OADateMinAsTicks)
-                throw new OverflowException(SR.Arg_OleAutDateInvalid);
+                throw new OverflowException(SR.GetResourceString("Arg_OleAutDateInvalid"));
             // Currently, our max date == OA's max date (12/31/9999), so we don't
             // need an overflow check in that direction.
             long millis = (value - DoubleDateOffset) / TicksPerMillisecond;
@@ -1272,7 +1272,7 @@ namespace System
             ticks -= FileTimeOffset;
             if (ticks < 0)
             {
-                throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_FileTimeInvalid);
+                throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_FileTimeInvalid"));
             }
 
             return ticks;
@@ -1294,14 +1294,14 @@ namespace System
             if (tick > DateTime.MaxTicks)
             {
                 if (throwOnOverflow)
-                    throw new ArgumentException(SR.Arg_ArgumentOutOfRangeException);
+                    throw new ArgumentException(SR.GetResourceString("Arg_ArgumentOutOfRangeException"));
                 else
                     return new DateTime(DateTime.MaxTicks, DateTimeKind.Local);
             }
             if (tick < DateTime.MinTicks)
             {
                 if (throwOnOverflow)
-                    throw new ArgumentException(SR.Arg_ArgumentOutOfRangeException);
+                    throw new ArgumentException(SR.GetResourceString("Arg_ArgumentOutOfRangeException"));
                 else
                     return new DateTime(DateTime.MinTicks, DateTimeKind.Local);
             }
@@ -1434,7 +1434,7 @@ namespace System
             long valueTicks = t._ticks;
             if (valueTicks > MaxTicks - ticks || valueTicks < MinTicks - ticks)
             {
-                throw new ArgumentOutOfRangeException(nameof(t), SR.ArgumentOutOfRange_DateArithmetic);
+                throw new ArgumentOutOfRangeException(nameof(t), SR.GetResourceString("ArgumentOutOfRange_DateArithmetic"));
             }
             return new DateTime((ulong)(ticks + valueTicks) | d.InternalKind);
         }
@@ -1445,7 +1445,7 @@ namespace System
             long valueTicks = t._ticks;
             if (ticks - MinTicks < valueTicks || ticks - MaxTicks > valueTicks)
             {
-                throw new ArgumentOutOfRangeException(nameof(t), SR.ArgumentOutOfRange_DateArithmetic);
+                throw new ArgumentOutOfRangeException(nameof(t), SR.GetResourceString("ArgumentOutOfRange_DateArithmetic"));
             }
             return new DateTime((ulong)(ticks - valueTicks) | d.InternalKind);
         }
@@ -1507,67 +1507,67 @@ namespace System
 
         bool IConvertible.ToBoolean(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "Boolean"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "Boolean"));
         }
 
         char IConvertible.ToChar(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "Char"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "Char"));
         }
 
         sbyte IConvertible.ToSByte(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "SByte"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "SByte"));
         }
 
         byte IConvertible.ToByte(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "Byte"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "Byte"));
         }
 
         short IConvertible.ToInt16(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "Int16"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "Int16"));
         }
 
         ushort IConvertible.ToUInt16(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "UInt16"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "UInt16"));
         }
 
         int IConvertible.ToInt32(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "Int32"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "Int32"));
         }
 
         uint IConvertible.ToUInt32(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "UInt32"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "UInt32"));
         }
 
         long IConvertible.ToInt64(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "Int64"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "Int64"));
         }
 
         ulong IConvertible.ToUInt64(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "UInt64"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "UInt64"));
         }
 
         float IConvertible.ToSingle(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "Single"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "Single"));
         }
 
         double IConvertible.ToDouble(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "Double"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "Double"));
         }
 
         decimal IConvertible.ToDecimal(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "DateTime", "Decimal"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "DateTime", "Decimal"));
         }
 
         DateTime IConvertible.ToDateTime(IFormatProvider? provider)

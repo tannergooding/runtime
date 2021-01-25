@@ -117,15 +117,15 @@ namespace System.Text
         {
             if (capacity < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(capacity), SR.Format(SR.ArgumentOutOfRange_MustBePositive, nameof(capacity)));
+                throw new ArgumentOutOfRangeException(nameof(capacity), SR.Format(SR.GetResourceString("ArgumentOutOfRange_MustBePositive"), nameof(capacity)));
             }
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.Format(SR.ArgumentOutOfRange_MustBeNonNegNum, nameof(length)));
+                throw new ArgumentOutOfRangeException(nameof(length), SR.Format(SR.GetResourceString("ArgumentOutOfRange_MustBeNonNegNum"), nameof(length)));
             }
             if (startIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
             }
 
             if (value == null)
@@ -134,7 +134,7 @@ namespace System.Text
             }
             if (startIndex > value.Length - length)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_IndexLength);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_IndexLength"));
             }
 
             m_MaxCapacity = int.MaxValue;
@@ -159,15 +159,15 @@ namespace System.Text
         {
             if (capacity > maxCapacity)
             {
-                throw new ArgumentOutOfRangeException(nameof(capacity), SR.ArgumentOutOfRange_Capacity);
+                throw new ArgumentOutOfRangeException(nameof(capacity), SR.GetResourceString("ArgumentOutOfRange_Capacity"));
             }
             if (maxCapacity < 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxCapacity), SR.ArgumentOutOfRange_SmallMaxCapacity);
+                throw new ArgumentOutOfRangeException(nameof(maxCapacity), SR.GetResourceString("ArgumentOutOfRange_SmallMaxCapacity"));
             }
             if (capacity < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(capacity), SR.Format(SR.ArgumentOutOfRange_MustBePositive, nameof(capacity)));
+                throw new ArgumentOutOfRangeException(nameof(capacity), SR.Format(SR.GetResourceString("ArgumentOutOfRange_MustBePositive"), nameof(capacity)));
             }
 
             if (capacity == 0)
@@ -220,7 +220,7 @@ namespace System.Text
             }
             if (persistedMaxCapacity < 1 || persistedString.Length > persistedMaxCapacity)
             {
-                throw new SerializationException(SR.Serialization_StringBuilderMaxCapacity);
+                throw new SerializationException(SR.GetResourceString("Serialization_StringBuilderMaxCapacity"));
             }
 
             if (!capacityPresent)
@@ -231,7 +231,7 @@ namespace System.Text
 
             if (persistedCapacity < 0 || persistedCapacity < persistedString.Length || persistedCapacity > persistedMaxCapacity)
             {
-                throw new SerializationException(SR.Serialization_StringBuilderCapacity);
+                throw new SerializationException(SR.GetResourceString("Serialization_StringBuilderCapacity"));
             }
 
             // Assign
@@ -293,15 +293,15 @@ namespace System.Text
             {
                 if (value < 0)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_NegativeCapacity);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_NegativeCapacity"));
                 }
                 if (value > MaxCapacity)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_Capacity);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_Capacity"));
                 }
                 if (value < Length)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_SmallCapacity);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_SmallCapacity"));
                 }
 
                 if (Capacity != value)
@@ -331,7 +331,7 @@ namespace System.Text
         {
             if (capacity < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(capacity), SR.ArgumentOutOfRange_NegativeCapacity);
+                throw new ArgumentOutOfRangeException(nameof(capacity), SR.GetResourceString("ArgumentOutOfRange_NegativeCapacity"));
             }
 
             if (Capacity < capacity)
@@ -364,7 +364,7 @@ namespace System.Text
                     // Check that we will not overrun our boundaries.
                     if ((uint)(chunkLength + chunkOffset) > (uint)result.Length || (uint)chunkLength > (uint)sourceArray.Length)
                     {
-                        throw new ArgumentOutOfRangeException(nameof(chunkLength), SR.ArgumentOutOfRange_Index);
+                        throw new ArgumentOutOfRangeException(nameof(chunkLength), SR.GetResourceString("ArgumentOutOfRange_Index"));
                     }
 
                     Buffer.Memmove(
@@ -389,19 +389,19 @@ namespace System.Text
             int currentLength = this.Length;
             if (startIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
             }
             if (startIndex > currentLength)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndexLargerThanLength);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndexLargerThanLength"));
             }
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NegativeLength);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NegativeLength"));
             }
             if (startIndex > currentLength - length)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_IndexLength);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_IndexLength"));
             }
 
             AssertInvariants();
@@ -433,12 +433,12 @@ namespace System.Text
                 // If the new length is less than 0 or greater than our Maximum capacity, bail.
                 if (value < 0)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_NegativeLength);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_NegativeLength"));
                 }
 
                 if (value > MaxCapacity)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_SmallCapacity);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_SmallCapacity"));
                 }
 
                 if (value == 0 && m_ChunkPrevious == null)
@@ -522,7 +522,7 @@ namespace System.Text
                     {
                         if (indexInBlock >= chunk.m_ChunkLength)
                         {
-                            throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                            throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
                         }
                         chunk.m_ChunkChars[indexInBlock] = value;
                         return;
@@ -530,7 +530,7 @@ namespace System.Text
                     chunk = chunk.m_ChunkPrevious;
                     if (chunk == null)
                     {
-                        throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                        throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
                     }
                 }
             }
@@ -700,7 +700,7 @@ namespace System.Text
         {
             if (repeatCount < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(repeatCount), SR.ArgumentOutOfRange_NegativeCount);
+                throw new ArgumentOutOfRangeException(nameof(repeatCount), SR.GetResourceString("ArgumentOutOfRange_NegativeCount"));
             }
 
             if (repeatCount == 0)
@@ -713,7 +713,7 @@ namespace System.Text
             int newLength = Length + repeatCount;
             if (newLength > m_MaxCapacity || newLength < repeatCount)
             {
-                throw new ArgumentOutOfRangeException(nameof(repeatCount), SR.ArgumentOutOfRange_LengthGreaterThanCapacity);
+                throw new ArgumentOutOfRangeException(nameof(repeatCount), SR.GetResourceString("ArgumentOutOfRange_LengthGreaterThanCapacity"));
             }
 
             int index = m_ChunkLength;
@@ -748,11 +748,11 @@ namespace System.Text
         {
             if (startIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             }
             if (charCount < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(charCount), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(charCount), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             }
 
             if (value == null)
@@ -766,7 +766,7 @@ namespace System.Text
             }
             if (charCount > value.Length - startIndex)
             {
-                throw new ArgumentOutOfRangeException(nameof(charCount), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(charCount), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (charCount == 0)
@@ -852,11 +852,11 @@ namespace System.Text
         {
             if (startIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             }
 
             if (value == null)
@@ -875,7 +875,7 @@ namespace System.Text
 
             if (startIndex > value.Length - count)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             unsafe
@@ -901,12 +901,12 @@ namespace System.Text
         {
             if (startIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             }
 
             if (value == null)
@@ -925,7 +925,7 @@ namespace System.Text
 
             if (count > value.Length - startIndex)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             return AppendCore(value, startIndex, count);
@@ -942,7 +942,7 @@ namespace System.Text
 
             if ((uint)newLength > (uint)m_MaxCapacity)
             {
-                throw new ArgumentOutOfRangeException(nameof(Capacity), SR.ArgumentOutOfRange_Capacity);
+                throw new ArgumentOutOfRangeException(nameof(Capacity), SR.GetResourceString("ArgumentOutOfRange_Capacity"));
             }
 
             while (count > 0)
@@ -980,12 +980,12 @@ namespace System.Text
 
             if (destinationIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(destinationIndex), SR.Format(SR.ArgumentOutOfRange_MustBeNonNegNum, nameof(destinationIndex)));
+                throw new ArgumentOutOfRangeException(nameof(destinationIndex), SR.Format(SR.GetResourceString("ArgumentOutOfRange_MustBeNonNegNum"), nameof(destinationIndex)));
             }
 
             if (destinationIndex > destination.Length - count)
             {
-                throw new ArgumentException(SR.ArgumentOutOfRange_OffsetOut);
+                throw new ArgumentException(SR.GetResourceString("ArgumentOutOfRange_OffsetOut"));
             }
 
             CopyTo(sourceIndex, new Span<char>(destination).Slice(destinationIndex), count);
@@ -995,17 +995,17 @@ namespace System.Text
         {
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.Arg_NegativeArgCount);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("Arg_NegativeArgCount"));
             }
 
             if ((uint)sourceIndex > (uint)Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(sourceIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(sourceIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (sourceIndex > Length - count)
             {
-                throw new ArgumentException(SR.Arg_LongerThanSrcString);
+                throw new ArgumentException(SR.GetResourceString("Arg_LongerThanSrcString"));
             }
 
             AssertInvariants();
@@ -1047,13 +1047,13 @@ namespace System.Text
         {
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             int currentLength = Length;
             if ((uint)index > (uint)currentLength)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (string.IsNullOrEmpty(value) || count == 0)
@@ -1096,17 +1096,17 @@ namespace System.Text
         {
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NegativeLength);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NegativeLength"));
             }
 
             if (startIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
             }
 
             if (length > Length - startIndex)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (Length == length && startIndex == 0)
@@ -1343,7 +1343,7 @@ namespace System.Text
         {
             if ((uint)index > (uint)Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (value != null)
@@ -1379,7 +1379,7 @@ namespace System.Text
         {
             if ((uint)index > (uint)Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (value != null)
@@ -1394,7 +1394,7 @@ namespace System.Text
             int currentLength = Length;
             if ((uint)index > (uint)currentLength)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (value == null)
@@ -1403,22 +1403,22 @@ namespace System.Text
                 {
                     return this;
                 }
-                throw new ArgumentNullException(nameof(value), SR.ArgumentNull_String);
+                throw new ArgumentNullException(nameof(value), SR.GetResourceString("ArgumentNull_String"));
             }
 
             if (startIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
             }
 
             if (charCount < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(charCount), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(charCount), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             }
 
             if (startIndex > value.Length - charCount)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (charCount > 0)
@@ -1457,7 +1457,7 @@ namespace System.Text
         {
             if ((uint)index > (uint)Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (value.Length > 0)
@@ -1511,7 +1511,7 @@ namespace System.Text
 
         private static void FormatError()
         {
-            throw new FormatException(SR.Format_InvalidString);
+            throw new FormatException(SR.GetResourceString("Format_InvalidString"));
         }
 
         // Undocumented exclusive limits on the range for Argument Hole Index and Argument Hole Alignment.
@@ -1610,7 +1610,7 @@ namespace System.Text
                 // If value of index is not within the range of the arguments passed in then error (Index out of range)
                 if (index >= args.Length)
                 {
-                    throw new FormatException(SR.Format_IndexOutOfRange);
+                    throw new FormatException(SR.GetResourceString("Format_IndexOutOfRange"));
                 }
 
                 // Consume optional whitespace.
@@ -1917,11 +1917,11 @@ namespace System.Text
             int currentLength = Length;
             if ((uint)startIndex > (uint)currentLength)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
             if (count < 0 || startIndex > currentLength - count)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
             if (oldValue == null)
             {
@@ -1929,7 +1929,7 @@ namespace System.Text
             }
             if (oldValue.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(oldValue));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(oldValue));
             }
 
             newValue ??= string.Empty;
@@ -2011,12 +2011,12 @@ namespace System.Text
             int currentLength = Length;
             if ((uint)startIndex > (uint)currentLength)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (count < 0 || startIndex > currentLength - count)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             int endIndex = startIndex + count;
@@ -2061,7 +2061,7 @@ namespace System.Text
             // We don't check null value as this case will throw null reference exception anyway
             if (valueCount < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(valueCount), SR.ArgumentOutOfRange_NegativeCount);
+                throw new ArgumentOutOfRangeException(nameof(valueCount), SR.GetResourceString("ArgumentOutOfRange_NegativeCount"));
             }
 
             // this is where we can check if the valueCount will put us over m_MaxCapacity
@@ -2069,7 +2069,7 @@ namespace System.Text
             int newLength = Length + valueCount;
             if (newLength > m_MaxCapacity || newLength < valueCount)
             {
-                throw new ArgumentOutOfRangeException(nameof(valueCount), SR.ArgumentOutOfRange_LengthGreaterThanCapacity);
+                throw new ArgumentOutOfRangeException(nameof(valueCount), SR.GetResourceString("ArgumentOutOfRange_LengthGreaterThanCapacity"));
             }
 
             // This case is so common we want to optimize for it heavily.
@@ -2112,7 +2112,7 @@ namespace System.Text
         {
             if ((uint)index > (uint)Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (valueCount > 0)
@@ -2342,7 +2342,7 @@ namespace System.Text
 
             if ((minBlockCharCount + Length) > m_MaxCapacity || minBlockCharCount + Length < minBlockCharCount)
             {
-                throw new ArgumentOutOfRangeException("requiredLength", SR.ArgumentOutOfRange_SmallCapacity);
+                throw new ArgumentOutOfRangeException("requiredLength", SR.GetResourceString("ArgumentOutOfRange_SmallCapacity"));
             }
 
             // - We always need to make the new chunk at least as big as was requested (`minBlockCharCount`).
@@ -2431,7 +2431,7 @@ namespace System.Text
 
             if (count + Length > m_MaxCapacity || count + Length < count)
             {
-                throw new ArgumentOutOfRangeException("requiredLength", SR.ArgumentOutOfRange_SmallCapacity);
+                throw new ArgumentOutOfRangeException("requiredLength", SR.GetResourceString("ArgumentOutOfRange_SmallCapacity"));
             }
 
             chunk = this;

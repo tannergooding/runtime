@@ -173,7 +173,7 @@ namespace System.Globalization
 
             if (cultureData == null)
             {
-                throw new CultureNotFoundException(nameof(name), name, SR.Argument_CultureNotSupported);
+                throw new CultureNotFoundException(nameof(name), name, SR.GetResourceString("Argument_CultureNotSupported"));
             }
 
             _cultureData = cultureData;
@@ -210,7 +210,7 @@ namespace System.Globalization
             // We don't check for other invalid LCIDS here...
             if (culture < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(culture), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(culture), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
 
             switch (culture)
@@ -222,7 +222,7 @@ namespace System.Globalization
                 case LOCALE_CUSTOM_UNSPECIFIED:
                     // Can't support unknown custom cultures and we do not support neutral or
                     // non-custom user locales.
-                    throw new CultureNotFoundException(nameof(culture), culture, SR.Argument_CultureNotSupported);
+                    throw new CultureNotFoundException(nameof(culture), culture, SR.GetResourceString("Argument_CultureNotSupported"));
                 default:
                     // Now see if this LCID is supported in the system default CultureData table.
                     _cultureData = CultureData.GetCultureData(culture, useUserOverride);
@@ -244,11 +244,11 @@ namespace System.Globalization
         {
             if (cultureName == null)
             {
-                throw new ArgumentNullException(nameof(cultureName), SR.ArgumentNull_String);
+                throw new ArgumentNullException(nameof(cultureName), SR.GetResourceString("ArgumentNull_String"));
             }
 
             CultureData? cultureData = CultureData.GetCultureData(cultureName, false) ??
-                throw new CultureNotFoundException(nameof(cultureName), cultureName, SR.Argument_CultureNotSupported);
+                throw new CultureNotFoundException(nameof(cultureName), cultureName, SR.GetResourceString("Argument_CultureNotSupported"));
 
             _cultureData = cultureData;
 
@@ -349,7 +349,7 @@ namespace System.Globalization
                 }
                 if (throwException)
                 {
-                    throw new ArgumentException(SR.Format(SR.Argument_InvalidResourceCultureName, cultureName));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidResourceCultureName"), cultureName));
                 }
                 return false;
             }
@@ -1020,7 +1020,7 @@ namespace System.Globalization
         {
             if (_isReadOnly)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
             }
         }
 
@@ -1039,7 +1039,7 @@ namespace System.Globalization
         {
             if (culture <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(culture), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(culture), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
 
             Dictionary<int, CultureInfo> lcidTable = CachedCulturesByLcid;
@@ -1059,7 +1059,7 @@ namespace System.Globalization
             }
             catch (ArgumentException)
             {
-                throw new CultureNotFoundException(nameof(culture), culture, SR.Argument_CultureNotSupported);
+                throw new CultureNotFoundException(nameof(culture), culture, SR.GetResourceString("Argument_CultureNotSupported"));
             }
 
             lock (lcidTable)
@@ -1095,7 +1095,7 @@ namespace System.Globalization
             }
 
             result = CreateCultureInfoNoThrow(name, useUserOverride: false) ??
-                throw new CultureNotFoundException(nameof(name), name, SR.Argument_CultureNotSupported);
+                throw new CultureNotFoundException(nameof(name), name, SR.GetResourceString("Argument_CultureNotSupported"));
             result._isReadOnly = true;
 
             // Remember our name as constructed.  Do NOT use alternate sort name versions because
@@ -1147,7 +1147,7 @@ namespace System.Globalization
             catch (ArgumentException)
             {
 #pragma warning disable CA2208 // Instantiate argument exceptions correctly, combination of arguments used
-                throw new CultureNotFoundException("name/altName", SR.Format(SR.Argument_OneOfCulturesNotSupported, name, altName));
+                throw new CultureNotFoundException("name/altName", SR.Format(SR.GetResourceString("Argument_OneOfCulturesNotSupported"), name, altName));
 #pragma warning restore CA2208
             }
 
@@ -1211,7 +1211,7 @@ namespace System.Globalization
             // Disallow old zh-CHT/zh-CHS names
             if (name == "zh-CHT" || name == "zh-CHS")
             {
-                throw new CultureNotFoundException(nameof(name), SR.Format(SR.Argument_CultureIetfNotSupported, name));
+                throw new CultureNotFoundException(nameof(name), SR.Format(SR.GetResourceString("Argument_CultureIetfNotSupported"), name));
             }
 
             CultureInfo ci = GetCultureInfo(name);
@@ -1219,7 +1219,7 @@ namespace System.Globalization
             // Disallow alt sorts and es-es_TS
             if (ci.LCID > 0xffff || ci.LCID == 0x040a)
             {
-                throw new CultureNotFoundException(nameof(name), SR.Format(SR.Argument_CultureIetfNotSupported, name));
+                throw new CultureNotFoundException(nameof(name), SR.Format(SR.GetResourceString("Argument_CultureIetfNotSupported"), name));
             }
 
             return ci;

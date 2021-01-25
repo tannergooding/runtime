@@ -64,7 +64,7 @@ namespace System.Reflection
         [Diagnostics.DebuggerHidden]
         public override void SetValueDirect(TypedReference obj, object value)
         {
-            throw new FieldAccessException(SR.Acc_ReadOnly);
+            throw new FieldAccessException(SR.GetResourceString("Acc_ReadOnly"));
         }
 
         [DebuggerStepThroughAttribute]
@@ -83,7 +83,7 @@ namespace System.Reflection
             object? value = MdConstant.GetValue(GetRuntimeModule().MetadataImport, m_tkField, FieldType.GetTypeHandleInternal(), raw);
 
             if (value == DBNull.Value)
-                throw new NotSupportedException(SR.Arg_EnumLitValueNotFound);
+                throw new NotSupportedException(SR.GetResourceString("Arg_EnumLitValueNotFound"));
 
             return value;
         }
@@ -92,7 +92,7 @@ namespace System.Reflection
         [Diagnostics.DebuggerHidden]
         public override void SetValue(object? obj, object? value, BindingFlags invokeAttr, Binder? binder, CultureInfo? culture)
         {
-            throw new FieldAccessException(SR.Acc_ReadOnly);
+            throw new FieldAccessException(SR.GetResourceString("Acc_ReadOnly"));
         }
 
         public override Type FieldType

@@ -127,7 +127,7 @@ namespace System
         {
             if (year < 1 || year > 9999)
             {
-                throw new ArgumentOutOfRangeException(nameof(year), SR.Format(SR.ArgumentOutOfRange_Range, 1, 9999));
+                throw new ArgumentOutOfRangeException(nameof(year), SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, 9999));
             }
 
             return GetCachedDaylightChanges(year);

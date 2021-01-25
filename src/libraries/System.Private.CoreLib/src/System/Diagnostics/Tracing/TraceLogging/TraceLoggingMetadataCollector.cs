@@ -239,7 +239,7 @@ namespace System.Diagnostics.Tracing
 
             if (this.BeginningBufferedArray)
             {
-                throw new NotSupportedException(SR.EventSource_NotSupportedNestedArraysEnums);
+                throw new NotSupportedException(SR.GetResourceString("EventSource_NotSupportedNestedArraysEnums"));
             }
 
             this.impl.AddScalar(2);
@@ -251,7 +251,7 @@ namespace System.Diagnostics.Tracing
         {
             if (this.bufferedArrayFieldCount >= 0)
             {
-                throw new NotSupportedException(SR.EventSource_NotSupportedNestedArraysEnums);
+                throw new NotSupportedException(SR.GetResourceString("EventSource_NotSupportedNestedArraysEnums"));
             }
 
             this.bufferedArrayFieldCount = 0;
@@ -262,7 +262,7 @@ namespace System.Diagnostics.Tracing
         {
             if (this.bufferedArrayFieldCount != 1)
             {
-                throw new InvalidOperationException(SR.EventSource_IncorrentlyAuthoredTypeInfo);
+                throw new InvalidOperationException(SR.GetResourceString("EventSource_IncorrentlyAuthoredTypeInfo"));
             }
 
             this.bufferedArrayFieldCount = int.MinValue;
@@ -281,7 +281,7 @@ namespace System.Diagnostics.Tracing
         {
             if (this.BeginningBufferedArray)
             {
-                throw new NotSupportedException(SR.EventSource_NotSupportedCustomSerializedData);
+                throw new NotSupportedException(SR.GetResourceString("EventSource_NotSupportedCustomSerializedData"));
             }
 
             this.impl.AddScalar(2);

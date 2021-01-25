@@ -80,7 +80,7 @@ namespace System
                 Console.Write("Exception thrown: ");
                 Console.WriteLine(e);
 #endif
-                throw new COMException(SR.Interop_COM_TypeMismatch, unchecked((int)0x80020005));
+                throw new COMException(SR.GetResourceString("Interop_COM_TypeMismatch"), unchecked((int)0x80020005));
             }
         }
     }

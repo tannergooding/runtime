@@ -24,7 +24,7 @@ namespace System.Threading.Tasks
         /// <summary>
         /// Initializes a new instance of the <see cref="System.Threading.Tasks.TaskSchedulerException"/> class.
         /// </summary>
-        public TaskSchedulerException() : base(SR.TaskSchedulerException_ctor_DefaultMessage) //
+        public TaskSchedulerException() : base(SR.GetResourceString("TaskSchedulerException_ctor_DefaultMessage")) //
         {
         }
 
@@ -44,7 +44,7 @@ namespace System.Threading.Tasks
         /// </summary>
         /// <param name="innerException">The exception that is the cause of the current exception.</param>
         public TaskSchedulerException(Exception? innerException)
-            : base(SR.TaskSchedulerException_ctor_DefaultMessage, innerException)
+            : base(SR.GetResourceString("TaskSchedulerException_ctor_DefaultMessage"), innerException)
         {
         }
 

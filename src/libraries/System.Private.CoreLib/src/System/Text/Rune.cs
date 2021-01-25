@@ -1451,7 +1451,7 @@ namespace System.Text
                 return this.CompareTo(other);
             }
 
-            throw new ArgumentException(SR.Arg_MustBeRune);
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeRune"));
         }
     }
 }

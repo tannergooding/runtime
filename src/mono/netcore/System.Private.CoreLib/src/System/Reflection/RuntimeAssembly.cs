@@ -133,7 +133,7 @@ namespace System.Reflection
 
             if ((assemblyString.Length == 0) ||
                 (assemblyString[0] == '\0'))
-                throw new ArgumentException(SR.Format_StringZeroLength);
+                throw new ArgumentException(SR.GetResourceString("Format_StringZeroLength"));
 
             assemblyFromResolveEvent = null;
             try
@@ -405,20 +405,20 @@ namespace System.Reflection
             if (res == assembly)
                 res = null;
             if (res == null && throwOnFileNotFound)
-                throw new FileNotFoundException(string.Format(culture, SR.IO_FileNotFound_FileName, an.Name));
+                throw new FileNotFoundException(string.Format(culture, SR.GetResourceString("IO_FileNotFound_FileName"), an.Name));
             return res;
         }
 
         public override FileStream? GetFile(string name)
         {
             if (name == null)
-                throw new ArgumentNullException(nameof(name), SR.ArgumentNull_FileName);
+                throw new ArgumentNullException(nameof(name), SR.GetResourceString("ArgumentNull_FileName"));
             if (name.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyFileName);
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyFileName"));
             if (Location.Length == 0)
             {
                 // Throw if the assembly was loaded from memory, indicated by Location returning an empty string
-                throw new FileNotFoundException(SR.IO_NoFileTableInInMemoryAssemblies);
+                throw new FileNotFoundException(SR.GetResourceString("IO_NoFileTableInInMemoryAssemblies"));
             }
 
             RuntimeModule? m = (RuntimeModule?)GetModule(name);
@@ -434,7 +434,7 @@ namespace System.Reflection
             if (Location.Length == 0)
             {
                 // Throw if the assembly was loaded from memory, indicated by Location returning an empty string
-                throw new FileNotFoundException(SR.IO_NoFileTableInInMemoryAssemblies);
+                throw new FileNotFoundException(SR.GetResourceString("IO_NoFileTableInInMemoryAssemblies"));
             }
 
             Module[] modules = GetModules(getResourceModules);

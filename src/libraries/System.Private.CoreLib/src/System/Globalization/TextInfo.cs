@@ -110,7 +110,7 @@ namespace System.Globalization
         {
             if (_isReadOnly)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
             }
         }
 

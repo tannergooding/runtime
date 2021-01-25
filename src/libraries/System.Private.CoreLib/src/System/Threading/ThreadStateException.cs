@@ -20,7 +20,7 @@ namespace System.Threading
     public class ThreadStateException : SystemException
     {
         public ThreadStateException()
-            : base(SR.Arg_ThreadStateException)
+            : base(SR.GetResourceString("Arg_ThreadStateException"))
         {
             HResult = HResults.COR_E_THREADSTATE;
         }

@@ -37,7 +37,7 @@ namespace System
             }
             if (!(value is byte))
             {
-                throw new ArgumentException(SR.Arg_MustBeByte);
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeByte"));
             }
 
             return m_value - (((byte)value).m_value);
@@ -265,7 +265,7 @@ namespace System
 
         DateTime IConvertible.ToDateTime(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "Byte", "DateTime"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "Byte", "DateTime"));
         }
 
         object IConvertible.ToType(Type type, IFormatProvider? provider)

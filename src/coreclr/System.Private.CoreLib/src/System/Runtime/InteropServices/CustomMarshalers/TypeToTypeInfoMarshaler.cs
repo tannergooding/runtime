@@ -29,12 +29,12 @@ namespace System.Runtime.InteropServices.CustomMarshalers
 
         public IntPtr MarshalManagedToNative(object ManagedObj)
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_ITypeInfo);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ITypeInfo"));
         }
 
         public object MarshalNativeToManaged(IntPtr pNativeData)
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_ITypeInfo);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ITypeInfo"));
         }
     }
 }

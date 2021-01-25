@@ -196,7 +196,7 @@ namespace System.Resources
             if (reader == null)
                 throw new ArgumentNullException(nameof(reader));
 
-            _defaultReader = reader as DeserializingResourceReader ?? throw new ArgumentException(SR.Format(SR.NotSupported_WrongResourceReader_Type, reader.GetType()), nameof(reader));
+            _defaultReader = reader as DeserializingResourceReader ?? throw new ArgumentException(SR.Format(SR.GetResourceString("NotSupported_WrongResourceReader_Type"), reader.GetType()), nameof(reader));
             _resCache = new Dictionary<string, ResourceLocator>(FastResourceComparer.Default);
 
             // in the CoreLib version RuntimeResourceSet creates ResourceReader and passes this in,
@@ -236,7 +236,7 @@ namespace System.Resources
         {
             ResourceReader? reader = _defaultReader;
             if (reader is null)
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ResourceSet);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ResourceSet"));
 
             return reader.GetEnumerator();
         }
@@ -271,7 +271,7 @@ namespace System.Resources
             ResourceReader? reader = _defaultReader;
             Dictionary<string, ResourceLocator>? cache = _resCache;
             if (reader is null || cache is null)
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ResourceSet);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ResourceSet"));
 
             object? value;
             ResourceLocator resEntry;

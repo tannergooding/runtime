@@ -179,7 +179,7 @@ namespace System
                     return 1;
             }
 
-            throw new ArgumentException(SR.Arg_MustBeDouble);
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeDouble"));
         }
 
         public int CompareTo(double value)
@@ -377,7 +377,7 @@ namespace System
 
         char IConvertible.ToChar(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "Double", "Char"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "Double", "Char"));
         }
 
         sbyte IConvertible.ToSByte(IFormatProvider? provider)
@@ -437,7 +437,7 @@ namespace System
 
         DateTime IConvertible.ToDateTime(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "Double", "DateTime"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "Double", "DateTime"));
         }
 
         object IConvertible.ToType(Type type, IFormatProvider? provider)

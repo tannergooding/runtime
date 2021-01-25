@@ -24,7 +24,7 @@ namespace System
             if (flds == null)
                 throw new ArgumentNullException(nameof(flds));
             if (flds.Length == 0)
-                throw new ArgumentException(SR.Arg_ArrayZeroError, nameof(flds));
+                throw new ArgumentException(SR.GetResourceString("Arg_ArrayZeroError"), nameof(flds));
 
             var fields = new IntPtr[flds.Length];
             var targetType = (RuntimeType)target.GetType();
@@ -32,18 +32,18 @@ namespace System
             {
                 var field = flds[i] as RuntimeFieldInfo;
                 if (field == null)
-                    throw new ArgumentException(SR.Argument_MustBeRuntimeFieldInfo);
+                    throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeFieldInfo"));
                 if (field.IsStatic)
-                    throw new ArgumentException(SR.Argument_TypedReferenceInvalidField);
+                    throw new ArgumentException(SR.GetResourceString("Argument_TypedReferenceInvalidField"));
 
                 if (targetType != field.GetDeclaringTypeInternal() && !targetType.IsSubclassOf(field.GetDeclaringTypeInternal()))
-                    throw new MissingMemberException(SR.MissingMemberTypeRef);
+                    throw new MissingMemberException(SR.GetResourceString("MissingMemberTypeRef"));
 
                 var fieldType = (RuntimeType)field.FieldType;
                 if (fieldType.IsPrimitive)
-                    throw new ArgumentException(SR.Arg_TypeRefPrimitve);
+                    throw new ArgumentException(SR.GetResourceString("Arg_TypeRefPrimitve"));
                 if (i < (flds.Length - 1) && !fieldType.IsValueType)
-                    throw new MissingMemberException(SR.MissingMemberNestErr);
+                    throw new MissingMemberException(SR.GetResourceString("MissingMemberNestErr"));
 
                 fields[i] = field.FieldHandle.Value;
                 targetType = fieldType;
@@ -71,7 +71,7 @@ namespace System
 
         public override bool Equals(object? o)
         {
-            throw new NotSupportedException(SR.NotSupported_NYI);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_NYI"));
         }
 
         public static unsafe object ToObject(TypedReference value)

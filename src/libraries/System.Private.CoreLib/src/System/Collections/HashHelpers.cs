@@ -55,7 +55,7 @@ namespace System.Collections
         public static int GetPrime(int min)
         {
             if (min < 0)
-                throw new ArgumentException(SR.Arg_HTCapacityOverflow);
+                throw new ArgumentException(SR.GetResourceString("Arg_HTCapacityOverflow"));
 
             foreach (int prime in s_primes)
             {

@@ -19,7 +19,7 @@ namespace System
     public class OverflowException : ArithmeticException
     {
         public OverflowException()
-            : base(SR.Arg_OverflowException)
+            : base(SR.GetResourceString("Arg_OverflowException"))
         {
             HResult = HResults.COR_E_OVERFLOW;
         }

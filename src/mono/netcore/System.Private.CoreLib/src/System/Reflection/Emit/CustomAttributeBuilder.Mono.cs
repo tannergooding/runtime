@@ -184,18 +184,18 @@ namespace System.Reflection.Emit
             if (fieldValues == null)
                 throw new ArgumentNullException(nameof(fieldValues));
             if (con.GetParametersCount() != constructorArgs.Length)
-                throw new ArgumentException(SR.Argument_BadParameterCountsForConstructor);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadParameterCountsForConstructor"));
             if (namedProperties.Length != propertyValues.Length)
-                throw new ArgumentException(SR.Arg_ArrayLengthsDiffer, "namedProperties, propertyValues");
+                throw new ArgumentException(SR.GetResourceString("Arg_ArrayLengthsDiffer"), "namedProperties, propertyValues");
             if (namedFields.Length != fieldValues.Length)
-                throw new ArgumentException(SR.Arg_ArrayLengthsDiffer, "namedFields, fieldValues");
+                throw new ArgumentException(SR.GetResourceString("Arg_ArrayLengthsDiffer"), "namedFields, fieldValues");
             if ((con.Attributes & MethodAttributes.Static) == MethodAttributes.Static ||
                     (con.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Private)
-                throw new ArgumentException(SR.Argument_BadConstructor);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadConstructor"));
 
             // Here coreclr does
             // if ((con.CallingConvention & CallingConventions.Standard) != CallingConventions.Standard)
-            //    throw new ArgumentException(SR.Argument_BadConstructorCallConv);
+            //    throw new ArgumentException(SR.GetResourceString("Argument_BadConstructorCallConv"));
 
             Type atype = ctor.DeclaringType!;
             int i;

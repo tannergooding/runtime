@@ -19,7 +19,7 @@ namespace System
     public sealed class InvalidProgramException : SystemException
     {
         public InvalidProgramException()
-            : base(SR.InvalidProgram_Default)
+            : base(SR.GetResourceString("InvalidProgram_Default"))
         {
             HResult = HResults.COR_E_INVALIDPROGRAM;
         }

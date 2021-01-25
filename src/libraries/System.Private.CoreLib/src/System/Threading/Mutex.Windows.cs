@@ -27,10 +27,10 @@ namespace System.Threading
 #if TARGET_UNIX || TARGET_BROWSER
                 if (errorCode == Interop.Errors.ERROR_FILENAME_EXCED_RANGE)
                     // On Unix, length validation is done by CoreCLR's PAL after converting to utf-8
-                    throw new ArgumentException(SR.Argument_WaitHandleNameTooLong, nameof(name));
+                    throw new ArgumentException(SR.GetResourceString("Argument_WaitHandleNameTooLong"), nameof(name));
 #endif
                 if (errorCode == Interop.Errors.ERROR_INVALID_HANDLE)
-                    throw new WaitHandleCannotBeOpenedException(SR.Format(SR.Threading_WaitHandleCannotBeOpenedException_InvalidHandle, name));
+                    throw new WaitHandleCannotBeOpenedException(SR.Format(SR.GetResourceString("Threading_WaitHandleCannotBeOpenedException_InvalidHandle"), name));
 
                 throw Win32Marshal.GetExceptionForWin32Error(errorCode, name);
             }
@@ -48,7 +48,7 @@ namespace System.Threading
 
             if (name.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
             }
 
             result = null;
@@ -65,7 +65,7 @@ namespace System.Threading
                 if (errorCode == Interop.Errors.ERROR_FILENAME_EXCED_RANGE)
                 {
                     // On Unix, length validation is done by CoreCLR's PAL after converting to utf-8
-                    throw new ArgumentException(SR.Argument_WaitHandleNameTooLong, nameof(name));
+                    throw new ArgumentException(SR.GetResourceString("Argument_WaitHandleNameTooLong"), nameof(name));
                 }
 #endif
                 if (Interop.Errors.ERROR_FILE_NOT_FOUND == errorCode || Interop.Errors.ERROR_INVALID_NAME == errorCode)
@@ -89,7 +89,7 @@ namespace System.Threading
         {
             if (!Interop.Kernel32.ReleaseMutex(SafeWaitHandle))
             {
-                throw new ApplicationException(SR.Arg_SynchronizationLockException);
+                throw new ApplicationException(SR.GetResourceString("Arg_SynchronizationLockException"));
             }
         }
     }

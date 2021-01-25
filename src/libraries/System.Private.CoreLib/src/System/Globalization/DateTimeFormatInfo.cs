@@ -370,7 +370,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -394,7 +394,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -473,7 +473,7 @@ namespace System.Globalization
                 }
 
                 // The assigned calendar is not a valid calendar for this culture, throw
-                throw new ArgumentOutOfRangeException(nameof(value), value, SR.Argument_InvalidCalendar);
+                throw new ArgumentOutOfRangeException(nameof(value), value, SR.GetResourceString("Argument_InvalidCalendar"));
             }
         }
 
@@ -557,7 +557,7 @@ namespace System.Globalization
                 return m_eraNames![era];
             }
 
-            throw new ArgumentOutOfRangeException(nameof(era), era, SR.ArgumentOutOfRange_InvalidEraValue);
+            throw new ArgumentOutOfRangeException(nameof(era), era, SR.GetResourceString("ArgumentOutOfRange_InvalidEraValue"));
         }
 
         internal string[] AbbreviatedEraNames => m_abbrevEraNames ??= _cultureData.AbbrevEraNames(Calendar.ID);
@@ -584,7 +584,7 @@ namespace System.Globalization
                 return m_abbrevEraNames[era];
             }
 
-            throw new ArgumentOutOfRangeException(nameof(era), era, SR.ArgumentOutOfRange_InvalidEraValue);
+            throw new ArgumentOutOfRangeException(nameof(era), era, SR.GetResourceString("ArgumentOutOfRange_InvalidEraValue"));
         }
 
         internal string[] AbbreviatedEnglishEraNames
@@ -619,7 +619,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -647,7 +647,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
 
                 if (value < DayOfWeek.Sunday || value > DayOfWeek.Saturday)
@@ -655,7 +655,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, DayOfWeek.Sunday, DayOfWeek.Saturday));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), DayOfWeek.Sunday, DayOfWeek.Saturday));
                 }
 
                 firstDayOfWeek = (int)value;
@@ -678,14 +678,14 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value < CalendarWeekRule.FirstDay || value > CalendarWeekRule.FirstFourDayWeek)
                 {
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, CalendarWeekRule.FirstDay, CalendarWeekRule.FirstFourDayWeek));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), CalendarWeekRule.FirstDay, CalendarWeekRule.FirstFourDayWeek));
                 }
 
                 calendarWeekRule = (int)value;
@@ -699,7 +699,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -723,7 +723,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -760,7 +760,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -805,7 +805,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -832,7 +832,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -863,7 +863,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -902,7 +902,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -1019,7 +1019,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -1047,7 +1047,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -1078,7 +1078,7 @@ namespace System.Globalization
             {
                 if (values[i] == null)
                 {
-                    throw new ArgumentNullException("value", SR.ArgumentNull_ArrayValue);
+                    throw new ArgumentNullException("value", SR.GetResourceString("ArgumentNull_ArrayValue"));
                 }
             }
         }
@@ -1090,7 +1090,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -1098,7 +1098,7 @@ namespace System.Globalization
                 }
                 if (value.Length != 7)
                 {
-                    throw new ArgumentException(SR.Format(SR.Argument_InvalidArrayLength, 7), nameof(value));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidArrayLength"), 7), nameof(value));
                 }
 
                 CheckNullValue(value, value.Length);
@@ -1118,7 +1118,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -1126,7 +1126,7 @@ namespace System.Globalization
                 }
                 if (value.Length != 7)
                 {
-                    throw new ArgumentException(SR.Format(SR.Argument_InvalidArrayLength, 7), nameof(value));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidArrayLength"), 7), nameof(value));
                 }
 
                 CheckNullValue(value, value.Length);
@@ -1141,7 +1141,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -1149,7 +1149,7 @@ namespace System.Globalization
                 }
                 if (value.Length != 7)
                 {
-                    throw new ArgumentException(SR.Format(SR.Argument_InvalidArrayLength, 7), nameof(value));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidArrayLength"), 7), nameof(value));
                 }
 
                 CheckNullValue(value, value.Length);
@@ -1166,7 +1166,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -1174,7 +1174,7 @@ namespace System.Globalization
                 }
                 if (value.Length != 13)
                 {
-                    throw new ArgumentException(SR.Format(SR.Argument_InvalidArrayLength, 13), nameof(value));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidArrayLength"), 13), nameof(value));
                 }
 
                 CheckNullValue(value, value.Length - 1);
@@ -1190,7 +1190,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -1198,7 +1198,7 @@ namespace System.Globalization
                 }
                 if (value.Length != 13)
                 {
-                    throw new ArgumentException(SR.Format(SR.Argument_InvalidArrayLength, 13), nameof(value));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidArrayLength"), 13), nameof(value));
                 }
 
                 CheckNullValue(value, value.Length - 1);
@@ -1231,7 +1231,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(month),
                     month,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 1, monthNamesArray.Length));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, monthNamesArray.Length));
             }
 
             return monthNamesArray[month - 1];
@@ -1290,7 +1290,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(dayofweek),
                     dayofweek,
-                    SR.Format(SR.ArgumentOutOfRange_Range, DayOfWeek.Sunday, DayOfWeek.Saturday));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), DayOfWeek.Sunday, DayOfWeek.Saturday));
             }
 
             // Don't call the public property AbbreviatedDayNames here since a clone is needed in that
@@ -1308,7 +1308,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(dayOfWeek),
                     dayOfWeek,
-                    SR.Format(SR.ArgumentOutOfRange_Range, DayOfWeek.Sunday, DayOfWeek.Saturday));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), DayOfWeek.Sunday, DayOfWeek.Saturday));
             }
 
             // Don't call the public property SuperShortDayNames here since a clone is needed in that
@@ -1411,7 +1411,7 @@ namespace System.Globalization
                     result = AllYearMonthPatterns;
                     break;
                 default:
-                    throw new ArgumentException(SR.Format(SR.Format_BadFormatSpecifier, format), nameof(format));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Format_BadFormatSpecifier"), format), nameof(format));
             }
             return result;
         }
@@ -1423,7 +1423,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(dayofweek),
                     dayofweek,
-                    SR.Format(SR.ArgumentOutOfRange_Range, DayOfWeek.Sunday, DayOfWeek.Saturday));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), DayOfWeek.Sunday, DayOfWeek.Saturday));
             }
 
             // Use the internal one so that we don't clone the array unnecessarily
@@ -1437,7 +1437,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(month),
                     month,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 1, 13));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, 13));
             }
 
             // Use the internal one so we don't clone the array unnecessarily
@@ -1451,7 +1451,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(month),
                     month,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 1, 13));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, 13));
             }
 
             // Use the internal one so we don't clone the array unnecessarily
@@ -1692,7 +1692,7 @@ namespace System.Globalization
         {
             if (IsReadOnly)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
             }
             if (patterns == null)
             {
@@ -1701,14 +1701,14 @@ namespace System.Globalization
 
             if (patterns.Length == 0)
             {
-                throw new ArgumentException(SR.Arg_ArrayZeroError, nameof(patterns));
+                throw new ArgumentException(SR.GetResourceString("Arg_ArrayZeroError"), nameof(patterns));
             }
 
             for (int i = 0; i < patterns.Length; i++)
             {
                 if (patterns[i] == null)
                 {
-                    throw new ArgumentNullException(nameof(patterns) + "[" + i + "]", SR.ArgumentNull_ArrayValue);
+                    throw new ArgumentNullException(nameof(patterns) + "[" + i + "]", SR.GetResourceString("ArgumentNull_ArrayValue"));
                 }
             }
 
@@ -1747,7 +1747,7 @@ namespace System.Globalization
                     break;
 
                 default:
-                    throw new ArgumentException(SR.Format(SR.Format_BadFormatSpecifier, format), nameof(format));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Format_BadFormatSpecifier"), format), nameof(format));
             }
         }
 
@@ -1758,7 +1758,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -1766,7 +1766,7 @@ namespace System.Globalization
                 }
                 if (value.Length != 13)
                 {
-                    throw new ArgumentException(SR.Format(SR.Argument_InvalidArrayLength, 13), nameof(value));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidArrayLength"), 13), nameof(value));
                 }
 
                 CheckNullValue(value, value.Length - 1);
@@ -1782,7 +1782,7 @@ namespace System.Globalization
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
                 }
                 if (value == null)
                 {
@@ -1790,7 +1790,7 @@ namespace System.Globalization
                 }
                 if (value.Length != 13)
                 {
-                    throw new ArgumentException(SR.Format(SR.Argument_InvalidArrayLength, 13), nameof(value));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidArrayLength"), 13), nameof(value));
                 }
 
                 CheckNullValue(value, value.Length - 1);
@@ -1830,16 +1830,16 @@ namespace System.Globalization
         {
             if ((style & InvalidDateTimeStyles) != 0)
             {
-                throw new ArgumentException(SR.Argument_InvalidDateTimeStyles, parameterName);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidDateTimeStyles"), parameterName);
             }
             if (((style & (DateTimeStyles.AssumeLocal)) != 0) && ((style & (DateTimeStyles.AssumeUniversal)) != 0))
             {
-                throw new ArgumentException(SR.Argument_ConflictingDateTimeStyles, parameterName);
+                throw new ArgumentException(SR.GetResourceString("Argument_ConflictingDateTimeStyles"), parameterName);
             }
             if (((style & DateTimeStyles.RoundtripKind) != 0)
                 && ((style & (DateTimeStyles.AssumeLocal | DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)) != 0))
             {
-                throw new ArgumentException(SR.Argument_ConflictingDateTimeRoundtripStyles, parameterName);
+                throw new ArgumentException(SR.GetResourceString("Argument_ConflictingDateTimeRoundtripStyles"), parameterName);
             }
         }
 

@@ -56,7 +56,7 @@ namespace System.Text
                     break;
             }
             if (bFoundHigh)
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidCharSequenceNoIndex, nameof(replacement)));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"), nameof(replacement)));
 
             _strDefault = replacement;
         }

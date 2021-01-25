@@ -29,7 +29,7 @@ namespace System
         }
 
         public OperationCanceledException()
-            : base(SR.OperationCanceled)
+            : base(SR.GetResourceString("OperationCanceled"))
         {
             HResult = HResults.COR_E_OPERATIONCANCELED;
         }

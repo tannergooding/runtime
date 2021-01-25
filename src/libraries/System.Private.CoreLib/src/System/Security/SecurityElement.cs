@@ -39,7 +39,7 @@ namespace System.Security
                 throw new ArgumentNullException(nameof(tag));
 
             if (!IsValidTag(tag))
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidElementTag, tag));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidElementTag"), tag));
 
             _tag = tag;
         }
@@ -50,10 +50,10 @@ namespace System.Security
                 throw new ArgumentNullException(nameof(tag));
 
             if (!IsValidTag(tag))
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidElementTag, tag));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidElementTag"), tag));
 
             if (text != null && !IsValidText(text))
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidElementText, text));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidElementText"), text));
 
             _tag = tag;
             _text = text;
@@ -70,7 +70,7 @@ namespace System.Security
                     throw new ArgumentNullException(nameof(Tag));
 
                 if (!IsValidTag(value))
-                    throw new ArgumentException(SR.Format(SR.Argument_InvalidElementTag, value));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidElementTag"), value));
 
                 _tag = value;
             }
@@ -117,10 +117,10 @@ namespace System.Security
                         string? attrValue = (string?)enumerator.Value;
 
                         if (!IsValidAttributeName(attrName))
-                            throw new ArgumentException(SR.Format(SR.Argument_InvalidElementName, attrName));
+                            throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidElementName"), attrName));
 
                         if (!IsValidAttributeValue(attrValue))
-                            throw new ArgumentException(SR.Format(SR.Argument_InvalidElementValue, attrValue));
+                            throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidElementValue"), attrValue));
 
                         list.Add(attrName);
                         list.Add(attrValue);
@@ -143,7 +143,7 @@ namespace System.Security
                 else
                 {
                     if (!IsValidText(value))
-                        throw new ArgumentException(SR.Format(SR.Argument_InvalidElementTag, value));
+                        throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidElementTag"), value));
 
                     _text = value;
                 }
@@ -161,7 +161,7 @@ namespace System.Security
             {
                 if (value != null && value.Contains(null))
                 {
-                    throw new ArgumentException(SR.ArgumentNull_Child);
+                    throw new ArgumentException(SR.GetResourceString("ArgumentNull_Child"));
                 }
                 _children = value;
             }
@@ -185,7 +185,7 @@ namespace System.Security
                     string? strAttrName = (string?)_attributes[i];
 
                     if (string.Equals(strAttrName, name))
-                        throw new ArgumentException(SR.Argument_AttributeNamesMustBeUnique);
+                        throw new ArgumentException(SR.GetResourceString("Argument_AttributeNamesMustBeUnique"));
                 }
             }
 
@@ -202,10 +202,10 @@ namespace System.Security
                 throw new ArgumentNullException(nameof(value));
 
             if (!IsValidAttributeName(name))
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidElementName, name));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidElementName"), name));
 
             if (!IsValidAttributeValue(value))
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidElementValue, value));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidElementValue"), value));
 
             AddAttributeSafe(name, value);
         }

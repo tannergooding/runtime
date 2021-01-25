@@ -19,7 +19,7 @@ namespace System
     public class TimeoutException : SystemException
     {
         public TimeoutException()
-            : base(SR.Arg_TimeoutException)
+            : base(SR.GetResourceString("Arg_TimeoutException"))
         {
             HResult = HResults.COR_E_TIMEOUT;
         }

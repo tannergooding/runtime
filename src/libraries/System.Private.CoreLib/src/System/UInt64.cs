@@ -42,7 +42,7 @@ namespace System
                 return 0;
             }
 
-            throw new ArgumentException(SR.Arg_MustBeUInt64);
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeUInt64"));
         }
 
         public int CompareTo(ulong value)
@@ -243,7 +243,7 @@ namespace System
 
         DateTime IConvertible.ToDateTime(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "UInt64", "DateTime"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "UInt64", "DateTime"));
         }
 
         object IConvertible.ToType(Type type, IFormatProvider? provider)

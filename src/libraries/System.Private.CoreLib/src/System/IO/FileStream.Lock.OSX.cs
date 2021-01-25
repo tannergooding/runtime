@@ -7,12 +7,12 @@ namespace System.IO
     {
         private static void LockInternal(long position, long length)
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_OSXFileLocking);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_OSXFileLocking"));
         }
 
         private static void UnlockInternal(long position, long length)
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_OSXFileLocking);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_OSXFileLocking"));
         }
     }
 }

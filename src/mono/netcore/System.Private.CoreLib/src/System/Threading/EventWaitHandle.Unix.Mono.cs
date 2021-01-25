@@ -41,7 +41,7 @@ namespace System.Threading
         private unsafe void CreateEventCore(bool initialState, EventResetMode mode, string? name, out bool createdNew)
         {
             if (name != null)
-                throw new PlatformNotSupportedException(SR.PlatformNotSupported_NamedSynchronizationPrimitives);
+                throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_NamedSynchronizationPrimitives"));
 
             SafeWaitHandle handle = new SafeWaitHandle(CreateEventInternal(mode == EventResetMode.ManualReset, initialState, null, 0, out int errorCode), ownsHandle: true);
             if (errorCode != 0)
@@ -53,7 +53,7 @@ namespace System.Threading
 
         private static OpenExistingResult OpenExistingWorker(string name, out EventWaitHandle result)
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_NamedSynchronizationPrimitives);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_NamedSynchronizationPrimitives"));
         }
 
         internal static bool Set(SafeWaitHandle waitHandle)

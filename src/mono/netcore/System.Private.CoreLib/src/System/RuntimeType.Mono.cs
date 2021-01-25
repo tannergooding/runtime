@@ -809,7 +809,7 @@ namespace System
                     {
                         MethodInfo methodInfo = candidates[j];
                         if (!System.DefaultBinder.CompareMethodSig(methodInfo, firstCandidate))
-                            throw new AmbiguousMatchException(SR.Arg_AmbiguousMatchException);
+                            throw new AmbiguousMatchException(SR.GetResourceString("Arg_AmbiguousMatchException"));
                     }
 
                     // All the methods have the exact same name and sig so return the most derived one.
@@ -880,7 +880,7 @@ namespace System
                 {
                     if (returnType is null)
                         // if we are here we have no args or property type to select over and we have more than one property with that name
-                        throw new AmbiguousMatchException(SR.Arg_AmbiguousMatchException);
+                        throw new AmbiguousMatchException(SR.GetResourceString("Arg_AmbiguousMatchException"));
                 }
             }
 
@@ -913,7 +913,7 @@ namespace System
                 if ((bindingAttr & eventInfo.BindingFlags) == eventInfo.BindingFlags)
                 {
                     if (match != null)
-                        throw new AmbiguousMatchException(SR.Arg_AmbiguousMatchException);
+                        throw new AmbiguousMatchException(SR.GetResourceString("Arg_AmbiguousMatchException"));
 
                     match = eventInfo;
                 }
@@ -944,7 +944,7 @@ namespace System
                     if (match != null)
                     {
                         if (ReferenceEquals(fieldInfo.DeclaringType, match.DeclaringType))
-                            throw new AmbiguousMatchException(SR.Arg_AmbiguousMatchException);
+                            throw new AmbiguousMatchException(SR.GetResourceString("Arg_AmbiguousMatchException"));
 
                         if ((match.DeclaringType!.IsInterface == true) && (fieldInfo.DeclaringType!.IsInterface == true))
                             multipleStaticFieldMatches = true;
@@ -956,7 +956,7 @@ namespace System
             }
 
             if (multipleStaticFieldMatches && match!.DeclaringType!.IsInterface)
-                throw new AmbiguousMatchException(SR.Arg_AmbiguousMatchException);
+                throw new AmbiguousMatchException(SR.GetResourceString("Arg_AmbiguousMatchException"));
 
             return match;
         }
@@ -1005,7 +1005,7 @@ namespace System
                 if (FilterApplyType(iface, bindingAttr, name, false, ns))
                 {
                     if (match != null)
-                        throw new AmbiguousMatchException(SR.Arg_AmbiguousMatchException);
+                        throw new AmbiguousMatchException(SR.GetResourceString("Arg_AmbiguousMatchException"));
 
                     match = iface;
                 }
@@ -1034,7 +1034,7 @@ namespace System
                 if (FilterApplyType(nestedType, bindingAttr, name, false, ns))
                 {
                     if (match != null)
-                        throw new AmbiguousMatchException(SR.Arg_AmbiguousMatchException);
+                        throw new AmbiguousMatchException(SR.GetResourceString("Arg_AmbiguousMatchException"));
 
                     match = nestedType;
                 }
@@ -1161,7 +1161,7 @@ namespace System
             get
             {
                 if (!IsGenericParameter)
-                    throw new InvalidOperationException(SR.Arg_NotGenericParameter);
+                    throw new InvalidOperationException(SR.GetResourceString("Arg_NotGenericParameter"));
 
                 return GetGenericParameterAttributes();
             }
@@ -1194,10 +1194,10 @@ namespace System
             RuntimeType[] instantiationRuntimeType = new RuntimeType[instantiation.Length];
 
             if (!IsGenericTypeDefinition)
-                throw new InvalidOperationException(SR.Format(SR.Arg_NotGenericTypeDefinition, this));
+                throw new InvalidOperationException(SR.Format(SR.GetResourceString("Arg_NotGenericTypeDefinition"), this));
 
             if (GetGenericArguments().Length != instantiation.Length)
-                throw new ArgumentException(SR.Argument_GenericArgsCount, nameof(instantiation));
+                throw new ArgumentException(SR.GetResourceString("Argument_GenericArgsCount"), nameof(instantiation));
 
             for (int i = 0; i < instantiation.Length; i++)
             {
@@ -1237,7 +1237,7 @@ namespace System
             get
             {
                 if (!IsGenericParameter)
-                    throw new InvalidOperationException(SR.Arg_NotGenericParameter);
+                    throw new InvalidOperationException(SR.GetResourceString("Arg_NotGenericParameter"));
 
                 return GetGenericParameterPosition();
             }
@@ -1259,15 +1259,15 @@ namespace System
         private void CreateInstanceCheckThis()
         {
             if (ContainsGenericParameters)
-                throw new ArgumentException(SR.Format(SR.Acc_CreateGenericEx, this));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Acc_CreateGenericEx"), this));
 
             Type elementType = GetRootElementType();
 
             if (ReferenceEquals(elementType, typeof(ArgIterator)))
-                throw new NotSupportedException(SR.Acc_CreateArgIterator);
+                throw new NotSupportedException(SR.GetResourceString("Acc_CreateArgIterator"));
 
             if (ReferenceEquals(elementType, typeof(void)))
-                throw new NotSupportedException(SR.Acc_CreateVoid);
+                throw new NotSupportedException(SR.GetResourceString("Acc_CreateVoid"));
         }
 
         [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2082:UnrecognizedReflectionPattern",
@@ -1330,7 +1330,7 @@ namespace System
 
                         if (cons == null)
                         {
-                            throw new MissingMethodException(SR.Format(SR.MissingConstructor_Name, FullName));
+                            throw new MissingMethodException(SR.Format(SR.GetResourceString("MissingConstructor_Name"), FullName));
                         }
 
                         MethodBase? invokeMethod;
@@ -1344,7 +1344,7 @@ namespace System
 
                         if (invokeMethod == null)
                         {
-                            throw new MissingMethodException(SR.Format(SR.MissingConstructor_Name, FullName));
+                            throw new MissingMethodException(SR.Format(SR.GetResourceString("MissingConstructor_Name"), FullName));
                         }
 
                         if (invokeMethod.GetParametersNoCopy().Length == 0)
@@ -1354,7 +1354,7 @@ namespace System
 
                                 Debug.Assert((invokeMethod.CallingConvention & CallingConventions.VarArgs) ==
                                                  CallingConventions.VarArgs);
-                                throw new NotSupportedException(SR.NotSupported_CallToVarArg);
+                                throw new NotSupportedException(SR.GetResourceString("NotSupported_CallToVarArg"));
                             }
 
                             // fast path??
@@ -1387,7 +1387,7 @@ namespace System
         internal object? CreateInstanceDefaultCtor(bool publicOnly, bool wrapExceptions)
         {
             if (IsByRefLike)
-                throw new NotSupportedException(SR.NotSupported_ByRefLike);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ByRefLike"));
 
             CreateInstanceCheckThis();
 
@@ -1510,7 +1510,7 @@ namespace System
             RuntimeConstructorInfo? ctor = GetDefaultConstructor();
             if (!nonPublic && ctor != null && !ctor.IsPublic)
             {
-                throw new MissingMethodException(SR.Format(SR.Arg_NoDefCTor, this));
+                throw new MissingMethodException(SR.Format(SR.GetResourceString("Arg_NoDefCTor"), this));
             }
 
             if (ctor == null)
@@ -1522,7 +1522,7 @@ namespace System
                 if (IsValueType)
                     return CreateInstanceInternal(this);
 
-                throw new MissingMethodException(SR.Format(SR.Arg_NoDefCTor, this));
+                throw new MissingMethodException(SR.Format(SR.GetResourceString("Arg_NoDefCTor"), this));
             }
 
             // TODO: .net does more checks in unmanaged land in RuntimeTypeHandle::CreateInstance
@@ -1542,12 +1542,12 @@ namespace System
                 return res;
 
             if ((invokeAttr & BindingFlags.ExactBinding) == BindingFlags.ExactBinding)
-                throw new ArgumentException(SR.Format(SR.Arg_ObjObjEx, value!.GetType(), this));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_ObjObjEx"), value!.GetType(), this));
 
             if (binder != null && binder != DefaultBinder)
                 return binder.ChangeType(value!, this, culture);
 
-            throw new ArgumentException(SR.Format(SR.Arg_ObjObjEx, value!.GetType(), this));
+            throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_ObjObjEx"), value!.GetType(), this));
         }
 
         private object? TryConvertToType(object? value, ref bool failed)
@@ -1827,7 +1827,7 @@ namespace System
         public override Type[] GetGenericParameterConstraints()
         {
             if (!IsGenericParameter)
-                throw new InvalidOperationException(SR.Arg_NotGenericParameter);
+                throw new InvalidOperationException(SR.GetResourceString("Arg_NotGenericParameter"));
 
             var paramInfo = new Mono.RuntimeGenericParamInfoHandle(RuntimeTypeHandle.GetGenericParameterInfo(this));
             Type[] constraints = paramInfo.Constraints;
@@ -1840,7 +1840,7 @@ namespace System
             var gt = (RuntimeType)MakeGenericType(genericType, new Type[] { genericArgument });
             RuntimeConstructorInfo? ctor = gt.GetDefaultConstructor();
             if (ctor is null)
-                throw new MissingMethodException(SR.Format(SR.Arg_NoDefCTor, gt));
+                throw new MissingMethodException(SR.Format(SR.GetResourceString("Arg_NoDefCTor"), gt));
 
             return ctor.InternalInvoke(null, null, wrapExceptions: true)!;
         }
@@ -1910,7 +1910,7 @@ namespace System
         public override InterfaceMapping GetInterfaceMap(Type ifaceType)
         {
             if (IsGenericParameter)
-                throw new InvalidOperationException(SR.Arg_GenericParameter);
+                throw new InvalidOperationException(SR.GetResourceString("Arg_GenericParameter"));
 
             if (ifaceType is null)
                 throw new ArgumentNullException(nameof(ifaceType));
@@ -1918,7 +1918,7 @@ namespace System
             RuntimeType? ifaceRtType = ifaceType as RuntimeType;
 
             if (ifaceRtType == null)
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(ifaceType));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(ifaceType));
 
             InterfaceMapping res;
             if (!ifaceType.IsInterface)

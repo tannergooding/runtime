@@ -24,16 +24,16 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(fieldName));
 
             if (fieldName.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(fieldName));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(fieldName));
 
             if (fieldName[0] == '\0')
-                throw new ArgumentException(SR.Argument_IllegalName, nameof(fieldName));
+                throw new ArgumentException(SR.GetResourceString("Argument_IllegalName"), nameof(fieldName));
 
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
 
             if (type == typeof(void))
-                throw new ArgumentException(SR.Argument_BadFieldType);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadFieldType"));
 
             m_fieldName = fieldName;
             m_typeBuilder = typeBuilder;
@@ -100,7 +100,7 @@ namespace System.Reflection.Emit
             // a NotSupportedException for Save-only dynamic assemblies.
             // Otherwise, it could cause the .cctor to be executed.
 
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override void SetValue(object? obj, object? val, BindingFlags invokeAttr, Binder? binder, CultureInfo? culture)
@@ -109,10 +109,10 @@ namespace System.Reflection.Emit
             // a NotSupportedException for Save-only dynamic assemblies.
             // Otherwise, it could cause the .cctor to be executed.
 
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
-        public override RuntimeFieldHandle FieldHandle => throw new NotSupportedException(SR.NotSupported_DynamicModule);
+        public override RuntimeFieldHandle FieldHandle => throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
 
         public override FieldAttributes Attributes => m_Attributes;
 
@@ -121,17 +121,17 @@ namespace System.Reflection.Emit
         #region ICustomAttributeProvider Implementation
         public override object[] GetCustomAttributes(bool inherit)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override object[] GetCustomAttributes(Type attributeType, bool inherit)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override bool IsDefined(Type attributeType, bool inherit)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         #endregion
@@ -153,7 +153,7 @@ namespace System.Reflection.Emit
             {
                 // nullable types can hold null value.
                 if (!(m_fieldType.IsGenericType && m_fieldType.GetGenericTypeDefinition() == typeof(Nullable<>)))
-                    throw new ArgumentException(SR.Argument_ConstantNull);
+                    throw new ArgumentException(SR.GetResourceString("Argument_ConstantNull"));
             }
 
             TypeBuilder.SetConstantValue(m_typeBuilder.GetModuleBuilder(), m_fieldTok, m_fieldType, defaultValue);

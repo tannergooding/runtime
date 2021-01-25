@@ -112,7 +112,7 @@ namespace System.Reflection.Emit
         public unsafe void SetCode(byte* code, int codeSize, int maxStackSize)
         {
             if (codeSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(codeSize), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(codeSize), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             if (codeSize > 0 && code == null)
                 throw new ArgumentNullException(nameof(code));
 

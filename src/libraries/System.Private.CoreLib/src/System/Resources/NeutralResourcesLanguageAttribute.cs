@@ -20,7 +20,7 @@ namespace System.Resources
             if (cultureName == null)
                 throw new ArgumentNullException(nameof(cultureName));
             if (!Enum.IsDefined(typeof(UltimateResourceFallbackLocation), location))
-                throw new ArgumentException(SR.Format(SR.Arg_InvalidNeutralResourcesLanguage_FallbackLoc, location));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_InvalidNeutralResourcesLanguage_FallbackLoc"), location));
 
             CultureName = cultureName;
             Location = location;

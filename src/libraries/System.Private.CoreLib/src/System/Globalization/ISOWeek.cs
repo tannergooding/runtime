@@ -86,7 +86,7 @@ namespace System.Globalization
         {
             if (year < MinYear || year > MaxYear)
             {
-                throw new ArgumentOutOfRangeException(nameof(year), SR.ArgumentOutOfRange_Year);
+                throw new ArgumentOutOfRangeException(nameof(year), SR.GetResourceString("ArgumentOutOfRange_Year"));
             }
 
             static int P(int y) => (y + (y / 4) - (y / 100) + (y / 400)) % 7;
@@ -113,12 +113,12 @@ namespace System.Globalization
         {
             if (year < MinYear || year > MaxYear)
             {
-                throw new ArgumentOutOfRangeException(nameof(year), SR.ArgumentOutOfRange_Year);
+                throw new ArgumentOutOfRangeException(nameof(year), SR.GetResourceString("ArgumentOutOfRange_Year"));
             }
 
             if (week < MinWeek || week > MaxWeek)
             {
-                throw new ArgumentOutOfRangeException(nameof(week), SR.ArgumentOutOfRange_Week_ISO);
+                throw new ArgumentOutOfRangeException(nameof(week), SR.GetResourceString("ArgumentOutOfRange_Week_ISO"));
             }
 
             // We allow 7 for convenience in cases where a user already has a valid ISO
@@ -126,7 +126,7 @@ namespace System.Globalization
             // The GetWeekday method will normalize this into the 1-7 range required by ISO.
             if ((int)dayOfWeek < 0 || (int)dayOfWeek > 7)
             {
-                throw new ArgumentOutOfRangeException(nameof(dayOfWeek), SR.ArgumentOutOfRange_DayOfWeek);
+                throw new ArgumentOutOfRangeException(nameof(dayOfWeek), SR.GetResourceString("ArgumentOutOfRange_DayOfWeek"));
             }
 
             var jan4 = new DateTime(year, month: 1, day: 4);

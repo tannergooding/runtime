@@ -1238,7 +1238,7 @@ ReturnResult:
                 return value;
 
 ThrowOverflow:
-                throw new OverflowException(SR.Overflow_Currency);
+                throw new OverflowException(SR.GetResourceString("Overflow_Currency"));
             }
 
             /// <summary>

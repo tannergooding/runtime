@@ -33,7 +33,7 @@ namespace System.Reflection
                 {
                     TypeInfo typeinfo = types[i].GetTypeInfo();
                     if (typeinfo == null)
-                        throw new NotSupportedException(SR.Format(SR.NotSupported_NoTypeInfo, types[i].FullName));
+                        throw new NotSupportedException(SR.Format(SR.GetResourceString("NotSupported_NoTypeInfo"), types[i].FullName));
 
                     typeinfos[i] = typeinfo;
                 }
@@ -232,7 +232,7 @@ namespace System.Reflection
                 throw new ArgumentNullException(nameof(rawAssembly));
 
             if (rawAssembly.Length == 0)
-                throw new BadImageFormatException(SR.BadImageFormat_BadILFormat);
+                throw new BadImageFormatException(SR.GetResourceString("BadImageFormat_BadILFormat"));
 
             SerializationInfo.ThrowIfDeserializationInProgress("AllowAssembliesFromByteArrays",
                 ref s_cachedSerializationSwitch);
@@ -249,7 +249,7 @@ namespace System.Reflection
 
             if (PathInternal.IsPartiallyQualified(path))
             {
-                throw new ArgumentException(SR.Format(SR.Argument_AbsolutePathRequired, path), nameof(path));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_AbsolutePathRequired"), path), nameof(path));
             }
 
             string normalizedPath = Path.GetFullPath(path);
@@ -361,7 +361,7 @@ namespace System.Reflection
         [RequiresUnreferencedCode("Types and members the loaded assembly depends on might be removed")]
         public static Assembly LoadFrom(string assemblyFile, byte[]? hashValue, AssemblyHashAlgorithm hashAlgorithm)
         {
-            throw new NotSupportedException(SR.NotSupported_AssemblyLoadFromHash);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_AssemblyLoadFromHash"));
         }
 
         [RequiresUnreferencedCode("Types and members the loaded assembly depends on might be removed")]
@@ -373,11 +373,11 @@ namespace System.Reflection
         public virtual Module LoadModule(string moduleName, byte[]? rawModule, byte[]? rawSymbolStore) { throw NotImplemented.ByDesign; }
 
         [RequiresUnreferencedCode("Types and members the loaded assembly depends on might be removed")]
-        public static Assembly ReflectionOnlyLoad(byte[] rawAssembly) { throw new PlatformNotSupportedException(SR.PlatformNotSupported_ReflectionOnly); }
+        public static Assembly ReflectionOnlyLoad(byte[] rawAssembly) { throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ReflectionOnly")); }
         [RequiresUnreferencedCode("Types and members the loaded assembly depends on might be removed")]
-        public static Assembly ReflectionOnlyLoad(string assemblyString) { throw new PlatformNotSupportedException(SR.PlatformNotSupported_ReflectionOnly); }
+        public static Assembly ReflectionOnlyLoad(string assemblyString) { throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ReflectionOnly")); }
         [RequiresUnreferencedCode("Types and members the loaded assembly depends on might be removed")]
-        public static Assembly ReflectionOnlyLoadFrom(string assemblyFile) { throw new PlatformNotSupportedException(SR.PlatformNotSupported_ReflectionOnly); }
+        public static Assembly ReflectionOnlyLoadFrom(string assemblyFile) { throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ReflectionOnly")); }
 
         public virtual SecurityRuleSet SecurityRuleSet => SecurityRuleSet.None;
     }

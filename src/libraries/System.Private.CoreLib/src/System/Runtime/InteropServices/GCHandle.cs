@@ -33,12 +33,12 @@ namespace System.Runtime.InteropServices
             // Make sure the type parameter is within the valid range for the enum.
             if ((uint)type > (uint)GCHandleType.Pinned) // IMPORTANT: This must be kept in sync with the GCHandleType enum.
             {
-                throw new ArgumentOutOfRangeException(nameof(type), SR.ArgumentOutOfRange_Enum);
+                throw new ArgumentOutOfRangeException(nameof(type), SR.GetResourceString("ArgumentOutOfRange_Enum"));
             }
 
             if (type == GCHandleType.Pinned && !Marshal.IsPinnable(value))
             {
-                throw new ArgumentException(SR.ArgumentException_NotIsomorphic, nameof(value));
+                throw new ArgumentException(SR.GetResourceString("ArgumentException_NotIsomorphic"), nameof(value));
             }
 
             IntPtr handle = InternalAlloc(value, type);
@@ -92,7 +92,7 @@ namespace System.Runtime.InteropServices
 
                 if (IsPinned(handle) && !Marshal.IsPinnable(value))
                 {
-                    throw new ArgumentException(SR.ArgumentException_NotIsomorphic, nameof(value));
+                    throw new ArgumentException(SR.GetResourceString("ArgumentException_NotIsomorphic"), nameof(value));
                 }
 
                 InternalSet(GetHandleValue(handle), value);

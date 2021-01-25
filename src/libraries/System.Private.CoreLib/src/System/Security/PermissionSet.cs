@@ -24,12 +24,12 @@ namespace System.Security
         public void Assert() { }
         public bool ContainsNonCodeAccessPermissions() { return false; }
         [Obsolete]
-        public static byte[] ConvertPermissionSet(string inFormat, byte[] inData, string outFormat) { throw new PlatformNotSupportedException(SR.PlatformNotSupported_CAS); }
+        public static byte[] ConvertPermissionSet(string inFormat, byte[] inData, string outFormat) { throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_CAS")); }
         public virtual PermissionSet Copy() { return new PermissionSet(this); }
         public virtual void CopyTo(Array array, int index) { }
         public void Demand() { }
         [Obsolete]
-        public void Deny() { throw new PlatformNotSupportedException(SR.PlatformNotSupported_CAS); }
+        public void Deny() { throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_CAS")); }
         public override bool Equals(object? o) => base.Equals(o);
         public virtual void FromXml(SecurityElement et) { }
         public IEnumerator GetEnumerator() { return GetEnumeratorImpl(); }
@@ -41,7 +41,7 @@ namespace System.Security
         public bool IsEmpty() { return false; }
         public bool IsSubsetOf(PermissionSet? target) { return false; }
         public bool IsUnrestricted() { return false; }
-        public void PermitOnly() { throw new PlatformNotSupportedException(SR.PlatformNotSupported_CAS); }
+        public void PermitOnly() { throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_CAS")); }
         public IPermission? RemovePermission(Type? permClass) { return RemovePermissionImpl(permClass); }
         protected virtual IPermission? RemovePermissionImpl(Type? permClass) { return default; }
         public static void RevertAssert() { }

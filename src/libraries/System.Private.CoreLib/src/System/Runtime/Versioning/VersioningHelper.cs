@@ -34,12 +34,12 @@ namespace System.Runtime.Versioning
             ResourceScope fromResType = from & ResTypeMask;
             ResourceScope toResType = to & ResTypeMask;
             if (fromResType > toResType)
-                throw new ArgumentException(SR.Format(SR.Argument_ResourceScopeWrongDirection, fromResType, toResType), nameof(from));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_ResourceScopeWrongDirection"), fromResType, toResType), nameof(from));
 
             SxSRequirements requires = GetRequirements(to, from);
 
             if ((requires & (SxSRequirements.AssemblyName | SxSRequirements.TypeName)) != 0 && type == null)
-                throw new ArgumentNullException(nameof(type), SR.ArgumentNull_TypeRequiredByResourceScope);
+                throw new ArgumentNullException(nameof(type), SR.GetResourceString("ArgumentNull_TypeRequiredByResourceScope"));
 
             // Add in process ID, CLR base address, and appdomain ID's.  Also, use a character identifier
             // to ensure that these can never accidentally overlap (ie, you create enough appdomains and your
@@ -109,7 +109,7 @@ namespace System.Runtime.Versioning
                             break;
 
                         default:
-                            throw new ArgumentException(SR.Format(SR.Argument_BadResourceScopeTypeBits, consumeAsScope), nameof(consumeAsScope));
+                            throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_BadResourceScopeTypeBits"), consumeAsScope), nameof(consumeAsScope));
                     }
                     break;
 
@@ -123,7 +123,7 @@ namespace System.Runtime.Versioning
                     break;
 
                 default:
-                    throw new ArgumentException(SR.Format(SR.Argument_BadResourceScopeTypeBits, calleeScope), nameof(calleeScope));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_BadResourceScopeTypeBits"), calleeScope), nameof(calleeScope));
             }
 
             switch (calleeScope & VisibilityMask)
@@ -144,7 +144,7 @@ namespace System.Runtime.Versioning
                             break;
 
                         default:
-                            throw new ArgumentException(SR.Format(SR.Argument_BadResourceScopeVisibilityBits, consumeAsScope), nameof(consumeAsScope));
+                            throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_BadResourceScopeVisibilityBits"), consumeAsScope), nameof(consumeAsScope));
                     }
                     break;
 
@@ -158,7 +158,7 @@ namespace System.Runtime.Versioning
                     break;
 
                 default:
-                    throw new ArgumentException(SR.Format(SR.Argument_BadResourceScopeVisibilityBits, calleeScope), nameof(calleeScope));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_BadResourceScopeVisibilityBits"), calleeScope), nameof(calleeScope));
             }
 
             if (consumeAsScope == calleeScope)

@@ -24,7 +24,7 @@ namespace System
         // the empty string, its HRESULT set to COR_E_ARITHMETIC,
         // and its ExceptionInfo reference set to null.
         public ArithmeticException()
-            : base(SR.Arg_ArithmeticException)
+            : base(SR.GetResourceString("Arg_ArithmeticException"))
         {
             HResult = HResults.COR_E_ARITHMETIC;
         }

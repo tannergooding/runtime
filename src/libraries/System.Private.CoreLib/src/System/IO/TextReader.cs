@@ -70,19 +70,19 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             int n;
@@ -109,7 +109,7 @@ namespace System.IO
                 int numRead = Read(array, 0, buffer.Length);
                 if ((uint)numRead > (uint)buffer.Length)
                 {
-                    throw new IOException(SR.IO_InvalidReadLength);
+                    throw new IOException(SR.GetResourceString("IO_InvalidReadLength"));
                 }
                 new Span<char>(array, 0, numRead).CopyTo(buffer);
                 return numRead;
@@ -159,7 +159,7 @@ namespace System.IO
                 int numRead = ReadBlock(array, 0, buffer.Length);
                 if ((uint)numRead > (uint)buffer.Length)
                 {
-                    throw new IOException(SR.IO_InvalidReadLength);
+                    throw new IOException(SR.GetResourceString("IO_InvalidReadLength"));
                 }
                 new Span<char>(array, 0, numRead).CopyTo(buffer);
                 return numRead;
@@ -230,15 +230,15 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0 || count < 0)
             {
-                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             return ReadAsyncInternal(new Memory<char>(buffer, index, count), default).AsTask();
@@ -264,15 +264,15 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0 || count < 0)
             {
-                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             return ReadBlockAsyncInternal(new Memory<char>(buffer, index, count), default).AsTask();
@@ -375,11 +375,11 @@ namespace System.IO
             public override Task<int> ReadBlockAsync(char[] buffer, int index, int count)
             {
                 if (buffer == null)
-                    throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                    throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (buffer.Length - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 return Task.FromResult(ReadBlock(buffer, index, count));
             }
@@ -388,11 +388,11 @@ namespace System.IO
             public override Task<int> ReadAsync(char[] buffer, int index, int count)
             {
                 if (buffer == null)
-                    throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                    throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (buffer.Length - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 return Task.FromResult(Read(buffer, index, count));
             }

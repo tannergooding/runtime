@@ -64,7 +64,7 @@ namespace System.Threading
             }
             catch (MissingMethodException)
             {
-                throw new MissingMemberException(SR.Lazy_CreateValue_NoParameterlessCtorForT);
+                throw new MissingMemberException(SR.GetResourceString("Lazy_CreateValue_NoParameterlessCtorForT"));
             }
 
             Debug.Assert(target != null);
@@ -114,7 +114,7 @@ namespace System.Threading
             T value = valueFactory();
             if (value == null)
             {
-                throw new InvalidOperationException(SR.Lazy_StaticInit_InvalidOperation);
+                throw new InvalidOperationException(SR.GetResourceString("Lazy_StaticInit_InvalidOperation"));
             }
 
             Interlocked.CompareExchange(ref target, value, null!);
@@ -170,7 +170,7 @@ namespace System.Threading
                     }
                     catch (MissingMethodException)
                     {
-                        throw new MissingMemberException(SR.Lazy_CreateValue_NoParameterlessCtorForT);
+                        throw new MissingMemberException(SR.GetResourceString("Lazy_CreateValue_NoParameterlessCtorForT"));
                     }
 
                     Volatile.Write(ref initialized, true);
@@ -269,7 +269,7 @@ namespace System.Threading
                     Volatile.Write(ref target, valueFactory());
                     if (target == null)
                     {
-                        throw new InvalidOperationException(SR.Lazy_StaticInit_InvalidOperation);
+                        throw new InvalidOperationException(SR.GetResourceString("Lazy_StaticInit_InvalidOperation"));
                     }
                 }
             }

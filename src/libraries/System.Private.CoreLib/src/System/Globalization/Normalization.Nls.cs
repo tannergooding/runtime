@@ -38,16 +38,16 @@ namespace System.Globalization
                         normalizationForm != NormalizationForm.FormKC &&
                         normalizationForm != NormalizationForm.FormKD)
                     {
-                        throw new ArgumentException(SR.Argument_InvalidNormalizationForm, nameof(normalizationForm));
+                        throw new ArgumentException(SR.GetResourceString("Argument_InvalidNormalizationForm"), nameof(normalizationForm));
                     }
 
-                    throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex, nameof(strInput));
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"), nameof(strInput));
 
                 case Interop.Errors.ERROR_NOT_ENOUGH_MEMORY:
                     throw new OutOfMemoryException();
 
                 default:
-                    throw new InvalidOperationException(SR.Format(SR.UnknownError_Num, lastError));
+                    throw new InvalidOperationException(SR.Format(SR.GetResourceString("UnknownError_Num"), lastError));
             }
 
             return result != Interop.BOOL.FALSE;
@@ -116,18 +116,18 @@ namespace System.Globalization
                                 normalizationForm != NormalizationForm.FormKC &&
                                 normalizationForm != NormalizationForm.FormKD)
                             {
-                                throw new ArgumentException(SR.Argument_InvalidNormalizationForm, nameof(normalizationForm));
+                                throw new ArgumentException(SR.GetResourceString("Argument_InvalidNormalizationForm"), nameof(normalizationForm));
                             }
 
                             // Illegal code point or order found.  Ie: FFFE or D800 D800, etc.
-                            throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex, nameof(strInput));
+                            throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"), nameof(strInput));
 
                         case Interop.Errors.ERROR_NOT_ENOUGH_MEMORY:
                             throw new OutOfMemoryException();
 
                         default:
                             // We shouldn't get here...
-                            throw new InvalidOperationException(SR.Format(SR.UnknownError_Num, lastError));
+                            throw new InvalidOperationException(SR.Format(SR.GetResourceString("UnknownError_Num"), lastError));
                     }
                 }
             }

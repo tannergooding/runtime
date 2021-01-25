@@ -77,7 +77,7 @@ namespace System.Runtime.CompilerServices
         public static void PrepareMethod(RuntimeMethodHandle method)
         {
             if (method.IsNullHandle())
-                throw new ArgumentException(SR.Argument_InvalidHandle);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidHandle"));
             unsafe
             {
                 PrepareMethod(method.Value, null, 0);
@@ -87,7 +87,7 @@ namespace System.Runtime.CompilerServices
         public static void PrepareMethod(RuntimeMethodHandle method, RuntimeTypeHandle[]? instantiation)
         {
             if (method.IsNullHandle())
-                throw new ArgumentException(SR.Argument_InvalidHandle);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidHandle"));
             unsafe
             {
                 IntPtr[]? instantiations = RuntimeTypeHandle.CopyRuntimeTypeHandles(instantiation, out int length);
@@ -144,10 +144,10 @@ namespace System.Runtime.CompilerServices
             {
                 if (type is null)
                 {
-                    throw new ArgumentNullException(nameof(type), SR.ArgumentNull_Type);
+                    throw new ArgumentNullException(nameof(type), SR.GetResourceString("ArgumentNull_Type"));
                 }
 
-                throw new SerializationException(SR.Format(SR.Serialization_InvalidType, type));
+                throw new SerializationException(SR.Format(SR.GetResourceString("Serialization_InvalidType"), type));
             }
 
             return GetUninitializedObjectInternal(new RuntimeTypeHandle(rt).Value);

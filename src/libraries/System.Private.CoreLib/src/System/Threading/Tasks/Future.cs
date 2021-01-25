@@ -359,7 +359,7 @@ namespace System.Threading.Tasks
 
         // Debugger support
         private string DebuggerDisplayResultDescription =>
-            IsCompletedSuccessfully ? "" + m_result : SR.TaskT_DebuggerNoResult;
+            IsCompletedSuccessfully ? "" + m_result : SR.GetResourceString("TaskT_DebuggerNoResult");
 
         // Debugger support
         private string DebuggerDisplayMethodDescription =>

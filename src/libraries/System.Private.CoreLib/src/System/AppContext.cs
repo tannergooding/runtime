@@ -91,7 +91,7 @@ namespace System
             if (switchName == null)
                 throw new ArgumentNullException(nameof(switchName));
             if (switchName.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(switchName));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(switchName));
 
             if (s_switches != null)
             {
@@ -121,7 +121,7 @@ namespace System
             if (switchName == null)
                 throw new ArgumentNullException(nameof(switchName));
             if (switchName.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(switchName));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(switchName));
 
             if (s_switches == null)
             {

@@ -23,14 +23,14 @@ namespace System
         // Creates a new ArgumentNullException with its message
         // string set to a default message explaining an argument was null.
         public ArgumentNullException()
-             : base(SR.ArgumentNull_Generic)
+             : base(SR.GetResourceString("ArgumentNull_Generic"))
         {
             // Use E_POINTER - COM used that for null pointers.  Description is "invalid pointer"
             HResult = HResults.E_POINTER;
         }
 
         public ArgumentNullException(string? paramName)
-            : base(SR.ArgumentNull_Generic, paramName)
+            : base(SR.GetResourceString("ArgumentNull_Generic"), paramName)
         {
             HResult = HResults.E_POINTER;
         }

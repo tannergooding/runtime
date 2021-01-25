@@ -80,7 +80,7 @@ namespace System
                     throw new ArgumentNullException(nameof(value));
 
                 if (value.Length == 0)
-                    throw new ArgumentException(SR.Argument_PathEmpty, nameof(value));
+                    throw new ArgumentException(SR.GetResourceString("Argument_PathEmpty"), nameof(value));
 
                 CurrentDirectoryCore = value;
             }
@@ -109,10 +109,10 @@ namespace System
         public static string GetFolderPath(SpecialFolder folder, SpecialFolderOption option)
         {
             if (!Enum.IsDefined(typeof(SpecialFolder), folder))
-                throw new ArgumentOutOfRangeException(nameof(folder), folder, SR.Format(SR.Arg_EnumIllegalVal, folder));
+                throw new ArgumentOutOfRangeException(nameof(folder), folder, SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), folder));
 
             if (option != SpecialFolderOption.None && !Enum.IsDefined(typeof(SpecialFolderOption), option))
-                throw new ArgumentOutOfRangeException(nameof(option), option, SR.Format(SR.Arg_EnumIllegalVal, option));
+                throw new ArgumentOutOfRangeException(nameof(option), option, SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), option));
 
             return GetFolderPathCore(folder, option);
         }
@@ -213,7 +213,7 @@ namespace System
             if (target == EnvironmentVariableTarget.User)
                 return false;
 
-            throw new ArgumentOutOfRangeException(nameof(target), target, SR.Format(SR.Arg_EnumIllegalVal, target));
+            throw new ArgumentOutOfRangeException(nameof(target), target, SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), target));
         }
 
         private static void ValidateVariableAndValue(string variable, ref string? value)
@@ -222,13 +222,13 @@ namespace System
                 throw new ArgumentNullException(nameof(variable));
 
             if (variable.Length == 0)
-                throw new ArgumentException(SR.Argument_StringZeroLength, nameof(variable));
+                throw new ArgumentException(SR.GetResourceString("Argument_StringZeroLength"), nameof(variable));
 
             if (variable[0] == '\0')
-                throw new ArgumentException(SR.Argument_StringFirstCharIsZero, nameof(variable));
+                throw new ArgumentException(SR.GetResourceString("Argument_StringFirstCharIsZero"), nameof(variable));
 
             if (variable.Contains('='))
-                throw new ArgumentException(SR.Argument_IllegalEnvVarName, nameof(variable));
+                throw new ArgumentException(SR.GetResourceString("Argument_IllegalEnvVarName"), nameof(variable));
 
             if (string.IsNullOrEmpty(value) || value[0] == '\0')
             {

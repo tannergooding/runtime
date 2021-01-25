@@ -55,7 +55,7 @@ namespace Internal.IO
             {
                 long fileLength = fs.Length;
                 if (fileLength > int.MaxValue)
-                    throw new IOException(SR.IO_FileTooLong2GB);
+                    throw new IOException(SR.GetResourceString("IO_FileTooLong2GB"));
 
                 int index = 0;
                 int count = (int)fileLength;

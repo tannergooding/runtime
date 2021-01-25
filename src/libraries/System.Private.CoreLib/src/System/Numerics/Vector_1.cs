@@ -106,7 +106,7 @@ namespace System.Numerics
             if (values is null)
             {
                 // Match the JIT's exception type here. For perf, a NullReference is thrown instead of an ArgumentNull.
-                throw new NullReferenceException(SR.Arg_NullArgumentNullRef);
+                throw new NullReferenceException(SR.GetResourceString("Arg_NullArgumentNullRef"));
             }
 
             if (index < 0 || (values.Length - index) < Count)
@@ -221,17 +221,17 @@ namespace System.Numerics
             if (destination is null)
             {
                 // Match the JIT's exception type here. For perf, a NullReference is thrown instead of an ArgumentNull.
-                throw new NullReferenceException(SR.Arg_NullArgumentNullRef);
+                throw new NullReferenceException(SR.GetResourceString("Arg_NullArgumentNullRef"));
             }
 
             if ((uint)startIndex >= (uint)destination.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.Format(SR.Arg_ArgumentOutOfRangeException, startIndex));
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.Format(SR.GetResourceString("Arg_ArgumentOutOfRangeException"), startIndex));
             }
 
             if ((destination.Length - startIndex) < Count)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_ElementsInSourceIsGreaterThanDestination, startIndex));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_ElementsInSourceIsGreaterThanDestination"), startIndex));
             }
 
             Unsafe.WriteUnaligned<Vector<T>>(ref Unsafe.As<T, byte>(ref destination[startIndex]), this);
@@ -247,7 +247,7 @@ namespace System.Numerics
 
                 if ((uint)index >= (uint)Count)
                 {
-                    throw new IndexOutOfRangeException(SR.Format(SR.Arg_ArgumentOutOfRangeException, index));
+                    throw new IndexOutOfRangeException(SR.Format(SR.GetResourceString("Arg_ArgumentOutOfRangeException"), index));
                 }
 
                 return GetElement(index);
@@ -879,7 +879,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -928,7 +928,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -977,7 +977,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1026,7 +1026,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1075,7 +1075,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1124,7 +1124,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1173,7 +1173,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1222,7 +1222,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1271,7 +1271,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1320,7 +1320,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1369,7 +1369,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1404,7 +1404,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1453,7 +1453,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1470,7 +1470,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 
@@ -1487,7 +1487,7 @@ namespace System.Numerics
             }
             else
             {
-                throw new NotSupportedException(SR.Arg_TypeNotSupported);
+                throw new NotSupportedException(SR.GetResourceString("Arg_TypeNotSupported"));
             }
         }
 

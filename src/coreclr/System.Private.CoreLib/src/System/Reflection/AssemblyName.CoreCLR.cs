@@ -17,7 +17,7 @@ namespace System.Reflection
                 throw new ArgumentNullException(nameof(assemblyName));
             if ((assemblyName.Length == 0) ||
                 (assemblyName[0] == '\0'))
-                throw new ArgumentException(SR.Format_StringZeroLength);
+                throw new ArgumentException(SR.GetResourceString("Format_StringZeroLength"));
 
             _name = assemblyName;
             nInit();

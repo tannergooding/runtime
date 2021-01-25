@@ -10,7 +10,7 @@ namespace System.Security
     public class VerificationException : SystemException
     {
         public VerificationException()
-            : base(SR.Verification_Exception)
+            : base(SR.GetResourceString("Verification_Exception"))
         {
             HResult = HResults.COR_E_VERIFICATION;
         }

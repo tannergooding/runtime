@@ -8,7 +8,7 @@
 // The old way to throw an exception generates quite a lot IL code and assembly code.
 // Following is an example:
 //     C# source
-//          throw new ArgumentNullException(nameof(key), SR.ArgumentNull_Key);
+//          throw new ArgumentNullException(nameof(key), SR.GetResourceString("ArgumentNull_Key"));
 //     IL code:
 //          IL_0003:  ldstr      "key"
 //          IL_0008:  ldstr      "ArgumentNull_Key"
@@ -55,7 +55,7 @@ namespace System
         [DoesNotReturn]
         internal static void ThrowInvalidTypeWithPointersNotSupported(Type targetType)
         {
-            throw new ArgumentException(SR.Format(SR.Argument_InvalidTypeWithPointersNotSupported, targetType));
+            throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidTypeWithPointersNotSupported"), targetType));
         }
 
         [DoesNotReturn]
@@ -73,13 +73,13 @@ namespace System
         [DoesNotReturn]
         internal static void ThrowArgumentException_DestinationTooShort()
         {
-            throw new ArgumentException(SR.Argument_DestinationTooShort, "destination");
+            throw new ArgumentException(SR.GetResourceString("Argument_DestinationTooShort"), "destination");
         }
 
         [DoesNotReturn]
         internal static void ThrowArgumentException_OverlapAlignmentMismatch()
         {
-            throw new ArgumentException(SR.Argument_OverlapAlignmentMismatch);
+            throw new ArgumentException(SR.GetResourceString("Argument_OverlapAlignmentMismatch"));
         }
 
         [DoesNotReturn]
@@ -91,7 +91,7 @@ namespace System
         [DoesNotReturn]
         internal static void ThrowArgumentException_TupleIncorrectType(object obj)
         {
-            throw new ArgumentException(SR.Format(SR.ArgumentException_ValueTupleIncorrectType, obj.GetType()), "other");
+            throw new ArgumentException(SR.Format(SR.GetResourceString("ArgumentException_ValueTupleIncorrectType"), obj.GetType()), "other");
         }
 
         [DoesNotReturn]
@@ -104,7 +104,7 @@ namespace System
         [DoesNotReturn]
         internal static void ThrowArgumentException_BadComparer(object? comparer)
         {
-            throw new ArgumentException(SR.Format(SR.Arg_BogusIComparer, comparer));
+            throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_BogusIComparer"), comparer));
         }
 
         [DoesNotReturn]
@@ -152,19 +152,19 @@ namespace System
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRange_BadYearMonthDay()
         {
-            throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadYearMonthDay);
+            throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadYearMonthDay"));
         }
 
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRange_BadHourMinuteSecond()
         {
-            throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadHourMinuteSecond);
+            throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadHourMinuteSecond"));
         }
 
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRange_TimeSpanTooLong()
         {
-            throw new ArgumentOutOfRangeException(null, SR.Overflow_TimeSpanTooLong);
+            throw new ArgumentOutOfRangeException(null, SR.GetResourceString("Overflow_TimeSpanTooLong"));
         }
 
         [DoesNotReturn]
@@ -183,7 +183,7 @@ namespace System
 
         private static ArgumentException GetAddingDuplicateWithKeyArgumentException(object? key)
         {
-            return new ArgumentException(SR.Format(SR.Argument_AddingDuplicateWithKey, key));
+            return new ArgumentException(SR.Format(SR.GetResourceString("Argument_AddingDuplicateWithKey"), key));
         }
 
         [DoesNotReturn]
@@ -268,7 +268,7 @@ namespace System
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_OutstandingReferences()
         {
-            throw new InvalidOperationException(SR.Memory_OutstandingReferences);
+            throw new InvalidOperationException(SR.GetResourceString("Memory_OutstandingReferences"));
         }
 
         [DoesNotReturn]
@@ -340,19 +340,19 @@ namespace System
         [DoesNotReturn]
         internal static void ThrowArgumentException_Argument_InvalidArrayType()
         {
-            throw new ArgumentException(SR.Argument_InvalidArrayType);
+            throw new ArgumentException(SR.GetResourceString("Argument_InvalidArrayType"));
         }
 
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_InvalidOperation_EnumNotStarted()
         {
-            throw new InvalidOperationException(SR.InvalidOperation_EnumNotStarted);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumNotStarted"));
         }
 
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_InvalidOperation_EnumEnded()
         {
-            throw new InvalidOperationException(SR.InvalidOperation_EnumEnded);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumEnded"));
         }
 
         [DoesNotReturn]
@@ -364,37 +364,37 @@ namespace System
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_InvalidOperation_EnumFailedVersion()
         {
-            throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumFailedVersion"));
         }
 
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_InvalidOperation_EnumOpCantHappen()
         {
-            throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumOpCantHappen"));
         }
 
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_InvalidOperation_NoValue()
         {
-            throw new InvalidOperationException(SR.InvalidOperation_NoValue);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NoValue"));
         }
 
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_ConcurrentOperationsNotSupported()
         {
-            throw new InvalidOperationException(SR.InvalidOperation_ConcurrentOperationsNotSupported);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ConcurrentOperationsNotSupported"));
         }
 
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_HandleIsNotInitialized()
         {
-            throw new InvalidOperationException(SR.InvalidOperation_HandleIsNotInitialized);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_HandleIsNotInitialized"));
         }
 
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_HandleIsNotPinned()
         {
-            throw new InvalidOperationException(SR.InvalidOperation_HandleIsNotPinned);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_HandleIsNotPinned"));
         }
 
         [DoesNotReturn]
@@ -406,19 +406,19 @@ namespace System
         [DoesNotReturn]
         internal static void ThrowFormatException_BadFormatSpecifier()
         {
-            throw new FormatException(SR.Argument_BadFormatSpecifier);
+            throw new FormatException(SR.GetResourceString("Argument_BadFormatSpecifier"));
         }
 
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRangeException_PrecisionTooLarge()
         {
-            throw new ArgumentOutOfRangeException("precision", SR.Format(SR.Argument_PrecisionTooLarge, StandardFormat.MaxPrecision));
+            throw new ArgumentOutOfRangeException("precision", SR.Format(SR.GetResourceString("Argument_PrecisionTooLarge"), StandardFormat.MaxPrecision));
         }
 
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRangeException_SymbolDoesNotFit()
         {
-            throw new ArgumentOutOfRangeException("symbol", SR.Argument_BadFormatSpecifier);
+            throw new ArgumentOutOfRangeException("symbol", SR.GetResourceString("Argument_BadFormatSpecifier"));
         }
 
         private static Exception GetArraySegmentCtorValidationFailedException(Array? array, int offset, int count)
@@ -426,12 +426,12 @@ namespace System
             if (array == null)
                 return new ArgumentNullException(nameof(array));
             if (offset < 0)
-                return new ArgumentOutOfRangeException(nameof(offset), SR.ArgumentOutOfRange_NeedNonNegNum);
+                return new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
-                return new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                return new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             Debug.Assert(array.Length - offset < count);
-            return new ArgumentException(SR.Argument_InvalidOffLen);
+            return new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
         }
 
         private static ArgumentException GetArgumentException(ExceptionResource resource)
@@ -446,17 +446,17 @@ namespace System
 
         private static ArgumentException GetWrongKeyTypeArgumentException(object? key, Type targetType)
         {
-            return new ArgumentException(SR.Format(SR.Arg_WrongType, key, targetType), nameof(key));
+            return new ArgumentException(SR.Format(SR.GetResourceString("Arg_WrongType"), key, targetType), nameof(key));
         }
 
         private static ArgumentException GetWrongValueTypeArgumentException(object? value, Type targetType)
         {
-            return new ArgumentException(SR.Format(SR.Arg_WrongType, value, targetType), nameof(value));
+            return new ArgumentException(SR.Format(SR.GetResourceString("Arg_WrongType"), value, targetType), nameof(value));
         }
 
         private static KeyNotFoundException GetKeyNotFoundException(object? key)
         {
-            return new KeyNotFoundException(SR.Format(SR.Arg_KeyNotFoundWithKey, key));
+            return new KeyNotFoundException(SR.Format(SR.GetResourceString("Arg_KeyNotFoundWithKey"), key));
         }
 
         private static ArgumentOutOfRangeException GetArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
@@ -478,8 +478,8 @@ namespace System
         {
             return new InvalidOperationException(
                 index < 0 ?
-                SR.InvalidOperation_EnumNotStarted :
-                SR.InvalidOperation_EnumEnded);
+                SR.GetResourceString("InvalidOperation_EnumNotStarted") :
+                SR.GetResourceString("InvalidOperation_EnumEnded"));
         }
 
         // Allow nulls for reference types and Nullable<U>, but not for value types.
@@ -732,139 +732,139 @@ namespace System
             switch (resource)
             {
                 case ExceptionResource.ArgumentOutOfRange_Index:
-                    return SR.ArgumentOutOfRange_Index;
+                    return SR.GetResourceString("ArgumentOutOfRange_Index");
                 case ExceptionResource.ArgumentOutOfRange_IndexCount:
-                    return SR.ArgumentOutOfRange_IndexCount;
+                    return SR.GetResourceString("ArgumentOutOfRange_IndexCount");
                 case ExceptionResource.ArgumentOutOfRange_IndexCountBuffer:
-                    return SR.ArgumentOutOfRange_IndexCountBuffer;
+                    return SR.GetResourceString("ArgumentOutOfRange_IndexCountBuffer");
                 case ExceptionResource.ArgumentOutOfRange_Count:
-                    return SR.ArgumentOutOfRange_Count;
+                    return SR.GetResourceString("ArgumentOutOfRange_Count");
                 case ExceptionResource.ArgumentOutOfRange_Year:
-                    return SR.ArgumentOutOfRange_Year;
+                    return SR.GetResourceString("ArgumentOutOfRange_Year");
                 case ExceptionResource.Arg_ArrayPlusOffTooSmall:
-                    return SR.Arg_ArrayPlusOffTooSmall;
+                    return SR.GetResourceString("Arg_ArrayPlusOffTooSmall");
                 case ExceptionResource.NotSupported_ReadOnlyCollection:
-                    return SR.NotSupported_ReadOnlyCollection;
+                    return SR.GetResourceString("NotSupported_ReadOnlyCollection");
                 case ExceptionResource.Arg_RankMultiDimNotSupported:
-                    return SR.Arg_RankMultiDimNotSupported;
+                    return SR.GetResourceString("Arg_RankMultiDimNotSupported");
                 case ExceptionResource.Arg_NonZeroLowerBound:
-                    return SR.Arg_NonZeroLowerBound;
+                    return SR.GetResourceString("Arg_NonZeroLowerBound");
                 case ExceptionResource.ArgumentOutOfRange_GetCharCountOverflow:
-                    return SR.ArgumentOutOfRange_GetCharCountOverflow;
+                    return SR.GetResourceString("ArgumentOutOfRange_GetCharCountOverflow");
                 case ExceptionResource.ArgumentOutOfRange_ListInsert:
-                    return SR.ArgumentOutOfRange_ListInsert;
+                    return SR.GetResourceString("ArgumentOutOfRange_ListInsert");
                 case ExceptionResource.ArgumentOutOfRange_NeedNonNegNum:
-                    return SR.ArgumentOutOfRange_NeedNonNegNum;
+                    return SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum");
                 case ExceptionResource.ArgumentOutOfRange_SmallCapacity:
-                    return SR.ArgumentOutOfRange_SmallCapacity;
+                    return SR.GetResourceString("ArgumentOutOfRange_SmallCapacity");
                 case ExceptionResource.Argument_InvalidOffLen:
-                    return SR.Argument_InvalidOffLen;
+                    return SR.GetResourceString("Argument_InvalidOffLen");
                 case ExceptionResource.Argument_CannotExtractScalar:
-                    return SR.Argument_CannotExtractScalar;
+                    return SR.GetResourceString("Argument_CannotExtractScalar");
                 case ExceptionResource.ArgumentOutOfRange_BiggerThanCollection:
-                    return SR.ArgumentOutOfRange_BiggerThanCollection;
+                    return SR.GetResourceString("ArgumentOutOfRange_BiggerThanCollection");
                 case ExceptionResource.Serialization_MissingKeys:
-                    return SR.Serialization_MissingKeys;
+                    return SR.GetResourceString("Serialization_MissingKeys");
                 case ExceptionResource.Serialization_NullKey:
-                    return SR.Serialization_NullKey;
+                    return SR.GetResourceString("Serialization_NullKey");
                 case ExceptionResource.NotSupported_KeyCollectionSet:
-                    return SR.NotSupported_KeyCollectionSet;
+                    return SR.GetResourceString("NotSupported_KeyCollectionSet");
                 case ExceptionResource.NotSupported_ValueCollectionSet:
-                    return SR.NotSupported_ValueCollectionSet;
+                    return SR.GetResourceString("NotSupported_ValueCollectionSet");
                 case ExceptionResource.InvalidOperation_NullArray:
-                    return SR.InvalidOperation_NullArray;
+                    return SR.GetResourceString("InvalidOperation_NullArray");
                 case ExceptionResource.TaskT_TransitionToFinal_AlreadyCompleted:
-                    return SR.TaskT_TransitionToFinal_AlreadyCompleted;
+                    return SR.GetResourceString("TaskT_TransitionToFinal_AlreadyCompleted");
                 case ExceptionResource.TaskCompletionSourceT_TrySetException_NullException:
-                    return SR.TaskCompletionSourceT_TrySetException_NullException;
+                    return SR.GetResourceString("TaskCompletionSourceT_TrySetException_NullException");
                 case ExceptionResource.TaskCompletionSourceT_TrySetException_NoExceptions:
-                    return SR.TaskCompletionSourceT_TrySetException_NoExceptions;
+                    return SR.GetResourceString("TaskCompletionSourceT_TrySetException_NoExceptions");
                 case ExceptionResource.NotSupported_StringComparison:
-                    return SR.NotSupported_StringComparison;
+                    return SR.GetResourceString("NotSupported_StringComparison");
                 case ExceptionResource.ConcurrentCollection_SyncRoot_NotSupported:
-                    return SR.ConcurrentCollection_SyncRoot_NotSupported;
+                    return SR.GetResourceString("ConcurrentCollection_SyncRoot_NotSupported");
                 case ExceptionResource.Task_MultiTaskContinuation_NullTask:
-                    return SR.Task_MultiTaskContinuation_NullTask;
+                    return SR.GetResourceString("Task_MultiTaskContinuation_NullTask");
                 case ExceptionResource.InvalidOperation_WrongAsyncResultOrEndCalledMultiple:
-                    return SR.InvalidOperation_WrongAsyncResultOrEndCalledMultiple;
+                    return SR.GetResourceString("InvalidOperation_WrongAsyncResultOrEndCalledMultiple");
                 case ExceptionResource.Task_MultiTaskContinuation_EmptyTaskList:
-                    return SR.Task_MultiTaskContinuation_EmptyTaskList;
+                    return SR.GetResourceString("Task_MultiTaskContinuation_EmptyTaskList");
                 case ExceptionResource.Task_Start_TaskCompleted:
-                    return SR.Task_Start_TaskCompleted;
+                    return SR.GetResourceString("Task_Start_TaskCompleted");
                 case ExceptionResource.Task_Start_Promise:
-                    return SR.Task_Start_Promise;
+                    return SR.GetResourceString("Task_Start_Promise");
                 case ExceptionResource.Task_Start_ContinuationTask:
-                    return SR.Task_Start_ContinuationTask;
+                    return SR.GetResourceString("Task_Start_ContinuationTask");
                 case ExceptionResource.Task_Start_AlreadyStarted:
-                    return SR.Task_Start_AlreadyStarted;
+                    return SR.GetResourceString("Task_Start_AlreadyStarted");
                 case ExceptionResource.Task_RunSynchronously_Continuation:
-                    return SR.Task_RunSynchronously_Continuation;
+                    return SR.GetResourceString("Task_RunSynchronously_Continuation");
                 case ExceptionResource.Task_RunSynchronously_Promise:
-                    return SR.Task_RunSynchronously_Promise;
+                    return SR.GetResourceString("Task_RunSynchronously_Promise");
                 case ExceptionResource.Task_RunSynchronously_TaskCompleted:
-                    return SR.Task_RunSynchronously_TaskCompleted;
+                    return SR.GetResourceString("Task_RunSynchronously_TaskCompleted");
                 case ExceptionResource.Task_RunSynchronously_AlreadyStarted:
-                    return SR.Task_RunSynchronously_AlreadyStarted;
+                    return SR.GetResourceString("Task_RunSynchronously_AlreadyStarted");
                 case ExceptionResource.AsyncMethodBuilder_InstanceNotInitialized:
-                    return SR.AsyncMethodBuilder_InstanceNotInitialized;
+                    return SR.GetResourceString("AsyncMethodBuilder_InstanceNotInitialized");
                 case ExceptionResource.Task_ContinueWith_ESandLR:
-                    return SR.Task_ContinueWith_ESandLR;
+                    return SR.GetResourceString("Task_ContinueWith_ESandLR");
                 case ExceptionResource.Task_ContinueWith_NotOnAnything:
-                    return SR.Task_ContinueWith_NotOnAnything;
+                    return SR.GetResourceString("Task_ContinueWith_NotOnAnything");
                 case ExceptionResource.Task_Delay_InvalidDelay:
-                    return SR.Task_Delay_InvalidDelay;
+                    return SR.GetResourceString("Task_Delay_InvalidDelay");
                 case ExceptionResource.Task_Delay_InvalidMillisecondsDelay:
-                    return SR.Task_Delay_InvalidMillisecondsDelay;
+                    return SR.GetResourceString("Task_Delay_InvalidMillisecondsDelay");
                 case ExceptionResource.Task_Dispose_NotCompleted:
-                    return SR.Task_Dispose_NotCompleted;
+                    return SR.GetResourceString("Task_Dispose_NotCompleted");
                 case ExceptionResource.Task_ThrowIfDisposed:
-                    return SR.Task_ThrowIfDisposed;
+                    return SR.GetResourceString("Task_ThrowIfDisposed");
                 case ExceptionResource.Task_WaitMulti_NullTask:
-                    return SR.Task_WaitMulti_NullTask;
+                    return SR.GetResourceString("Task_WaitMulti_NullTask");
                 case ExceptionResource.ArgumentException_OtherNotArrayOfCorrectLength:
-                    return SR.ArgumentException_OtherNotArrayOfCorrectLength;
+                    return SR.GetResourceString("ArgumentException_OtherNotArrayOfCorrectLength");
                 case ExceptionResource.ArgumentNull_Array:
-                    return SR.ArgumentNull_Array;
+                    return SR.GetResourceString("ArgumentNull_Array");
                 case ExceptionResource.ArgumentNull_SafeHandle:
-                    return SR.ArgumentNull_SafeHandle;
+                    return SR.GetResourceString("ArgumentNull_SafeHandle");
                 case ExceptionResource.ArgumentOutOfRange_EndIndexStartIndex:
-                    return SR.ArgumentOutOfRange_EndIndexStartIndex;
+                    return SR.GetResourceString("ArgumentOutOfRange_EndIndexStartIndex");
                 case ExceptionResource.ArgumentOutOfRange_Enum:
-                    return SR.ArgumentOutOfRange_Enum;
+                    return SR.GetResourceString("ArgumentOutOfRange_Enum");
                 case ExceptionResource.ArgumentOutOfRange_HugeArrayNotSupported:
-                    return SR.ArgumentOutOfRange_HugeArrayNotSupported;
+                    return SR.GetResourceString("ArgumentOutOfRange_HugeArrayNotSupported");
                 case ExceptionResource.Argument_AddingDuplicate:
-                    return SR.Argument_AddingDuplicate;
+                    return SR.GetResourceString("Argument_AddingDuplicate");
                 case ExceptionResource.Argument_InvalidArgumentForComparison:
-                    return SR.Argument_InvalidArgumentForComparison;
+                    return SR.GetResourceString("Argument_InvalidArgumentForComparison");
                 case ExceptionResource.Arg_LowerBoundsMustMatch:
-                    return SR.Arg_LowerBoundsMustMatch;
+                    return SR.GetResourceString("Arg_LowerBoundsMustMatch");
                 case ExceptionResource.Arg_MustBeType:
-                    return SR.Arg_MustBeType;
+                    return SR.GetResourceString("Arg_MustBeType");
                 case ExceptionResource.Arg_Need1DArray:
-                    return SR.Arg_Need1DArray;
+                    return SR.GetResourceString("Arg_Need1DArray");
                 case ExceptionResource.Arg_Need2DArray:
-                    return SR.Arg_Need2DArray;
+                    return SR.GetResourceString("Arg_Need2DArray");
                 case ExceptionResource.Arg_Need3DArray:
-                    return SR.Arg_Need3DArray;
+                    return SR.GetResourceString("Arg_Need3DArray");
                 case ExceptionResource.Arg_NeedAtLeast1Rank:
-                    return SR.Arg_NeedAtLeast1Rank;
+                    return SR.GetResourceString("Arg_NeedAtLeast1Rank");
                 case ExceptionResource.Arg_RankIndices:
-                    return SR.Arg_RankIndices;
+                    return SR.GetResourceString("Arg_RankIndices");
                 case ExceptionResource.Arg_RanksAndBounds:
-                    return SR.Arg_RanksAndBounds;
+                    return SR.GetResourceString("Arg_RanksAndBounds");
                 case ExceptionResource.InvalidOperation_IComparerFailed:
-                    return SR.InvalidOperation_IComparerFailed;
+                    return SR.GetResourceString("InvalidOperation_IComparerFailed");
                 case ExceptionResource.NotSupported_FixedSizeCollection:
-                    return SR.NotSupported_FixedSizeCollection;
+                    return SR.GetResourceString("NotSupported_FixedSizeCollection");
                 case ExceptionResource.Rank_MultiDimNotSupported:
-                    return SR.Rank_MultiDimNotSupported;
+                    return SR.GetResourceString("Rank_MultiDimNotSupported");
                 case ExceptionResource.Arg_TypeNotSupported:
-                    return SR.Arg_TypeNotSupported;
+                    return SR.GetResourceString("Arg_TypeNotSupported");
                 case ExceptionResource.Argument_SpansMustHaveSameLength:
-                    return SR.Argument_SpansMustHaveSameLength;
+                    return SR.GetResourceString("Argument_SpansMustHaveSameLength");
                 case ExceptionResource.Argument_InvalidFlag:
-                    return SR.Argument_InvalidFlag;
+                    return SR.GetResourceString("Argument_InvalidFlag");
                 default:
                     Debug.Fail("The enum value is not defined, please check the ExceptionResource Enum.");
                     return "";

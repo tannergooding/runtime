@@ -497,7 +497,7 @@ namespace System.Globalization
                     return false;
                 }
 
-                throw new FormatException(SR.Format_NoFormatSpecifier);
+                throw new FormatException(SR.GetResourceString("Format_NoFormatSpecifier"));
             }
 
             internal bool SetBadQuoteFailure(char failingCharacter)
@@ -507,7 +507,7 @@ namespace System.Globalization
                     return false;
                 }
 
-                throw new FormatException(SR.Format(SR.Format_BadQuote, failingCharacter));
+                throw new FormatException(SR.Format(SR.GetResourceString("Format_BadQuote"), failingCharacter));
             }
 
             internal bool SetInvalidStringFailure()
@@ -517,7 +517,7 @@ namespace System.Globalization
                     return false;
                 }
 
-                throw new FormatException(SR.Format_InvalidString);
+                throw new FormatException(SR.GetResourceString("Format_InvalidString"));
             }
 
             internal bool SetArgumentNullFailure(string argumentName)
@@ -528,7 +528,7 @@ namespace System.Globalization
                 }
 
                 Debug.Assert(argumentName != null);
-                throw new ArgumentNullException(argumentName, SR.ArgumentNull_String);
+                throw new ArgumentNullException(argumentName, SR.GetResourceString("ArgumentNull_String"));
             }
 
             internal bool SetOverflowFailure()
@@ -538,7 +538,7 @@ namespace System.Globalization
                     return false;
                 }
 
-                throw new OverflowException(SR.Format(SR.Overflow_TimeSpanElementTooLarge, new string(_originalTimeSpanString)));
+                throw new OverflowException(SR.Format(SR.GetResourceString("Overflow_TimeSpanElementTooLarge"), new string(_originalTimeSpanString)));
             }
 
             internal bool SetBadTimeSpanFailure()
@@ -548,7 +548,7 @@ namespace System.Globalization
                     return false;
                 }
 
-                throw new FormatException(SR.Format(SR.Format_BadTimeSpan, new string(_originalTimeSpanString)));
+                throw new FormatException(SR.Format(SR.GetResourceString("Format_BadTimeSpan"), new string(_originalTimeSpanString)));
             }
 
             internal bool SetBadFormatSpecifierFailure(char? formatSpecifierCharacter = null)
@@ -558,7 +558,7 @@ namespace System.Globalization
                     return false;
                 }
 
-                throw new FormatException(SR.Format(SR.Format_BadFormatSpecifier, formatSpecifierCharacter));
+                throw new FormatException(SR.Format(SR.GetResourceString("Format_BadFormatSpecifier"), formatSpecifierCharacter));
             }
         }
 

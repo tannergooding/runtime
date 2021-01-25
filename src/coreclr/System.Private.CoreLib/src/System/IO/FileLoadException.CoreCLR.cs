@@ -24,7 +24,7 @@ namespace System.IO
 
             string? message = null;
             if (hResult == System.HResults.COR_E_BADEXEFORMAT)
-                message = SR.Arg_BadImageFormatException;
+                message = SR.GetResourceString("Arg_BadImageFormatException");
             else
                 GetMessageForHR(hResult, new StringHandleOnStack(ref message));
 

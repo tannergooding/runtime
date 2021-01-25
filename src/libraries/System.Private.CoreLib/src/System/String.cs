@@ -83,13 +83,13 @@ namespace System
                 throw new ArgumentNullException(nameof(value));
 
             if (startIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
 
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NegativeLength);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NegativeLength"));
 
             if (startIndex > value.Length - length)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             if (length == 0)
                 return Empty;
@@ -144,22 +144,22 @@ namespace System
         unsafe string Ctor(char* ptr, int startIndex, int length)
         {
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NegativeLength);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NegativeLength"));
 
             if (startIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
 
             char* pStart = ptr + startIndex;
 
             // overflow check
             if (pStart < ptr)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_PartialWCHAR);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_PartialWCHAR"));
 
             if (length == 0)
                 return Empty;
 
             if (ptr == null)
-                throw new ArgumentOutOfRangeException(nameof(ptr), SR.ArgumentOutOfRange_PartialWCHAR);
+                throw new ArgumentOutOfRangeException(nameof(ptr), SR.GetResourceString("ArgumentOutOfRange_PartialWCHAR"));
 
             string result = FastAllocateString(length);
 
@@ -203,10 +203,10 @@ namespace System
         unsafe string Ctor(sbyte* value, int startIndex, int length)
         {
             if (startIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
 
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NegativeLength);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NegativeLength"));
 
             if (value == null)
             {
@@ -220,7 +220,7 @@ namespace System
 
             // overflow check
             if (pStart < value)
-                throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_PartialWCHAR);
+                throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_PartialWCHAR"));
 
             return CreateStringForSByteConstructor(pStart, length);
         }
@@ -237,7 +237,7 @@ namespace System
 #if TARGET_WINDOWS
             int numCharsRequired = Interop.Kernel32.MultiByteToWideChar(Interop.Kernel32.CP_ACP, Interop.Kernel32.MB_PRECOMPOSED, pb, numBytes, (char*)null, 0);
             if (numCharsRequired == 0)
-                throw new ArgumentException(SR.Arg_InvalidANSIString);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidANSIString"));
 
             string newString = FastAllocateString(numCharsRequired);
             fixed (char* pFirstChar = &newString._firstChar)
@@ -245,7 +245,7 @@ namespace System
                 numCharsRequired = Interop.Kernel32.MultiByteToWideChar(Interop.Kernel32.CP_ACP, Interop.Kernel32.MB_PRECOMPOSED, pb, numBytes, pFirstChar, numCharsRequired);
             }
             if (numCharsRequired == 0)
-                throw new ArgumentException(SR.Arg_InvalidANSIString);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidANSIString"));
             return newString;
 #else
             return Encoding.UTF8.GetString(pb, numBytes);
@@ -267,10 +267,10 @@ namespace System
                 return new string(value, startIndex, length);
 
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             if (startIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
 
             if (value == null)
             {
@@ -284,7 +284,7 @@ namespace System
 
             // overflow check
             if (pStart < value)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_PartialWCHAR);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_PartialWCHAR"));
 
             return enc.GetString(new ReadOnlySpan<byte>(pStart, length));
         }
@@ -303,7 +303,7 @@ namespace System
             {
                 if (count == 0)
                     return Empty;
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NegativeCount);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NegativeCount"));
             }
 
             string result = FastAllocateString(count);
@@ -433,13 +433,13 @@ namespace System
             if (destination == null)
                 throw new ArgumentNullException(nameof(destination));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NegativeCount);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NegativeCount"));
             if (sourceIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(sourceIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(sourceIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             if (count > Length - sourceIndex)
-                throw new ArgumentOutOfRangeException(nameof(sourceIndex), SR.ArgumentOutOfRange_IndexCount);
+                throw new ArgumentOutOfRangeException(nameof(sourceIndex), SR.GetResourceString("ArgumentOutOfRange_IndexCount"));
             if (destinationIndex > destination.Length - count || destinationIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(destinationIndex), SR.ArgumentOutOfRange_IndexCount);
+                throw new ArgumentOutOfRangeException(nameof(destinationIndex), SR.GetResourceString("ArgumentOutOfRange_IndexCount"));
 
             Buffer.Memmove(
                 destination: ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(destination), destinationIndex),
@@ -469,13 +469,13 @@ namespace System
         {
             // Range check everything.
             if (startIndex < 0 || startIndex > Length || startIndex > Length - length)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             if (length <= 0)
             {
                 if (length == 0)
                     return Array.Empty<char>();
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             char[] chars = new char[length];
@@ -632,7 +632,7 @@ namespace System
         [DoesNotReturn]
         private static void ThrowMustBeNullTerminatedString()
         {
-            throw new ArgumentException(SR.Arg_MustBeNullTerminatedString);
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeNullTerminatedString"));
         }
 
         //

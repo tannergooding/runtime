@@ -46,7 +46,7 @@ namespace System.Runtime.InteropServices.CustomMarshalers
                 object? resultAsObject = result.ToObject();
                 if (!(resultAsObject is IEnumVARIANT enumVariant))
                 {
-                    throw new InvalidOperationException(SR.InvalidOp_InvalidNewEnumVariant);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOp_InvalidNewEnumVariant"));
                 }
 
                 enumVariantPtr = Marshal.GetIUnknownForObject(enumVariant);

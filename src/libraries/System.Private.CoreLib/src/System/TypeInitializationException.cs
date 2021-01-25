@@ -26,14 +26,14 @@ namespace System
         // This exception is not creatable without specifying the
         //    inner exception.
         private TypeInitializationException()
-            : base(SR.TypeInitialization_Default)
+            : base(SR.GetResourceString("TypeInitialization_Default"))
         {
             HResult = HResults.COR_E_TYPEINITIALIZATION;
         }
 
 
         public TypeInitializationException(string? fullTypeName, Exception? innerException)
-            : this(fullTypeName, SR.Format(SR.TypeInitialization_Type, fullTypeName), innerException)
+            : this(fullTypeName, SR.Format(SR.GetResourceString("TypeInitialization_Type"), fullTypeName), innerException)
         {
         }
 

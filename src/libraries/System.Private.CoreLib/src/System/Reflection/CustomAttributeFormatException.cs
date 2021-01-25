@@ -10,7 +10,7 @@ namespace System.Reflection
     public class CustomAttributeFormatException : FormatException
     {
         public CustomAttributeFormatException()
-            : this(SR.Arg_CustomAttributeFormatException)
+            : this(SR.GetResourceString("Arg_CustomAttributeFormatException"))
         {
         }
 

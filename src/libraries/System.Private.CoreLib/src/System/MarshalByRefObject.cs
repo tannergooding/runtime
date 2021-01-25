@@ -16,13 +16,13 @@ namespace System
         [Obsolete(Obsoletions.RemotingApisMessage, DiagnosticId = Obsoletions.RemotingApisDiagId, UrlFormat = Obsoletions.SharedUrlFormat)]
         public object GetLifetimeService()
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_Remoting);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_Remoting"));
         }
 
         [Obsolete(Obsoletions.RemotingApisMessage, DiagnosticId = Obsoletions.RemotingApisDiagId, UrlFormat = Obsoletions.SharedUrlFormat)]
         public virtual object InitializeLifetimeService()
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_Remoting);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_Remoting"));
         }
 
         protected MarshalByRefObject MemberwiseClone(bool cloneIdentity)

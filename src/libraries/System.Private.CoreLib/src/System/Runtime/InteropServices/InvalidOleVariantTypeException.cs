@@ -14,7 +14,7 @@ namespace System.Runtime.InteropServices
     public class InvalidOleVariantTypeException : SystemException
     {
         public InvalidOleVariantTypeException()
-            : base(SR.Arg_InvalidOleVariantTypeException)
+            : base(SR.GetResourceString("Arg_InvalidOleVariantTypeException"))
         {
             HResult = HResults.COR_E_INVALIDOLEVARIANTTYPE;
         }

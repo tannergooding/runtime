@@ -226,7 +226,7 @@ namespace System.Threading
             if (totalMilliseconds < -1 || totalMilliseconds > int.MaxValue)
             {
                 throw new System.ArgumentOutOfRangeException(
-                    nameof(timeout), timeout, SR.SpinLock_TryEnter_ArgumentOutOfRange);
+                    nameof(timeout), timeout, SR.GetResourceString("SpinLock_TryEnter_ArgumentOutOfRange"));
             }
 
             // Call reliable enter with the int-based timeout milliseconds
@@ -278,13 +278,13 @@ namespace System.Threading
             if (lockTaken)
             {
                 lockTaken = false;
-                throw new ArgumentException(SR.SpinLock_TryReliableEnter_ArgumentException);
+                throw new ArgumentException(SR.GetResourceString("SpinLock_TryReliableEnter_ArgumentException"));
             }
 
             if (millisecondsTimeout < -1)
             {
                 throw new ArgumentOutOfRangeException(
-                    nameof(millisecondsTimeout), millisecondsTimeout, SR.SpinLock_TryEnter_ArgumentOutOfRange);
+                    nameof(millisecondsTimeout), millisecondsTimeout, SR.GetResourceString("SpinLock_TryEnter_ArgumentOutOfRange"));
             }
 
             uint startTime = 0;
@@ -415,7 +415,7 @@ namespace System.Threading
             if (_owner == newOwner)
             {
                 // We don't allow lock recursion.
-                throw new LockRecursionException(SR.SpinLock_TryEnter_LockRecursionException);
+                throw new LockRecursionException(SR.GetResourceString("SpinLock_TryEnter_LockRecursionException"));
             }
 
             SpinWait spinner = default;
@@ -509,7 +509,7 @@ namespace System.Threading
             bool threadTrackingEnabled = (_owner & LOCK_ID_DISABLE_MASK) == 0;
             if (threadTrackingEnabled && !IsHeldByCurrentThread)
             {
-                throw new SynchronizationLockException(SR.SpinLock_Exit_SynchronizationLockException);
+                throw new SynchronizationLockException(SR.GetResourceString("SpinLock_Exit_SynchronizationLockException"));
             }
 
             if (useMemoryBarrier)
@@ -571,7 +571,7 @@ namespace System.Threading
             {
                 if (!IsThreadOwnerTrackingEnabled)
                 {
-                    throw new InvalidOperationException(SR.SpinLock_IsHeldByCurrentThread);
+                    throw new InvalidOperationException(SR.GetResourceString("SpinLock_IsHeldByCurrentThread"));
                 }
                 return (_owner & (~LOCK_ID_DISABLE_MASK)) == Environment.CurrentManagedThreadId;
             }

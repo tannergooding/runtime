@@ -64,17 +64,17 @@ namespace System
                     return CompareInfo.Invariant.IndexOf(this, value, CompareOptions.OrdinalIgnoreCase);
 
                 default:
-                    throw new ArgumentException(SR.NotSupported_StringComparison, nameof(comparisonType));
+                    throw new ArgumentException(SR.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType));
             }
         }
 
         public unsafe int IndexOf(char value, int startIndex, int count)
         {
             if ((uint)startIndex > (uint)Length)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             if ((uint)count > (uint)(Length - startIndex))
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_Count);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_Count"));
 
             int result = SpanHelpers.IndexOf(ref Unsafe.Add(ref _firstChar, startIndex), value, count);
 
@@ -100,10 +100,10 @@ namespace System
                 throw new ArgumentNullException(nameof(anyOf));
 
             if ((uint)startIndex > (uint)Length)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             if ((uint)count > (uint)(Length - startIndex))
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_Count);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_Count"));
 
             if (anyOf.Length > 0 && anyOf.Length <= 5)
             {
@@ -351,7 +351,7 @@ namespace System
                 default:
                     throw (value is null)
                         ? new ArgumentNullException(nameof(value))
-                        : new ArgumentException(SR.NotSupported_StringComparison, nameof(comparisonType));
+                        : new ArgumentException(SR.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType));
             }
         }
 
@@ -373,10 +373,10 @@ namespace System
                 return -1;
 
             if ((uint)startIndex >= (uint)Length)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             if ((uint)count > (uint)startIndex + 1)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_Count);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_Count"));
 
             int startSearchAt = startIndex + 1 - count;
             int result = SpanHelpers.LastIndexOf(ref Unsafe.Add(ref _firstChar, startSearchAt), value, count);
@@ -409,12 +409,12 @@ namespace System
 
             if ((uint)startIndex >= (uint)Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if ((count < 0) || ((count - 1) > startIndex))
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_Count);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_Count"));
             }
 
             if (anyOf.Length > 1)
@@ -513,7 +513,7 @@ namespace System
                 default:
                     throw (value is null)
                         ? new ArgumentNullException(nameof(value))
-                        : new ArgumentException(SR.NotSupported_StringComparison, nameof(comparisonType));
+                        : new ArgumentException(SR.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType));
             }
         }
 

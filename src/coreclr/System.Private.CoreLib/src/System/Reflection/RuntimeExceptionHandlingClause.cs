@@ -31,7 +31,7 @@ namespace System.Reflection
             get
             {
                 if (_flags != ExceptionHandlingClauseOptions.Filter)
-                    throw new InvalidOperationException(SR.Arg_EHClauseNotFilter);
+                    throw new InvalidOperationException(SR.GetResourceString("Arg_EHClauseNotFilter"));
 
                 return _filterOffset;
             }
@@ -47,7 +47,7 @@ namespace System.Reflection
             get
             {
                 if (_flags != ExceptionHandlingClauseOptions.Clause)
-                    throw new InvalidOperationException(SR.Arg_EHClauseNotClause);
+                    throw new InvalidOperationException(SR.GetResourceString("Arg_EHClauseNotClause"));
 
                 Type? type = null;
 

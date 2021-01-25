@@ -45,7 +45,7 @@ namespace System.Reflection
         public virtual bool IsConstructedGenericMethod => IsGenericMethod && !IsGenericMethodDefinition;
         public virtual bool IsGenericMethod => false;
         public virtual bool IsGenericMethodDefinition => false;
-        public virtual Type[] GetGenericArguments() { throw new NotSupportedException(SR.NotSupported_SubclassOverride); }
+        public virtual Type[] GetGenericArguments() { throw new NotSupportedException(SR.GetResourceString("NotSupported_SubclassOverride")); }
         public virtual bool ContainsGenericParameters => false;
 
         [DebuggerHidden]

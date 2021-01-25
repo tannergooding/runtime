@@ -10,7 +10,7 @@ namespace System.Reflection
     public sealed class TargetParameterCountException : ApplicationException
     {
         public TargetParameterCountException()
-            : base(SR.Arg_TargetParameterCountException)
+            : base(SR.GetResourceString("Arg_TargetParameterCountException"))
         {
             HResult = HResults.COR_E_TARGETPARAMCOUNT;
         }

@@ -399,7 +399,7 @@ namespace System
         {
             // Check that the criteria object is an Integer object
             if (filterCriteria == null)
-                throw new InvalidFilterCriteriaException(SR.InvalidFilterCriteriaException_CritInt);
+                throw new InvalidFilterCriteriaException(SR.GetResourceString("InvalidFilterCriteriaException_CritInt"));
 
             switch (m.MemberType)
             {
@@ -414,7 +414,7 @@ namespace System
                         }
                         catch
                         {
-                            throw new InvalidFilterCriteriaException(SR.InvalidFilterCriteriaException_CritInt);
+                            throw new InvalidFilterCriteriaException(SR.GetResourceString("InvalidFilterCriteriaException_CritInt"));
                         }
 
 
@@ -448,7 +448,7 @@ namespace System
                         }
                         catch
                         {
-                            throw new InvalidFilterCriteriaException(SR.InvalidFilterCriteriaException_CritInt);
+                            throw new InvalidFilterCriteriaException(SR.GetResourceString("InvalidFilterCriteriaException_CritInt"));
                         }
 
                         FieldAttributes attr = ((FieldInfo)m).Attributes;
@@ -480,7 +480,7 @@ namespace System
             // Check that the criteria object is a String object
             if (!(filterCriteria is string filterCriteriaString))
             {
-                throw new InvalidFilterCriteriaException(SR.InvalidFilterCriteriaException_CritString);
+                throw new InvalidFilterCriteriaException(SR.GetResourceString("InvalidFilterCriteriaException_CritString"));
             }
 
             ReadOnlySpan<char> str = filterCriteriaString.AsSpan().Trim();

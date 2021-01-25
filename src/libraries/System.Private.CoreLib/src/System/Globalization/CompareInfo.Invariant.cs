@@ -219,7 +219,7 @@ namespace System.Globalization
 
             if ((options & ValidCompareMaskOffFlags) != 0)
             {
-                throw new ArgumentException(SR.Argument_InvalidFlag, nameof(options));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidFlag"), nameof(options));
             }
 
             byte[] keyData;
@@ -310,7 +310,7 @@ namespace System.Globalization
             {
                 throw new ArgumentException(
                     paramName: nameof(source),
-                    message: SR.ArgumentOutOfRange_GetByteCountOverflow);
+                    message: SR.GetResourceString("ArgumentOutOfRange_GetByteCountOverflow"));
             }
 
             return byteLength;

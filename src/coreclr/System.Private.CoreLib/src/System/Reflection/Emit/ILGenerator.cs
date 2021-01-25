@@ -189,7 +189,7 @@ namespace System.Reflection.Emit
 
             if (m_currExcStackCount != 0)
             {
-                throw new ArgumentException(SR.Argument_UnclosedExceptionBlock);
+                throw new ArgumentException(SR.GetResourceString("Argument_UnclosedExceptionBlock"));
             }
 
             if (m_length == 0)
@@ -216,7 +216,7 @@ namespace System.Reflection.Emit
                     // Verify that our one-byte arg will fit into a Signed Byte.
                     if (updateAddr < sbyte.MinValue || updateAddr > sbyte.MaxValue)
                     {
-                        throw new NotSupportedException(SR.Format(SR.NotSupported_IllegalOneByteBranch, fixupData.m_fixupPos, updateAddr));
+                        throw new NotSupportedException(SR.Format(SR.GetResourceString("NotSupported_IllegalOneByteBranch"), fixupData.m_fixupPos, updateAddr));
                     }
 
                     // Place the one-byte arg
@@ -235,7 +235,7 @@ namespace System.Reflection.Emit
         {
             if (m_currExcStackCount != 0)
             {
-                throw new NotSupportedException(SR.Argument_UnclosedExceptionBlock);
+                throw new NotSupportedException(SR.GetResourceString("Argument_UnclosedExceptionBlock"));
             }
 
             if (m_exceptionCount == 0)
@@ -280,10 +280,10 @@ namespace System.Reflection.Emit
             int index = lbl.GetLabelValue();
 
             if (index < 0 || index >= m_labelCount || m_labelList is null)
-                throw new ArgumentException(SR.Argument_BadLabel);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadLabel"));
 
             if (m_labelList[index] < 0)
-                throw new ArgumentException(SR.Argument_BadLabelContent);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadLabelContent"));
 
             return m_labelList[index];
         }
@@ -512,7 +512,7 @@ namespace System.Reflection.Emit
                 if ((callingConvention & CallingConventions.VarArgs) == 0)
                 {
                     // Client should not supply optional parameter in default calling convention
-                    throw new InvalidOperationException(SR.InvalidOperation_NotAVarArgCallingConvention);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotAVarArgCallingConvention"));
                 }
             }
 
@@ -594,7 +594,7 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(methodInfo));
 
             if (!(opcode.Equals(OpCodes.Call) || opcode.Equals(OpCodes.Callvirt) || opcode.Equals(OpCodes.Newobj)))
-                throw new ArgumentException(SR.Argument_NotMethodCallOpcode, nameof(opcode));
+                throw new ArgumentException(SR.GetResourceString("Argument_NotMethodCallOpcode"), nameof(opcode));
 
             int stackchange = 0;
             int tk = GetMethodToken(methodInfo, optionalParameterTypes, false);
@@ -831,7 +831,7 @@ namespace System.Reflection.Emit
             int tempVal = local.GetLocalIndex();
             if (local.GetMethodBuilder() != m_methodBuilder)
             {
-                throw new ArgumentException(SR.Argument_UnmatchedMethodForLocal, nameof(local));
+                throw new ArgumentException(SR.GetResourceString("Argument_UnmatchedMethodForLocal"), nameof(local));
             }
             // If the instruction is a ldloc, ldloca a stloc, morph it to the optimal form.
             if (opcode.Equals(OpCodes.Ldloc))
@@ -900,7 +900,7 @@ namespace System.Reflection.Emit
                 // Handle stloc_1, ldloc_1
                 if (tempVal > byte.MaxValue)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_BadInstructionOrIndexOutOfBound);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_BadInstructionOrIndexOutOfBound"));
                 }
                 m_ILStream[m_length++] = (byte)tempVal;
             }
@@ -951,7 +951,7 @@ namespace System.Reflection.Emit
         {
             if (m_currExcStackCount == 0)
             {
-                throw new NotSupportedException(SR.Argument_NotInExceptionBlock);
+                throw new NotSupportedException(SR.GetResourceString("Argument_NotInExceptionBlock"));
             }
 
             // Pop the current exception block
@@ -964,7 +964,7 @@ namespace System.Reflection.Emit
             if (state == __ExceptionInfo.State_Filter ||
                 state == __ExceptionInfo.State_Try)
             {
-                throw new InvalidOperationException(SR.Argument_BadExceptionCodeGen);
+                throw new InvalidOperationException(SR.GetResourceString("Argument_BadExceptionCodeGen"));
             }
 
             if (state == __ExceptionInfo.State_Catch)
@@ -993,7 +993,7 @@ namespace System.Reflection.Emit
             // Begins an exception filter block.  Emits a branch instruction to the end of the current exception block.
 
             if (m_currExcStackCount == 0)
-                throw new NotSupportedException(SR.Argument_NotInExceptionBlock);
+                throw new NotSupportedException(SR.GetResourceString("Argument_NotInExceptionBlock"));
 
             __ExceptionInfo current = m_currExcStack![m_currExcStackCount - 1];
 
@@ -1008,7 +1008,7 @@ namespace System.Reflection.Emit
 
             if (m_currExcStackCount == 0)
             {
-                throw new NotSupportedException(SR.Argument_NotInExceptionBlock);
+                throw new NotSupportedException(SR.GetResourceString("Argument_NotInExceptionBlock"));
             }
             __ExceptionInfo current = m_currExcStack![m_currExcStackCount - 1];
 
@@ -1016,7 +1016,7 @@ namespace System.Reflection.Emit
             {
                 if (exceptionType != null)
                 {
-                    throw new ArgumentException(SR.Argument_ShouldNotSpecifyExceptionType);
+                    throw new ArgumentException(SR.GetResourceString("Argument_ShouldNotSpecifyExceptionType"));
                 }
 
                 Emit(OpCodes.Endfilter);
@@ -1039,7 +1039,7 @@ namespace System.Reflection.Emit
         {
             if (m_currExcStackCount == 0)
             {
-                throw new NotSupportedException(SR.Argument_NotInExceptionBlock);
+                throw new NotSupportedException(SR.GetResourceString("Argument_NotInExceptionBlock"));
             }
             __ExceptionInfo current = m_currExcStack![m_currExcStackCount - 1];
 
@@ -1053,7 +1053,7 @@ namespace System.Reflection.Emit
         {
             if (m_currExcStackCount == 0)
             {
-                throw new NotSupportedException(SR.Argument_NotInExceptionBlock);
+                throw new NotSupportedException(SR.GetResourceString("Argument_NotInExceptionBlock"));
             }
             __ExceptionInfo current = m_currExcStack![m_currExcStackCount - 1];
             int state = current.GetCurrentState();
@@ -1108,12 +1108,12 @@ namespace System.Reflection.Emit
             // This should only happen if a label from another generator is used with this one.
             if (m_labelList is null || labelIndex < 0 || labelIndex >= m_labelList.Length)
             {
-                throw new ArgumentException(SR.Argument_InvalidLabel);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidLabel"));
             }
 
             if (m_labelList[labelIndex] != -1)
             {
-                throw new ArgumentException(SR.Argument_RedefinedLabel);
+                throw new ArgumentException(SR.GetResourceString("Argument_RedefinedLabel"));
             }
 
             m_labelList[labelIndex] = m_length;
@@ -1133,12 +1133,12 @@ namespace System.Reflection.Emit
 
             if (!excType.IsSubclassOf(typeof(Exception)) && excType != typeof(Exception))
             {
-                throw new ArgumentException(SR.Argument_NotExceptionType);
+                throw new ArgumentException(SR.GetResourceString("Argument_NotExceptionType"));
             }
             ConstructorInfo? con = excType.GetConstructor(Type.EmptyTypes);
             if (con == null)
             {
-                throw new ArgumentException(SR.Argument_MissingDefaultConstructor);
+                throw new ArgumentException(SR.GetResourceString("Argument_MissingDefaultConstructor"));
             }
             Emit(OpCodes.Newobj, con);
             Emit(OpCodes.Throw);
@@ -1167,7 +1167,7 @@ namespace System.Reflection.Emit
 
             if (m_methodBuilder == null)
             {
-                throw new ArgumentException(SR.InvalidOperation_BadILGeneratorUsage);
+                throw new ArgumentException(SR.GetResourceString("InvalidOperation_BadILGeneratorUsage"));
             }
 
             Type consoleType = Type.GetType(ConsoleTypeFullName, throwOnError: true)!;
@@ -1178,13 +1178,13 @@ namespace System.Reflection.Emit
             Type cls = localBuilder.LocalType;
             if (cls is TypeBuilder || cls is EnumBuilder)
             {
-                throw new ArgumentException(SR.NotSupported_OutputStreamUsingTypeBuilder);
+                throw new ArgumentException(SR.GetResourceString("NotSupported_OutputStreamUsingTypeBuilder"));
             }
             parameterTypes[0] = cls;
             MethodInfo? mi = typeof(System.IO.TextWriter).GetMethod("WriteLine", parameterTypes);
             if (mi == null)
             {
-                throw new ArgumentException(SR.Argument_EmitWriteLineType, nameof(localBuilder));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmitWriteLineType"), nameof(localBuilder));
             }
 
             Emit(OpCodes.Callvirt, mi);
@@ -1219,13 +1219,13 @@ namespace System.Reflection.Emit
             Type cls = fld.FieldType;
             if (cls is TypeBuilder || cls is EnumBuilder)
             {
-                throw new NotSupportedException(SR.NotSupported_OutputStreamUsingTypeBuilder);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_OutputStreamUsingTypeBuilder"));
             }
             parameterTypes[0] = cls;
             MethodInfo? mi = typeof(System.IO.TextWriter).GetMethod("WriteLine", parameterTypes);
             if (mi == null)
             {
-                throw new ArgumentException(SR.Argument_EmitWriteLineType, nameof(fld));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmitWriteLineType"), nameof(fld));
             }
 
             Emit(OpCodes.Callvirt, mi);
@@ -1251,7 +1251,7 @@ namespace System.Reflection.Emit
             if (methodBuilder.IsTypeCreated())
             {
                 // cannot change method after its containing type has been created
-                throw new InvalidOperationException(SR.InvalidOperation_TypeHasBeenCreated);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_TypeHasBeenCreated"));
             }
 
             if (localType == null)
@@ -1261,7 +1261,7 @@ namespace System.Reflection.Emit
 
             if (methodBuilder.m_bIsBaked)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_MethodBaked);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_MethodBaked"));
             }
 
             // add the localType to local signature
@@ -1279,7 +1279,7 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(usingNamespace));
 
             if (usingNamespace.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(usingNamespace));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(usingNamespace));
 
             MethodBuilder? methodBuilder = m_methodBuilder as MethodBuilder;
             if (methodBuilder == null)
@@ -1454,7 +1454,7 @@ namespace System.Reflection.Emit
         {
             if (m_endFinally != -1)
             {
-                throw new ArgumentException(SR.Argument_TooManyFinallyClause);
+                throw new ArgumentException(SR.GetResourceString("Argument_TooManyFinallyClause"));
             }
 
             m_currentState = State_Finally;
@@ -1636,7 +1636,7 @@ namespace System.Reflection.Emit
         {
             if (sa == ScopeAction.Close && m_iOpenScopeCount <= 0)
             {
-                throw new ArgumentException(SR.Argument_UnmatchingSymScope);
+                throw new ArgumentException(SR.GetResourceString("Argument_UnmatchingSymScope"));
             }
 
             // make sure that arrays are large enough to hold addition info

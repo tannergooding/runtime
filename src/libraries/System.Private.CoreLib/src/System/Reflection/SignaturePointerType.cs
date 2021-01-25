@@ -17,7 +17,7 @@ namespace System.Reflection
         public sealed override bool IsSZArray => false;
         public sealed override bool IsVariableBoundArray => false;
 
-        public sealed override int GetArrayRank() => throw new ArgumentException(SR.Argument_HasToBeArrayClass);
+        public sealed override int GetArrayRank() => throw new ArgumentException(SR.GetResourceString("Argument_HasToBeArrayClass"));
 
         protected sealed override string Suffix => "*";
     }

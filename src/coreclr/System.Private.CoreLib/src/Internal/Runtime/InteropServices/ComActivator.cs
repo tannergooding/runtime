@@ -195,7 +195,7 @@ namespace Internal.Runtime.InteropServices
                     // Check to see if the method is static before we call it.
                     if (!method.IsStatic)
                     {
-                        string msg = register ? SR.InvalidOperation_NonStaticComRegFunction : SR.InvalidOperation_NonStaticComUnRegFunction;
+                        string msg = register ? SR.GetResourceString("InvalidOperation_NonStaticComRegFunction") : SR.GetResourceString("InvalidOperation_NonStaticComUnRegFunction");
                         throw new InvalidOperationException(SR.Format(msg));
                     }
 
@@ -206,13 +206,13 @@ namespace Internal.Runtime.InteropServices
                         || methParams.Length != 1
                         || (methParams[0].ParameterType != typeof(string) && methParams[0].ParameterType != typeof(Type)))
                     {
-                        string msg = register ? SR.InvalidOperation_InvalidComRegFunctionSig : SR.InvalidOperation_InvalidComUnRegFunctionSig;
+                        string msg = register ? SR.GetResourceString("InvalidOperation_InvalidComRegFunctionSig") : SR.GetResourceString("InvalidOperation_InvalidComUnRegFunctionSig");
                         throw new InvalidOperationException(SR.Format(msg));
                     }
 
                     if (calledFunction)
                     {
-                        string msg = register ? SR.InvalidOperation_MultipleComRegFunctions : SR.InvalidOperation_MultipleComUnRegFunctions;
+                        string msg = register ? SR.GetResourceString("InvalidOperation_MultipleComRegFunctions") : SR.GetResourceString("InvalidOperation_MultipleComUnRegFunctions");
                         throw new InvalidOperationException(SR.Format(msg));
                     }
 

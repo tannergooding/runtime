@@ -219,7 +219,7 @@ namespace System.Reflection
                 {
                     ParameterInfo[] parameters = info.set_method.GetParametersInternal();
                     if (parameters.Length == 0)
-                        throw new ArgumentException(SR.SetterHasNoParams, "indexer");
+                        throw new ArgumentException(SR.GetResourceString("SetterHasNoParams"), "indexer");
 
                     return parameters[parameters.Length - 1].ParameterType;
                 }

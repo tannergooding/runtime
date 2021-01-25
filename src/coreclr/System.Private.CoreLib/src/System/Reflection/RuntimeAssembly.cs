@@ -91,7 +91,7 @@ namespace System.Reflection
                 if (codeBase is null)
                 {
                     // Not supported if the assembly was loaded from memory
-                    throw new NotSupportedException(SR.NotSupported_CodeBase);
+                    throw new NotSupportedException(SR.GetResourceString("NotSupported_CodeBase"));
                 }
                 return codeBase;
             }
@@ -302,7 +302,7 @@ namespace System.Reflection
             RuntimeType? attributeRuntimeType = attributeType.UnderlyingSystemType as RuntimeType;
 
             if (attributeRuntimeType == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(attributeType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(attributeType));
 
             return CustomAttribute.GetCustomAttributes(this, attributeRuntimeType);
         }
@@ -315,7 +315,7 @@ namespace System.Reflection
             RuntimeType? attributeRuntimeType = attributeType.UnderlyingSystemType as RuntimeType;
 
             if (attributeRuntimeType == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(attributeType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(attributeType));
 
             return CustomAttribute.IsDefined(this, attributeRuntimeType);
         }
@@ -377,7 +377,7 @@ namespace System.Reflection
             if (Location.Length == 0)
             {
                 // Throw if the assembly was loaded from memory, indicated by Location returning an empty string
-                throw new FileNotFoundException(SR.IO_NoFileTableInInMemoryAssemblies);
+                throw new FileNotFoundException(SR.GetResourceString("IO_NoFileTableInInMemoryAssemblies"));
             }
 
             RuntimeModule? m = (RuntimeModule?)GetModule(name);
@@ -394,7 +394,7 @@ namespace System.Reflection
             if (Location.Length == 0)
             {
                 // Throw if the assembly was loaded from memory, indicated by Location returning an empty string
-                throw new FileNotFoundException(SR.IO_NoFileTableInInMemoryAssemblies);
+                throw new FileNotFoundException(SR.GetResourceString("IO_NoFileTableInInMemoryAssemblies"));
             }
 
             Module[] m = GetModules(getResourceModules);
@@ -600,7 +600,7 @@ namespace System.Reflection
 
             if (retAssembly == null && throwOnFileNotFound)
             {
-                throw new FileNotFoundException(SR.Format(culture, SR.IO_FileNotFound_FileName, an.Name));
+                throw new FileNotFoundException(SR.Format(culture, SR.GetResourceString("IO_FileNotFound_FileName"), an.Name));
             }
 
             return retAssembly;

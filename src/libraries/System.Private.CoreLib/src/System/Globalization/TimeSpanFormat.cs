@@ -36,7 +36,7 @@ namespace System.Globalization
                     return FormatG(value, DateTimeFormatInfo.GetInstance(formatProvider), c == 'G' ? StandardFormat.G : StandardFormat.g);
                 }
 
-                throw new FormatException(SR.Format_InvalidString);
+                throw new FormatException(SR.GetResourceString("Format_InvalidString"));
             }
 
             return StringBuilderCache.GetStringAndRelease(FormatCustomized(value, format, DateTimeFormatInfo.GetInstance(formatProvider), result: null));
@@ -62,7 +62,7 @@ namespace System.Globalization
                     StandardFormat sf =
                         c == 'g' ? StandardFormat.g :
                         c == 'G' ? StandardFormat.G :
-                        throw new FormatException(SR.Format_InvalidString);
+                        throw new FormatException(SR.GetResourceString("Format_InvalidString"));
                     return TryFormatStandard(value, sf, DateTimeFormatInfo.GetInstance(formatProvider).DecimalSeparator, destination, out charsWritten);
                 }
             }
@@ -474,7 +474,7 @@ namespace System.Globalization
                         {
                             StringBuilderCache.Release(result);
                         }
-                        throw new FormatException(SR.Format_InvalidString);
+                        throw new FormatException(SR.GetResourceString("Format_InvalidString"));
                 }
                 i += tokenLen;
             }

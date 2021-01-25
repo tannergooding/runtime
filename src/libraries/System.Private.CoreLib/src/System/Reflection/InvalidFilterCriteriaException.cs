@@ -10,7 +10,7 @@ namespace System.Reflection
     public class InvalidFilterCriteriaException : ApplicationException
     {
         public InvalidFilterCriteriaException()
-            : this(SR.Arg_InvalidFilterCriteriaException)
+            : this(SR.GetResourceString("Arg_InvalidFilterCriteriaException"))
         {
         }
 

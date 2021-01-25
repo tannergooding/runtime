@@ -195,12 +195,12 @@ namespace System.Text
             if (srcEncoding == null || dstEncoding == null)
             {
                 throw new ArgumentNullException(srcEncoding == null ? nameof(srcEncoding) : nameof(dstEncoding),
-                    SR.ArgumentNull_Array);
+                    SR.GetResourceString("ArgumentNull_Array"));
             }
             if (bytes == null)
             {
                 throw new ArgumentNullException(nameof(bytes),
-                    SR.ArgumentNull_Array);
+                    SR.GetResourceString("ArgumentNull_Array"));
             }
 
             return dstEncoding.GetBytes(srcEncoding.GetChars(bytes, index, count));
@@ -234,7 +234,7 @@ namespace System.Text
                 case CodePageNoMac:                              // 2 CP_MACCP
                 case CodePageNoThread:                           // 3 CP_THREAD_ACP
                 case CodePageNoSymbol:                           // 42 CP_SYMBOL
-                    throw new ArgumentException(SR.Format(SR.Argument_CodepageNotSupported, codepage), nameof(codepage));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_CodepageNotSupported"), codepage), nameof(codepage));
 
                 case CodePageUTF7:                               // 65000
                     {
@@ -252,7 +252,7 @@ namespace System.Text
                         else
                         {
                             string moreInfoUrl = string.Format(CultureInfo.InvariantCulture, Obsoletions.SharedUrlFormat, Obsoletions.SystemTextEncodingUTF7DiagId);
-                            string exceptionMessage = SR.Format(SR.Encoding_UTF7_Disabled, moreInfoUrl);
+                            string exceptionMessage = SR.Format(SR.GetResourceString("Encoding_UTF7_Disabled"), moreInfoUrl);
                             throw new NotSupportedException(exceptionMessage); // matches generic "unknown code page" exception type
                         }
                     }
@@ -261,10 +261,10 @@ namespace System.Text
             if (codepage < 0 || codepage > 65535)
             {
                 throw new ArgumentOutOfRangeException(
-                    nameof(codepage), SR.Format(SR.ArgumentOutOfRange_Range, 0, 65535));
+                    nameof(codepage), SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, 65535));
             }
 
-            throw new NotSupportedException(SR.Format(SR.NotSupported_NoCodepageData, codepage));
+            throw new NotSupportedException(SR.Format(SR.GetResourceString("NotSupported_NoCodepageData"), codepage));
         }
 
         public static Encoding GetEncoding(int codepage,
@@ -346,7 +346,7 @@ namespace System.Text
                 _dataItem = EncodingTable.GetCodePageDataItem(_codePage);
                 if (_dataItem == null)
                 {
-                    throw new NotSupportedException(SR.Format(SR.NotSupported_NoCodepageData, _codePage));
+                    throw new NotSupportedException(SR.Format(SR.GetResourceString("NotSupported_NoCodepageData"), _codePage));
                 }
             }
         }
@@ -489,7 +489,7 @@ namespace System.Text
             set
             {
                 if (this.IsReadOnly)
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
 
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
@@ -504,7 +504,7 @@ namespace System.Text
             set
             {
                 if (this.IsReadOnly)
-                    throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
 
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
@@ -544,7 +544,7 @@ namespace System.Text
             if (chars == null)
             {
                 throw new ArgumentNullException(nameof(chars),
-                    SR.ArgumentNull_Array);
+                    SR.GetResourceString("ArgumentNull_Array"));
             }
 
             return GetByteCount(chars, 0, chars.Length);
@@ -572,16 +572,16 @@ namespace System.Text
         {
             if (s == null)
                 throw new ArgumentNullException(nameof(s),
-                    SR.ArgumentNull_String);
+                    SR.GetResourceString("ArgumentNull_String"));
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index),
-                      SR.ArgumentOutOfRange_NeedNonNegNum);
+                      SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count),
-                      SR.ArgumentOutOfRange_NeedNonNegNum);
+                      SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (index > s.Length - count)
                 throw new ArgumentOutOfRangeException(nameof(index),
-                      SR.ArgumentOutOfRange_IndexCount);
+                      SR.GetResourceString("ArgumentOutOfRange_IndexCount"));
 
             unsafe
             {
@@ -602,11 +602,11 @@ namespace System.Text
             // Validate input parameters
             if (chars == null)
                 throw new ArgumentNullException(nameof(chars),
-                      SR.ArgumentNull_Array);
+                      SR.GetResourceString("ArgumentNull_Array"));
 
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count),
-                      SR.ArgumentOutOfRange_NeedNonNegNum);
+                      SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             char[] arrChar = new ReadOnlySpan<char>(chars, count).ToArray();
 
@@ -629,7 +629,7 @@ namespace System.Text
             if (chars == null)
             {
                 throw new ArgumentNullException(nameof(chars),
-                    SR.ArgumentNull_Array);
+                    SR.GetResourceString("ArgumentNull_Array"));
             }
             return GetBytes(chars, 0, chars.Length);
         }
@@ -663,7 +663,7 @@ namespace System.Text
         {
             if (s == null)
                 throw new ArgumentNullException(nameof(s),
-                    SR.ArgumentNull_String);
+                    SR.GetResourceString("ArgumentNull_String"));
 
             int byteCount = GetByteCount(s);
             byte[] bytes = new byte[byteCount];
@@ -679,16 +679,16 @@ namespace System.Text
         {
             if (s == null)
                 throw new ArgumentNullException(nameof(s),
-                    SR.ArgumentNull_String);
+                    SR.GetResourceString("ArgumentNull_String"));
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index),
-                      SR.ArgumentOutOfRange_NeedNonNegNum);
+                      SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count),
-                      SR.ArgumentOutOfRange_NeedNonNegNum);
+                      SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (index > s.Length - count)
                 throw new ArgumentOutOfRangeException(nameof(index),
-                      SR.ArgumentOutOfRange_IndexCount);
+                      SR.GetResourceString("ArgumentOutOfRange_IndexCount"));
 
             unsafe
             {
@@ -744,11 +744,11 @@ namespace System.Text
             // Validate input parameters
             if (bytes == null || chars == null)
                 throw new ArgumentNullException(bytes == null ? nameof(bytes) : nameof(chars),
-                    SR.ArgumentNull_Array);
+                    SR.GetResourceString("ArgumentNull_Array"));
 
             if (charCount < 0 || byteCount < 0)
                 throw new ArgumentOutOfRangeException(charCount < 0 ? nameof(charCount) : nameof(byteCount),
-                    SR.ArgumentOutOfRange_NeedNonNegNum);
+                    SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             // Get the char array to convert
             char[] arrChar = new ReadOnlySpan<char>(chars, charCount).ToArray();
@@ -792,7 +792,7 @@ namespace System.Text
             if (bytes == null)
             {
                 throw new ArgumentNullException(nameof(bytes),
-                    SR.ArgumentNull_Array);
+                    SR.GetResourceString("ArgumentNull_Array"));
             }
             return GetCharCount(bytes, 0, bytes.Length);
         }
@@ -810,11 +810,11 @@ namespace System.Text
             // Validate input parameters
             if (bytes == null)
                 throw new ArgumentNullException(nameof(bytes),
-                      SR.ArgumentNull_Array);
+                      SR.GetResourceString("ArgumentNull_Array"));
 
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count),
-                      SR.ArgumentOutOfRange_NeedNonNegNum);
+                      SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             byte[] arrByte = new ReadOnlySpan<byte>(bytes, count).ToArray();
 
@@ -837,7 +837,7 @@ namespace System.Text
             if (bytes == null)
             {
                 throw new ArgumentNullException(nameof(bytes),
-                    SR.ArgumentNull_Array);
+                    SR.GetResourceString("ArgumentNull_Array"));
             }
             return GetChars(bytes, 0, bytes.Length);
         }
@@ -889,11 +889,11 @@ namespace System.Text
             // Validate input parameters
             if (chars == null || bytes == null)
                 throw new ArgumentNullException(chars == null ? nameof(chars) : nameof(bytes),
-                    SR.ArgumentNull_Array);
+                    SR.GetResourceString("ArgumentNull_Array"));
 
             if (byteCount < 0 || charCount < 0)
                 throw new ArgumentOutOfRangeException(byteCount < 0 ? nameof(byteCount) : nameof(charCount),
-                    SR.ArgumentOutOfRange_NeedNonNegNum);
+                    SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             // Get the byte array to convert
             byte[] arrByte = new ReadOnlySpan<byte>(bytes, byteCount).ToArray();
@@ -933,10 +933,10 @@ namespace System.Text
         public unsafe string GetString(byte* bytes, int byteCount)
         {
             if (bytes == null)
-                throw new ArgumentNullException(nameof(bytes), SR.ArgumentNull_Array);
+                throw new ArgumentNullException(nameof(bytes), SR.GetResourceString("ArgumentNull_Array"));
 
             if (byteCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(byteCount), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(byteCount), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             return string.CreateStringFromEncoding(bytes, byteCount, this);
         }
@@ -1027,7 +1027,7 @@ namespace System.Text
         {
             if (bytes == null)
                 throw new ArgumentNullException(nameof(bytes),
-                    SR.ArgumentNull_Array);
+                    SR.GetResourceString("ArgumentNull_Array"));
 
             return GetString(bytes, 0, bytes.Length);
         }
@@ -1137,7 +1137,7 @@ namespace System.Text
             // Special message to include fallback type in case fallback's GetMaxCharCount is broken
             // This happens if user has implemented an encoder fallback with a broken GetMaxCharCount
             throw new ArgumentException(
-                SR.Format(SR.Argument_EncodingConversionOverflowBytes, EncodingName, EncoderFallback.GetType()), "bytes");
+                SR.Format(SR.GetResourceString("Argument_EncodingConversionOverflowBytes"), EncodingName, EncoderFallback.GetType()), "bytes");
 
         internal void ThrowBytesOverflow(EncoderNLS? encoder, bool nothingEncoded)
         {
@@ -1157,7 +1157,7 @@ namespace System.Text
         [DoesNotReturn]
         [StackTraceHidden]
         internal static void ThrowConversionOverflow() =>
-            throw new ArgumentException(SR.Argument_ConversionOverflow);
+            throw new ArgumentException(SR.GetResourceString("Argument_ConversionOverflow"));
 
         [DoesNotReturn]
         [StackTraceHidden]
@@ -1165,7 +1165,7 @@ namespace System.Text
             // Special message to include fallback type in case fallback's GetMaxCharCount is broken
             // This happens if user has implemented a decoder fallback with a broken GetMaxCharCount
             throw new ArgumentException(
-                SR.Format(SR.Argument_EncodingConversionOverflowChars, EncodingName, DecoderFallback.GetType()), "chars");
+                SR.Format(SR.GetResourceString("Argument_EncodingConversionOverflowChars"), EncodingName, DecoderFallback.GetType()), "chars");
 
         internal void ThrowCharsOverflow(DecoderNLS? decoder, bool nothingDecoded)
         {
@@ -1481,7 +1481,7 @@ namespace System.Text
                     // If we're not converting we must not have data in our fallback buffer
                     if (_encoder._throwOnOverflow && _encoder.InternalHasFallbackBuffer &&
                         this.fallbackBuffer.Remaining > 0)
-                        throw new ArgumentException(SR.Format(SR.Argument_EncoderFallbackNotEmpty,
+                        throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_EncoderFallbackNotEmpty"),
                             _encoder.Encoding.EncodingName, _encoder.Fallback!.GetType()));
                 }
                 fallbackBuffer.InternalInitialize(_chars, _charEnd, _encoder, _bytes != null);

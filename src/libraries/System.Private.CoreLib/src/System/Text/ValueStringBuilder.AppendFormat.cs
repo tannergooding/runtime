@@ -148,7 +148,7 @@ namespace System.Text
                 // If value of index is not within the range of the arguments passed in then error (Index out of range)
                 if (index >= args.Length)
                 {
-                    throw new FormatException(SR.Format_IndexOutOfRange);
+                    throw new FormatException(SR.GetResourceString("Format_IndexOutOfRange"));
                 }
 
                 // Consume optional whitespace.
@@ -332,7 +332,7 @@ namespace System.Text
 
         private static void ThrowFormatError()
         {
-            throw new FormatException(SR.Format_InvalidString);
+            throw new FormatException(SR.GetResourceString("Format_InvalidString"));
         }
     }
 }

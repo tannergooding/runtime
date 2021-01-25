@@ -40,7 +40,7 @@ namespace System.Runtime.Serialization
         {
             if (DeserializationInProgress)
             {
-                throw new SerializationException(SR.Serialization_DangerousDeserialization);
+                throw new SerializationException(SR.GetResourceString("Serialization_DangerousDeserialization"));
             }
         }
 
@@ -75,7 +75,7 @@ namespace System.Runtime.Serialization
             {
                 if (DeserializationInProgress)
                 {
-                    throw new SerializationException(SR.Format(SR.Serialization_DangerousDeserialization_Switch, SwitchPrefix + switchSuffix));
+                    throw new SerializationException(SR.Format(SR.GetResourceString("Serialization_DangerousDeserialization_Switch"), SwitchPrefix + switchSuffix));
                 }
             }
             else

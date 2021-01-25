@@ -26,7 +26,7 @@ namespace System
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            throw new SerializationException(SR.Serialization_DelegatesNotSupported);
+            throw new SerializationException(SR.GetResourceString("Serialization_DelegatesNotSupported"));
         }
 
         protected sealed override object? DynamicInvokeImpl(object?[]? args)

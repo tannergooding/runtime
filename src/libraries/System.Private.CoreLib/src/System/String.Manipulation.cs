@@ -562,15 +562,15 @@ namespace System
             }
             if (startIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NegativeCount);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NegativeCount"));
             }
             if (startIndex > value.Length - count)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_IndexCountBuffer);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_IndexCountBuffer"));
             }
 
             return JoinCore(separator, new ReadOnlySpan<string?>(value, startIndex, count));
@@ -814,7 +814,7 @@ namespace System
         public string PadLeft(int totalWidth, char paddingChar)
         {
             if (totalWidth < 0)
-                throw new ArgumentOutOfRangeException(nameof(totalWidth), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(totalWidth), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             int oldLength = Length;
             int count = totalWidth - oldLength;
             if (count <= 0)
@@ -833,7 +833,7 @@ namespace System
         public string PadRight(int totalWidth, char paddingChar)
         {
             if (totalWidth < 0)
-                throw new ArgumentOutOfRangeException(nameof(totalWidth), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(totalWidth), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             int oldLength = Length;
             int count = totalWidth - oldLength;
             if (count <= 0)
@@ -850,12 +850,12 @@ namespace System
         public string Remove(int startIndex, int count)
         {
             if (startIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NegativeCount);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NegativeCount"));
             int oldLength = this.Length;
             if (count > oldLength - startIndex)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_IndexCount);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_IndexCount"));
 
             if (count == 0)
                 return this;
@@ -875,10 +875,10 @@ namespace System
         public string Remove(int startIndex)
         {
             if (startIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
 
             if (startIndex >= Length)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndexLessThanLength);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndexLessThanLength"));
 
             return Substring(0, startIndex);
         }
@@ -907,7 +907,7 @@ namespace System
                     return ReplaceCore(oldValue, newValue, CompareInfo.Invariant, CompareOptions.OrdinalIgnoreCase);
 
                 default:
-                    throw new ArgumentException(SR.NotSupported_StringComparison, nameof(comparisonType));
+                    throw new ArgumentException(SR.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType));
             }
         }
 
@@ -920,7 +920,7 @@ namespace System
 
             if (oldValue.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_StringZeroLength, nameof(oldValue));
+                throw new ArgumentException(SR.GetResourceString("Argument_StringZeroLength"), nameof(oldValue));
             }
 
             // If they asked to replace oldValue with a null, replace all occurrences
@@ -1048,7 +1048,7 @@ namespace System
             }
             if (oldValue.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_StringZeroLength, nameof(oldValue));
+                throw new ArgumentException(SR.GetResourceString("Argument_StringZeroLength"), nameof(oldValue));
             }
 
             // If newValue is null, treat it as an empty string.  Callers use this to remove the oldValue.
@@ -1207,7 +1207,7 @@ namespace System
         {
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count),
-                    SR.ArgumentOutOfRange_NegativeCount);
+                    SR.GetResourceString("ArgumentOutOfRange_NegativeCount"));
 
             CheckStringSplitOptions(options);
 
@@ -1281,7 +1281,7 @@ namespace System
             if (count < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(count),
-                    SR.ArgumentOutOfRange_NegativeCount);
+                    SR.GetResourceString("ArgumentOutOfRange_NegativeCount"));
             }
 
             CheckStringSplitOptions(options);
@@ -1648,22 +1648,22 @@ namespace System
         {
             if (startIndex < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
             }
 
             if (startIndex > Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndexLargerThanLength);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndexLargerThanLength"));
             }
 
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NegativeLength);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NegativeLength"));
             }
 
             if (startIndex > Length - length)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_IndexLength);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_IndexLength"));
             }
 
             if (length == 0)

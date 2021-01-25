@@ -27,7 +27,7 @@ namespace System.Reflection
             }
             else
             {
-                throw new ArgumentException(SR.Argument_InvalidMemberForNamedArgument);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidMemberForNamedArgument"));
             }
 
             m_memberInfo = memberInfo;

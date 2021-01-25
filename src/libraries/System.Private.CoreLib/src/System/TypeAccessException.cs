@@ -12,7 +12,7 @@ namespace System
     public class TypeAccessException : TypeLoadException
     {
         public TypeAccessException()
-            : base(SR.Arg_TypeAccessException)
+            : base(SR.GetResourceString("Arg_TypeAccessException"))
         {
             HResult = HResults.COR_E_TYPEACCESS;
         }

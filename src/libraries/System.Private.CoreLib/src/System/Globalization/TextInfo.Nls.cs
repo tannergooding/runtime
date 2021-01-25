@@ -33,7 +33,7 @@ namespace System.Globalization
                                                      _sortHandle);
             if (ret == 0)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
             }
 
             Debug.Assert(ret == pSourceLen, "Expected getting the same length of the original string");

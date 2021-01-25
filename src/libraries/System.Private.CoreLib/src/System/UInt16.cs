@@ -36,7 +36,7 @@ namespace System
             {
                 return (int)m_value - (int)(((ushort)value).m_value);
             }
-            throw new ArgumentException(SR.Arg_MustBeUInt16);
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeUInt16"));
         }
 
         public int CompareTo(ushort value)
@@ -258,7 +258,7 @@ namespace System
 
         DateTime IConvertible.ToDateTime(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "UInt16", "DateTime"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "UInt16", "DateTime"));
         }
 
         object IConvertible.ToType(Type type, IFormatProvider? provider)

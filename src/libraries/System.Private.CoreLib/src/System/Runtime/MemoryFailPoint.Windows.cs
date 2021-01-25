@@ -50,7 +50,7 @@ namespace System.Runtime
             LastTimeCheckingAddressSpace = Environment.TickCount;
 
             if (freeSpaceAfterGCHeap < size && shouldThrow)
-                throw new InsufficientMemoryException(SR.InsufficientMemory_MemFailPoint_VAFrag);
+                throw new InsufficientMemoryException(SR.GetResourceString("InsufficientMemory_MemFailPoint_VAFrag"));
         }
 
         // Returns the amount of consecutive free memory available in a block

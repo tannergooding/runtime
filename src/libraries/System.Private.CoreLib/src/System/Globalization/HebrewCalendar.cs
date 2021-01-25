@@ -296,7 +296,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     varName,
                     y,
-                    SR.Format(SR.ArgumentOutOfRange_Range, MinHebrewYear, MaxHebrewYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), MinHebrewYear, MaxHebrewYear));
             }
         }
 
@@ -314,7 +314,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(month),
                     month,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 1, monthsInYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, monthsInYear));
             }
         }
 
@@ -332,7 +332,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(day),
                     day,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 1, daysInMonth));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, daysInMonth));
             }
         }
 
@@ -340,7 +340,7 @@ namespace System.Globalization
         {
             if (era != CurrentEra && era != HebrewEra)
             {
-                throw new ArgumentOutOfRangeException(nameof(era), era, SR.ArgumentOutOfRange_InvalidEraValue);
+                throw new ArgumentOutOfRangeException(nameof(era), era, SR.GetResourceString("ArgumentOutOfRange_InvalidEraValue"));
             }
         }
 
@@ -354,7 +354,7 @@ namespace System.Globalization
                     // Print out the date in Gregorian using InvariantCulture since the DateTime is based on GreograinCalendar.
                     SR.Format(
                         CultureInfo.InvariantCulture,
-                        SR.ArgumentOutOfRange_CalendarRange,
+                        SR.GetResourceString("ArgumentOutOfRange_CalendarRange"),
                         s_calendarMinValue,
                         s_calendarMaxValue));
             }
@@ -367,7 +367,7 @@ namespace System.Globalization
                 DatePartYear => result.year,
                 DatePartMonth => result.month,
                 DatePartDay => result.day,
-                _ => throw new InvalidOperationException(SR.InvalidOperation_DateTimeParsing),
+                _ => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_DateTimeParsing")),
             };
         }
 
@@ -574,7 +574,7 @@ namespace System.Globalization
             // If exception is thrown in the calls above, we are out of the supported range of this calendar.
             catch (ArgumentException)
             {
-                throw new ArgumentOutOfRangeException(nameof(months), months, SR.ArgumentOutOfRange_AddValue);
+                throw new ArgumentOutOfRangeException(nameof(months), months, SR.GetResourceString("ArgumentOutOfRange_AddValue"));
             }
         }
 
@@ -664,7 +664,7 @@ namespace System.Globalization
             int monthDays = LunarMonthLen[hebrewYearType * MaxMonthPlusOne + month];
             if (monthDays == 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(month), month, SR.ArgumentOutOfRange_Month);
+                throw new ArgumentOutOfRangeException(nameof(month), month, SR.GetResourceString("ArgumentOutOfRange_Month"));
             }
 
             return monthDays;
@@ -874,7 +874,7 @@ namespace System.Globalization
         {
             if (year < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(year), year, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(year), year, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             if (year < 100)
@@ -887,7 +887,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(year),
                     year,
-                    SR.Format(SR.ArgumentOutOfRange_Range, MinHebrewYear, MaxHebrewYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), MinHebrewYear, MaxHebrewYear));
             }
             return year;
         }

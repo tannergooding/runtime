@@ -226,7 +226,7 @@ namespace System.Reflection
             RuntimeType? attributeRuntimeType = attributeType.UnderlyingSystemType as RuntimeType;
 
             if (attributeRuntimeType == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(attributeType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(attributeType));
 
             return CustomAttribute.GetCustomAttributes(this, attributeRuntimeType, inherit);
         }
@@ -239,7 +239,7 @@ namespace System.Reflection
             RuntimeType? attributeRuntimeType = attributeType.UnderlyingSystemType as RuntimeType;
 
             if (attributeRuntimeType == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(attributeType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(attributeType));
 
             return CustomAttribute.IsDefined(this, attributeRuntimeType, inherit);
         }
@@ -338,9 +338,9 @@ namespace System.Reflection
                 if (!m_declaringType.IsInstanceOfType(target))
                 {
                     if (target == null)
-                        throw new TargetException(SR.RFLCT_Targ_StatMethReqTarg);
+                        throw new TargetException(SR.GetResourceString("RFLCT_Targ_StatMethReqTarg"));
                     else
-                        throw new TargetException(SR.RFLCT_Targ_ITargMismatch);
+                        throw new TargetException(SR.GetResourceString("RFLCT_Targ_ITargMismatch"));
                 }
             }
         }
@@ -361,7 +361,7 @@ namespace System.Reflection
             // method is generic or on a generic class
             else if (DeclaringType!.ContainsGenericParameters || ContainsGenericParameters)
             {
-                throw new InvalidOperationException(SR.Arg_UnboundGenParam);
+                throw new InvalidOperationException(SR.GetResourceString("Arg_UnboundGenParam"));
             }
             // method is abstract class
             else if (IsAbstract)
@@ -372,9 +372,9 @@ namespace System.Reflection
             {
                 Type elementType = ReturnType.GetElementType()!;
                 if (elementType.IsByRefLike)
-                    throw new NotSupportedException(SR.NotSupported_ByRefToByRefLikeReturn);
+                    throw new NotSupportedException(SR.GetResourceString("NotSupported_ByRefToByRefLikeReturn"));
                 if (elementType == typeof(void))
-                    throw new NotSupportedException(SR.NotSupported_ByRefToVoidReturn);
+                    throw new NotSupportedException(SR.GetResourceString("NotSupported_ByRefToVoidReturn"));
             }
 
             throw new TargetException();
@@ -423,7 +423,7 @@ namespace System.Reflection
             CheckConsistency(obj);
 
             if (formalCount != actualCount)
-                throw new TargetParameterCountException(SR.Arg_ParmCnt);
+                throw new TargetParameterCountException(SR.GetResourceString("Arg_ParmCnt"));
 
             if (actualCount != 0)
                 return CheckArguments(parameters!, binder, invokeAttr, culture, sig);
@@ -506,15 +506,15 @@ namespace System.Reflection
 
             RuntimeType? rtType = delegateType as RuntimeType;
             if (rtType == null)
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(delegateType));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(delegateType));
 
             if (!rtType.IsDelegate())
-                throw new ArgumentException(SR.Arg_MustBeDelegate, nameof(delegateType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeDelegate"), nameof(delegateType));
 
             Delegate? d = Delegate.CreateDelegateInternal(rtType, this, firstArgument, bindingFlags);
             if (d == null)
             {
-                throw new ArgumentException(SR.Arg_DlgtTargMeth);
+                throw new ArgumentException(SR.GetResourceString("Arg_DlgtTargMeth"));
             }
 
             return d;
@@ -532,7 +532,7 @@ namespace System.Reflection
 
             if (!IsGenericMethodDefinition)
                 throw new InvalidOperationException(
-                    SR.Format(SR.Arg_NotGenericMethodDefinition, this));
+                    SR.Format(SR.GetResourceString("Arg_NotGenericMethodDefinition"), this));
 
             for (int i = 0; i < methodInstantiation.Length; i++)
             {

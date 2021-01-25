@@ -336,7 +336,7 @@ namespace System.Runtime.Loader
 
             if (PathInternal.IsPartiallyQualified(assemblyPath))
             {
-                throw new ArgumentException(SR.Format(SR.Argument_AbsolutePathRequired, assemblyPath), nameof(assemblyPath));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_AbsolutePathRequired"), assemblyPath), nameof(assemblyPath));
             }
 
             lock (_unloadLock)
@@ -357,12 +357,12 @@ namespace System.Runtime.Loader
 
             if (PathInternal.IsPartiallyQualified(nativeImagePath))
             {
-                throw new ArgumentException(SR.Format(SR.Argument_AbsolutePathRequired, nativeImagePath), nameof(nativeImagePath));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_AbsolutePathRequired"), nativeImagePath), nameof(nativeImagePath));
             }
 
             if (assemblyPath != null && PathInternal.IsPartiallyQualified(assemblyPath))
             {
-                throw new ArgumentException(SR.Format(SR.Argument_AbsolutePathRequired, assemblyPath), nameof(assemblyPath));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_AbsolutePathRequired"), assemblyPath), nameof(assemblyPath));
             }
 
             lock (_unloadLock)
@@ -391,7 +391,7 @@ namespace System.Runtime.Loader
 
             if (iAssemblyStreamLength <= 0)
             {
-                throw new BadImageFormatException(SR.BadImageFormat_BadILFormat);
+                throw new BadImageFormatException(SR.GetResourceString("BadImageFormat_BadILFormat"));
             }
 
             // Allocate the byte[] to hold the assembly
@@ -429,12 +429,12 @@ namespace System.Runtime.Loader
 
             if (unmanagedDllPath.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_EmptyPath, nameof(unmanagedDllPath));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyPath"), nameof(unmanagedDllPath));
             }
 
             if (PathInternal.IsPartiallyQualified(unmanagedDllPath))
             {
-                throw new ArgumentException(SR.Format(SR.Argument_AbsolutePathRequired, unmanagedDllPath), nameof(unmanagedDllPath));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_AbsolutePathRequired"), unmanagedDllPath), nameof(unmanagedDllPath));
             }
 
             return NativeLibrary.Load(unmanagedDllPath);
@@ -453,7 +453,7 @@ namespace System.Runtime.Loader
         {
             if (!IsCollectible)
             {
-                throw new InvalidOperationException(SR.AssemblyLoadContext_Unload_CannotUnloadIfNotCollectible);
+                throw new InvalidOperationException(SR.GetResourceString("AssemblyLoadContext_Unload_CannotUnloadIfNotCollectible"));
             }
 
             GC.SuppressFinalize(this);
@@ -485,7 +485,7 @@ namespace System.Runtime.Loader
         {
             if (_state != InternalState.Alive)
             {
-                throw new InvalidOperationException(SR.AssemblyLoadContext_Verify_NotUnloading);
+                throw new InvalidOperationException(SR.GetResourceString("AssemblyLoadContext_Verify_NotUnloading"));
             }
         }
 
@@ -560,7 +560,7 @@ namespace System.Runtime.Loader
             if (assemblyLoadContext == null)
             {
                 // All RuntimeAssemblies & Only RuntimeAssemblies have an AssemblyLoadContext
-                throw new ArgumentException(SR.Arg_MustBeRuntimeAssembly, nameof(activating));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeRuntimeAssembly"), nameof(activating));
             }
 
             return assemblyLoadContext.EnterContextualReflection();
@@ -646,7 +646,7 @@ namespace System.Runtime.Loader
         {
             if (string.IsNullOrEmpty(requestedSimpleName))
             {
-                throw new ArgumentException(SR.ArgumentNull_AssemblyNameName);
+                throw new ArgumentException(SR.GetResourceString("ArgumentNull_AssemblyNameName"));
             }
 
             // Get the name of the loaded assembly
@@ -664,7 +664,7 @@ namespace System.Runtime.Loader
             // The simple names should match at the very least
             if (string.IsNullOrEmpty(loadedSimpleName) || !requestedSimpleName.Equals(loadedSimpleName, StringComparison.InvariantCultureIgnoreCase))
             {
-                throw new InvalidOperationException(SR.Argument_CustomAssemblyLoadContextRequestedNameMismatch);
+                throw new InvalidOperationException(SR.GetResourceString("Argument_CustomAssemblyLoadContextRequestedNameMismatch"));
             }
 
             return assembly;

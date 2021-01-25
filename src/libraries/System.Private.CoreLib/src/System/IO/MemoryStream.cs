@@ -44,7 +44,7 @@ namespace System.IO
         public MemoryStream(int capacity)
         {
             if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), SR.ArgumentOutOfRange_NegativeCapacity);
+                throw new ArgumentOutOfRangeException(nameof(capacity), SR.GetResourceString("ArgumentOutOfRange_NegativeCapacity"));
 
             _buffer = capacity != 0 ? new byte[capacity] : Array.Empty<byte>();
             _capacity = capacity;
@@ -62,7 +62,7 @@ namespace System.IO
         public MemoryStream(byte[] buffer, bool writable)
         {
             if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
 
             _buffer = buffer;
             _length = _capacity = buffer.Length;
@@ -83,13 +83,13 @@ namespace System.IO
         public MemoryStream(byte[] buffer, int index, int count, bool writable, bool publiclyVisible)
         {
             if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (buffer.Length - index < count)
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
             _buffer = buffer;
             _origin = _position = index;
@@ -142,7 +142,7 @@ namespace System.IO
         {
             // Check for overflow
             if (value < 0)
-                throw new IOException(SR.IO_StreamTooLong);
+                throw new IOException(SR.GetResourceString("IO_StreamTooLong"));
 
             if (value > _capacity)
             {
@@ -191,7 +191,7 @@ namespace System.IO
         public virtual byte[] GetBuffer()
         {
             if (!_exposable)
-                throw new UnauthorizedAccessException(SR.UnauthorizedAccess_MemStreamBuffer);
+                throw new UnauthorizedAccessException(SR.GetResourceString("UnauthorizedAccess_MemStreamBuffer"));
             return _buffer;
         }
 
@@ -273,12 +273,12 @@ namespace System.IO
                 // Only update the capacity if the MS is expandable and the value is different than the current capacity.
                 // Special behavior if the MS isn't expandable: we don't throw if value is the same as the current capacity
                 if (value < Length)
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_SmallCapacity);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_SmallCapacity"));
 
                 EnsureNotClosed();
 
                 if (!_expandable && (value != Capacity))
-                    throw new NotSupportedException(SR.NotSupported_MemStreamNotExpandable);
+                    throw new NotSupportedException(SR.GetResourceString("NotSupported_MemStreamNotExpandable"));
 
                 // MemoryStream has this invariant: _origin > 0 => !expandable (see ctors)
                 if (_expandable && value != _capacity)
@@ -320,12 +320,12 @@ namespace System.IO
             set
             {
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
                 EnsureNotClosed();
 
                 if (value > MemStreamMaxLength)
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_StreamLength);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_StreamLength"));
                 _position = _origin + (int)value;
             }
         }
@@ -530,7 +530,7 @@ namespace System.IO
             EnsureNotClosed();
 
             if (offset > MemStreamMaxLength)
-                throw new ArgumentOutOfRangeException(nameof(offset), SR.ArgumentOutOfRange_StreamLength);
+                throw new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("ArgumentOutOfRange_StreamLength"));
 
             switch (loc)
             {
@@ -538,7 +538,7 @@ namespace System.IO
                     {
                         int tempPosition = unchecked(_origin + (int)offset);
                         if (offset < 0 || tempPosition < _origin)
-                            throw new IOException(SR.IO_SeekBeforeBegin);
+                            throw new IOException(SR.GetResourceString("IO_SeekBeforeBegin"));
                         _position = tempPosition;
                         break;
                     }
@@ -546,7 +546,7 @@ namespace System.IO
                     {
                         int tempPosition = unchecked(_position + (int)offset);
                         if (unchecked(_position + offset) < _origin || tempPosition < _origin)
-                            throw new IOException(SR.IO_SeekBeforeBegin);
+                            throw new IOException(SR.GetResourceString("IO_SeekBeforeBegin"));
                         _position = tempPosition;
                         break;
                     }
@@ -554,12 +554,12 @@ namespace System.IO
                     {
                         int tempPosition = unchecked(_length + (int)offset);
                         if (unchecked(_length + offset) < _origin || tempPosition < _origin)
-                            throw new IOException(SR.IO_SeekBeforeBegin);
+                            throw new IOException(SR.GetResourceString("IO_SeekBeforeBegin"));
                         _position = tempPosition;
                         break;
                     }
                 default:
-                    throw new ArgumentException(SR.Argument_InvalidSeekOrigin);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidSeekOrigin"));
             }
 
             Debug.Assert(_position >= 0, "_position >= 0");
@@ -579,14 +579,14 @@ namespace System.IO
         public override void SetLength(long value)
         {
             if (value < 0 || value > int.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_StreamLength);
+                throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_StreamLength"));
 
             EnsureWriteable();
 
             // Origin wasn't publicly exposed above.
             Debug.Assert(MemStreamMaxLength == int.MaxValue);  // Check parameter validation logic in this method if this fails.
             if (value > (int.MaxValue - _origin))
-                throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_StreamLength);
+                throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_StreamLength"));
 
             int newLength = _origin + (int)value;
             bool allocatedNewArray = EnsureCapacity(newLength);
@@ -616,7 +616,7 @@ namespace System.IO
             int i = _position + count;
             // Check for overflow
             if (i < 0)
-                throw new IOException(SR.IO_StreamTooLong);
+                throw new IOException(SR.GetResourceString("IO_StreamTooLong"));
 
             if (i > _length)
             {
@@ -667,7 +667,7 @@ namespace System.IO
             // Check for overflow
             int i = _position + buffer.Length;
             if (i < 0)
-                throw new IOException(SR.IO_StreamTooLong);
+                throw new IOException(SR.GetResourceString("IO_StreamTooLong"));
 
             if (i > _length)
             {
@@ -775,7 +775,7 @@ namespace System.IO
         public virtual void WriteTo(Stream stream)
         {
             if (stream == null)
-                throw new ArgumentNullException(nameof(stream), SR.ArgumentNull_Stream);
+                throw new ArgumentNullException(nameof(stream), SR.GetResourceString("ArgumentNull_Stream"));
 
             EnsureNotClosed();
 

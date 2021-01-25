@@ -40,7 +40,7 @@ namespace System.Buffers.Text
                 case 'G':
                     {
                         if (format.Precision != StandardFormat.NoPrecision)
-                            throw new NotSupportedException(SR.Argument_GWithPrecisionNotSupported);
+                            throw new NotSupportedException(SR.GetResourceString("Argument_GWithPrecisionNotSupported"));
 
                         byte* pDigits = stackalloc byte[Number.DecimalNumberBufferLength];
                         Number.NumberBuffer number = new Number.NumberBuffer(Number.NumberBufferKind.Decimal, pDigits, Number.DecimalNumberBufferLength);

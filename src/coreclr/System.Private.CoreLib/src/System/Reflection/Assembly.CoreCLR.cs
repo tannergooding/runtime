@@ -29,7 +29,7 @@ namespace System.Reflection
                 throw new ArgumentNullException(nameof(partialName));
 
             if ((partialName.Length == 0) || (partialName[0] == '\0'))
-                throw new ArgumentException(SR.Format_StringZeroLength, nameof(partialName));
+                throw new ArgumentException(SR.GetResourceString("Format_StringZeroLength"), nameof(partialName));
 
             try
             {

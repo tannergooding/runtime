@@ -53,7 +53,7 @@ namespace System.IO
 
         public override byte[] GetBuffer()
         {
-            throw new UnauthorizedAccessException(SR.UnauthorizedAccess_MemStreamBuffer);
+            throw new UnauthorizedAccessException(SR.GetResourceString("UnauthorizedAccess_MemStreamBuffer"));
         }
 
         public override bool TryGetBuffer(out ArraySegment<byte> buffer)
@@ -65,7 +65,7 @@ namespace System.IO
         public override int Capacity
         {
             get => (int)_unmanagedStream.Capacity;
-            set => throw new IOException(SR.IO_FixedCapacity);
+            set => throw new IOException(SR.GetResourceString("IO_FixedCapacity"));
         }
 
         public override long Length => _unmanagedStream.Length;
@@ -122,7 +122,7 @@ namespace System.IO
         public override unsafe void WriteTo(Stream stream)
         {
             if (stream == null)
-                throw new ArgumentNullException(nameof(stream), SR.ArgumentNull_Stream);
+                throw new ArgumentNullException(nameof(stream), SR.GetResourceString("ArgumentNull_Stream"));
 
             byte[] buffer = ToArray();
 
@@ -145,19 +145,19 @@ namespace System.IO
                 throw new ArgumentNullException(nameof(destination));
 
             if (bufferSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
 
             if (!CanRead && !CanWrite)
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_StreamClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_StreamClosed"));
 
             if (!destination.CanRead && !destination.CanWrite)
-                throw new ObjectDisposedException(nameof(destination), SR.ObjectDisposed_StreamClosed);
+                throw new ObjectDisposedException(nameof(destination), SR.GetResourceString("ObjectDisposed_StreamClosed"));
 
             if (!CanRead)
-                throw new NotSupportedException(SR.NotSupported_UnreadableStream);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_UnreadableStream"));
 
             if (!destination.CanWrite)
-                throw new NotSupportedException(SR.NotSupported_UnwritableStream);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_UnwritableStream"));
 
 
             return _unmanagedStream.CopyToAsync(destination, bufferSize, cancellationToken);

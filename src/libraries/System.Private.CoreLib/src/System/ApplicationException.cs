@@ -29,7 +29,7 @@ namespace System
         // the empty string, its HRESULT set to COR_E_APPLICATION,
         // and its ExceptionInfo reference set to null.
         public ApplicationException()
-            : base(SR.Arg_ApplicationException)
+            : base(SR.GetResourceString("Arg_ApplicationException"))
         {
             HResult = HResults.COR_E_APPLICATION;
         }

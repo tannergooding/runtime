@@ -1849,7 +1849,7 @@ namespace System
         {
             if (rest is not IValueTupleInternal)
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleLastArgumentNotAValueTuple);
+                throw new ArgumentException(SR.GetResourceString("ArgumentException_ValueTupleLastArgumentNotAValueTuple"));
             }
 
             Item1 = item1;

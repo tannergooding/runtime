@@ -54,7 +54,7 @@ namespace System
                     // the type name. Let's include it here to improve the
                     // debugging experience for our callers.
 
-                    string friendlyMessage = SR.Format(SR.Activator_CannotCreateInstance, rt, ex.Message);
+                    string friendlyMessage = SR.Format(SR.GetResourceString("Activator_CannotCreateInstance"), rt, ex.Message);
                     switch (ex)
                     {
                         case ArgumentException: throw new ArgumentException(friendlyMessage);

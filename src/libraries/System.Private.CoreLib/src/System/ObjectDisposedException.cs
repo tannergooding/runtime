@@ -17,12 +17,12 @@ namespace System
 
         // This constructor should only be called by the EE (COMPlusThrow)
         private ObjectDisposedException() :
-            this(null, SR.ObjectDisposed_Generic)
+            this(null, SR.GetResourceString("ObjectDisposed_Generic"))
         {
         }
 
         public ObjectDisposedException(string? objectName) :
-            this(objectName, SR.ObjectDisposed_Generic)
+            this(objectName, SR.GetResourceString("ObjectDisposed_Generic"))
         {
         }
 
@@ -63,7 +63,7 @@ namespace System
                     return base.Message;
                 }
 
-                string objectDisposed = SR.Format(SR.ObjectDisposed_ObjectName_Name, name);
+                string objectDisposed = SR.Format(SR.GetResourceString("ObjectDisposed_ObjectName_Name"), name);
                 return base.Message + Environment.NewLineConst + objectDisposed;
             }
         }

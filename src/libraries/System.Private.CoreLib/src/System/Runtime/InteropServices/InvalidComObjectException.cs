@@ -15,7 +15,7 @@ namespace System.Runtime.InteropServices
     public class InvalidComObjectException : SystemException
     {
         public InvalidComObjectException()
-            : base(SR.Arg_InvalidComObjectException)
+            : base(SR.GetResourceString("Arg_InvalidComObjectException"))
         {
             HResult = HResults.COR_E_INVALIDCOMOBJECT;
         }

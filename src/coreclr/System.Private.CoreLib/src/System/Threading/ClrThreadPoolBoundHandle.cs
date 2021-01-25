@@ -77,7 +77,7 @@ namespace System.Threading
                 throw new ArgumentNullException(nameof(handle));
 
             if (handle.IsClosed || handle.IsInvalid)
-                throw new ArgumentException(SR.Argument_InvalidHandle, nameof(handle));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidHandle"), nameof(handle));
 
             return BindHandleCore(handle);
         }
@@ -178,7 +178,7 @@ namespace System.Threading
                 ThreadPoolBoundHandleOverlapped overlapped = preAllocated._overlapped;
 
                 if (overlapped._boundHandle != null)
-                    throw new ArgumentException(SR.Argument_PreAllocatedAlreadyAllocated, nameof(preAllocated));
+                    throw new ArgumentException(SR.GetResourceString("Argument_PreAllocatedAlreadyAllocated"), nameof(preAllocated));
 
                 overlapped._boundHandle = this;
 
@@ -225,7 +225,7 @@ namespace System.Threading
             ThreadPoolBoundHandleOverlapped wrapper = GetOverlappedWrapper(overlapped);
 
             if (wrapper._boundHandle != this)
-                throw new ArgumentException(SR.Argument_NativeOverlappedWrongBoundHandle, nameof(overlapped));
+                throw new ArgumentException(SR.GetResourceString("Argument_NativeOverlappedWrongBoundHandle"), nameof(overlapped));
 
             if (wrapper._preAllocated != null)
                 wrapper._preAllocated.Release();
@@ -269,7 +269,7 @@ namespace System.Threading
             }
             catch (NullReferenceException ex)
             {
-                throw new ArgumentException(SR.Argument_NativeOverlappedAlreadyFree, nameof(overlapped), ex);
+                throw new ArgumentException(SR.GetResourceString("Argument_NativeOverlappedAlreadyFree"), nameof(overlapped), ex);
             }
 
             return wrapper;

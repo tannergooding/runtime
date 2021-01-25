@@ -49,7 +49,7 @@ namespace System
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            throw new SerializationException(SR.Serialization_DelegatesNotSupported);
+            throw new SerializationException(SR.GetResourceString("Serialization_DelegatesNotSupported"));
         }
 
         // equals returns true IIF the delegate is not null and has the
@@ -227,7 +227,7 @@ namespace System
 
             // Verify that the types are the same...
             if (!InternalEqualTypes(this, follow))
-                throw new ArgumentException(SR.Arg_DlgtTypeMis);
+                throw new ArgumentException(SR.GetResourceString("Arg_DlgtTypeMis"));
 
             MulticastDelegate dFollow = (MulticastDelegate)follow;
             object[]? resultList;
@@ -569,7 +569,7 @@ namespace System
         [DoesNotReturn]
         [System.Diagnostics.DebuggerNonUserCode]
         private static void ThrowNullThisInDelegateToInstance() =>
-            throw new ArgumentException(SR.Arg_DlgtNullInst);
+            throw new ArgumentException(SR.GetResourceString("Arg_DlgtNullInst"));
 
         [System.Diagnostics.DebuggerNonUserCode]
         private void CtorClosed(object target, IntPtr methodPtr)

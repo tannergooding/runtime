@@ -333,7 +333,7 @@ namespace System
                         //
                         // This means that '\' is at the end of the formatting string.
                         //
-                        throw new FormatException(SR.Format_InvalidString);
+                        throw new FormatException(SR.GetResourceString("Format_InvalidString"));
                     }
                 }
                 else
@@ -345,7 +345,7 @@ namespace System
             if (!foundQuote)
             {
                 // Here we can't find the matching quote.
-                throw new FormatException(SR.Format(SR.Format_BadQuote, quoteChar));
+                throw new FormatException(SR.Format(SR.GetResourceString("Format_BadQuote"), quoteChar));
             }
 
             //
@@ -541,7 +541,7 @@ namespace System
                             {
                                 StringBuilderCache.Release(result);
                             }
-                            throw new FormatException(SR.Format_InvalidString);
+                            throw new FormatException(SR.GetResourceString("Format_InvalidString"));
                         }
                         break;
                     case 't':
@@ -729,7 +729,7 @@ namespace System
                             {
                                 StringBuilderCache.Release(result);
                             }
-                            throw new FormatException(SR.Format_InvalidString);
+                            throw new FormatException(SR.GetResourceString("Format_InvalidString"));
                         }
                         break;
                     case '\\':
@@ -756,7 +756,7 @@ namespace System
                             {
                                 StringBuilderCache.Release(result);
                             }
-                            throw new FormatException(SR.Format_InvalidString);
+                            throw new FormatException(SR.GetResourceString("Format_InvalidString"));
                         }
                         break;
                     default:
@@ -929,7 +929,7 @@ namespace System
                     realFormat = dtfi.YearMonthPattern;
                     break;
                 default:
-                    throw new FormatException(SR.Format_InvalidString);
+                    throw new FormatException(SR.GetResourceString("Format_InvalidString"));
             }
             return realFormat;
         }
@@ -964,7 +964,7 @@ namespace System
                     if (offset.Ticks != NullOffset)
                     {
                         // This format is not supported by DateTimeOffset
-                        throw new FormatException(SR.Format_InvalidString);
+                        throw new FormatException(SR.GetResourceString("Format_InvalidString"));
                     }
                     // Universal time is always in Greogrian calendar.
                     //
@@ -1363,7 +1363,7 @@ namespace System
                     results = new string[] { Format(dateTime, char.ToString(format), dtfi) };
                     break;
                 default:
-                    throw new FormatException(SR.Format_InvalidString);
+                    throw new FormatException(SR.GetResourceString("Format_InvalidString"));
             }
             return results;
         }

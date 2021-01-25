@@ -37,7 +37,7 @@ namespace System
                 StringComparison.InvariantCultureIgnoreCase => InvariantCultureIgnoreCase,
                 StringComparison.Ordinal => Ordinal,
                 StringComparison.OrdinalIgnoreCase => OrdinalIgnoreCase,
-                _ => throw new ArgumentException(SR.NotSupported_StringComparison, nameof(comparisonType)),
+                _ => throw new ArgumentException(SR.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType)),
             };
         }
 
@@ -80,7 +80,7 @@ namespace System
                 return ia.CompareTo(y);
             }
 
-            throw new ArgumentException(SR.Argument_ImplementIComparable);
+            throw new ArgumentException(SR.GetResourceString("Argument_ImplementIComparable"));
         }
 
         public new bool Equals(object? x, object? y)
@@ -139,7 +139,7 @@ namespace System
 
             if ((options & ValidCompareMaskOffFlags) != 0)
             {
-                throw new ArgumentException(SR.Argument_InvalidFlag, nameof(options));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidFlag"), nameof(options));
             }
             _options = options;
         }

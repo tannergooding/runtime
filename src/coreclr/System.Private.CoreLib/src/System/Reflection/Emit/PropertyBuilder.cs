@@ -37,9 +37,9 @@ namespace System.Reflection.Emit
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
             if (name.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
             if (name[0] == '\0')
-                throw new ArgumentException(SR.Argument_IllegalName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_IllegalName"), nameof(name));
 
             m_name = name;
             m_moduleBuilder = mod;
@@ -135,27 +135,27 @@ namespace System.Reflection.Emit
         // Not supported functions in dynamic module.
         public override object GetValue(object? obj, object?[]? index)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override object GetValue(object? obj, BindingFlags invokeAttr, Binder? binder, object?[]? index, CultureInfo? culture)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override void SetValue(object? obj, object? value, object?[]? index)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override void SetValue(object? obj, object? value, BindingFlags invokeAttr, Binder? binder, object?[]? index, CultureInfo? culture)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override MethodInfo[] GetAccessors(bool nonPublic)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override MethodInfo? GetGetMethod(bool nonPublic)
@@ -180,7 +180,7 @@ namespace System.Reflection.Emit
 
         public override ParameterInfo[] GetIndexParameters()
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override Type PropertyType => m_returnType;
@@ -199,17 +199,17 @@ namespace System.Reflection.Emit
 
         public override object[] GetCustomAttributes(bool inherit)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override object[] GetCustomAttributes(Type attributeType, bool inherit)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override bool IsDefined(Type attributeType, bool inherit)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         public override string Name => m_name;

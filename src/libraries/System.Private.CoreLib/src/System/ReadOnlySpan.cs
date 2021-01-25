@@ -171,7 +171,7 @@ namespace System
         [Obsolete("Equals() on ReadOnlySpan will always throw an exception. Use == instead.")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public override bool Equals(object? obj) =>
-            throw new NotSupportedException(SR.NotSupported_CannotCallEqualsOnSpan);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_CannotCallEqualsOnSpan"));
 
         /// <summary>
         /// This method is not supported as spans cannot be boxed.
@@ -182,7 +182,7 @@ namespace System
         [Obsolete("GetHashCode() on ReadOnlySpan will always throw an exception.")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public override int GetHashCode() =>
-            throw new NotSupportedException(SR.NotSupported_CannotCallGetHashCodeOnSpan);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_CannotCallGetHashCodeOnSpan"));
 
         /// <summary>
         /// Defines an implicit conversion of an array to a <see cref="ReadOnlySpan{T}"/>

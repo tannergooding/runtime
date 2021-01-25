@@ -14,7 +14,7 @@ namespace System
     [System.Runtime.CompilerServices.TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
     public class ContextMarshalException : SystemException
     {
-        public ContextMarshalException() : this(SR.Arg_ContextMarshalException, null)
+        public ContextMarshalException() : this(SR.GetResourceString("Arg_ContextMarshalException"), null)
         {
         }
 

@@ -20,11 +20,11 @@ namespace System
 
             if (_className == null)
             {
-                _message = SR.Arg_TypeLoadException;
+                _message = SR.GetResourceString("Arg_TypeLoadException");
                 return;
             }
 
-            _message = SR.Format("Could not load type '{0}' from assembly '{1}'.", _className, _assemblyName ?? SR.IO_UnknownFileName);
+            _message = SR.Format("Could not load type '{0}' from assembly '{1}'.", _className, _assemblyName ?? SR.GetResourceString("IO_UnknownFileName"));
         }
     }
 }

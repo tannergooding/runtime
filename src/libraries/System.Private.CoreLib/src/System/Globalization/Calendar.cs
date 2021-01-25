@@ -102,7 +102,7 @@ namespace System.Globalization
         {
             if (_isReadOnly)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
             }
         }
 
@@ -137,7 +137,7 @@ namespace System.Globalization
         {
             if (ticks < minValue.Ticks || ticks > maxValue.Ticks)
             {
-                throw new ArgumentException(SR.Format(SR.Argument_ResultCalendarRange, minValue, maxValue));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_ResultCalendarRange"), minValue, maxValue));
             }
         }
 
@@ -153,7 +153,7 @@ namespace System.Globalization
             double tempMillis = (value * scale + (value >= 0 ? 0.5 : -0.5));
             if (!((tempMillis > -(double)MaxMillis) && (tempMillis < (double)MaxMillis)))
             {
-                throw new ArgumentOutOfRangeException(nameof(value), value, SR.ArgumentOutOfRange_AddValue);
+                throw new ArgumentOutOfRangeException(nameof(value), value, SR.GetResourceString("ArgumentOutOfRange_AddValue"));
             }
 
             long millis = (long)tempMillis;
@@ -516,7 +516,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(firstDayOfWeek),
                     firstDayOfWeek,
-                    SR.Format(SR.ArgumentOutOfRange_Range, DayOfWeek.Sunday, DayOfWeek.Saturday));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), DayOfWeek.Sunday, DayOfWeek.Saturday));
             }
 
             return rule switch
@@ -527,7 +527,7 @@ namespace System.Globalization
                 _ => throw new ArgumentOutOfRangeException(
                         nameof(rule),
                         rule,
-                        SR.Format(SR.ArgumentOutOfRange_Range, CalendarWeekRule.FirstDay, CalendarWeekRule.FirstFourDayWeek)),
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), CalendarWeekRule.FirstDay, CalendarWeekRule.FirstFourDayWeek)),
             };
         }
 
@@ -689,7 +689,7 @@ namespace System.Globalization
         {
             if (year < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(year), year, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(year), year, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (year < 100)
             {
@@ -709,14 +709,14 @@ namespace System.Globalization
         {
             if (hour < 0 || hour >= 24 || minute < 0 || minute >= 60 || second < 0 || second >= 60)
             {
-                throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadHourMinuteSecond);
+                throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadHourMinuteSecond"));
             }
             if (millisecond < 0 || millisecond >= MillisPerSecond)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(millisecond),
                     millisecond,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 0, MillisPerSecond - 1));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, MillisPerSecond - 1));
             }
 
             return InternalGlobalizationHelper.TimeToTicks(hour, minute, second) + millisecond * TicksPerMillisecond;

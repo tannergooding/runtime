@@ -10,7 +10,7 @@ namespace System.Resources
     public class MissingManifestResourceException : SystemException
     {
         public MissingManifestResourceException()
-            : base(SR.Arg_MissingManifestResourceException)
+            : base(SR.GetResourceString("Arg_MissingManifestResourceException"))
         {
             HResult = System.HResults.COR_E_MISSINGMANIFESTRESOURCE;
         }

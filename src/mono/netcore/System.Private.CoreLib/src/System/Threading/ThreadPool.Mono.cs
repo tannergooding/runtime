@@ -30,13 +30,13 @@ namespace System.Threading
         [Obsolete("ThreadPool.BindHandle(IntPtr) has been deprecated.  Please use ThreadPool.BindHandle(SafeHandle) instead.", false)]
         public static bool BindHandle(IntPtr osHandle)
         {
-            throw new PlatformNotSupportedException(SR.Arg_PlatformNotSupported); // Replaced by ThreadPoolBoundHandle.BindHandle
+            throw new PlatformNotSupportedException(SR.GetResourceString("Arg_PlatformNotSupported")); // Replaced by ThreadPoolBoundHandle.BindHandle
         }
 
         [SupportedOSPlatform("windows")]
         public static bool BindHandle(SafeHandle osHandle)
         {
-            throw new PlatformNotSupportedException(SR.Arg_PlatformNotSupported); // Replaced by ThreadPoolBoundHandle.BindHandle
+            throw new PlatformNotSupportedException(SR.GetResourceString("Arg_PlatformNotSupported")); // Replaced by ThreadPoolBoundHandle.BindHandle
         }
 
         private static long PendingUnmanagedWorkItemCount => 0;

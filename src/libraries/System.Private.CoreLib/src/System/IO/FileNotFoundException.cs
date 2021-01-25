@@ -12,7 +12,7 @@ namespace System.IO
     public partial class FileNotFoundException : IOException
     {
         public FileNotFoundException()
-            : base(SR.IO_FileNotFound)
+            : base(SR.GetResourceString("IO_FileNotFound"))
         {
             HResult = HResults.COR_E_FILENOTFOUND;
         }
@@ -59,7 +59,7 @@ namespace System.IO
             {
                 if ((FileName == null) &&
                     (HResult == System.HResults.COR_E_EXCEPTION))
-                    _message = SR.IO_FileNotFound;
+                    _message = SR.GetResourceString("IO_FileNotFound");
                 else if (FileName != null)
                     _message = FileLoadException.FormatFileLoadExceptionMessage(FileName, HResult);
             }
@@ -73,7 +73,7 @@ namespace System.IO
             string s = GetType().ToString() + ": " + Message;
 
             if (!string.IsNullOrEmpty(FileName))
-                s += Environment.NewLineConst + SR.Format(SR.IO_FileName_Name, FileName);
+                s += Environment.NewLineConst + SR.Format(SR.GetResourceString("IO_FileName_Name"), FileName);
 
             if (InnerException != null)
                 s += Environment.NewLineConst + InnerExceptionPrefix + InnerException.ToString();

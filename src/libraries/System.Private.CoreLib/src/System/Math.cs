@@ -133,7 +133,7 @@ namespace System
         [StackTraceHidden]
         private static void ThrowAbsOverflow()
         {
-            throw new OverflowException(SR.Overflow_NegateTwosCompNum);
+            throw new OverflowException(SR.GetResourceString("Overflow_NegateTwosCompNum"));
         }
 
         public static long BigMul(int a, int b)
@@ -1239,12 +1239,12 @@ namespace System
         {
             if ((digits < 0) || (digits > maxRoundingDigits))
             {
-                throw new ArgumentOutOfRangeException(nameof(digits), SR.ArgumentOutOfRange_RoundingDigits);
+                throw new ArgumentOutOfRangeException(nameof(digits), SR.GetResourceString("ArgumentOutOfRange_RoundingDigits"));
             }
 
             if (mode < MidpointRounding.ToEven || mode > MidpointRounding.ToPositiveInfinity)
             {
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidEnumValue, mode, nameof(MidpointRounding)), nameof(mode));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidEnumValue"), mode, nameof(MidpointRounding)), nameof(mode));
             }
 
             if (Abs(value) < doubleRoundLimit)
@@ -1295,7 +1295,7 @@ namespace System
                     }
                     default:
                     {
-                        throw new ArgumentException(SR.Format(SR.Argument_InvalidEnumValue, mode, nameof(MidpointRounding)), nameof(mode));
+                        throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidEnumValue"), mode, nameof(MidpointRounding)), nameof(mode));
                     }
                 }
 
@@ -1326,7 +1326,7 @@ namespace System
                 return 0;
             }
 
-            throw new ArithmeticException(SR.Arithmetic_NaN);
+            throw new ArithmeticException(SR.GetResourceString("Arithmetic_NaN"));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1376,7 +1376,7 @@ namespace System
                 return 0;
             }
 
-            throw new ArithmeticException(SR.Arithmetic_NaN);
+            throw new ArithmeticException(SR.GetResourceString("Arithmetic_NaN"));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1394,7 +1394,7 @@ namespace System
         [DoesNotReturn]
         private static void ThrowMinMaxException<T>(T min, T max)
         {
-            throw new ArgumentException(SR.Format(SR.Argument_MinMaxValue, min, max));
+            throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_MinMaxValue"), min, max));
         }
 
         public static double ScaleB(double x, int n)

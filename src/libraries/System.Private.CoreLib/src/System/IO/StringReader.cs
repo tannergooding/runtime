@@ -46,7 +46,7 @@ namespace System.IO
         {
             if (_s == null)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ReaderClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ReaderClosed"));
             }
             if (_pos == _length)
             {
@@ -63,7 +63,7 @@ namespace System.IO
         {
             if (_s == null)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ReaderClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ReaderClosed"));
             }
             if (_pos == _length)
             {
@@ -82,23 +82,23 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
             if (_s == null)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ReaderClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ReaderClosed"));
             }
 
             int n = _length - _pos;
@@ -126,7 +126,7 @@ namespace System.IO
 
             if (_s == null)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ReaderClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ReaderClosed"));
             }
 
             int n = _length - _pos;
@@ -150,7 +150,7 @@ namespace System.IO
         {
             if (_s == null)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ReaderClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ReaderClosed"));
             }
 
             string s;
@@ -177,7 +177,7 @@ namespace System.IO
         {
             if (_s == null)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ReaderClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ReaderClosed"));
             }
 
             int i = _pos;
@@ -224,15 +224,15 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0 || count < 0)
             {
-                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             return Task.FromResult(ReadBlock(buffer, index, count));
@@ -246,15 +246,15 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0 || count < 0)
             {
-                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             return Task.FromResult(Read(buffer, index, count));

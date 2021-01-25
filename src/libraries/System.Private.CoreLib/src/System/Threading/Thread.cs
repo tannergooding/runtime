@@ -114,7 +114,7 @@ namespace System.Threading
             }
             if (maxStackSize < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxStackSize), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(maxStackSize), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             _startHelper = new StartHelper(start) { _maxStackSize = maxStackSize };
@@ -142,7 +142,7 @@ namespace System.Threading
             }
             if (maxStackSize < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxStackSize), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(maxStackSize), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             _startHelper = new StartHelper(start) { _maxStackSize = maxStackSize };
@@ -184,7 +184,7 @@ namespace System.Threading
                 if (startHelper._start is ThreadStart)
                 {
                     // We expect the thread to be setup with a ParameterizedThreadStart if this Start is called.
-                    throw new InvalidOperationException(SR.InvalidOperation_ThreadWrongThreadStart);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ThreadWrongThreadStart"));
                 }
 
                 startHelper._startArg = parameter;
@@ -230,7 +230,7 @@ namespace System.Threading
         {
             if (this != CurrentThread)
             {
-                throw new InvalidOperationException(SR.Thread_Operation_RequiresCurrentThread);
+                throw new InvalidOperationException(SR.GetResourceString("Thread_Operation_RequiresCurrentThread"));
             }
         }
 
@@ -247,7 +247,7 @@ namespace System.Threading
             // conditions between setting culture on unstarted thread and starting the thread.
             if ((ThreadState & ThreadState.Unstarted) == 0)
             {
-                throw new InvalidOperationException(SR.Thread_Operation_RequiresCurrentThread);
+                throw new InvalidOperationException(SR.GetResourceString("Thread_Operation_RequiresCurrentThread"));
             }
 
             Debug.Assert(startHelper != null);
@@ -345,7 +345,7 @@ namespace System.Threading
                 {
                     if (_name != null)
                     {
-                        throw new InvalidOperationException(SR.InvalidOperation_WriteOnce);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_WriteOnce"));
                     }
 
                     _name = value;
@@ -414,31 +414,31 @@ namespace System.Threading
         [Obsolete(Obsoletions.ThreadAbortMessage, DiagnosticId = Obsoletions.ThreadAbortDiagId, UrlFormat = Obsoletions.SharedUrlFormat)]
         public void Abort()
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_ThreadAbort);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ThreadAbort"));
         }
 
         [Obsolete(Obsoletions.ThreadAbortMessage, DiagnosticId = Obsoletions.ThreadAbortDiagId, UrlFormat = Obsoletions.SharedUrlFormat)]
         public void Abort(object? stateInfo)
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_ThreadAbort);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ThreadAbort"));
         }
 
         [Obsolete(Obsoletions.ThreadAbortMessage, DiagnosticId = Obsoletions.ThreadAbortDiagId, UrlFormat = Obsoletions.SharedUrlFormat)]
         public static void ResetAbort()
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_ThreadAbort);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ThreadAbort"));
         }
 
         [Obsolete("Thread.Suspend has been deprecated.  Please use other classes in System.Threading, such as Monitor, Mutex, Event, and Semaphore, to synchronize Threads or protect resources.  https://go.microsoft.com/fwlink/?linkid=14202", false)]
         public void Suspend()
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_ThreadSuspend);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ThreadSuspend"));
         }
 
         [Obsolete("Thread.Resume has been deprecated.  Please use other classes in System.Threading, such as Monitor, Mutex, Event, and Semaphore, to synchronize Threads or protect resources.  https://go.microsoft.com/fwlink/?linkid=14202", false)]
         public void Resume()
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_ThreadSuspend);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ThreadSuspend"));
         }
 
         // Currently, no special handling is done for critical regions, and no special handling is necessary to ensure thread
@@ -483,7 +483,7 @@ namespace System.Threading
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(state), SR.ArgumentOutOfRange_Enum);
+                    throw new ArgumentOutOfRangeException(nameof(state), SR.GetResourceString("ArgumentOutOfRange_Enum"));
             }
 
             return SetApartmentStateUnchecked(state, throwOnError);
@@ -492,13 +492,13 @@ namespace System.Threading
         [Obsolete("Thread.GetCompressedStack is no longer supported. Please use the System.Threading.CompressedStack class")]
         public CompressedStack GetCompressedStack()
         {
-            throw new InvalidOperationException(SR.Thread_GetSetCompressedStack_NotSupported);
+            throw new InvalidOperationException(SR.GetResourceString("Thread_GetSetCompressedStack_NotSupported"));
         }
 
         [Obsolete("Thread.SetCompressedStack is no longer supported. Please use the System.Threading.CompressedStack class")]
         public void SetCompressedStack(CompressedStack stack)
         {
-            throw new InvalidOperationException(SR.Thread_GetSetCompressedStack_NotSupported);
+            throw new InvalidOperationException(SR.GetResourceString("Thread_GetSetCompressedStack_NotSupported"));
         }
 
         public static AppDomain GetDomain() => AppDomain.CurrentDomain;

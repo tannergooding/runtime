@@ -25,7 +25,7 @@ namespace System
         {
             if (platform < PlatformID.Win32S || platform > PlatformID.Other)
             {
-                throw new ArgumentOutOfRangeException(nameof(platform), platform, SR.Format(SR.Arg_EnumIllegalVal, platform));
+                throw new ArgumentOutOfRangeException(nameof(platform), platform, SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), platform));
             }
 
             if (version == null)

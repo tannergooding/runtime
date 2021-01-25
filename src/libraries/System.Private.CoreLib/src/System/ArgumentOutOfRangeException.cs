@@ -25,13 +25,13 @@ namespace System
         // Creates a new ArgumentOutOfRangeException with its message
         // string set to a default message explaining an argument was out of range.
         public ArgumentOutOfRangeException()
-            : base(SR.Arg_ArgumentOutOfRangeException)
+            : base(SR.GetResourceString("Arg_ArgumentOutOfRangeException"))
         {
             HResult = HResults.COR_E_ARGUMENTOUTOFRANGE;
         }
 
         public ArgumentOutOfRangeException(string? paramName)
-            : base(SR.Arg_ArgumentOutOfRangeException, paramName)
+            : base(SR.GetResourceString("Arg_ArgumentOutOfRangeException"), paramName)
         {
             HResult = HResults.COR_E_ARGUMENTOUTOFRANGE;
         }
@@ -77,7 +77,7 @@ namespace System
                 string s = base.Message;
                 if (_actualValue != null)
                 {
-                    string valueMessage = SR.Format(SR.ArgumentOutOfRange_ActualValue, _actualValue);
+                    string valueMessage = SR.Format(SR.GetResourceString("ArgumentOutOfRange_ActualValue"), _actualValue);
                     if (s == null)
                         return valueMessage;
                     return s + Environment.NewLineConst + valueMessage;

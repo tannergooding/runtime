@@ -360,7 +360,7 @@ namespace System.IO
 
             if (_appendStart != -1 && value < _appendStart)
             {
-                throw new IOException(SR.IO_SetLengthAppendTruncate);
+                throw new IOException(SR.GetResourceString("IO_SetLengthAppendTruncate"));
             }
 
             VerifyOSHandlePosition();
@@ -719,7 +719,7 @@ namespace System.IO
         {
             if (origin < SeekOrigin.Begin || origin > SeekOrigin.End)
             {
-                throw new ArgumentException(SR.Argument_InvalidSeekOrigin, nameof(origin));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidSeekOrigin"), nameof(origin));
             }
             if (_fileHandle.IsClosed)
             {
@@ -758,7 +758,7 @@ namespace System.IO
             if (_appendStart != -1 && pos < _appendStart)
             {
                 SeekCore(_fileHandle, oldPos, SeekOrigin.Begin);
-                throw new IOException(SR.IO_SeekAppendOverwrite);
+                throw new IOException(SR.GetResourceString("IO_SeekAppendOverwrite"));
             }
 
             // Return the new position

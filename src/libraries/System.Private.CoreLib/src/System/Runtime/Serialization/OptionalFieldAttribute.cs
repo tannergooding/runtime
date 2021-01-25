@@ -15,7 +15,7 @@ namespace System.Runtime.Serialization
             {
                 if (value < 1)
                 {
-                    throw new ArgumentException(SR.Serialization_OptionalFieldVersionValue);
+                    throw new ArgumentException(SR.GetResourceString("Serialization_OptionalFieldVersionValue"));
                 }
                 _versionAdded = value;
             }

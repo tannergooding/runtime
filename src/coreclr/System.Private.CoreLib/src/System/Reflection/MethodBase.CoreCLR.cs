@@ -12,14 +12,14 @@ namespace System.Reflection
         public static MethodBase? GetMethodFromHandle(RuntimeMethodHandle handle)
         {
             if (handle.IsNullHandle())
-                throw new ArgumentException(SR.Argument_InvalidHandle);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidHandle"));
 
             MethodBase? m = RuntimeType.GetMethodBase(handle.GetMethodInfo());
 
             Type? declaringType = m?.DeclaringType;
             if (declaringType != null && declaringType.IsGenericType)
                 throw new ArgumentException(SR.Format(
-                    SR.Argument_MethodDeclaringTypeGeneric,
+                    SR.GetResourceString("Argument_MethodDeclaringTypeGeneric"),
                     m, declaringType.GetGenericTypeDefinition()));
 
             return m;
@@ -28,7 +28,7 @@ namespace System.Reflection
         public static MethodBase? GetMethodFromHandle(RuntimeMethodHandle handle, RuntimeTypeHandle declaringType)
         {
             if (handle.IsNullHandle())
-                throw new ArgumentException(SR.Argument_InvalidHandle);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidHandle"));
 
             return RuntimeType.GetMethodBase(declaringType.GetRuntimeType(), handle.GetMethodInfo());
         }
@@ -78,7 +78,7 @@ namespace System.Reflection
                 {
                     p ??= GetParametersNoCopy();
                     if (p[i].DefaultValue == System.DBNull.Value)
-                        throw new ArgumentException(SR.Arg_VarMissNull, nameof(parameters));
+                        throw new ArgumentException(SR.GetResourceString("Arg_VarMissNull"), nameof(parameters));
                     arg = p[i].DefaultValue!;
                 }
                 copyOfParameters[i] = argRT.CheckValue(arg, binder, culture, invokeAttr)!;

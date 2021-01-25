@@ -10,7 +10,7 @@ namespace System
     public class CannotUnloadAppDomainException : SystemException
     {
         public CannotUnloadAppDomainException()
-            : base(SR.Arg_CannotUnloadAppDomainException)
+            : base(SR.GetResourceString("Arg_CannotUnloadAppDomainException"))
         {
             HResult = HResults.COR_E_CANNOTUNLOADAPPDOMAIN;
         }

@@ -10,7 +10,7 @@ namespace System.Reflection
     public sealed class TargetInvocationException : ApplicationException
     {
         public TargetInvocationException(Exception? inner)
-            : base(SR.Arg_TargetInvocationException, inner)
+            : base(SR.GetResourceString("Arg_TargetInvocationException"), inner)
         {
             HResult = HResults.COR_E_TARGETINVOCATION;
         }

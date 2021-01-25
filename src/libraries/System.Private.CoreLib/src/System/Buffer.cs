@@ -30,7 +30,7 @@ namespace System
             if (src.GetType() != typeof(byte[]))
             {
                 if (!src.GetCorElementTypeOfElementType().IsPrimitiveType())
-                    throw new ArgumentException(SR.Arg_MustBePrimArray, nameof(src));
+                    throw new ArgumentException(SR.GetResourceString("Arg_MustBePrimArray"), nameof(src));
                 uSrcLen *= (nuint)src.GetElementSize();
             }
 
@@ -41,24 +41,24 @@ namespace System
                 if (dst.GetType() != typeof(byte[]))
                 {
                     if (!dst.GetCorElementTypeOfElementType().IsPrimitiveType())
-                        throw new ArgumentException(SR.Arg_MustBePrimArray, nameof(dst));
+                        throw new ArgumentException(SR.GetResourceString("Arg_MustBePrimArray"), nameof(dst));
                     uDstLen *= (nuint)dst.GetElementSize();
                 }
             }
 
             if (srcOffset < 0)
-                throw new ArgumentOutOfRangeException(nameof(srcOffset), SR.ArgumentOutOfRange_MustBeNonNegInt32);
+                throw new ArgumentOutOfRangeException(nameof(srcOffset), SR.GetResourceString("ArgumentOutOfRange_MustBeNonNegInt32"));
             if (dstOffset < 0)
-                throw new ArgumentOutOfRangeException(nameof(dstOffset), SR.ArgumentOutOfRange_MustBeNonNegInt32);
+                throw new ArgumentOutOfRangeException(nameof(dstOffset), SR.GetResourceString("ArgumentOutOfRange_MustBeNonNegInt32"));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_MustBeNonNegInt32);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_MustBeNonNegInt32"));
 
             nuint uCount = (nuint)count;
             nuint uSrcOffset = (nuint)srcOffset;
             nuint uDstOffset = (nuint)dstOffset;
 
             if ((uSrcLen < uSrcOffset + uCount) || (uDstLen < uDstOffset + uCount))
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
             Memmove(ref Unsafe.AddByteOffset(ref dst.GetRawArrayData(), uDstOffset), ref Unsafe.AddByteOffset(ref src.GetRawArrayData(), uSrcOffset), uCount);
         }
@@ -71,7 +71,7 @@ namespace System
 
             // Is it of primitive types?
             if (!array.GetCorElementTypeOfElementType().IsPrimitiveType())
-                throw new ArgumentException(SR.Arg_MustBePrimArray, nameof(array));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBePrimArray"), nameof(array));
 
             nuint byteLength = (nuint)array.LongLength * (nuint)array.GetElementSize();
 

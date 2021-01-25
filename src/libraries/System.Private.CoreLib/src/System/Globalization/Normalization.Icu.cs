@@ -25,7 +25,7 @@ namespace System.Globalization
 
             if (ret == -1)
             {
-                throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex, nameof(strInput));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"), nameof(strInput));
             }
 
             return ret == 1;
@@ -58,7 +58,7 @@ namespace System.Globalization
 
                     if (realLen == -1)
                     {
-                        throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex, nameof(strInput));
+                        throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"), nameof(strInput));
                     }
 
                     if (realLen <= buffer.Length)
@@ -85,7 +85,7 @@ namespace System.Globalization
                     }
                 }
 
-                throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex, nameof(strInput));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"), nameof(strInput));
             }
             finally
             {
@@ -110,12 +110,12 @@ namespace System.Globalization
             if (normalizationForm != NormalizationForm.FormC && normalizationForm != NormalizationForm.FormD &&
                 normalizationForm != NormalizationForm.FormKC && normalizationForm != NormalizationForm.FormKD)
             {
-                throw new ArgumentException(SR.Argument_InvalidNormalizationForm, nameof(normalizationForm));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidNormalizationForm"), nameof(normalizationForm));
             }
 
             if (HasInvalidUnicodeSequence(strInput))
             {
-                throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex, nameof(strInput));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"), nameof(strInput));
             }
         }
 

@@ -71,18 +71,18 @@ namespace System.Runtime.Loader
             }
             catch (EntryPointNotFoundException entryPointNotFoundException)
             {
-                throw new InvalidOperationException(SR.AssemblyDependencyResolver_FailedToLoadHostpolicy, entryPointNotFoundException);
+                throw new InvalidOperationException(SR.GetResourceString("AssemblyDependencyResolver_FailedToLoadHostpolicy"), entryPointNotFoundException);
             }
             catch (DllNotFoundException dllNotFoundException)
             {
-                throw new InvalidOperationException(SR.AssemblyDependencyResolver_FailedToLoadHostpolicy, dllNotFoundException);
+                throw new InvalidOperationException(SR.GetResourceString("AssemblyDependencyResolver_FailedToLoadHostpolicy"), dllNotFoundException);
             }
 
             if (returnCode != 0)
             {
                 // Something went wrong - report a failure
                 throw new InvalidOperationException(SR.Format(
-                    SR.AssemblyDependencyResolver_FailedToResolveDependencies,
+                    SR.GetResourceString("AssemblyDependencyResolver_FailedToResolveDependencies"),
                     componentAssemblyPath,
                     returnCode,
                     errorMessage));

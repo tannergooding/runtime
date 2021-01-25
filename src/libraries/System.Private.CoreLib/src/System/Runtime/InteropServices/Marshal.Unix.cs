@@ -196,7 +196,7 @@ namespace System.Runtime.InteropServices
                 throw new ArgumentNullException(nameof(progID));
 
             if (throwOnError)
-                throw new PlatformNotSupportedException(SR.PlatformNotSupported_ComInterop);
+                throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ComInterop"));
 
             return null;
         }

@@ -248,7 +248,7 @@ namespace System.Runtime.Serialization
         {
             if (_nameToIndex.ContainsKey(name))
             {
-                throw new SerializationException(SR.Serialization_SameNameTwice);
+                throw new SerializationException(SR.GetResourceString("Serialization_SameNameTwice"));
             }
             _nameToIndex.Add(name, _count);
 
@@ -327,7 +327,7 @@ namespace System.Runtime.Serialization
             int index = FindElement(name);
             if (index == -1)
             {
-                throw new SerializationException(SR.Format(SR.Serialization_NotFound, name));
+                throw new SerializationException(SR.Format(SR.GetResourceString("Serialization_NotFound"), name));
             }
 
             Debug.Assert(index < _values.Length, "[SerializationInfo.GetElement]index<_values.Length");
@@ -363,7 +363,7 @@ namespace System.Runtime.Serialization
             }
 
             if (!type.IsRuntimeImplemented())
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"));
 
             object? value = GetElement(name, out Type foundType);
 

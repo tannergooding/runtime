@@ -351,7 +351,7 @@ namespace System.Runtime.InteropServices
 
             // If the inner is supplied the Aggregation flag should be set.
             if (innerMaybe != IntPtr.Zero && !flags.HasFlag(CreateObjectFlags.Aggregation))
-                throw new InvalidOperationException(SR.InvalidOperation_SuppliedInnerMustBeMarkedAggregation);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_SuppliedInnerMustBeMarkedAggregation"));
 
             object? wrapperMaybeLocal = wrapperMaybe;
             retValue = null;
@@ -389,7 +389,7 @@ namespace System.Runtime.InteropServices
 
             if (null != Interlocked.CompareExchange(ref s_globalInstanceForTrackerSupport, instance, null))
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ResetGlobalComWrappersInstance);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ResetGlobalComWrappersInstance"));
             }
 
             SetGlobalInstanceRegisteredForTrackerSupport(instance.id);
@@ -420,7 +420,7 @@ namespace System.Runtime.InteropServices
 
             if (null != Interlocked.CompareExchange(ref s_globalInstanceForMarshalling, instance, null))
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ResetGlobalComWrappersInstance);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ResetGlobalComWrappersInstance"));
             }
 
             // Indicate to the runtime that a global instance has been registered for marshalling.

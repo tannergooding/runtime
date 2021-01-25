@@ -19,9 +19,9 @@ namespace System.Threading
                 throw new ArgumentNullException(nameof(handle));
 
             if (handle.IsClosed || handle.IsInvalid)
-                throw new ArgumentException(SR.Argument_InvalidHandle, nameof(handle));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidHandle"), nameof(handle));
 
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_OverlappedIO);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_OverlappedIO"));
         }
 
         [CLSCompliant(false)]
@@ -30,7 +30,7 @@ namespace System.Threading
             if (callback == null)
                 throw new ArgumentNullException(nameof(callback));
 
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_OverlappedIO);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_OverlappedIO"));
         }
 
         [CLSCompliant(false)]
@@ -39,7 +39,7 @@ namespace System.Threading
             if (preAllocated == null)
                 throw new ArgumentNullException(nameof(preAllocated));
 
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_OverlappedIO);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_OverlappedIO"));
         }
 
         [CLSCompliant(false)]
@@ -48,7 +48,7 @@ namespace System.Threading
             if (overlapped == null)
                 throw new ArgumentNullException(nameof(overlapped));
 
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_OverlappedIO);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_OverlappedIO"));
         }
 
         [CLSCompliant(false)]
@@ -57,7 +57,7 @@ namespace System.Threading
             if (overlapped == null)
                 throw new ArgumentNullException(nameof(overlapped));
 
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_OverlappedIO);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_OverlappedIO"));
         }
 
         public void Dispose()

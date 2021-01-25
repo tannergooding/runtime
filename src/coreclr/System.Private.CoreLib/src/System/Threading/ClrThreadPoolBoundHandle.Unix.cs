@@ -14,7 +14,7 @@ namespace System.Threading
             Debug.Assert(!handle.IsClosed);
             Debug.Assert(!handle.IsInvalid);
 
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_OverlappedIO);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_OverlappedIO"));
         }
     }
 }

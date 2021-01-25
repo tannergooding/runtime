@@ -140,7 +140,7 @@ namespace System.Runtime
         public MemoryFailPoint(int sizeInMegabytes)
         {
             if (sizeInMegabytes <= 0)
-                throw new ArgumentOutOfRangeException(nameof(sizeInMegabytes), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(sizeInMegabytes), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             ulong size = ((ulong)sizeInMegabytes) << 20;
             _reservedMemory = size;
@@ -153,7 +153,7 @@ namespace System.Runtime
             // heap, and to check both the normal & large object heaps.
             ulong segmentSize = (ulong)(Math.Ceiling((double)size / s_GCSegmentSize) * s_GCSegmentSize);
             if (segmentSize >= s_topOfMemory)
-                throw new InsufficientMemoryException(SR.InsufficientMemory_MemFailPoint_TooBig);
+                throw new InsufficientMemoryException(SR.GetResourceString("InsufficientMemory_MemFailPoint_TooBig"));
 
             ulong requestedSizeRounded = (ulong)(Math.Ceiling((double)sizeInMegabytes / MemoryCheckGranularity) * MemoryCheckGranularity);
             // re-convert into bytes
@@ -243,7 +243,7 @@ namespace System.Runtime
                         // state.
                         if (needPageFile || needAddressSpace)
                         {
-                            InsufficientMemoryException e = new InsufficientMemoryException(SR.InsufficientMemory_MemFailPoint);
+                            InsufficientMemoryException e = new InsufficientMemoryException(SR.GetResourceString("InsufficientMemory_MemFailPoint"));
 #if DEBUG
                             e.Data["MemFailPointState"] = new MemoryFailPointState(sizeInMegabytes, segmentSize,
                                  needPageFile, needAddressSpace, needContiguousVASpace,
@@ -255,7 +255,7 @@ namespace System.Runtime
 
                         if (needContiguousVASpace)
                         {
-                            InsufficientMemoryException e = new InsufficientMemoryException(SR.InsufficientMemory_MemFailPoint_VAFrag);
+                            InsufficientMemoryException e = new InsufficientMemoryException(SR.GetResourceString("InsufficientMemory_MemFailPoint_VAFrag"));
 #if DEBUG
                             e.Data["MemFailPointState"] = new MemoryFailPointState(sizeInMegabytes, segmentSize,
                                  needPageFile, needAddressSpace, needContiguousVASpace,

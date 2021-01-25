@@ -15,10 +15,10 @@ namespace System.Runtime.CompilerServices
     public sealed class SwitchExpressionException : InvalidOperationException
     {
         public SwitchExpressionException()
-            : base(SR.Arg_SwitchExpressionException) { }
+            : base(SR.GetResourceString("Arg_SwitchExpressionException")) { }
 
         public SwitchExpressionException(Exception? innerException) :
-            base(SR.Arg_SwitchExpressionException, innerException)
+            base(SR.GetResourceString("Arg_SwitchExpressionException"), innerException)
         {
         }
 
@@ -55,7 +55,7 @@ namespace System.Runtime.CompilerServices
                     return base.Message;
                 }
 
-                string valueMessage = SR.Format(SR.SwitchExpressionException_UnmatchedValue, UnmatchedValue);
+                string valueMessage = SR.Format(SR.GetResourceString("SwitchExpressionException_UnmatchedValue"), UnmatchedValue);
                 return base.Message + Environment.NewLine + valueMessage;
             }
         }

@@ -516,7 +516,7 @@ namespace System.Diagnostics.Contracts
         public static bool ForAll(int fromInclusive, int toExclusive, Predicate<int> predicate)
         {
             if (fromInclusive > toExclusive)
-                throw new ArgumentException(SR.Argument_ToExclusiveLessThanFromExclusive);
+                throw new ArgumentException(SR.GetResourceString("Argument_ToExclusiveLessThanFromExclusive"));
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
 
@@ -566,7 +566,7 @@ namespace System.Diagnostics.Contracts
         public static bool Exists(int fromInclusive, int toExclusive, Predicate<int> predicate)
         {
             if (fromInclusive > toExclusive)
-                throw new ArgumentException(SR.Argument_ToExclusiveLessThanFromExclusive);
+                throw new ArgumentException(SR.GetResourceString("Argument_ToExclusiveLessThanFromExclusive"));
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
 
@@ -638,7 +638,7 @@ namespace System.Diagnostics.Contracts
 
             probablyNotRewritten ??= thisAssembly;
             string? simpleName = probablyNotRewritten.GetName().Name;
-            ContractHelper.TriggerFailure(kind, SR.Format(SR.MustUseCCRewrite, contractKind, simpleName), null, null, null);
+            ContractHelper.TriggerFailure(kind, SR.Format(SR.GetResourceString("MustUseCCRewrite"), contractKind, simpleName), null, null, null);
         }
 
         #endregion Private Methods
@@ -654,7 +654,7 @@ namespace System.Diagnostics.Contracts
         private static void ReportFailure(ContractFailureKind failureKind, string? userMessage, string? conditionText, Exception? innerException)
         {
             if (failureKind < ContractFailureKind.Precondition || failureKind > ContractFailureKind.Assume)
-                throw new ArgumentException(SR.Format(SR.Arg_EnumIllegalVal, failureKind), nameof(failureKind));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), failureKind), nameof(failureKind));
 
             // displayMessage == null means: yes we handled it. Otherwise it is the localized failure message
             string? displayMessage = ContractHelper.RaiseContractFailedEvent(failureKind, userMessage, conditionText, innerException);

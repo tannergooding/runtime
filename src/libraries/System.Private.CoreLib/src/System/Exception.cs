@@ -52,7 +52,7 @@ namespace System
             RestoreRemoteStackTrace(info, context);
         }
 
-        public virtual string Message => _message ?? SR.Format(SR.Exception_WasThrown, GetClassName());
+        public virtual string Message => _message ?? SR.Format(SR.GetResourceString("Exception_WasThrown"), GetClassName());
 
         public virtual IDictionary Data => _data ??= CreateDataContainer();
 
@@ -122,7 +122,7 @@ namespace System
             string className = GetClassName();
             string? message = Message;
             string innerExceptionString = _innerException?.ToString() ?? "";
-            string endOfInnerExceptionResource = SR.Exception_EndOfInnerExceptionStack;
+            string endOfInnerExceptionResource = SR.GetResourceString("Exception_EndOfInnerExceptionStack");
             string? stackTrace = StackTrace;
 
             // Calculate result string length
@@ -182,8 +182,8 @@ namespace System
 
         protected event EventHandler<SafeSerializationEventArgs>? SerializeObjectState
         {
-            add { throw new PlatformNotSupportedException(SR.PlatformNotSupported_SecureBinarySerialization); }
-            remove { throw new PlatformNotSupportedException(SR.PlatformNotSupported_SecureBinarySerialization); }
+            add { throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_SecureBinarySerialization")); }
+            remove { throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_SecureBinarySerialization")); }
         }
 
         public int HResult

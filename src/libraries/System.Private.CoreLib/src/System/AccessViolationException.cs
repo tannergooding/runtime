@@ -19,7 +19,7 @@ namespace System
     public class AccessViolationException : SystemException
     {
         public AccessViolationException()
-            : base(SR.Arg_AccessViolationException)
+            : base(SR.GetResourceString("Arg_AccessViolationException"))
         {
             HResult = HResults.E_POINTER;
         }

@@ -90,10 +90,10 @@ namespace System.Runtime.InteropServices
         public void Initialize(ulong numBytes)
         {
             if (IntPtr.Size == 4 && numBytes > uint.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(numBytes), SR.ArgumentOutOfRange_AddressSpace);
+                throw new ArgumentOutOfRangeException(nameof(numBytes), SR.GetResourceString("ArgumentOutOfRange_AddressSpace"));
 
             if (numBytes >= (ulong)Uninitialized)
-                throw new ArgumentOutOfRangeException(nameof(numBytes), SR.ArgumentOutOfRange_UIntPtrMax);
+                throw new ArgumentOutOfRangeException(nameof(numBytes), SR.GetResourceString("ArgumentOutOfRange_UIntPtrMax"));
 
             _numBytes = (nuint)numBytes;
         }
@@ -208,13 +208,13 @@ namespace System.Runtime.InteropServices
             where T : struct
         {
             if (array == null)
-                throw new ArgumentNullException(nameof(array), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(array), SR.GetResourceString("ArgumentNull_Buffer"));
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (array.Length - index < count)
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
             ReadSpan(byteOffset, new Span<T>(array, index, count));
         }
@@ -284,13 +284,13 @@ namespace System.Runtime.InteropServices
             where T : struct
         {
             if (array == null)
-                throw new ArgumentNullException(nameof(array), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(array), SR.GetResourceString("ArgumentNull_Buffer"));
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (array.Length - index < count)
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
             WriteSpan(byteOffset, new ReadOnlySpan<T>(array, index, count));
         }
@@ -350,12 +350,12 @@ namespace System.Runtime.InteropServices
 
         private static void NotEnoughRoom()
         {
-            throw new ArgumentException(SR.Arg_BufferTooSmall);
+            throw new ArgumentException(SR.GetResourceString("Arg_BufferTooSmall"));
         }
 
         private static InvalidOperationException NotInitialized()
         {
-            return new InvalidOperationException(SR.InvalidOperation_MustCallInitialize);
+            return new InvalidOperationException(SR.GetResourceString("InvalidOperation_MustCallInitialize"));
         }
 
         /// <summary>
@@ -380,7 +380,7 @@ namespace System.Runtime.InteropServices
         internal static uint SizeOf<T>() where T : struct
         {
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-                throw new ArgumentException(SR.Argument_NeedStructWithNoRefs);
+                throw new ArgumentException(SR.GetResourceString("Argument_NeedStructWithNoRefs"));
 
             return (uint)Unsafe.SizeOf<T>();
         }

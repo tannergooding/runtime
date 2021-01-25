@@ -195,7 +195,7 @@ namespace System.Resources
             if (null == assembly)
                 throw new ArgumentNullException(nameof(assembly));
             if (!assembly.IsRuntimeImplemented())
-                throw new ArgumentException(SR.Argument_MustBeRuntimeAssembly);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeAssembly"));
 
             MainAssembly = assembly;
             BaseNameField = baseName;
@@ -212,13 +212,13 @@ namespace System.Resources
             if (null == assembly)
                 throw new ArgumentNullException(nameof(assembly));
             if (!assembly.IsRuntimeImplemented())
-                throw new ArgumentException(SR.Argument_MustBeRuntimeAssembly);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeAssembly"));
 
             MainAssembly = assembly;
             BaseNameField = baseName;
 
             if (usingResourceSet != null && (usingResourceSet != s_minResourceSet) && !usingResourceSet.IsSubclassOf(s_minResourceSet))
-                throw new ArgumentException(SR.Arg_ResMgrNotResSet, nameof(usingResourceSet));
+                throw new ArgumentException(SR.GetResourceString("Arg_ResMgrNotResSet"), nameof(usingResourceSet));
             _userResourceSet = usingResourceSet;
 
             CommonAssemblyInit();
@@ -229,7 +229,7 @@ namespace System.Resources
             if (null == resourceSource)
                 throw new ArgumentNullException(nameof(resourceSource));
             if (!resourceSource.IsRuntimeImplemented())
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"));
 
             _locationInfo = resourceSource;
             MainAssembly = _locationInfo.Assembly;
@@ -532,7 +532,7 @@ namespace System.Resources
             // Ensure that the assembly reference is not null
             if (a == null)
             {
-                throw new ArgumentNullException(nameof(a), SR.ArgumentNull_Assembly);
+                throw new ArgumentNullException(nameof(a), SR.GetResourceString("ArgumentNull_Assembly"));
             }
 
             string? v = a.GetCustomAttribute<SatelliteContractVersionAttribute>()?.Version;
@@ -545,7 +545,7 @@ namespace System.Resources
 
             if (!Version.TryParse(v, out Version? version))
             {
-                throw new ArgumentException(SR.Format(SR.Arg_InvalidSatelliteContract_Asm_Ver, a, v));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_InvalidSatelliteContract_Asm_Ver"), a, v));
             }
 
             return version;
@@ -739,7 +739,7 @@ namespace System.Resources
             object? obj = GetObject(name, culture, false);
             UnmanagedMemoryStream? ums = obj as UnmanagedMemoryStream;
             if (ums == null && obj != null)
-                throw new InvalidOperationException(SR.Format(SR.InvalidOperation_ResourceNotStream_Name, name));
+                throw new InvalidOperationException(SR.Format(SR.GetResourceString("InvalidOperation_ResourceNotStream_Name"), name));
             return ums;
         }
 

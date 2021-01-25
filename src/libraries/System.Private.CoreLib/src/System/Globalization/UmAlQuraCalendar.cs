@@ -299,7 +299,7 @@ namespace System.Globalization
                     ticks,
                     SR.Format(
                         CultureInfo.InvariantCulture,
-                        SR.ArgumentOutOfRange_CalendarRange,
+                        SR.GetResourceString("ArgumentOutOfRange_CalendarRange"),
                         s_minDate,
                         s_maxDate));
             }
@@ -309,7 +309,7 @@ namespace System.Globalization
         {
             if (era != CurrentEra && era != UmAlQuraEra)
             {
-                throw new ArgumentOutOfRangeException(nameof(era), era, SR.ArgumentOutOfRange_InvalidEraValue);
+                throw new ArgumentOutOfRangeException(nameof(era), era, SR.GetResourceString("ArgumentOutOfRange_InvalidEraValue"));
             }
         }
 
@@ -321,7 +321,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(year),
                     year,
-                    SR.Format(SR.ArgumentOutOfRange_Range, MinCalendarYear, MaxCalendarYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), MinCalendarYear, MaxCalendarYear));
             }
         }
 
@@ -330,7 +330,7 @@ namespace System.Globalization
             CheckYearRange(year, era);
             if (month < 1 || month > 12)
             {
-                throw new ArgumentOutOfRangeException(nameof(month), month, SR.ArgumentOutOfRange_Month);
+                throw new ArgumentOutOfRangeException(nameof(month), month, SR.GetResourceString("ArgumentOutOfRange_Month"));
             }
         }
 
@@ -404,7 +404,7 @@ namespace System.Globalization
             }
 
             // Incorrect part value.
-            throw new InvalidOperationException(SR.InvalidOperation_DateTimeParsing);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_DateTimeParsing"));
         }
 
         public override DateTime AddMonths(DateTime time, int months)
@@ -414,7 +414,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(months),
                     months,
-                    SR.Format(SR.ArgumentOutOfRange_Range, -120000, 120000));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), -120000, 120000));
             }
 
             // Get the date in UmAlQura calendar.
@@ -546,7 +546,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(day),
                     day,
-                    SR.Format(SR.ArgumentOutOfRange_Day, daysInMonth, month));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Day"), daysInMonth, month));
             }
             return false;
         }
@@ -585,13 +585,13 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(day),
                     day,
-                    SR.Format(SR.ArgumentOutOfRange_Day, daysInMonth, month));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Day"), daysInMonth, month));
             }
         DayInRang:
             long lDate = GetAbsoluteDateUmAlQura(year, month, day);
             if (lDate < 0)
             {
-                throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadYearMonthDay);
+                throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadYearMonthDay"));
             }
 
             return new DateTime(lDate * GregorianCalendar.TicksPerDay + TimeToTicks(hour, minute, second, millisecond));
@@ -617,7 +617,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, MinCalendarYear, MaxCalendarYear));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), MinCalendarYear, MaxCalendarYear));
                 }
 
                 VerifyWritable();
@@ -630,7 +630,7 @@ namespace System.Globalization
         {
             if (year < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(year), year, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(year), year, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             if (year < 100)
@@ -643,7 +643,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(year),
                     year,
-                    SR.Format(SR.ArgumentOutOfRange_Range, MinCalendarYear, MaxCalendarYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), MinCalendarYear, MaxCalendarYear));
             }
 
             return year;

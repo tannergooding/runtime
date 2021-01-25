@@ -19,7 +19,7 @@ namespace System
     public sealed class IndexOutOfRangeException : SystemException
     {
         public IndexOutOfRangeException()
-            : base(SR.Arg_IndexOutOfRangeException)
+            : base(SR.GetResourceString("Arg_IndexOutOfRangeException"))
         {
             HResult = HResults.COR_E_INDEXOUTOFRANGE;
         }

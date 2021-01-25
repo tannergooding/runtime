@@ -47,7 +47,7 @@ namespace System.Collections
         //
         public ArrayList(int capacity)
         {
-            if (capacity < 0) throw new ArgumentOutOfRangeException(nameof(capacity), SR.Format(SR.ArgumentOutOfRange_MustBeNonNegNum, nameof(capacity)));
+            if (capacity < 0) throw new ArgumentOutOfRangeException(nameof(capacity), SR.Format(SR.GetResourceString("ArgumentOutOfRange_MustBeNonNegNum"), nameof(capacity)));
 
             if (capacity == 0)
                 _items = Array.Empty<object>();
@@ -62,7 +62,7 @@ namespace System.Collections
         public ArrayList(ICollection c)
         {
             if (c == null)
-                throw new ArgumentNullException(nameof(c), SR.ArgumentNull_Collection);
+                throw new ArgumentNullException(nameof(c), SR.GetResourceString("ArgumentNull_Collection"));
 
             int count = c.Count;
             if (count == 0)
@@ -87,7 +87,7 @@ namespace System.Collections
             {
                 if (value < _size)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_SmallCapacity);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_SmallCapacity"));
                 }
 
                 // We don't want to update the version number when we change the capacity.
@@ -132,12 +132,12 @@ namespace System.Collections
         {
             get
             {
-                if (index < 0 || index >= _size) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                if (index < 0 || index >= _size) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
                 return _items[index];
             }
             set
             {
-                if (index < 0 || index >= _size) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                if (index < 0 || index >= _size) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
                 _items[index] = value;
                 _version++;
             }
@@ -202,11 +202,11 @@ namespace System.Collections
         public virtual int BinarySearch(int index, int count, object? value, IComparer? comparer)
         {
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (_size - index < count)
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
             return Array.BinarySearch((Array)_items, index, count, value, comparer);
         }
@@ -282,7 +282,7 @@ namespace System.Collections
         public virtual void CopyTo(Array array, int arrayIndex)
         {
             if ((array != null) && (array.Rank != 1))
-                throw new ArgumentException(SR.Arg_RankMultiDimNotSupported, nameof(array));
+                throw new ArgumentException(SR.GetResourceString("Arg_RankMultiDimNotSupported"), nameof(array));
 
             // Delegate rest of error checking to Array.Copy.
             Array.Copy(_items, 0, array!, arrayIndex, _size);
@@ -295,9 +295,9 @@ namespace System.Collections
         public virtual void CopyTo(int index, Array array, int arrayIndex, int count)
         {
             if (_size - index < count)
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             if ((array != null) && (array.Rank != 1))
-                throw new ArgumentException(SR.Arg_RankMultiDimNotSupported, nameof(array));
+                throw new ArgumentException(SR.GetResourceString("Arg_RankMultiDimNotSupported"), nameof(array));
 
             // Delegate rest of error checking to Array.Copy.
             Array.Copy(_items, index, array!, arrayIndex, count);
@@ -358,11 +358,11 @@ namespace System.Collections
         public virtual IEnumerator GetEnumerator(int index, int count)
         {
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (_size - index < count)
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             return new ArrayListEnumerator(this, index, count);
         }
 
@@ -391,7 +391,7 @@ namespace System.Collections
         public virtual int IndexOf(object? value, int startIndex)
         {
             if (startIndex > _size)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             return Array.IndexOf((Array)_items, value, startIndex, _size - startIndex);
         }
 
@@ -407,8 +407,8 @@ namespace System.Collections
         public virtual int IndexOf(object? value, int startIndex, int count)
         {
             if (startIndex > _size)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
-            if (count < 0 || startIndex > _size - count) throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_Count);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
+            if (count < 0 || startIndex > _size - count) throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_Count"));
             return Array.IndexOf((Array)_items, value, startIndex, count);
         }
 
@@ -419,7 +419,7 @@ namespace System.Collections
         public virtual void Insert(int index, object? value)
         {
             // Note that insertions at the end are legal.
-            if (index < 0 || index > _size) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+            if (index < 0 || index > _size) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             if (_size == _items.Length) EnsureCapacity(_size + 1);
             if (index < _size)
@@ -439,8 +439,8 @@ namespace System.Collections
         public virtual void InsertRange(int index, ICollection c)
         {
             if (c == null)
-                throw new ArgumentNullException(nameof(c), SR.ArgumentNull_Collection);
-            if (index < 0 || index > _size) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentNullException(nameof(c), SR.GetResourceString("ArgumentNull_Collection"));
+            if (index < 0 || index > _size) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             int count = c.Count;
             if (count > 0)
@@ -485,7 +485,7 @@ namespace System.Collections
         public virtual int LastIndexOf(object? value, int startIndex)
         {
             if (startIndex >= _size)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
             return LastIndexOf(value, startIndex, startIndex + 1);
         }
 
@@ -501,13 +501,13 @@ namespace System.Collections
         public virtual int LastIndexOf(object? value, int startIndex, int count)
         {
             if (Count != 0 && (startIndex < 0 || count < 0))
-                throw new ArgumentOutOfRangeException(startIndex < 0 ? nameof(startIndex) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(startIndex < 0 ? nameof(startIndex) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             if (_size == 0)  // Special case for an empty list
                 return -1;
 
             if (startIndex >= _size || count > startIndex + 1)
-                throw new ArgumentOutOfRangeException(startIndex >= _size ? nameof(startIndex) : nameof(count), SR.ArgumentOutOfRange_BiggerThanCollection);
+                throw new ArgumentOutOfRangeException(startIndex >= _size ? nameof(startIndex) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_BiggerThanCollection"));
 
             return Array.LastIndexOf((Array)_items, value, startIndex, count);
         }
@@ -545,7 +545,7 @@ namespace System.Collections
         //
         public virtual void RemoveAt(int index)
         {
-            if (index < 0 || index >= _size) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+            if (index < 0 || index >= _size) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             _size--;
             if (index < _size)
@@ -561,11 +561,11 @@ namespace System.Collections
         public virtual void RemoveRange(int index, int count)
         {
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (_size - index < count)
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
             if (count > 0)
             {
@@ -585,7 +585,7 @@ namespace System.Collections
         public static ArrayList Repeat(object? value, int count)
         {
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             ArrayList list = new ArrayList((count > _defaultCapacity) ? count : _defaultCapacity);
             for (int i = 0; i < count; i++)
@@ -610,11 +610,11 @@ namespace System.Collections
         public virtual void Reverse(int index, int count)
         {
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (_size - index < count)
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
             Array.Reverse(_items, index, count);
             _version++;
@@ -625,10 +625,10 @@ namespace System.Collections
         //
         public virtual void SetRange(int index, ICollection c)
         {
-            if (c == null) throw new ArgumentNullException(nameof(c), SR.ArgumentNull_Collection);
+            if (c == null) throw new ArgumentNullException(nameof(c), SR.GetResourceString("ArgumentNull_Collection"));
 
             int count = c.Count;
-            if (index < 0 || index > _size - count) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+            if (index < 0 || index > _size - count) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             if (count > 0)
             {
@@ -640,9 +640,9 @@ namespace System.Collections
         public virtual ArrayList GetRange(int index, int count)
         {
             if (index < 0 || count < 0)
-                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (_size - index < count)
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             return new Range(this, index, count);
         }
 
@@ -671,11 +671,11 @@ namespace System.Collections
         public virtual void Sort(int index, int count, IComparer? comparer)
         {
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (_size - index < count)
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
             Array.Sort(_items, index, count, comparer);
             _version++;
@@ -758,7 +758,7 @@ namespace System.Collections
                 get => _list.Count;
                 set
                 {
-                    if (value < Count) throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_SmallCapacity);
+                    if (value < Count) throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_SmallCapacity"));
                 }
             }
 
@@ -799,9 +799,9 @@ namespace System.Collections
             public override int BinarySearch(int index, int count, object? value, IComparer? comparer)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (Count - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 comparer ??= Comparer.Default;
 
@@ -830,7 +830,7 @@ namespace System.Collections
                 // We shouldn't allow clear operation on a FixedSized ArrayList
                 if (_list.IsFixedSize)
                 {
-                    throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                    throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
                 }
 
                 _list.Clear();
@@ -859,16 +859,16 @@ namespace System.Collections
                 if (array == null)
                     throw new ArgumentNullException(nameof(array));
                 if (index < 0 || arrayIndex < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(arrayIndex), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(arrayIndex), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (count < 0)
-                    throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (array.Length - arrayIndex < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
                 if (array.Rank != 1)
-                    throw new ArgumentException(SR.Arg_RankMultiDimNotSupported, nameof(array));
+                    throw new ArgumentException(SR.GetResourceString("Arg_RankMultiDimNotSupported"), nameof(array));
 
                 if (_list.Count - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 for (int i = index; i < index + count; i++)
                     array.SetValue(_list[i], arrayIndex++);
@@ -882,10 +882,10 @@ namespace System.Collections
             public override IEnumerator GetEnumerator(int index, int count)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
                 if (_list.Count - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 return new IListWrapperEnumWrapper(this, index, count);
             }
@@ -902,8 +902,8 @@ namespace System.Collections
 
             public override int IndexOf(object? value, int startIndex, int count)
             {
-                if (startIndex < 0 || startIndex > Count) throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
-                if (count < 0 || startIndex > Count - count) throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_Count);
+                if (startIndex < 0 || startIndex > Count) throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
+                if (count < 0 || startIndex > Count - count) throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_Count"));
 
                 int endIndex = startIndex + count;
                 if (value == null)
@@ -931,8 +931,8 @@ namespace System.Collections
             public override void InsertRange(int index, ICollection c)
             {
                 if (c == null)
-                    throw new ArgumentNullException(nameof(c), SR.ArgumentNull_Collection);
-                if (index < 0 || index > Count) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                    throw new ArgumentNullException(nameof(c), SR.GetResourceString("ArgumentNull_Collection"));
+                if (index < 0 || index > Count) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
                 if (c.Count > 0)
                 {
@@ -970,8 +970,8 @@ namespace System.Collections
                 if (_list.Count == 0)
                     return -1;
 
-                if (startIndex < 0 || startIndex >= _list.Count) throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
-                if (count < 0 || count > startIndex + 1) throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_Count);
+                if (startIndex < 0 || startIndex >= _list.Count) throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
+                if (count < 0 || count > startIndex + 1) throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_Count"));
 
                 int endIndex = startIndex - count + 1;
                 if (value == null)
@@ -1006,10 +1006,10 @@ namespace System.Collections
             public override void RemoveRange(int index, int count)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
                 if (_list.Count - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 if (count > 0)    // be consistent with ArrayList
                     _version++;
@@ -1024,10 +1024,10 @@ namespace System.Collections
             public override void Reverse(int index, int count)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
                 if (_list.Count - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 int i = index;
                 int j = index + count - 1;
@@ -1044,12 +1044,12 @@ namespace System.Collections
             {
                 if (c == null)
                 {
-                    throw new ArgumentNullException(nameof(c), SR.ArgumentNull_Collection);
+                    throw new ArgumentNullException(nameof(c), SR.GetResourceString("ArgumentNull_Collection"));
                 }
 
                 if (index < 0 || index > _list.Count - c.Count)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                    throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
                 }
 
                 if (c.Count > 0)
@@ -1066,18 +1066,18 @@ namespace System.Collections
             public override ArrayList GetRange(int index, int count)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (_list.Count - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
                 return new Range(this, index, count);
             }
 
             public override void Sort(int index, int count, IComparer? comparer)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (_list.Count - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 object[] array = new object[count];
                 CopyTo(index, array, 0, count);
@@ -1165,9 +1165,9 @@ namespace System.Collections
                     get
                     {
                         if (_firstCall)
-                            throw new InvalidOperationException(SR.InvalidOperation_EnumNotStarted);
+                            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumNotStarted"));
                         if (_remaining < 0)
-                            throw new InvalidOperationException(SR.InvalidOperation_EnumEnded);
+                            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumEnded"));
                         return _en.Current;
                     }
                 }
@@ -1654,12 +1654,12 @@ namespace System.Collections
 
             public virtual int Add(object? obj)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public virtual void Clear()
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public virtual bool Contains(object? obj)
@@ -1684,17 +1684,17 @@ namespace System.Collections
 
             public virtual void Insert(int index, object? obj)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public virtual void Remove(object? value)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public virtual void RemoveAt(int index)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
         }
 
@@ -1730,12 +1730,12 @@ namespace System.Collections
 
             public override int Add(object? obj)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public override void AddRange(ICollection c)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public override int BinarySearch(int index, int count, object? value, IComparer? comparer)
@@ -1746,12 +1746,12 @@ namespace System.Collections
             public override int Capacity
             {
                 get => _list.Capacity;
-                set => throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                set => throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public override void Clear()
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public override object Clone()
@@ -1803,12 +1803,12 @@ namespace System.Collections
 
             public override void Insert(int index, object? obj)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public override void InsertRange(int index, ICollection c)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public override int LastIndexOf(object? value)
@@ -1828,17 +1828,17 @@ namespace System.Collections
 
             public override void Remove(object? value)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public override void RemoveAt(int index)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public override void RemoveRange(int index, int count)
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
 
             public override void SetRange(int index, ICollection c)
@@ -1850,9 +1850,9 @@ namespace System.Collections
             public override ArrayList GetRange(int index, int count)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (Count - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 return new Range(this, index, count);
             }
@@ -1881,7 +1881,7 @@ namespace System.Collections
 
             public override void TrimToSize()
             {
-                throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_FixedSizeCollection"));
             }
         }
 
@@ -1905,19 +1905,19 @@ namespace System.Collections
             public virtual object? this[int index]
             {
                 get => _list[index];
-                set => throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                set => throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public virtual object SyncRoot => _list.SyncRoot;
 
             public virtual int Add(object? obj)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public virtual void Clear()
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public virtual bool Contains(object? obj)
@@ -1942,17 +1942,17 @@ namespace System.Collections
 
             public virtual void Insert(int index, object? obj)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public virtual void Remove(object? value)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public virtual void RemoveAt(int index)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
         }
 
@@ -1976,19 +1976,19 @@ namespace System.Collections
             public override object? this[int index]
             {
                 get => _list[index];
-                set => throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                set => throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override object SyncRoot => _list.SyncRoot;
 
             public override int Add(object? obj)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override void AddRange(ICollection c)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override int BinarySearch(int index, int count, object? value, IComparer? comparer)
@@ -2000,12 +2000,12 @@ namespace System.Collections
             public override int Capacity
             {
                 get => _list.Capacity;
-                set => throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                set => throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override void Clear()
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override object Clone()
@@ -2057,12 +2057,12 @@ namespace System.Collections
 
             public override void Insert(int index, object? obj)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override void InsertRange(int index, ICollection c)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override int LastIndexOf(object? value)
@@ -2082,42 +2082,42 @@ namespace System.Collections
 
             public override void Remove(object? value)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override void RemoveAt(int index)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override void RemoveRange(int index, int count)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override void SetRange(int index, ICollection c)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override ArrayList GetRange(int index, int count)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (Count - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 return new Range(this, index, count);
             }
 
             public override void Reverse(int index, int count)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override void Sort(int index, int count, IComparer? comparer)
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
 
             public override object?[] ToArray()
@@ -2132,7 +2132,7 @@ namespace System.Collections
 
             public override void TrimToSize()
             {
-                throw new NotSupportedException(SR.NotSupported_ReadOnlyCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_ReadOnlyCollection"));
             }
         }
 
@@ -2163,7 +2163,7 @@ namespace System.Collections
 
             public bool MoveNext()
             {
-                if (_version != _list._version) throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+                if (_version != _list._version) throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumFailedVersion"));
                 if (_index < _endIndex)
                 {
                     _currentElement = _list[++_index];
@@ -2182,10 +2182,10 @@ namespace System.Collections
                 get
                 {
                     if (_index < _startIndex)
-                        throw new InvalidOperationException(SR.InvalidOperation_EnumNotStarted);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumNotStarted"));
                     else if (_index > _endIndex)
                     {
-                        throw new InvalidOperationException(SR.InvalidOperation_EnumEnded);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumEnded"));
                     }
                     return _currentElement;
                 }
@@ -2193,7 +2193,7 @@ namespace System.Collections
 
             public void Reset()
             {
-                if (_version != _list._version) throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+                if (_version != _list._version) throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumFailedVersion"));
                 _index = _startIndex - 1;
             }
         }
@@ -2220,7 +2220,7 @@ namespace System.Collections
             private void InternalUpdateRange()
             {
                 if (_baseVersion != _baseList._version)
-                    throw new InvalidOperationException(SR.InvalidOperation_UnderlyingArrayListChanged);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnderlyingArrayListChanged"));
             }
 
             private void InternalUpdateVersion()
@@ -2257,9 +2257,9 @@ namespace System.Collections
             public override int BinarySearch(int index, int count, object? value, IComparer? comparer)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (_baseSize - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 InternalUpdateRange();
 
@@ -2274,7 +2274,7 @@ namespace System.Collections
 
                 set
                 {
-                    if (value < Count) throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_SmallCapacity);
+                    if (value < Count) throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_SmallCapacity"));
                 }
             }
 
@@ -2322,11 +2322,11 @@ namespace System.Collections
                 if (array == null)
                     throw new ArgumentNullException(nameof(array));
                 if (array.Rank != 1)
-                    throw new ArgumentException(SR.Arg_RankMultiDimNotSupported, nameof(array));
+                    throw new ArgumentException(SR.GetResourceString("Arg_RankMultiDimNotSupported"), nameof(array));
                 if (index < 0)
-                    throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (array.Length - index < _baseSize)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 InternalUpdateRange();
                 _baseList.CopyTo(_baseIndex, array, index, _baseSize);
@@ -2337,13 +2337,13 @@ namespace System.Collections
                 if (array == null)
                     throw new ArgumentNullException(nameof(array));
                 if (array.Rank != 1)
-                    throw new ArgumentException(SR.Arg_RankMultiDimNotSupported, nameof(array));
+                    throw new ArgumentException(SR.GetResourceString("Arg_RankMultiDimNotSupported"), nameof(array));
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (array.Length - arrayIndex < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
                 if (_baseSize - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 InternalUpdateRange();
                 _baseList.CopyTo(_baseIndex + index, array, arrayIndex, count);
@@ -2372,9 +2372,9 @@ namespace System.Collections
             public override IEnumerator GetEnumerator(int index, int count)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (_baseSize - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 InternalUpdateRange();
                 return _baseList.GetEnumerator(_baseIndex + index, count);
@@ -2383,9 +2383,9 @@ namespace System.Collections
             public override ArrayList GetRange(int index, int count)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (_baseSize - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 InternalUpdateRange();
                 return new Range(this, index, count);
@@ -2405,9 +2405,9 @@ namespace System.Collections
             public override int IndexOf(object? value, int startIndex)
             {
                 if (startIndex < 0)
-                    throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (startIndex > _baseSize)
-                    throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                    throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
                 InternalUpdateRange();
                 int i = _baseList.IndexOf(value, _baseIndex + startIndex, _baseSize - startIndex);
@@ -2418,10 +2418,10 @@ namespace System.Collections
             public override int IndexOf(object? value, int startIndex, int count)
             {
                 if (startIndex < 0 || startIndex > _baseSize)
-                    throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                    throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
                 if (count < 0 || (startIndex > _baseSize - count))
-                    throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_Count);
+                    throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_Count"));
 
                 InternalUpdateRange();
                 int i = _baseList.IndexOf(value, _baseIndex + startIndex, count);
@@ -2431,7 +2431,7 @@ namespace System.Collections
 
             public override void Insert(int index, object? value)
             {
-                if (index < 0 || index > _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                if (index < 0 || index > _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
                 InternalUpdateRange();
                 _baseList.Insert(_baseIndex + index, value);
@@ -2441,7 +2441,7 @@ namespace System.Collections
 
             public override void InsertRange(int index, ICollection c)
             {
-                if (index < 0 || index > _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                if (index < 0 || index > _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
                 if (c == null)
                 {
                     throw new ArgumentNullException(nameof(c));
@@ -2477,9 +2477,9 @@ namespace System.Collections
                     return -1;
 
                 if (startIndex >= _baseSize)
-                    throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_Index);
+                    throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_Index"));
                 if (startIndex < 0)
-                    throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
                 int i = _baseList.LastIndexOf(value, _baseIndex + startIndex, count);
                 if (i >= 0) return i - _baseIndex;
@@ -2490,7 +2490,7 @@ namespace System.Collections
 
             public override void RemoveAt(int index)
             {
-                if (index < 0 || index >= _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                if (index < 0 || index >= _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
                 InternalUpdateRange();
                 _baseList.RemoveAt(_baseIndex + index);
@@ -2501,9 +2501,9 @@ namespace System.Collections
             public override void RemoveRange(int index, int count)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (_baseSize - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 InternalUpdateRange();
                 // No need to call _bastList.RemoveRange if count is 0.
@@ -2519,9 +2519,9 @@ namespace System.Collections
             public override void Reverse(int index, int count)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (_baseSize - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 InternalUpdateRange();
                 _baseList.Reverse(_baseIndex + index, count);
@@ -2531,7 +2531,7 @@ namespace System.Collections
             public override void SetRange(int index, ICollection c)
             {
                 InternalUpdateRange();
-                if (index < 0 || index >= _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                if (index < 0 || index >= _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
                 _baseList.SetRange(_baseIndex + index, c);
                 if (c.Count > 0)
                 {
@@ -2542,9 +2542,9 @@ namespace System.Collections
             public override void Sort(int index, int count, IComparer? comparer)
             {
                 if (index < 0 || count < 0)
-                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(index < 0 ? nameof(index) : nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
                 if (_baseSize - index < count)
-                    throw new ArgumentException(SR.Argument_InvalidOffLen);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
 
                 InternalUpdateRange();
                 _baseList.Sort(_baseIndex + index, count, comparer);
@@ -2556,13 +2556,13 @@ namespace System.Collections
                 get
                 {
                     InternalUpdateRange();
-                    if (index < 0 || index >= _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                    if (index < 0 || index >= _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
                     return _baseList[_baseIndex + index];
                 }
                 set
                 {
                     InternalUpdateRange();
-                    if (index < 0 || index >= _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_Index);
+                    if (index < 0 || index >= _baseSize) throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_Index"));
                     _baseList[_baseIndex + index] = value;
                     InternalUpdateVersion();
                 }
@@ -2591,7 +2591,7 @@ namespace System.Collections
 
             public override void TrimToSize()
             {
-                throw new NotSupportedException(SR.NotSupported_RangeCollection);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_RangeCollection"));
             }
         }
 
@@ -2620,7 +2620,7 @@ namespace System.Collections
             {
                 if (_version != _list._version)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumFailedVersion"));
                 }
 
                 if (_isArrayList)
@@ -2662,11 +2662,11 @@ namespace System.Collections
                     { // check if enumeration has not started or has terminated
                         if (_index == -1)
                         {
-                            throw new InvalidOperationException(SR.InvalidOperation_EnumNotStarted);
+                            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumNotStarted"));
                         }
                         else
                         {
-                            throw new InvalidOperationException(SR.InvalidOperation_EnumEnded);
+                            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumEnded"));
                         }
                     }
 
@@ -2678,7 +2678,7 @@ namespace System.Collections
             {
                 if (_version != _list._version)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumFailedVersion"));
                 }
 
                 _currentElement = s_dummyObject;

@@ -10,7 +10,7 @@ namespace System
     public partial class TypeLoadException : SystemException, ISerializable
     {
         public TypeLoadException()
-            : base(SR.Arg_TypeLoadException)
+            : base(SR.GetResourceString("Arg_TypeLoadException"))
         {
             HResult = HResults.COR_E_TYPELOAD;
         }

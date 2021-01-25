@@ -28,7 +28,7 @@ namespace System.Threading
 
             if (ret == Interop.Errors.ERROR_TOO_MANY_POSTS)
             {
-                throw new InvalidOperationException(SR.Threading_WaitHandleTooManyPosts);
+                throw new InvalidOperationException(SR.GetResourceString("Threading_WaitHandleTooManyPosts"));
             }
 
             return ret;

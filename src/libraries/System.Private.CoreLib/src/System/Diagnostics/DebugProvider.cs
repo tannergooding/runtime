@@ -33,10 +33,10 @@ namespace System.Diagnostics
 
         internal void WriteAssert(string stackTrace, string? message, string? detailMessage)
         {
-            WriteLine(SR.DebugAssertBanner + Environment.NewLineConst
-                   + SR.DebugAssertShortMessage + Environment.NewLineConst
+            WriteLine(SR.GetResourceString("DebugAssertBanner") + Environment.NewLineConst
+                   + SR.GetResourceString("DebugAssertShortMessage") + Environment.NewLineConst
                    + message + Environment.NewLineConst
-                   + SR.DebugAssertLongMessage + Environment.NewLineConst
+                   + SR.GetResourceString("DebugAssertLongMessage") + Environment.NewLineConst
                    + detailMessage + Environment.NewLineConst
                    + stackTrace);
         }

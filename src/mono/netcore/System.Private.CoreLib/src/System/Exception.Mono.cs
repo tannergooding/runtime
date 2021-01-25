@@ -116,7 +116,7 @@ namespace System
             // when it's retrieved.
             var sb = new StringBuilder(256);
             new StackTrace(fNeedFileInfo: true).ToString(Diagnostics.StackTrace.TraceFormat.TrailingNewLine, sb);
-            sb.AppendLine(SR.Exception_EndStackTraceFromPreviousThrow);
+            sb.AppendLine(SR.GetResourceString("Exception_EndStackTraceFromPreviousThrow"));
             _remoteStackTraceString = sb.ToString();
         }
 
@@ -137,7 +137,7 @@ namespace System
                     if (moduleBuilder != null)
                         throw new NotImplementedException(); // TODO: rtModule = moduleBuilder.InternalModule;
                     else
-                        throw new ArgumentException(SR.Argument_MustBeRuntimeReflectionObject);
+                        throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeReflectionObject"));
                 }
 
                 return rtModule.GetRuntimeAssembly().GetName().Name; // TODO: GetSimpleName ();

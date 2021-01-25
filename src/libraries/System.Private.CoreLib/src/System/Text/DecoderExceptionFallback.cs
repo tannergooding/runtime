@@ -64,7 +64,7 @@ namespace System.Text
 
             // Known index
             throw new DecoderFallbackException(
-                SR.Format(SR.Argument_InvalidCodePageBytesIndex,
+                SR.Format(SR.GetResourceString("Argument_InvalidCodePageBytesIndex"),
                    strBytes, index), bytesUnknown, index);
         }
     }
@@ -78,7 +78,7 @@ namespace System.Text
         private readonly int _index;
 
         public DecoderFallbackException()
-            : base(SR.Arg_ArgumentException)
+            : base(SR.GetResourceString("Arg_ArgumentException"))
         {
             HResult = HResults.COR_E_ARGUMENT;
         }

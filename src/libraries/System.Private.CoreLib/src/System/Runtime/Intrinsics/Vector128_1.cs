@@ -80,7 +80,7 @@ namespace System.Runtime.Intrinsics
                 }
                 else
                 {
-                    return SR.NotSupported_Type;
+                    return SR.GetResourceString("NotSupported_Type");
                 }
             }
         }

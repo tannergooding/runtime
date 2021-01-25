@@ -58,7 +58,7 @@ namespace System.IO
 
         [DoesNotReturn]
         private static void ThrowAsyncIOInProgress() =>
-            throw new InvalidOperationException(SR.InvalidOperation_AsyncIOInProgress);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_AsyncIOInProgress"));
 
         // The high level goal is to be tolerant of encoding errors when we read and very strict
         // when we write. Hence, default StreamWriter encoding will throw on encoding error.
@@ -103,7 +103,7 @@ namespace System.IO
             }
             if (!stream.CanWrite)
             {
-                throw new ArgumentException(SR.Argument_StreamNotWritable);
+                throw new ArgumentException(SR.GetResourceString("Argument_StreamNotWritable"));
             }
             if (bufferSize == -1)
             {
@@ -111,7 +111,7 @@ namespace System.IO
             }
             else if (bufferSize <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
 
             _stream = stream;
@@ -161,9 +161,9 @@ namespace System.IO
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
             if (path.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyPath);
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyPath"));
             if (bufferSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
 
             return new FileStream(path, append ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.Read, DefaultFileStreamBufferSize, FileOptions.SequentialScan);
         }
@@ -350,19 +350,19 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             WriteSpan(buffer.AsSpan(index, count), appendNewLine: false);
@@ -690,19 +690,19 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             // If we have been inherited into a subclass, the following implementation could be incorrect
@@ -850,19 +850,19 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
 
             // If we have been inherited into a subclass, the following implementation could be incorrect
@@ -983,7 +983,7 @@ namespace System.IO
                 ThrowObjectDisposedException();
             }
 
-            void ThrowObjectDisposedException() => throw new ObjectDisposedException(GetType().Name, SR.ObjectDisposed_WriterClosed);
+            void ThrowObjectDisposedException() => throw new ObjectDisposedException(GetType().Name, SR.GetResourceString("ObjectDisposed_WriterClosed"));
         }
     }
 }

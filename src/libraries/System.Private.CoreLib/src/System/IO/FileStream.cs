@@ -130,17 +130,17 @@ namespace System.IO
         private void ValidateAndInitFromHandle(SafeFileHandle handle, FileAccess access, int bufferSize, bool isAsync)
         {
             if (handle.IsInvalid)
-                throw new ArgumentException(SR.Arg_InvalidHandle, nameof(handle));
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidHandle"), nameof(handle));
 
             if (access < FileAccess.Read || access > FileAccess.ReadWrite)
-                throw new ArgumentOutOfRangeException(nameof(access), SR.ArgumentOutOfRange_Enum);
+                throw new ArgumentOutOfRangeException(nameof(access), SR.GetResourceString("ArgumentOutOfRange_Enum"));
             if (bufferSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
 
             if (handle.IsClosed)
-                throw new ObjectDisposedException(SR.ObjectDisposed_FileClosed);
+                throw new ObjectDisposedException(SR.GetResourceString("ObjectDisposed_FileClosed"));
             if (handle.IsAsync.HasValue && isAsync != handle.IsAsync.GetValueOrDefault())
-                throw new ArgumentException(SR.Arg_HandleNotAsync, nameof(handle));
+                throw new ArgumentException(SR.GetResourceString("Arg_HandleNotAsync"), nameof(handle));
 
             _exposedHandle = true;
             _bufferLength = bufferSize;
@@ -185,9 +185,9 @@ namespace System.IO
         public FileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options)
         {
             if (path == null)
-                throw new ArgumentNullException(nameof(path), SR.ArgumentNull_Path);
+                throw new ArgumentNullException(nameof(path), SR.GetResourceString("ArgumentNull_Path"));
             if (path.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyPath, nameof(path));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyPath"), nameof(path));
 
             // don't include inheritable in our bounds check for share
             FileShare tempshare = share & ~FileShare.Inheritable;
@@ -201,14 +201,14 @@ namespace System.IO
                 badArg = nameof(share);
 
             if (badArg != null)
-                throw new ArgumentOutOfRangeException(badArg, SR.ArgumentOutOfRange_Enum);
+                throw new ArgumentOutOfRangeException(badArg, SR.GetResourceString("ArgumentOutOfRange_Enum"));
 
             // NOTE: any change to FileOptions enum needs to be matched here in the error validation
             if (options != FileOptions.None && (options & ~(FileOptions.WriteThrough | FileOptions.Asynchronous | FileOptions.RandomAccess | FileOptions.DeleteOnClose | FileOptions.SequentialScan | FileOptions.Encrypted | (FileOptions)0x20000000 /* NoBuffering */)) != 0)
-                throw new ArgumentOutOfRangeException(nameof(options), SR.ArgumentOutOfRange_Enum);
+                throw new ArgumentOutOfRangeException(nameof(options), SR.GetResourceString("ArgumentOutOfRange_Enum"));
 
             if (bufferSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
 
             // Write access validation
             if ((access & FileAccess.Write) == 0)
@@ -216,12 +216,12 @@ namespace System.IO
                 if (mode == FileMode.Truncate || mode == FileMode.CreateNew || mode == FileMode.Create || mode == FileMode.Append)
                 {
                     // No write access, mode and access disagree but flag access since mode comes first
-                    throw new ArgumentException(SR.Format(SR.Argument_InvalidFileModeAndAccessCombo, mode, access), nameof(access));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidFileModeAndAccessCombo"), mode, access), nameof(access));
                 }
             }
 
             if ((access & FileAccess.Read) != 0 && mode == FileMode.Append)
-                throw new ArgumentException(SR.Argument_InvalidAppendMode, nameof(access));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidAppendMode"), nameof(access));
 
             string fullPath = Path.GetFullPath(path);
 
@@ -260,7 +260,7 @@ namespace System.IO
         {
             if (position < 0 || length < 0)
             {
-                throw new ArgumentOutOfRangeException(position < 0 ? nameof(position) : nameof(length), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(position < 0 ? nameof(position) : nameof(length), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             if (_fileHandle.IsClosed)
@@ -275,7 +275,7 @@ namespace System.IO
         {
             if (position < 0 || length < 0)
             {
-                throw new ArgumentOutOfRangeException(position < 0 ? nameof(position) : nameof(length), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(position < 0 ? nameof(position) : nameof(length), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             if (_fileHandle.IsClosed)
@@ -593,7 +593,7 @@ namespace System.IO
         public override void SetLength(long value)
         {
             if (value < 0)
-                throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             if (_fileHandle.IsClosed)
                 throw Error.GetFileNotOpen();
             if (!CanSeek)
@@ -615,7 +615,7 @@ namespace System.IO
         }
 
         /// <summary>Gets the path that was passed to the constructor.</summary>
-        public virtual string Name => _path ?? SR.IO_UnknownFileName;
+        public virtual string Name => _path ?? SR.GetResourceString("IO_UnknownFileName");
 
         /// <summary>Gets a value indicating whether the stream was opened for I/O to be performed synchronously or asynchronously.</summary>
         public virtual bool IsAsync => _useAsyncIO;
@@ -655,7 +655,7 @@ namespace System.IO
                     if (_writePos > 0)
                     {
                         _writePos = 0;
-                        throw new IOException(SR.IO_FileStreamHandlePosition);
+                        throw new IOException(SR.GetResourceString("IO_FileStreamHandlePosition"));
                     }
                 }
             }
@@ -712,7 +712,7 @@ namespace System.IO
             set
             {
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value), SR.ArgumentOutOfRange_NeedNonNegNum);
+                    throw new ArgumentOutOfRangeException(nameof(value), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
                 Seek(value, SeekOrigin.Begin);
             }
@@ -865,8 +865,8 @@ namespace System.IO
         public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
         {
             ValidateBufferArguments(buffer, offset, count);
-            if (IsClosed) throw new ObjectDisposedException(SR.ObjectDisposed_FileClosed);
-            if (!CanRead) throw new NotSupportedException(SR.NotSupported_UnreadableStream);
+            if (IsClosed) throw new ObjectDisposedException(SR.GetResourceString("ObjectDisposed_FileClosed"));
+            if (!CanRead) throw new NotSupportedException(SR.GetResourceString("NotSupported_UnreadableStream"));
 
             if (!IsAsync)
                 return base.BeginRead(buffer, offset, count, callback, state);
@@ -877,8 +877,8 @@ namespace System.IO
         public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
         {
             ValidateBufferArguments(buffer, offset, count);
-            if (IsClosed) throw new ObjectDisposedException(SR.ObjectDisposed_FileClosed);
-            if (!CanWrite) throw new NotSupportedException(SR.NotSupported_UnwritableStream);
+            if (IsClosed) throw new ObjectDisposedException(SR.GetResourceString("ObjectDisposed_FileClosed"));
+            if (!CanWrite) throw new NotSupportedException(SR.GetResourceString("NotSupported_UnwritableStream"));
 
             if (!IsAsync)
                 return base.BeginWrite(buffer, offset, count, callback, state);

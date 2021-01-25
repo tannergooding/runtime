@@ -20,7 +20,7 @@ namespace System
     public class NotImplementedException : SystemException
     {
         public NotImplementedException()
-            : base(SR.Arg_NotImplementedException)
+            : base(SR.GetResourceString("Arg_NotImplementedException"))
         {
             HResult = HResults.E_NOTIMPL;
         }

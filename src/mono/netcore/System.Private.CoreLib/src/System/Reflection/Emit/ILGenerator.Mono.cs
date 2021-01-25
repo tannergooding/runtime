@@ -658,11 +658,11 @@ namespace System.Reflection.Emit
             if (local == null)
                 throw new ArgumentNullException(nameof(local));
             if (local.ilgen != this)
-                throw new ArgumentException(SR.Argument_UnmatchedMethodForLocal, nameof(local));
+                throw new ArgumentException(SR.GetResourceString("Argument_UnmatchedMethodForLocal"), nameof(local));
 
             uint pos = local.position;
             if ((opcode == OpCodes.Ldloca_S || opcode == OpCodes.Ldloc_S || opcode == OpCodes.Stloc_S) && pos > 255)
-                throw new InvalidOperationException(SR.InvalidOperation_BadInstructionOrIndexOutOfBound);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_BadInstructionOrIndexOutOfBound"));
 
             bool load_addr = false;
             bool is_store = false;
@@ -1185,7 +1185,7 @@ namespace System.Reflection.Emit
         public Stack(int initialCapacity)
         {
             if (initialCapacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(initialCapacity), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(initialCapacity), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             if (initialCapacity < _defaultCapacity)
                 initialCapacity = _defaultCapacity;

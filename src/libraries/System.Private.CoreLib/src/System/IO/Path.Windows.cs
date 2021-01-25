@@ -43,13 +43,13 @@ namespace System.IO
 
             // If the path would normalize to string empty, we'll consider it empty
             if (PathInternal.IsEffectivelyEmpty(path.AsSpan()))
-                throw new ArgumentException(SR.Arg_PathEmpty, nameof(path));
+                throw new ArgumentException(SR.GetResourceString("Arg_PathEmpty"), nameof(path));
 
             // Embedded null characters are the only invalid character case we trully care about.
             // This is because the nulls will signal the end of the string to Win32 and therefore have
             // unpredictable results.
             if (path.Contains('\0'))
-                throw new ArgumentException(SR.Argument_InvalidPathChars, nameof(path));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidPathChars"), nameof(path));
 
             if (PathInternal.IsExtended(path.AsSpan()))
             {
@@ -72,10 +72,10 @@ namespace System.IO
                 throw new ArgumentNullException(nameof(basePath));
 
             if (!IsPathFullyQualified(basePath))
-                throw new ArgumentException(SR.Arg_BasePathNotFullyQualified, nameof(basePath));
+                throw new ArgumentException(SR.GetResourceString("Arg_BasePathNotFullyQualified"), nameof(basePath));
 
             if (basePath.Contains('\0') || path.Contains('\0'))
-                throw new ArgumentException(SR.Argument_InvalidPathChars);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidPathChars"));
 
             if (IsPathFullyQualified(path))
                 return GetFullPath(path);

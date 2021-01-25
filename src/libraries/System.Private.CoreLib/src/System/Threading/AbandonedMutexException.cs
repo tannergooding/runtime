@@ -13,7 +13,7 @@ namespace System.Threading
         private Mutex? _mutex;
 
         public AbandonedMutexException()
-            : base(SR.Threading_AbandonedMutexException)
+            : base(SR.GetResourceString("Threading_AbandonedMutexException"))
         {
             HResult = HResults.COR_E_ABANDONEDMUTEX;
         }
@@ -31,7 +31,7 @@ namespace System.Threading
         }
 
         public AbandonedMutexException(int location, WaitHandle? handle)
-            : base(SR.Threading_AbandonedMutexException)
+            : base(SR.GetResourceString("Threading_AbandonedMutexException"))
         {
             HResult = HResults.COR_E_ABANDONEDMUTEX;
             SetupException(location, handle);

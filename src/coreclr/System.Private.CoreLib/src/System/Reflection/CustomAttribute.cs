@@ -205,7 +205,7 @@ namespace System.Reflection
             if (type.IsValueType)
                 return CustomAttributeEncoding.Undefined;
 
-            throw new ArgumentException(SR.Argument_InvalidKindOfTypeForCA, nameof(type));
+            throw new ArgumentException(SR.GetResourceString("Argument_InvalidKindOfTypeForCA"), nameof(type));
         }
         private static CustomAttributeType InitCustomAttributeType(RuntimeType parameterType)
         {
@@ -538,7 +538,7 @@ namespace System.Reflection
                 CustomAttributeEncoding.Float => typeof(float),
                 CustomAttributeEncoding.Double => typeof(double),
                 CustomAttributeEncoding.Object => typeof(object),
-                _ => throw new ArgumentException(SR.Format(SR.Arg_EnumIllegalVal, (int)encodedType), nameof(encodedType)),
+                _ => throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), (int)encodedType), nameof(encodedType)),
             };
         }
 
@@ -583,7 +583,7 @@ namespace System.Reflection
                     unsafe { return *(double*)&val; }
 
                 default:
-                    throw new ArgumentException(SR.Format(SR.Arg_EnumIllegalVal, (int)val), nameof(val));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), (int)val), nameof(val));
             }
         }
         private static RuntimeType ResolveType(RuntimeModule scope, string typeName)
@@ -592,7 +592,7 @@ namespace System.Reflection
 
             if (type == null)
                 throw new InvalidOperationException(
-                    SR.Format(SR.Arg_CATypeResolutionFailed, typeName));
+                    SR.Format(SR.GetResourceString("Arg_CATypeResolutionFailed"), typeName));
 
             return type;
         }
@@ -1297,7 +1297,7 @@ namespace System.Reflection
                             if (property == null)
                             {
                                 throw new CustomAttributeFormatException(
-                                    SR.Format(SR.RFLCT_InvalidPropFail, name));
+                                    SR.Format(SR.GetResourceString("RFLCT_InvalidPropFail"), name));
                             }
 
                             MethodInfo setMethod = property.GetSetMethod(true)!;
@@ -1319,7 +1319,7 @@ namespace System.Reflection
                     catch (Exception e)
                     {
                         throw new CustomAttributeFormatException(
-                            SR.Format(isProperty ? SR.RFLCT_InvalidPropFail : SR.RFLCT_InvalidFieldFail, name), e);
+                            SR.Format(isProperty ? SR.GetResourceString("RFLCT_InvalidPropFail") : SR.GetResourceString("RFLCT_InvalidFieldFail"), name), e);
                     }
                 }
 
@@ -1491,7 +1491,7 @@ namespace System.Reflection
                     continue;
 
                 if (attributeUsageAttribute != null)
-                    throw new FormatException(SR.Format(SR.Format_AttributeUsage, attributeType));
+                    throw new FormatException(SR.Format(SR.GetResourceString("Format_AttributeUsage"), attributeType));
 
                 ParseAttributeUsageAttribute(caRecord.blob, out AttributeTargets targets, out bool inherited, out bool allowMultiple);
                 attributeUsageAttribute = new AttributeUsageAttribute(targets, allowMultiple, inherited);

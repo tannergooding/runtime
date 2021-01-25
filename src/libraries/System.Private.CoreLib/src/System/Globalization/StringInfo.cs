@@ -76,11 +76,11 @@ namespace System.Globalization
 
             if ((uint)startingTextElement >= (uint)indexes.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(startingTextElement), startingTextElement, SR.Arg_ArgumentOutOfRangeException);
+                throw new ArgumentOutOfRangeException(nameof(startingTextElement), startingTextElement, SR.GetResourceString("Arg_ArgumentOutOfRangeException"));
             }
             if ((uint)lengthInTextElements > (uint)(indexes.Length - startingTextElement))
             {
-                throw new ArgumentOutOfRangeException(nameof(lengthInTextElements), lengthInTextElements, SR.Arg_ArgumentOutOfRangeException);
+                throw new ArgumentOutOfRangeException(nameof(lengthInTextElements), lengthInTextElements, SR.GetResourceString("Arg_ArgumentOutOfRangeException"));
             }
 
             int start = indexes[startingTextElement];

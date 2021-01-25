@@ -148,7 +148,7 @@ namespace System
                     return new LazyHelper(state);
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(mode), SR.Lazy_ctor_ModeInvalid);
+                    throw new ArgumentOutOfRangeException(nameof(mode), SR.GetResourceString("Lazy_ctor_ModeInvalid"));
             }
         }
 
@@ -160,7 +160,7 @@ namespace System
             }
             catch (MissingMethodException)
             {
-                throw new MissingMemberException(SR.Lazy_CreateValue_NoParameterlessCtorForT);
+                throw new MissingMemberException(SR.GetResourceString("Lazy_CreateValue_NoParameterlessCtorForT"));
             }
         }
 
@@ -315,7 +315,7 @@ namespace System
             {
                 Func<T>? factory = _factory;
                 if (factory == null)
-                    throw new InvalidOperationException(SR.Lazy_Value_RecursiveCallsToValue);
+                    throw new InvalidOperationException(SR.GetResourceString("Lazy_Value_RecursiveCallsToValue"));
                 _factory = null;
 
                 _value = factory();
@@ -443,7 +443,7 @@ namespace System
         {
             return IsValueCreated ?
                 Value!.ToString() : // Throws NullReferenceException as if caller called ToString on the value itself
-                SR.Lazy_ToString_ValueNotCreated;
+                SR.GetResourceString("Lazy_ToString_ValueNotCreated");
         }
 
         /// <summary>Gets the value of the Lazy&lt;T&gt; for debugging display purposes.</summary>

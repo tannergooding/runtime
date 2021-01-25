@@ -57,7 +57,7 @@ namespace System.IO
             }
             if (!input.CanRead)
             {
-                throw new ArgumentException(SR.Argument_StreamNotReadable);
+                throw new ArgumentException(SR.GetResourceString("Argument_StreamNotReadable"));
             }
 
             _stream = input;
@@ -259,7 +259,7 @@ namespace System.IO
             catch (ArgumentException e)
             {
                 // ReadDecimal cannot leak out ArgumentException
-                throw new IOException(SR.Arg_DecBitCtor, e);
+                throw new IOException(SR.GetResourceString("Arg_DecBitCtor"), e);
             }
         }
 
@@ -277,7 +277,7 @@ namespace System.IO
             stringLength = Read7BitEncodedInt();
             if (stringLength < 0)
             {
-                throw new IOException(SR.Format(SR.IO_InvalidStringLen_Len, stringLength));
+                throw new IOException(SR.Format(SR.GetResourceString("IO_InvalidStringLen_Len"), stringLength));
             }
 
             if (stringLength == 0)
@@ -321,19 +321,19 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
             ThrowIfDisposed();
 
@@ -428,7 +428,7 @@ namespace System.IO
         {
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             ThrowIfDisposed();
 
@@ -453,19 +453,19 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
             ThrowIfDisposed();
 
@@ -482,7 +482,7 @@ namespace System.IO
         {
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             ThrowIfDisposed();
 
@@ -553,7 +553,7 @@ namespace System.IO
         {
             if (numBytes < 0 || numBytes > _buffer.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(numBytes), SR.ArgumentOutOfRange_BinaryReaderFillBuffer);
+                throw new ArgumentOutOfRangeException(nameof(numBytes), SR.GetResourceString("ArgumentOutOfRange_BinaryReaderFillBuffer"));
             }
 
             int bytesRead = 0;
@@ -624,7 +624,7 @@ namespace System.IO
             byteReadJustNow = ReadByte();
             if (byteReadJustNow > 0b_1111u)
             {
-                throw new FormatException(SR.Format_Bad7BitInt);
+                throw new FormatException(SR.GetResourceString("Format_Bad7BitInt"));
             }
 
             result |= (uint)byteReadJustNow << (MaxBytesWithoutOverflow * 7);
@@ -664,7 +664,7 @@ namespace System.IO
             byteReadJustNow = ReadByte();
             if (byteReadJustNow > 0b_1u)
             {
-                throw new FormatException(SR.Format_Bad7BitInt);
+                throw new FormatException(SR.GetResourceString("Format_Bad7BitInt"));
             }
 
             result |= (ulong)byteReadJustNow << (MaxBytesWithoutOverflow * 7);

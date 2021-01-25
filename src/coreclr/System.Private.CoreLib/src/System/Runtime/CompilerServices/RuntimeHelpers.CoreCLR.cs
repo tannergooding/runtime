@@ -49,7 +49,7 @@ namespace System.Runtime.CompilerServices
         {
             RuntimeType rt = type.GetRuntimeType();
             if (rt is null)
-                throw new ArgumentException(SR.InvalidOperation_HandleIsNotInitialized, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("InvalidOperation_HandleIsNotInitialized"), nameof(type));
 
             RunClassConstructor(new QCallTypeHandle(ref rt));
         }
@@ -69,7 +69,7 @@ namespace System.Runtime.CompilerServices
         {
             RuntimeModule rm = module.GetRuntimeModule();
             if (rm is null)
-                throw new ArgumentException(SR.InvalidOperation_HandleIsNotInitialized, nameof(module));
+                throw new ArgumentException(SR.GetResourceString("InvalidOperation_HandleIsNotInitialized"), nameof(module));
 
             RunModuleConstructor(new QCallModule(ref rm));
         }
@@ -86,7 +86,7 @@ namespace System.Runtime.CompilerServices
         {
             IRuntimeMethodInfo methodInfo = method.GetMethodInfo();
             if (methodInfo == null)
-                throw new ArgumentException(SR.InvalidOperation_HandleIsNotInitialized, nameof(method));
+                throw new ArgumentException(SR.GetResourceString("InvalidOperation_HandleIsNotInitialized"), nameof(method));
 
             // defensive copy of user-provided array, per CopyRuntimeTypeHandles contract
             instantiation = (RuntimeTypeHandle[]?)instantiation?.Clone();
@@ -157,10 +157,10 @@ namespace System.Runtime.CompilerServices
             {
                 if (type is null)
                 {
-                    throw new ArgumentNullException(nameof(type), SR.ArgumentNull_Type);
+                    throw new ArgumentNullException(nameof(type), SR.GetResourceString("ArgumentNull_Type"));
                 }
 
-                throw new SerializationException(SR.Format(SR.Serialization_InvalidType, type));
+                throw new SerializationException(SR.Format(SR.GetResourceString("Serialization_InvalidType"), type));
             }
 
             object? obj = null;
@@ -298,7 +298,7 @@ namespace System.Runtime.CompilerServices
         {
             RuntimeType? rt = type as RuntimeType;
             if (rt == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(type));
 
             if (size < 0)
                 throw new ArgumentOutOfRangeException(nameof(size));

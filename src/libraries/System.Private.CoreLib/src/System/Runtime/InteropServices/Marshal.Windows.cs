@@ -73,7 +73,7 @@ namespace System.Runtime.InteropServices
 
             if (defaultCharUsed != 0)
             {
-                throw new ArgumentException(SR.Interop_Marshal_Unmappable_Char);
+                throw new ArgumentException(SR.GetResourceString("Interop_Marshal_Unmappable_Char"));
             }
 
             buffer[nb] = 0;

@@ -19,7 +19,7 @@ namespace System
     public class EntryPointNotFoundException : TypeLoadException
     {
         public EntryPointNotFoundException()
-            : base(SR.Arg_EntryPointNotFoundException)
+            : base(SR.GetResourceString("Arg_EntryPointNotFoundException"))
         {
             HResult = HResults.COR_E_ENTRYPOINTNOTFOUND;
         }

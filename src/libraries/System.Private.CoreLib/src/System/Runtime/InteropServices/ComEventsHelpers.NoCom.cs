@@ -10,12 +10,12 @@ namespace System.Runtime.InteropServices
     {
         public static void Combine(object rcw, Guid iid, int dispid, Delegate d)
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_ComInterop);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ComInterop"));
         }
 
         public static Delegate Remove(object rcw, Guid iid, int dispid, Delegate d)
         {
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_ComInterop);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ComInterop"));
         }
     }
 }

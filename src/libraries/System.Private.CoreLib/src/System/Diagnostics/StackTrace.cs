@@ -51,7 +51,7 @@ namespace System.Diagnostics
         {
             if (skipFrames < 0)
                 throw new ArgumentOutOfRangeException(nameof(skipFrames),
-                    SR.ArgumentOutOfRange_NeedNonNegNum);
+                    SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             InitializeForCurrentThread(skipFrames + METHODS_TO_SKIP, false);
         }
@@ -64,7 +64,7 @@ namespace System.Diagnostics
         {
             if (skipFrames < 0)
                 throw new ArgumentOutOfRangeException(nameof(skipFrames),
-                    SR.ArgumentOutOfRange_NeedNonNegNum);
+                    SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             InitializeForCurrentThread(skipFrames + METHODS_TO_SKIP, fNeedFileInfo);
         }
@@ -102,7 +102,7 @@ namespace System.Diagnostics
 
             if (skipFrames < 0)
                 throw new ArgumentOutOfRangeException(nameof(skipFrames),
-                    SR.ArgumentOutOfRange_NeedNonNegNum);
+                    SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             InitializeForException(e, skipFrames + METHODS_TO_SKIP, false);
         }
@@ -118,7 +118,7 @@ namespace System.Diagnostics
 
             if (skipFrames < 0)
                 throw new ArgumentOutOfRangeException(nameof(skipFrames),
-                    SR.ArgumentOutOfRange_NeedNonNegNum);
+                    SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             InitializeForException(e, skipFrames + METHODS_TO_SKIP, fNeedFileInfo);
         }
@@ -201,7 +201,7 @@ namespace System.Diagnostics
 
         internal void ToString(TraceFormat traceFormat, StringBuilder sb)
         {
-            // Passing a default string for "at" in case SR.UsingResourceKeys() is true
+            // Passing a default string for "at" in case SR.GetResourceString("UsingResourceKeys")() is true
             // as this is a special case and we don't want to have "Word_At" on stack traces.
             string word_At = SR.GetResourceString(nameof(SR.Word_At), defaultString: "at");
             // We also want to pass in a default for inFileLineNumber.
@@ -329,7 +329,7 @@ namespace System.Diagnostics
                     if (sf.IsLastFrameFromForeignExceptionStackTrace && !isAsync)
                     {
                         sb.AppendLine();
-                        // Passing default for Exception_EndStackTraceFromPreviousThrow in case SR.UsingResourceKeys is set.
+                        // Passing default for Exception_EndStackTraceFromPreviousThrow in case SR.GetResourceString("UsingResourceKeys") is set.
                         sb.Append(SR.GetResourceString(nameof(SR.Exception_EndStackTraceFromPreviousThrow),
                             defaultString: "--- End of stack trace from previous location ---"));
                     }

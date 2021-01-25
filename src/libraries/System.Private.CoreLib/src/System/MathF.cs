@@ -400,12 +400,12 @@ namespace System
         {
             if ((digits < 0) || (digits > maxRoundingDigits))
             {
-                throw new ArgumentOutOfRangeException(nameof(digits), SR.ArgumentOutOfRange_RoundingDigits_MathF);
+                throw new ArgumentOutOfRangeException(nameof(digits), SR.GetResourceString("ArgumentOutOfRange_RoundingDigits_MathF"));
             }
 
             if (mode < MidpointRounding.ToEven || mode > MidpointRounding.ToPositiveInfinity)
             {
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidEnumValue, mode, nameof(MidpointRounding)), nameof(mode));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidEnumValue"), mode, nameof(MidpointRounding)), nameof(mode));
             }
 
             if (Abs(x) < singleRoundLimit)
@@ -456,7 +456,7 @@ namespace System
                     }
                     default:
                     {
-                        throw new ArgumentException(SR.Format(SR.Argument_InvalidEnumValue, mode, nameof(MidpointRounding)), nameof(mode));
+                        throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidEnumValue"), mode, nameof(MidpointRounding)), nameof(mode));
                     }
                 }
 

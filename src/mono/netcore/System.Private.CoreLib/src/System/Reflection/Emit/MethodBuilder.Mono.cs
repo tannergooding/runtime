@@ -618,7 +618,7 @@ namespace System.Reflection.Emit
             if (names == null)
                 throw new ArgumentNullException(nameof(names));
             if (names.Length == 0)
-                throw new ArgumentException(SR.Arg_EmptyArray, nameof(names));
+                throw new ArgumentException(SR.GetResourceString("Arg_EmptyArray"), nameof(names));
             type.check_not_created();
             generic_params = new GenericTypeParameterBuilder[names.Length];
             for (int i = 0; i < names.Length; i++)
@@ -673,7 +673,7 @@ namespace System.Reflection.Emit
             get
             {
                 if (!type.is_created)
-                    throw new InvalidOperationException(SR.InvalidOperation_TypeNotCreated);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_TypeNotCreated"));
                 created ??= (RuntimeMethodInfo)GetMethodFromHandle(mhandle)!;
                 return created.ReturnParameter;
             }

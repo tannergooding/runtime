@@ -144,7 +144,7 @@ namespace System.Reflection
                 throw new ArgumentNullException(nameof(attributeType));
             if (!attributeType.IsSubclassOf(typeof(Attribute)) && !attributeType.IsInterface
                 && attributeType != typeof(Attribute) && attributeType != typeof(CustomAttribute) && attributeType != typeof(object))
-                throw new ArgumentException(SR.Argument_MustHaveAttributeBaseClass + " " + attributeType.FullName);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustHaveAttributeBaseClass") + " " + attributeType.FullName);
 
             // FIXME: GetCustomAttributesBase doesn't like being passed a null attributeType
             if (attributeType == typeof(CustomAttribute))
@@ -556,7 +556,7 @@ namespace System.Reflection
             if (attributeType == null)
                 throw new ArgumentNullException(nameof(attributeType));
             if (!attributeType.IsSubclassOf(typeof(Attribute)) && !attributeType.IsInterface && attributeType != typeof(Attribute))
-                throw new ArgumentException(SR.Argument_MustHaveAttributeBaseClass + " " + attributeType.FullName);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustHaveAttributeBaseClass") + " " + attributeType.FullName);
 
             AttributeUsageAttribute? usage = null;
             do
@@ -730,7 +730,7 @@ namespace System.Reflection
             // anyone from using IL ofcourse
             if (attribs.Length > 1)
             {
-                throw new FormatException(SR.Format(SR.Format_AttributeUsage, attributeType.GetType().FullName));
+                throw new FormatException(SR.Format(SR.GetResourceString("Format_AttributeUsage"), attributeType.GetType().FullName));
             }
 
             return ((AttributeUsageAttribute)attribs[0]);

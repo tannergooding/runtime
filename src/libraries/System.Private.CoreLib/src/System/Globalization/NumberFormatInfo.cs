@@ -84,7 +84,7 @@ namespace System.Globalization
 
             if (decSep.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_EmptyDecString, propertyName);
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyDecString"), propertyName);
             }
         }
 
@@ -100,19 +100,19 @@ namespace System.Globalization
         {
             if (nativeDig == null)
             {
-                throw new ArgumentNullException(propertyName, SR.ArgumentNull_Array);
+                throw new ArgumentNullException(propertyName, SR.GetResourceString("ArgumentNull_Array"));
             }
 
             if (nativeDig.Length != 10)
             {
-                throw new ArgumentException(SR.Argument_InvalidNativeDigitCount, propertyName);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidNativeDigitCount"), propertyName);
             }
 
             for (int i = 0; i < nativeDig.Length; i++)
             {
                 if (nativeDig[i] == null)
                 {
-                    throw new ArgumentNullException(propertyName, SR.ArgumentNull_ArrayValue);
+                    throw new ArgumentNullException(propertyName, SR.GetResourceString("ArgumentNull_ArrayValue"));
                 }
 
                 if (nativeDig[i].Length != 1)
@@ -120,12 +120,12 @@ namespace System.Globalization
                     if (nativeDig[i].Length != 2)
                     {
                         // Not 1 or 2 UTF-16 code points
-                        throw new ArgumentException(SR.Argument_InvalidNativeDigitValue, propertyName);
+                        throw new ArgumentException(SR.GetResourceString("Argument_InvalidNativeDigitValue"), propertyName);
                     }
                     else if (!char.IsSurrogatePair(nativeDig[i][0], nativeDig[i][1]))
                     {
                         // 2 UTF-6 code points, but not a surrogate pair
-                        throw new ArgumentException(SR.Argument_InvalidNativeDigitValue, propertyName);
+                        throw new ArgumentException(SR.GetResourceString("Argument_InvalidNativeDigitValue"), propertyName);
                     }
                 }
 
@@ -134,7 +134,7 @@ namespace System.Globalization
                 {
                     // Not the appropriate digit according to the Unicode data properties
                     // (Digit 0 must be a 0, etc.).
-                    throw new ArgumentException(SR.Argument_InvalidNativeDigitValue, propertyName);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidNativeDigitValue"), propertyName);
                 }
             }
         }
@@ -150,7 +150,7 @@ namespace System.Globalization
                     break;
 
                 default:
-                    throw new ArgumentException(SR.Argument_InvalidDigitSubstitution, propertyName);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidDigitSubstitution"), propertyName);
             }
         }
 
@@ -177,7 +177,7 @@ namespace System.Globalization
         {
             if (_isReadOnly)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ReadOnly);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ReadOnly"));
             }
         }
 
@@ -229,7 +229,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 0, 99));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, 99));
                 }
 
                 VerifyWritable();
@@ -266,11 +266,11 @@ namespace System.Globalization
                         return;
                     }
 
-                    throw new ArgumentException(SR.Argument_InvalidGroupSize, propName);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidGroupSize"), propName);
                 }
                 else if (groupSize[i] > 9)
                 {
-                    throw new ArgumentException(SR.Argument_InvalidGroupSize, propName);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidGroupSize"), propName);
                 }
             }
         }
@@ -401,7 +401,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 0, 15));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, 15));
                 }
 
                 VerifyWritable();
@@ -420,7 +420,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 0, 4));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, 4));
                 }
 
                 VerifyWritable();
@@ -439,7 +439,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 0, 3));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, 3));
                 }
 
                 VerifyWritable();
@@ -458,7 +458,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 0, 11));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, 11));
                 }
 
                 VerifyWritable();
@@ -507,7 +507,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 0, 99));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, 99));
                 }
 
                 VerifyWritable();
@@ -547,7 +547,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 0, 3));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, 3));
                 }
 
                 VerifyWritable();
@@ -596,7 +596,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 0, 99));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, 99));
                 }
 
                 VerifyWritable();
@@ -719,10 +719,10 @@ namespace System.Globalization
                 {
                     if ((value & InvalidNumberStyles) != 0)
                     {
-                        throw new ArgumentException(SR.Argument_InvalidNumberStyles, nameof(style));
+                        throw new ArgumentException(SR.GetResourceString("Argument_InvalidNumberStyles"), nameof(style));
                     }
 
-                    throw new ArgumentException(SR.Arg_InvalidHexStyle);
+                    throw new ArgumentException(SR.GetResourceString("Arg_InvalidHexStyle"));
                 }
             }
         }
@@ -738,10 +738,10 @@ namespace System.Globalization
                 {
                     if ((value & InvalidNumberStyles) != 0)
                     {
-                        throw new ArgumentException(SR.Argument_InvalidNumberStyles, nameof(style));
+                        throw new ArgumentException(SR.GetResourceString("Argument_InvalidNumberStyles"), nameof(style));
                     }
 
-                    throw new ArgumentException(SR.Arg_HexStyleNotSupported);
+                    throw new ArgumentException(SR.GetResourceString("Arg_HexStyleNotSupported"));
                 }
             }
         }

@@ -56,7 +56,7 @@ namespace Internal.Win32
             {
                 if (throwOnMissingValue)
                 {
-                    throw new ArgumentException(SR.Arg_RegSubKeyValueAbsent);
+                    throw new ArgumentException(SR.GetResourceString("Arg_RegSubKeyValueAbsent"));
                 }
                 else
                 {
@@ -103,7 +103,7 @@ namespace Internal.Win32
             {
                 // We need to throw SecurityException here for compatibility reasons,
                 // although UnauthorizedAccessException will make more sense.
-                throw new SecurityException(SR.Security_RegistryPermission);
+                throw new SecurityException(SR.GetResourceString("Security_RegistryPermission"));
             }
 
             return null;
@@ -298,7 +298,7 @@ namespace Internal.Win32
                             }
                             catch (OverflowException e)
                             {
-                                throw new IOException(SR.Arg_RegGetOverflowBug, e);
+                                throw new IOException(SR.GetResourceString("Arg_RegGetOverflowBug"), e);
                             }
                         }
                         char[] blob = new char[datasize / 2];
@@ -328,7 +328,7 @@ namespace Internal.Win32
                             }
                             catch (OverflowException e)
                             {
-                                throw new IOException(SR.Arg_RegGetOverflowBug, e);
+                                throw new IOException(SR.GetResourceString("Arg_RegGetOverflowBug"), e);
                             }
                         }
                         char[] blob = new char[datasize / 2];
@@ -360,7 +360,7 @@ namespace Internal.Win32
                             }
                             catch (OverflowException e)
                             {
-                                throw new IOException(SR.Arg_RegGetOverflowBug, e);
+                                throw new IOException(SR.GetResourceString("Arg_RegGetOverflowBug"), e);
                             }
                         }
                         char[] blob = new char[datasize / 2];
@@ -441,7 +441,7 @@ namespace Internal.Win32
                 throw new ArgumentNullException(nameof(value));
 
             if (name != null && name.Length > MaxValueLength)
-                throw new ArgumentException(SR.Arg_RegValStrLenBug, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Arg_RegValStrLenBug"), nameof(name));
 
             int ret = Interop.Advapi32.RegSetValueEx(_hkey,
                 name,
@@ -462,12 +462,12 @@ namespace Internal.Win32
             {
                 case Interop.Errors.ERROR_ACCESS_DENIED:
                     if (str != null)
-                        throw new UnauthorizedAccessException(SR.Format(SR.UnauthorizedAccess_RegistryKeyGeneric_Key, str));
+                        throw new UnauthorizedAccessException(SR.Format(SR.GetResourceString("UnauthorizedAccess_RegistryKeyGeneric_Key"), str));
                     else
                         throw new UnauthorizedAccessException();
 
                 case Interop.Errors.ERROR_FILE_NOT_FOUND:
-                    throw new IOException(SR.Arg_RegKeyNotFound, errorCode);
+                    throw new IOException(SR.GetResourceString("Arg_RegKeyNotFound"), errorCode);
 
                 default:
                     throw new IOException(Interop.Kernel32.GetMessage(errorCode), errorCode);

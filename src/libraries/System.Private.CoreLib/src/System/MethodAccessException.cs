@@ -17,7 +17,7 @@ namespace System
     public class MethodAccessException : MemberAccessException
     {
         public MethodAccessException()
-            : base(SR.Arg_MethodAccessException)
+            : base(SR.GetResourceString("Arg_MethodAccessException"))
         {
             HResult = HResults.COR_E_METHODACCESS;
         }

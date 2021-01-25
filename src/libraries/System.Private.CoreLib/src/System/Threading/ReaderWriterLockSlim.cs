@@ -305,7 +305,7 @@ namespace System.Threading
                 if (id == _writeLockOwnerId)
                 {
                     // Check for AW->AR
-                    throw new LockRecursionException(SR.LockRecursionException_ReadAfterWriteNotAllowed);
+                    throw new LockRecursionException(SR.GetResourceString("LockRecursionException_ReadAfterWriteNotAllowed"));
                 }
 
                 _spinLock.Enter(EnterSpinLockReason.EnterAnyRead);
@@ -319,7 +319,7 @@ namespace System.Threading
                 if (lrwc.readercount > 0)
                 {
                     _spinLock.Exit();
-                    throw new LockRecursionException(SR.LockRecursionException_RecursiveReadNotAllowed);
+                    throw new LockRecursionException(SR.GetResourceString("LockRecursionException_RecursiveReadNotAllowed"));
                 }
                 else if (id == _upgradeLockOwnerId)
                 {
@@ -454,7 +454,7 @@ namespace System.Threading
                 if (id == _writeLockOwnerId)
                 {
                     // Check for AW->AW
-                    throw new LockRecursionException(SR.LockRecursionException_RecursiveWriteNotAllowed);
+                    throw new LockRecursionException(SR.GetResourceString("LockRecursionException_RecursiveWriteNotAllowed"));
                 }
                 else if (id == _upgradeLockOwnerId)
                 {
@@ -474,7 +474,7 @@ namespace System.Threading
                 if (lrwc != null && lrwc.readercount > 0)
                 {
                     _spinLock.Exit();
-                    throw new LockRecursionException(SR.LockRecursionException_WriteAfterReadNotAllowed);
+                    throw new LockRecursionException(SR.GetResourceString("LockRecursionException_WriteAfterReadNotAllowed"));
                 }
             }
             else
@@ -511,7 +511,7 @@ namespace System.Threading
                     // Write locks may not be acquired if only read locks have been
                     // acquired.
                     _spinLock.Exit();
-                    throw new LockRecursionException(SR.LockRecursionException_WriteAfterReadNotAllowed);
+                    throw new LockRecursionException(SR.GetResourceString("LockRecursionException_WriteAfterReadNotAllowed"));
                 }
             }
 
@@ -660,12 +660,12 @@ namespace System.Threading
                 if (id == _upgradeLockOwnerId)
                 {
                     // Check for AU->AU
-                    throw new LockRecursionException(SR.LockRecursionException_RecursiveUpgradeNotAllowed);
+                    throw new LockRecursionException(SR.GetResourceString("LockRecursionException_RecursiveUpgradeNotAllowed"));
                 }
                 else if (id == _writeLockOwnerId)
                 {
                     // Check for AU->AW
-                    throw new LockRecursionException(SR.LockRecursionException_UpgradeAfterWriteNotAllowed);
+                    throw new LockRecursionException(SR.GetResourceString("LockRecursionException_UpgradeAfterWriteNotAllowed"));
                 }
 
                 _spinLock.Enter(EnterSpinLockReason.EnterAnyRead);
@@ -674,7 +674,7 @@ namespace System.Threading
                 if (lrwc != null && lrwc.readercount > 0)
                 {
                     _spinLock.Exit();
-                    throw new LockRecursionException(SR.LockRecursionException_UpgradeAfterReadNotAllowed);
+                    throw new LockRecursionException(SR.GetResourceString("LockRecursionException_UpgradeAfterReadNotAllowed"));
                 }
             }
             else
@@ -706,7 +706,7 @@ namespace System.Threading
                     // Upgrade locks may not be acquired if only read locks have been
                     // acquired.
                     _spinLock.Exit();
-                    throw new LockRecursionException(SR.LockRecursionException_UpgradeAfterReadNotAllowed);
+                    throw new LockRecursionException(SR.GetResourceString("LockRecursionException_UpgradeAfterReadNotAllowed"));
                 }
             }
 
@@ -778,7 +778,7 @@ namespace System.Threading
             {
                 // You have to be holding the read lock to make this call.
                 _spinLock.Exit();
-                throw new SynchronizationLockException(SR.SynchronizationLockException_MisMatchedRead);
+                throw new SynchronizationLockException(SR.GetResourceString("SynchronizationLockException_MisMatchedRead"));
             }
 
             if (_fIsReentrant)
@@ -814,7 +814,7 @@ namespace System.Threading
                 if (Environment.CurrentManagedThreadId != _writeLockOwnerId)
                 {
                     // You have to be holding the write lock to make this call.
-                    throw new SynchronizationLockException(SR.SynchronizationLockException_MisMatchedWrite);
+                    throw new SynchronizationLockException(SR.GetResourceString("SynchronizationLockException_MisMatchedWrite"));
                 }
                 _spinLock.Enter(EnterSpinLockReason.ExitAnyWrite);
             }
@@ -826,13 +826,13 @@ namespace System.Threading
                 if (lrwc == null)
                 {
                     _spinLock.Exit();
-                    throw new SynchronizationLockException(SR.SynchronizationLockException_MisMatchedWrite);
+                    throw new SynchronizationLockException(SR.GetResourceString("SynchronizationLockException_MisMatchedWrite"));
                 }
 
                 if (lrwc.writercount < 1)
                 {
                     _spinLock.Exit();
-                    throw new SynchronizationLockException(SR.SynchronizationLockException_MisMatchedWrite);
+                    throw new SynchronizationLockException(SR.GetResourceString("SynchronizationLockException_MisMatchedWrite"));
                 }
 
                 lrwc.writercount--;
@@ -861,7 +861,7 @@ namespace System.Threading
                 if (Environment.CurrentManagedThreadId != _upgradeLockOwnerId)
                 {
                     // You have to be holding the upgrade lock to make this call.
-                    throw new SynchronizationLockException(SR.SynchronizationLockException_MisMatchedUpgrade);
+                    throw new SynchronizationLockException(SR.GetResourceString("SynchronizationLockException_MisMatchedUpgrade"));
                 }
                 _spinLock.Enter(EnterSpinLockReason.ExitAnyRead);
             }
@@ -873,13 +873,13 @@ namespace System.Threading
                 if (lrwc == null)
                 {
                     _spinLock.Exit();
-                    throw new SynchronizationLockException(SR.SynchronizationLockException_MisMatchedUpgrade);
+                    throw new SynchronizationLockException(SR.GetResourceString("SynchronizationLockException_MisMatchedUpgrade"));
                 }
 
                 if (lrwc.upgradecount < 1)
                 {
                     _spinLock.Exit();
-                    throw new SynchronizationLockException(SR.SynchronizationLockException_MisMatchedUpgrade);
+                    throw new SynchronizationLockException(SR.GetResourceString("SynchronizationLockException_MisMatchedUpgrade"));
                 }
 
                 lrwc.upgradecount--;
@@ -1256,10 +1256,10 @@ namespace System.Threading
             if (disposing && !_fDisposed)
             {
                 if (WaitingReadCount > 0 || WaitingUpgradeCount > 0 || WaitingWriteCount > 0)
-                    throw new SynchronizationLockException(SR.SynchronizationLockException_IncorrectDispose);
+                    throw new SynchronizationLockException(SR.GetResourceString("SynchronizationLockException_IncorrectDispose"));
 
                 if (IsReadLockHeld || IsUpgradeableReadLockHeld || IsWriteLockHeld)
-                    throw new SynchronizationLockException(SR.SynchronizationLockException_IncorrectDispose);
+                    throw new SynchronizationLockException(SR.GetResourceString("SynchronizationLockException_IncorrectDispose"));
 
                 if (_writeEvent != null)
                 {

@@ -20,10 +20,10 @@ namespace System.IO
                 throw new ArgumentNullException(nameof(path));
 
             if (path.Length == 0)
-                throw new ArgumentException(SR.Arg_PathEmpty, nameof(path));
+                throw new ArgumentException(SR.GetResourceString("Arg_PathEmpty"), nameof(path));
 
             if (path.Contains('\0'))
-                throw new ArgumentException(SR.Argument_InvalidPathChars, nameof(path));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidPathChars"), nameof(path));
 
             // Expand with current directory if necessary
             if (!IsPathRooted(path))
@@ -52,10 +52,10 @@ namespace System.IO
                 throw new ArgumentNullException(nameof(basePath));
 
             if (!IsPathFullyQualified(basePath))
-                throw new ArgumentException(SR.Arg_BasePathNotFullyQualified, nameof(basePath));
+                throw new ArgumentException(SR.GetResourceString("Arg_BasePathNotFullyQualified"), nameof(basePath));
 
             if (basePath.Contains('\0') || path.Contains('\0'))
-                throw new ArgumentException(SR.Argument_InvalidPathChars);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidPathChars"));
 
             if (IsPathFullyQualified(path))
                 return GetFullPath(path);

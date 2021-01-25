@@ -79,11 +79,11 @@ namespace System.Threading
             long timeoutMilliseconds = (long)timeout.TotalMilliseconds;
             if (timeoutMilliseconds < -1)
             {
-                throw new ArgumentOutOfRangeException(nameof(timeout), SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(timeout), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
             }
             if (timeoutMilliseconds > int.MaxValue)
             {
-                throw new ArgumentOutOfRangeException(nameof(timeout), SR.ArgumentOutOfRange_LessEqualToIntegerMaxVal);
+                throw new ArgumentOutOfRangeException(nameof(timeout), SR.GetResourceString("ArgumentOutOfRange_LessEqualToIntegerMaxVal"));
             }
             return (int)timeoutMilliseconds;
         }
@@ -105,7 +105,7 @@ namespace System.Threading
         {
             if (millisecondsTimeout < -1)
             {
-                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
             }
 
             return WaitOneNoCheck(millisecondsTimeout);
@@ -117,7 +117,7 @@ namespace System.Threading
 
             // The field value is modifiable via the public <see cref="WaitHandle.SafeWaitHandle"/> property, save it locally
             // to ensure that one instance is used in all places in this method
-            SafeWaitHandle waitHandle = _waitHandle ?? throw new ObjectDisposedException(null, SR.ObjectDisposed_Generic);
+            SafeWaitHandle waitHandle = _waitHandle ?? throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_Generic"));
 
             bool success = false;
             try
@@ -196,12 +196,12 @@ namespace System.Threading
                     WaitHandle waitHandle = waitHandles[i];
                     if (waitHandle == null)
                     {
-                        throw new ArgumentNullException("waitHandles[" + i + ']', SR.ArgumentNull_ArrayElement);
+                        throw new ArgumentNullException("waitHandles[" + i + ']', SR.GetResourceString("ArgumentNull_ArrayElement"));
                     }
 
                     SafeWaitHandle safeWaitHandle = waitHandle._waitHandle ??
                         // Throw ObjectDisposedException for backward compatibility even though it is not representative of the issue
-                        throw new ObjectDisposedException(null, SR.ObjectDisposed_Generic);
+                        throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_Generic"));
 
                     lastSafeWaitHandle = safeWaitHandle;
                     lastSuccess = false;
@@ -242,7 +242,7 @@ namespace System.Threading
         {
             if (waitHandles == null)
             {
-                throw new ArgumentNullException(nameof(waitHandles), SR.ArgumentNull_Waithandles);
+                throw new ArgumentNullException(nameof(waitHandles), SR.GetResourceString("ArgumentNull_Waithandles"));
             }
 
             return WaitMultiple(new ReadOnlySpan<WaitHandle>(waitHandles), waitAll, millisecondsTimeout);
@@ -252,15 +252,15 @@ namespace System.Threading
         {
             if (waitHandles.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_EmptyWaithandleArray, nameof(waitHandles));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyWaithandleArray"), nameof(waitHandles));
             }
             if (waitHandles.Length > MaxWaitHandles)
             {
-                throw new NotSupportedException(SR.NotSupported_MaxWaitHandles);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_MaxWaitHandles"));
             }
             if (millisecondsTimeout < -1)
             {
-                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
             }
 
             SynchronizationContext? context = SynchronizationContext.Current;
@@ -365,7 +365,7 @@ namespace System.Threading
             }
             if (millisecondsTimeout < -1)
             {
-                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
             }
 
             // The field value is modifiable via the public <see cref="WaitHandle.SafeWaitHandle"/> property, save it locally
@@ -375,7 +375,7 @@ namespace System.Threading
             if (safeWaitHandleToSignal == null || safeWaitHandleToWaitOn == null)
             {
                 // Throw ObjectDisposedException for backward compatibility even though it is not be representative of the issue
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_Generic);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_Generic"));
             }
 
             bool successSignal = false, successWait = false;

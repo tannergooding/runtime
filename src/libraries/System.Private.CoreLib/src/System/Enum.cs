@@ -57,7 +57,7 @@ namespace System
                 CorElementType.ELEMENT_TYPE_R8 => Unsafe.As<byte, double>(ref data).ToString(),
                 CorElementType.ELEMENT_TYPE_I => Unsafe.As<byte, IntPtr>(ref data).ToString(),
                 CorElementType.ELEMENT_TYPE_U => Unsafe.As<byte, UIntPtr>(ref data).ToString(),
-                _ => throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType),
+                _ => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType")),
             };
         }
 
@@ -92,7 +92,7 @@ namespace System
                     length = 8;
                     break;
                 default:
-                    throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType"));
             }
 
             return HexConverter.ToString(bytes.Slice(0, length), HexConverter.Casing.Upper);
@@ -112,7 +112,7 @@ namespace System
                 TypeCode.Int32 => ((uint)(int)value).ToString("X8", null),
                 TypeCode.UInt64 => ((ulong)value).ToString("X16", null),
                 TypeCode.Int64 => ((ulong)(long)value).ToString("X16", null),
-                _ => throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType),
+                _ => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType")),
             };
         }
 
@@ -264,7 +264,7 @@ namespace System
                 TypeCode.Int32 => (ulong)(int)value,
                 TypeCode.UInt64 => (ulong)value,
                 TypeCode.Int64 => (ulong)(long)value,
-                _ => throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType),
+                _ => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType")),
             };
             return result;
         }
@@ -282,7 +282,7 @@ namespace System
                 TypeCode.Int32 => (ulong)Unsafe.As<TEnum, int>(ref value),
                 TypeCode.UInt64 => Unsafe.As<TEnum, ulong>(ref value),
                 TypeCode.Int64 => (ulong)Unsafe.As<TEnum, long>(ref value),
-                _ => throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType),
+                _ => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType")),
             };
         #endregion
 
@@ -340,7 +340,7 @@ namespace System
             if (flag is null)
                 throw new ArgumentNullException(nameof(flag));
             if (!GetType().IsEquivalentTo(flag.GetType()))
-                throw new ArgumentException(SR.Format(SR.Argument_EnumTypeDoesNotMatch, flag.GetType(), GetType()));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_EnumTypeDoesNotMatch"), flag.GetType(), GetType()));
 
             return InternalHasFlag(flag);
         }
@@ -407,7 +407,7 @@ namespace System
                 {
                     throw value == null ?
                         new ArgumentNullException(nameof(value)) :
-                        new ArgumentException(SR.Arg_MustContainEnumInfo, nameof(value));
+                        new ArgumentException(SR.GetResourceString("Arg_MustContainEnumInfo"), nameof(value));
                 }
                 result = null;
                 return false;
@@ -476,7 +476,7 @@ namespace System
             // and thus always throw rather than returning false.
             if (!typeof(TEnum).IsEnum)
             {
-                throw new ArgumentException(SR.Arg_MustBeEnum, nameof(TEnum));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeEnum"), nameof(TEnum));
             }
 
             ReadOnlySpan<char> valueSpan = value.AsSpan().TrimStart();
@@ -486,7 +486,7 @@ namespace System
                 {
                     throw value == null ?
                         new ArgumentNullException(nameof(value)) :
-                        new ArgumentException(SR.Arg_MustContainEnumInfo, nameof(value));
+                        new ArgumentException(SR.GetResourceString("Arg_MustContainEnumInfo"), nameof(value));
                 }
                 result = default;
                 return false;
@@ -819,7 +819,7 @@ namespace System
 
             if (throwOnFailure)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_EnumValueNotFound, originalValueString));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumValueNotFound"), originalValueString));
             }
 
             result = 0;
@@ -849,7 +849,7 @@ namespace System
                 TypeCode.UInt64 => ToObject(enumType, (ulong)value),
                 TypeCode.Char => ToObject(enumType, (char)value),
                 TypeCode.Boolean => ToObject(enumType, (bool)value),
-                _ => throw new ArgumentException(SR.Arg_MustBeEnumBaseTypeOrEnum, nameof(value)),
+                _ => throw new ArgumentException(SR.GetResourceString("Arg_MustBeEnumBaseTypeOrEnum"), nameof(value)),
             };
         }
 
@@ -868,12 +868,12 @@ namespace System
             if (valueType.IsEnum)
             {
                 if (!valueType.IsEquivalentTo(enumType))
-                    throw new ArgumentException(SR.Format(SR.Arg_EnumAndObjectMustBeSameType, valueType, enumType));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumAndObjectMustBeSameType"), valueType, enumType));
 
                 if (format.Length != 1)
                 {
                     // all acceptable format string are of length 1
-                    throw new FormatException(SR.Format_InvalidEnumFormatSpecification);
+                    throw new FormatException(SR.GetResourceString("Format_InvalidEnumFormatSpecification"));
                 }
                 return ((Enum)value).ToString(format);
             }
@@ -882,7 +882,7 @@ namespace System
             Type underlyingType = GetUnderlyingType(enumType);
             if (valueType != underlyingType)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_EnumFormatUnderlyingTypeAndObjectMustBeSameType, valueType, underlyingType));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumFormatUnderlyingTypeAndObjectMustBeSameType"), valueType, underlyingType));
             }
 
             if (format.Length == 1)
@@ -907,7 +907,7 @@ namespace System
                 }
             }
 
-            throw new FormatException(SR.Format_InvalidEnumFormatSpecification);
+            throw new FormatException(SR.GetResourceString("Format_InvalidEnumFormatSpecification"));
         }
         #endregion
 
@@ -931,7 +931,7 @@ namespace System
                 CorElementType.ELEMENT_TYPE_R8 => Unsafe.As<byte, double>(ref data),
                 CorElementType.ELEMENT_TYPE_I => Unsafe.As<byte, IntPtr>(ref data),
                 CorElementType.ELEMENT_TYPE_U => Unsafe.As<byte, UIntPtr>(ref data),
-                _ => throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType),
+                _ => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType")),
             };
         }
 
@@ -966,7 +966,7 @@ namespace System
                 case CorElementType.ELEMENT_TYPE_U:
                     return (ulong)Unsafe.As<byte, UIntPtr>(ref data);
                 default:
-                    throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType"));
             }
         }
 
@@ -996,7 +996,7 @@ namespace System
                 CorElementType.ELEMENT_TYPE_R8 => Unsafe.As<byte, double>(ref data).GetHashCode(),
                 CorElementType.ELEMENT_TYPE_I => Unsafe.As<byte, IntPtr>(ref data).GetHashCode(),
                 CorElementType.ELEMENT_TYPE_U => Unsafe.As<byte, UIntPtr>(ref data).GetHashCode(),
-                _ => throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType),
+                _ => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType")),
             };
         }
 
@@ -1021,7 +1021,7 @@ namespace System
                 return 1; // all values are greater than null
 
             if (GetType() != target.GetType())
-                throw new ArgumentException(SR.Format(SR.Arg_EnumAndObjectMustBeSameType, target.GetType(), GetType()));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumAndObjectMustBeSameType"), target.GetType(), GetType()));
 
             ref byte pThisValue = ref this.GetRawData();
             ref byte pTargetValue = ref target.GetRawData();
@@ -1063,7 +1063,7 @@ namespace System
                 case CorElementType.ELEMENT_TYPE_R8:
                     return Unsafe.As<byte, double>(ref pThisValue).CompareTo(Unsafe.As<byte, double>(ref pTargetValue));
                 default:
-                    throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType"));
             }
         }
         #endregion
@@ -1106,7 +1106,7 @@ namespace System
                 }
             }
 
-            throw new FormatException(SR.Format_InvalidEnumFormatSpecification);
+            throw new FormatException(SR.GetResourceString("Format_InvalidEnumFormatSpecification"));
         }
 
         [Obsolete("The provider argument is not used. Please use ToString().")]
@@ -1132,7 +1132,7 @@ namespace System
                 CorElementType.ELEMENT_TYPE_U4 => TypeCode.UInt32,
                 CorElementType.ELEMENT_TYPE_I8 => TypeCode.Int64,
                 CorElementType.ELEMENT_TYPE_U8 => TypeCode.UInt64,
-                _ => throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType),
+                _ => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType")),
             };
         }
 
@@ -1203,7 +1203,7 @@ namespace System
 
         DateTime IConvertible.ToDateTime(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "Enum", "DateTime"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "Enum", "DateTime"));
         }
 
         object IConvertible.ToType(Type type, IFormatProvider? provider)
@@ -1254,9 +1254,9 @@ namespace System
             if (enumType == null)
                 throw new ArgumentNullException(nameof(enumType));
             if (!enumType.IsEnum)
-                throw new ArgumentException(SR.Arg_MustBeEnum, nameof(enumType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeEnum"), nameof(enumType));
             if (!(enumType is RuntimeType rtType))
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(enumType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(enumType));
             return rtType;
         }
     }

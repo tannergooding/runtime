@@ -267,7 +267,7 @@ namespace System.Threading
 
                     case WaitSignalState.NotWaiting_SignaledToAbortWaitDueToMaximumMutexReacquireCount:
                         Debug.Assert(_waitedObjectIndexThatSatisfiedWait < 0);
-                        throw new OverflowException(SR.Overflow_MutexReacquireCount);
+                        throw new OverflowException(SR.GetResourceString("Overflow_MutexReacquireCount"));
 
                     default:
                         Debug.Assert(_waitSignalState == WaitSignalState.NotWaiting_SignaledToInterruptWait);

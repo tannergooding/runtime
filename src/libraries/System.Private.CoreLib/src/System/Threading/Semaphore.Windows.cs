@@ -25,7 +25,7 @@ namespace System.Threading
 
 #if TARGET_UNIX || TARGET_BROWSER
             if (name != null)
-                throw new PlatformNotSupportedException(SR.PlatformNotSupported_NamedSynchronizationPrimitives);
+                throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_NamedSynchronizationPrimitives"));
 #endif
             SafeWaitHandle myHandle = Interop.Kernel32.CreateSemaphoreEx(IntPtr.Zero, initialCount, maximumCount, name, 0, AccessRights);
 
@@ -34,7 +34,7 @@ namespace System.Threading
             {
                 if (!string.IsNullOrEmpty(name) && errorCode == Interop.Errors.ERROR_INVALID_HANDLE)
                     throw new WaitHandleCannotBeOpenedException(
-                        SR.Format(SR.Threading_WaitHandleCannotBeOpenedException_InvalidHandle, name));
+                        SR.Format(SR.GetResourceString("Threading_WaitHandleCannotBeOpenedException_InvalidHandle"), name));
 
                 throw Win32Marshal.GetExceptionForLastWin32Error();
             }
@@ -48,7 +48,7 @@ namespace System.Threading
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
             if (name.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
 
             // Pass false to OpenSemaphore to prevent inheritedHandles
             SafeWaitHandle myHandle = Interop.Kernel32.OpenSemaphore(AccessRights, false, name);
@@ -71,7 +71,7 @@ namespace System.Threading
             result = new Semaphore(myHandle);
             return OpenExistingResult.Success;
 #else
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_NamedSynchronizationPrimitives);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_NamedSynchronizationPrimitives"));
 #endif
         }
 

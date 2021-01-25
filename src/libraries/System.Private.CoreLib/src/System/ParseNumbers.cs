@@ -43,19 +43,19 @@ namespace System
             int r = (-1 == radix) ? 10 : radix;
 
             if (r != 2 && r != 10 && r != 8 && r != 16)
-                throw new ArgumentException(SR.Arg_InvalidBase, nameof(radix));
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"), nameof(radix));
 
             int length = s.Length;
 
             if (i < 0 || i >= length)
-                throw new ArgumentOutOfRangeException(SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             // Get rid of the whitespace and then check that we've still got some digits to parse.
             if (((flags & IsTight) == 0) && ((flags & NoSpace) == 0))
             {
                 EatWhiteSpace(s, ref i);
                 if (i == length)
-                    throw new FormatException(SR.Format_EmptyInputString);
+                    throw new FormatException(SR.GetResourceString("Format_EmptyInputString"));
             }
 
             // Check for a sign
@@ -63,10 +63,10 @@ namespace System
             if (s[i] == '-')
             {
                 if (r != 10)
-                    throw new ArgumentException(SR.Arg_CannotHaveNegativeValue);
+                    throw new ArgumentException(SR.GetResourceString("Arg_CannotHaveNegativeValue"));
 
                 if ((flags & TreatAsUnsigned) != 0)
-                    throw new OverflowException(SR.Overflow_NegativeUnsigned);
+                    throw new OverflowException(SR.GetResourceString("Overflow_NegativeUnsigned"));
 
                 sign = -1;
                 i++;
@@ -90,13 +90,13 @@ namespace System
 
             // Check if they passed us a string with no parsable digits.
             if (i == grabNumbersStart)
-                throw new FormatException(SR.Format_NoParsibleDigits);
+                throw new FormatException(SR.GetResourceString("Format_NoParsibleDigits"));
 
             if ((flags & IsTight) != 0)
             {
                 // If we've got effluvia left at the end of the string, complain.
                 if (i < length)
-                    throw new FormatException(SR.Format_ExtraJunkAtEnd);
+                    throw new FormatException(SR.GetResourceString("Format_ExtraJunkAtEnd"));
             }
 
             // Put the current index back into the correct place.
@@ -131,19 +131,19 @@ namespace System
             int r = (-1 == radix) ? 10 : radix;
 
             if (r != 2 && r != 10 && r != 8 && r != 16)
-                throw new ArgumentException(SR.Arg_InvalidBase, nameof(radix));
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"), nameof(radix));
 
             int length = s.Length;
 
             if (i < 0 || i >= length)
-                throw new ArgumentOutOfRangeException(SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             // Get rid of the whitespace and then check that we've still got some digits to parse.
             if (((flags & IsTight) == 0) && ((flags & NoSpace) == 0))
             {
                 EatWhiteSpace(s, ref i);
                 if (i == length)
-                    throw new FormatException(SR.Format_EmptyInputString);
+                    throw new FormatException(SR.GetResourceString("Format_EmptyInputString"));
             }
 
             // Check for a sign
@@ -151,10 +151,10 @@ namespace System
             if (s[i] == '-')
             {
                 if (r != 10)
-                    throw new ArgumentException(SR.Arg_CannotHaveNegativeValue);
+                    throw new ArgumentException(SR.GetResourceString("Arg_CannotHaveNegativeValue"));
 
                 if ((flags & TreatAsUnsigned) != 0)
-                    throw new OverflowException(SR.Overflow_NegativeUnsigned);
+                    throw new OverflowException(SR.GetResourceString("Overflow_NegativeUnsigned"));
 
                 sign = -1;
                 i++;
@@ -179,13 +179,13 @@ namespace System
 
             // Check if they passed us a string with no parsable digits.
             if (i == grabNumbersStart)
-                throw new FormatException(SR.Format_NoParsibleDigits);
+                throw new FormatException(SR.GetResourceString("Format_NoParsibleDigits"));
 
             if ((flags & IsTight) != 0)
             {
                 // If we've got effluvia left at the end of the string, complain.
                 if (i < length)
-                    throw new FormatException(SR.Format_ExtraJunkAtEnd);
+                    throw new FormatException(SR.GetResourceString("Format_ExtraJunkAtEnd"));
             }
 
             // Put the current index back into the correct place.
@@ -220,7 +220,7 @@ namespace System
             Span<char> buffer = stackalloc char[66]; // Longest possible string length for an integer in binary notation with prefix
 
             if (radix < MinRadix || radix > MaxRadix)
-                throw new ArgumentException(SR.Arg_InvalidBase, nameof(radix));
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"), nameof(radix));
 
             // If the number is negative, make it positive and remember the sign.
             // If the number is MIN_VALUE, this will still be negative, so we'll have to
@@ -360,7 +360,7 @@ namespace System
             Span<char> buffer = stackalloc char[67]; // Longest possible string length for an integer in binary notation with prefix
 
             if (radix < MinRadix || radix > MaxRadix)
-                throw new ArgumentException(SR.Arg_InvalidBase, nameof(radix));
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"), nameof(radix));
 
             // If the number is negative, make it positive and remember the sign.
             ulong ul;

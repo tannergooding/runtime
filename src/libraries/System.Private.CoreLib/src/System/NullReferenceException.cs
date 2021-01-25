@@ -19,7 +19,7 @@ namespace System
     public class NullReferenceException : SystemException
     {
         public NullReferenceException()
-            : base(SR.Arg_NullReferenceException)
+            : base(SR.GetResourceString("Arg_NullReferenceException"))
         {
             HResult = HResults.E_POINTER;
         }

@@ -10,7 +10,7 @@ namespace System
     public sealed class InsufficientExecutionStackException : SystemException
     {
         public InsufficientExecutionStackException()
-            : base(SR.Arg_InsufficientExecutionStackException)
+            : base(SR.GetResourceString("Arg_InsufficientExecutionStackException"))
         {
             HResult = HResults.COR_E_INSUFFICIENTEXECUTIONSTACK;
         }

@@ -282,7 +282,7 @@ namespace System.Text
                 return value;
             }
 
-            throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex);
+            throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"));
         }
 
         // Fallback the current character using the remaining buffer and encoder if necessary
@@ -354,6 +354,6 @@ namespace System.Text
         [DoesNotReturn]
         internal static void ThrowLastCharRecursive(int charRecursive) =>
             // Throw it, using our complete character
-            throw new ArgumentException(SR.Format(SR.Argument_RecursiveFallback, charRecursive), "chars");
+            throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_RecursiveFallback"), charRecursive), "chars");
     }
 }

@@ -195,14 +195,14 @@ namespace System.Globalization
         {
             if (year <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(year), year, SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(year), year, SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
             if (year > _helper.MaxYear)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(year),
                     year,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 1, _helper.MaxYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, _helper.MaxYear));
             }
 
             return year;
@@ -283,7 +283,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 99, _helper.MaxYear));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 99, _helper.MaxYear));
                 }
 
                 _twoDigitYearMax = value;

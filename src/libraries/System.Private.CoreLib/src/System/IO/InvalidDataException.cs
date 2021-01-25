@@ -10,7 +10,7 @@ namespace System.IO
     public sealed class InvalidDataException : SystemException
     {
         public InvalidDataException()
-            : base(SR.GenericInvalidData)
+            : base(SR.GetResourceString("GenericInvalidData"))
         {
         }
 

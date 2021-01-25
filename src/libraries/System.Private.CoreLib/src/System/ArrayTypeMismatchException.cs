@@ -24,7 +24,7 @@ namespace System
         // the empty string, its HRESULT set to COR_E_ARRAYTYPEMISMATCH,
         // and its ExceptionInfo reference set to null.
         public ArrayTypeMismatchException()
-            : base(SR.Arg_ArrayTypeMismatchException)
+            : base(SR.GetResourceString("Arg_ArrayTypeMismatchException"))
         {
             HResult = HResults.COR_E_ARRAYTYPEMISMATCH;
         }

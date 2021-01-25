@@ -89,7 +89,7 @@ namespace System.Runtime.InteropServices
             if (assembly == null)
                 throw new ArgumentNullException(nameof(assembly));
             if (!assembly.IsRuntimeImplemented())
-                throw new ArgumentException(SR.Argument_MustBeRuntimeAssembly);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeAssembly"));
 
             return LoadLibraryByName(libraryName,
                               assembly,
@@ -125,7 +125,7 @@ namespace System.Runtime.InteropServices
             if (assembly == null)
                 throw new ArgumentNullException(nameof(assembly));
             if (!assembly.IsRuntimeImplemented())
-                throw new ArgumentException(SR.Argument_MustBeRuntimeAssembly);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeAssembly"));
 
             handle = LoadLibraryByName(libraryName,
                                 assembly,
@@ -212,7 +212,7 @@ namespace System.Runtime.InteropServices
             if (resolver == null)
                 throw new ArgumentNullException(nameof(resolver));
             if (!assembly.IsRuntimeImplemented())
-                throw new ArgumentException(SR.Argument_MustBeRuntimeAssembly);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeAssembly"));
 
             if (s_nativeDllResolveMap == null)
             {
@@ -227,7 +227,7 @@ namespace System.Runtime.InteropServices
             catch (ArgumentException)
             {
                 // ConditionalWeakTable throws ArgumentException if the Key already exists
-                throw new InvalidOperationException(SR.InvalidOperation_CannotRegisterSecondResolver);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CannotRegisterSecondResolver"));
             }
         }
 

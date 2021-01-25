@@ -92,14 +92,14 @@ namespace System
             {
                 if (offset != TimeZoneInfo.GetLocalUtcOffset(dateTime, TimeZoneInfoOptions.NoThrowOnInvalidTime))
                 {
-                    throw new ArgumentException(SR.Argument_OffsetLocalMismatch, nameof(offset));
+                    throw new ArgumentException(SR.GetResourceString("Argument_OffsetLocalMismatch"), nameof(offset));
                 }
             }
             else if (dateTime.Kind == DateTimeKind.Utc)
             {
                 if (offset != TimeSpan.Zero)
                 {
-                    throw new ArgumentException(SR.Argument_OffsetUtcMismatch, nameof(offset));
+                    throw new ArgumentException(SR.GetResourceString("Argument_OffsetUtcMismatch"), nameof(offset));
                 }
             }
             _offsetMinutes = ValidateOffset(offset);
@@ -124,7 +124,7 @@ namespace System
             if (originalSecond == 60 &&
                !DateTime.IsValidTimeWithLeapSeconds(_dateTime.Year, _dateTime.Month, _dateTime.Day, _dateTime.Hour, _dateTime.Minute, 60, DateTimeKind.Utc))
             {
-                throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadHourMinuteSecond);
+                throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadHourMinuteSecond"));
             }
         }
 
@@ -146,7 +146,7 @@ namespace System
             if (originalSecond == 60 &&
                !DateTime.IsValidTimeWithLeapSeconds(_dateTime.Year, _dateTime.Month, _dateTime.Day, _dateTime.Hour, _dateTime.Minute, 60, DateTimeKind.Utc))
             {
-                throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadHourMinuteSecond);
+                throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadHourMinuteSecond"));
             }
         }
 
@@ -168,7 +168,7 @@ namespace System
             if (originalSecond == 60 &&
                !DateTime.IsValidTimeWithLeapSeconds(_dateTime.Year, _dateTime.Month, _dateTime.Day, _dateTime.Hour, _dateTime.Minute, 60, DateTimeKind.Utc))
             {
-                throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadHourMinuteSecond);
+                throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadHourMinuteSecond"));
             }
         }
 
@@ -363,7 +363,7 @@ namespace System
             if (obj == null) return 1;
             if (!(obj is DateTimeOffset))
             {
-                throw new ArgumentException(SR.Arg_MustBeDateTimeOffset);
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeDateTimeOffset"));
             }
 
             DateTime objUtc = ((DateTimeOffset)obj).UtcDateTime;
@@ -421,7 +421,7 @@ namespace System
             if (seconds < UnixMinSeconds || seconds > UnixMaxSeconds)
             {
                 throw new ArgumentOutOfRangeException(nameof(seconds),
-                    SR.Format(SR.ArgumentOutOfRange_Range, UnixMinSeconds, UnixMaxSeconds));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), UnixMinSeconds, UnixMaxSeconds));
             }
 
             long ticks = seconds * TimeSpan.TicksPerSecond + DateTime.UnixEpochTicks;
@@ -436,7 +436,7 @@ namespace System
             if (milliseconds < MinMilliseconds || milliseconds > MaxMilliseconds)
             {
                 throw new ArgumentOutOfRangeException(nameof(milliseconds),
-                    SR.Format(SR.ArgumentOutOfRange_Range, MinMilliseconds, MaxMilliseconds));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), MinMilliseconds, MaxMilliseconds));
             }
 
             long ticks = milliseconds * TimeSpan.TicksPerMillisecond + DateTime.UnixEpochTicks;
@@ -454,7 +454,7 @@ namespace System
             }
             catch (ArgumentException e)
             {
-                throw new SerializationException(SR.Serialization_InvalidData, e);
+                throw new SerializationException(SR.GetResourceString("Serialization_InvalidData"), e);
             }
         }
 
@@ -635,7 +635,7 @@ namespace System
             if (localTicks < DateTime.MinTicks || localTicks > DateTime.MaxTicks)
             {
                 if (throwOnOverflow)
-                    throw new ArgumentException(SR.Arg_ArgumentOutOfRangeException);
+                    throw new ArgumentException(SR.GetResourceString("Arg_ArgumentOutOfRangeException"));
 
                 localTicks = localTicks < DateTime.MinTicks ? DateTime.MinTicks : DateTime.MaxTicks;
             }
@@ -769,11 +769,11 @@ namespace System
             long ticks = offset.Ticks;
             if (ticks % TimeSpan.TicksPerMinute != 0)
             {
-                throw new ArgumentException(SR.Argument_OffsetPrecision, nameof(offset));
+                throw new ArgumentException(SR.GetResourceString("Argument_OffsetPrecision"), nameof(offset));
             }
             if (ticks < MinOffset || ticks > MaxOffset)
             {
-                throw new ArgumentOutOfRangeException(nameof(offset), SR.Argument_OffsetOutOfRange);
+                throw new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("Argument_OffsetOutOfRange"));
             }
             return (short)(offset.Ticks / TimeSpan.TicksPerMinute);
         }
@@ -790,7 +790,7 @@ namespace System
             long utcTicks = dateTime.Ticks - offset.Ticks;
             if (utcTicks < DateTime.MinTicks || utcTicks > DateTime.MaxTicks)
             {
-                throw new ArgumentOutOfRangeException(nameof(offset), SR.Argument_UTCOutOfRange);
+                throw new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("Argument_UTCOutOfRange"));
             }
             // make sure the Kind is set to Unspecified
             //
@@ -801,15 +801,15 @@ namespace System
         {
             if ((style & DateTimeFormatInfo.InvalidDateTimeStyles) != 0)
             {
-                throw new ArgumentException(SR.Argument_InvalidDateTimeStyles, parameterName);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidDateTimeStyles"), parameterName);
             }
             if (((style & (DateTimeStyles.AssumeLocal)) != 0) && ((style & (DateTimeStyles.AssumeUniversal)) != 0))
             {
-                throw new ArgumentException(SR.Argument_ConflictingDateTimeStyles, parameterName);
+                throw new ArgumentException(SR.GetResourceString("Argument_ConflictingDateTimeStyles"), parameterName);
             }
             if ((style & DateTimeStyles.NoCurrentDateDefault) != 0)
             {
-                throw new ArgumentException(SR.Argument_DateTimeOffsetInvalidDateTimeStyles, parameterName);
+                throw new ArgumentException(SR.GetResourceString("Argument_DateTimeOffsetInvalidDateTimeStyles"), parameterName);
             }
 
             // RoundtripKind does not make sense for DateTimeOffset; ignore this flag for backward compatibility with DateTime

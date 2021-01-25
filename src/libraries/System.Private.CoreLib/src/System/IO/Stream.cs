@@ -38,14 +38,14 @@ namespace System.IO
 
         public virtual int ReadTimeout
         {
-            get => throw new InvalidOperationException(SR.InvalidOperation_TimeoutsNotSupported);
-            set => throw new InvalidOperationException(SR.InvalidOperation_TimeoutsNotSupported);
+            get => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_TimeoutsNotSupported"));
+            set => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_TimeoutsNotSupported"));
         }
 
         public virtual int WriteTimeout
         {
-            get => throw new InvalidOperationException(SR.InvalidOperation_TimeoutsNotSupported);
-            set => throw new InvalidOperationException(SR.InvalidOperation_TimeoutsNotSupported);
+            get => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_TimeoutsNotSupported"));
+            set => throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_TimeoutsNotSupported"));
         }
 
         public void CopyTo(Stream destination) => CopyTo(destination, GetCopyBufferSize());
@@ -56,8 +56,8 @@ namespace System.IO
             if (!CanRead)
             {
                 throw CanWrite ? (Exception)
-                    new NotSupportedException(SR.NotSupported_UnreadableStream) :
-                    new ObjectDisposedException(GetType().Name, SR.ObjectDisposed_StreamClosed);
+                    new NotSupportedException(SR.GetResourceString("NotSupported_UnreadableStream")) :
+                    new ObjectDisposedException(GetType().Name, SR.GetResourceString("ObjectDisposed_StreamClosed"));
             }
 
             byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
@@ -87,8 +87,8 @@ namespace System.IO
             if (!CanRead)
             {
                 throw CanWrite ? (Exception)
-                    new NotSupportedException(SR.NotSupported_UnreadableStream) :
-                    new ObjectDisposedException(GetType().Name, SR.ObjectDisposed_StreamClosed);
+                    new NotSupportedException(SR.GetResourceString("NotSupported_UnreadableStream")) :
+                    new ObjectDisposedException(GetType().Name, SR.GetResourceString("ObjectDisposed_StreamClosed"));
             }
 
             return Core(this, destination, bufferSize, cancellationToken);
@@ -664,7 +664,7 @@ namespace System.IO
                 int numRead = Read(sharedBuffer, 0, buffer.Length);
                 if ((uint)numRead > (uint)buffer.Length)
                 {
-                    throw new IOException(SR.IO_StreamTooLong);
+                    throw new IOException(SR.GetResourceString("IO_StreamTooLong"));
                 }
 
                 new ReadOnlySpan<byte>(sharedBuffer, 0, numRead).CopyTo(buffer);
@@ -754,14 +754,14 @@ namespace System.IO
 
             if (bufferSize <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(bufferSize), bufferSize, SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), bufferSize, SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
 
             if (!destination.CanWrite)
             {
                 throw destination.CanRead ? (Exception)
-                    new NotSupportedException(SR.NotSupported_UnwritableStream) :
-                    new ObjectDisposedException(destination.GetType().Name, SR.ObjectDisposed_StreamClosed);
+                    new NotSupportedException(SR.GetResourceString("NotSupported_UnwritableStream")) :
+                    new ObjectDisposedException(destination.GetType().Name, SR.GetResourceString("ObjectDisposed_StreamClosed"));
             }
         }
 

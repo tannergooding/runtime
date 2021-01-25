@@ -10,7 +10,7 @@ namespace System
     public partial class MissingMemberException : MemberAccessException
     {
         public MissingMemberException()
-            : base(SR.Arg_MissingMemberException)
+            : base(SR.GetResourceString("Arg_MissingMemberException"))
         {
             HResult = HResults.COR_E_MISSINGMEMBER;
         }
@@ -60,7 +60,7 @@ namespace System
                 else
                 {
                     // do any desired fixups to classname here.
-                    return SR.Format(SR.MissingMember_Name, ClassName + "." + MemberName + (Signature != null ? " " + FormatSignature(Signature) : string.Empty));
+                    return SR.Format(SR.GetResourceString("MissingMember_Name"), ClassName + "." + MemberName + (Signature != null ? " " + FormatSignature(Signature) : string.Empty));
                 }
             }
         }

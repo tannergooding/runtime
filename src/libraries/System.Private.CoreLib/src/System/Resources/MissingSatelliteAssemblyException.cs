@@ -25,7 +25,7 @@ namespace System.Resources
         private readonly string? _cultureName;
 
         public MissingSatelliteAssemblyException()
-            : base(SR.MissingSatelliteAssembly_Default)
+            : base(SR.GetResourceString("MissingSatelliteAssembly_Default"))
         {
             HResult = System.HResults.COR_E_MISSINGSATELLITEASSEMBLY;
         }

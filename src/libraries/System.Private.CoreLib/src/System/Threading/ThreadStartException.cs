@@ -10,13 +10,13 @@ namespace System.Threading
     public sealed class ThreadStartException : SystemException
     {
         internal ThreadStartException()
-            : base(SR.Arg_ThreadStartException)
+            : base(SR.GetResourceString("Arg_ThreadStartException"))
         {
             HResult = HResults.COR_E_THREADSTART;
         }
 
         internal ThreadStartException(Exception reason)
-            : base(SR.Arg_ThreadStartException, reason)
+            : base(SR.GetResourceString("Arg_ThreadStartException"), reason)
         {
             HResult = HResults.COR_E_THREADSTART;
         }

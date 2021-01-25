@@ -68,7 +68,7 @@ namespace System
             {
                 throw new ArgumentOutOfRangeException(nameof(kind),
                                       SR.Format(
-                                          SR.ArgumentOutOfRange_Bounds_Lower_Upper,
+                                          SR.GetResourceString("ArgumentOutOfRange_Bounds_Lower_Upper"),
                                           GCKind.Any,
                                           GCKind.Background));
             }
@@ -130,13 +130,13 @@ namespace System
             if (bytesAllocated <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(bytesAllocated),
-                        SR.ArgumentOutOfRange_NeedPosNum);
+                        SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
 
             if ((4 == IntPtr.Size) && (bytesAllocated > int.MaxValue))
             {
                 throw new ArgumentOutOfRangeException(nameof(bytesAllocated),
-                    SR.ArgumentOutOfRange_MustBeNonNegInt32);
+                    SR.GetResourceString("ArgumentOutOfRange_MustBeNonNegInt32"));
             }
 
             _AddMemoryPressure((ulong)bytesAllocated);
@@ -147,13 +147,13 @@ namespace System
             if (bytesAllocated <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(bytesAllocated),
-                    SR.ArgumentOutOfRange_NeedPosNum);
+                    SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
 
             if ((4 == IntPtr.Size) && (bytesAllocated > int.MaxValue))
             {
                 throw new ArgumentOutOfRangeException(nameof(bytesAllocated),
-                    SR.ArgumentOutOfRange_MustBeNonNegInt32);
+                    SR.GetResourceString("ArgumentOutOfRange_MustBeNonNegInt32"));
             }
 
             _RemoveMemoryPressure((ulong)bytesAllocated);
@@ -195,12 +195,12 @@ namespace System
         {
             if (generation < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(generation), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(generation), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             }
 
             if ((mode < GCCollectionMode.Default) || (mode > GCCollectionMode.Optimized))
             {
-                throw new ArgumentOutOfRangeException(nameof(mode), SR.ArgumentOutOfRange_Enum);
+                throw new ArgumentOutOfRangeException(nameof(mode), SR.GetResourceString("ArgumentOutOfRange_Enum"));
             }
 
 
@@ -230,7 +230,7 @@ namespace System
         {
             if (generation < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(generation), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(generation), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             }
             return _CollectionCount(generation, 0);
         }
@@ -387,7 +387,7 @@ namespace System
             {
                 throw new ArgumentOutOfRangeException(nameof(maxGenerationThreshold),
                                                       SR.Format(
-                                                          SR.ArgumentOutOfRange_Bounds_Lower_Upper,
+                                                          SR.GetResourceString("ArgumentOutOfRange_Bounds_Lower_Upper"),
                                                           1,
                                                           99));
             }
@@ -396,14 +396,14 @@ namespace System
             {
                 throw new ArgumentOutOfRangeException(nameof(largeObjectHeapThreshold),
                                                       SR.Format(
-                                                          SR.ArgumentOutOfRange_Bounds_Lower_Upper,
+                                                          SR.GetResourceString("ArgumentOutOfRange_Bounds_Lower_Upper"),
                                                           1,
                                                           99));
             }
 
             if (!_RegisterForFullGCNotification(maxGenerationThreshold, largeObjectHeapThreshold))
             {
-                throw new InvalidOperationException(SR.InvalidOperation_NotWithConcurrentGC);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotWithConcurrentGC"));
             }
         }
 
@@ -411,7 +411,7 @@ namespace System
         {
             if (!_CancelFullGCNotification())
             {
-                throw new InvalidOperationException(SR.InvalidOperation_NotWithConcurrentGC);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotWithConcurrentGC"));
             }
         }
 
@@ -423,7 +423,7 @@ namespace System
         public static GCNotificationStatus WaitForFullGCApproach(int millisecondsTimeout)
         {
             if (millisecondsTimeout < -1)
-                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
 
             return (GCNotificationStatus)_WaitForFullGCApproach(millisecondsTimeout);
         }
@@ -436,7 +436,7 @@ namespace System
         public static GCNotificationStatus WaitForFullGCComplete(int millisecondsTimeout)
         {
             if (millisecondsTimeout < -1)
-                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
             return (GCNotificationStatus)_WaitForFullGCComplete(millisecondsTimeout);
         }
 

@@ -104,7 +104,7 @@ namespace System.Threading
             ExecutionContext? executionContext = currentThread._executionContext ?? Default;
             if (executionContext.m_isFlowSuppressed)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_CannotSupressFlowMultipleTimes);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CannotSupressFlowMultipleTimes"));
             }
 
             executionContext = executionContext.ShallowClone(isFlowSuppressed: true);
@@ -120,7 +120,7 @@ namespace System.Threading
             ExecutionContext? executionContext = currentThread._executionContext;
             if (executionContext == null || !executionContext.m_isFlowSuppressed)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_CannotRestoreUnsupressedFlow);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CannotRestoreUnsupressedFlow"));
             }
 
             currentThread._executionContext = executionContext.ShallowClone(isFlowSuppressed: false);
@@ -446,7 +446,7 @@ namespace System.Threading
             catch (Exception ex)
             {
                 Environment.FailFast(
-                    SR.ExecutionContext_ExceptionInAsyncLocalNotification,
+                    SR.GetResourceString("ExecutionContext_ExceptionInAsyncLocalNotification"),
                     ex);
             }
         }
@@ -455,7 +455,7 @@ namespace System.Threading
         [StackTraceHidden]
         private static void ThrowNullContext()
         {
-            throw new InvalidOperationException(SR.InvalidOperation_NullContext);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NullContext"));
         }
 
         internal static object? GetLocalValue(IAsyncLocal local)
@@ -574,11 +574,11 @@ namespace System.Threading
         {
             if (_thread == null)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_CannotUseAFCMultiple);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CannotUseAFCMultiple"));
             }
             if (Thread.CurrentThread != _thread)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_CannotUseAFCOtherThread);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_CannotUseAFCOtherThread"));
             }
 
             // An async flow control cannot be undone when a different execution context is applied. The .NET Framework
@@ -593,7 +593,7 @@ namespace System.Threading
             // flow is suppressed.
             if (!ExecutionContext.IsFlowSuppressed())
             {
-                throw new InvalidOperationException(SR.InvalidOperation_AsyncFlowCtrlCtxMismatch);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_AsyncFlowCtrlCtxMismatch"));
             }
 
             _thread = null;

@@ -237,7 +237,7 @@ namespace System.Buffers
                 // Check to see if the buffer is the correct size for this bucket
                 if (array.Length != _bufferLength)
                 {
-                    throw new ArgumentException(SR.ArgumentException_BufferNotFromPool, nameof(array));
+                    throw new ArgumentException(SR.GetResourceString("ArgumentException_BufferNotFromPool"), nameof(array));
                 }
 
                 // While holding the spin lock, if there's room available in the bucket,

@@ -23,13 +23,13 @@ namespace System
         // Creates a new DuplicateWaitObjectException with its message
         // string set to a default message.
         public DuplicateWaitObjectException()
-            : base(SR.Arg_DuplicateWaitObjectException)
+            : base(SR.GetResourceString("Arg_DuplicateWaitObjectException"))
         {
             HResult = HResults.COR_E_DUPLICATEWAITOBJECT;
         }
 
         public DuplicateWaitObjectException(string? parameterName)
-            : base(SR.Arg_DuplicateWaitObjectException, parameterName)
+            : base(SR.GetResourceString("Arg_DuplicateWaitObjectException"), parameterName)
         {
             HResult = HResults.COR_E_DUPLICATEWAITOBJECT;
         }

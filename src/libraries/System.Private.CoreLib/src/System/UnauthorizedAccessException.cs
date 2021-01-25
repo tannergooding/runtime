@@ -23,7 +23,7 @@ namespace System
     public class UnauthorizedAccessException : SystemException
     {
         public UnauthorizedAccessException()
-            : base(SR.Arg_UnauthorizedAccessException)
+            : base(SR.GetResourceString("Arg_UnauthorizedAccessException"))
         {
             HResult = HResults.COR_E_UNAUTHORIZEDACCESS;
         }

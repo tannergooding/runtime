@@ -60,9 +60,9 @@ namespace System
             get
             {
                 if (_index == -1)
-                    throw new InvalidOperationException(SR.InvalidOperation_EnumNotStarted);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumNotStarted"));
                 if (_index >= _str!.Length)
-                    throw new InvalidOperationException(SR.InvalidOperation_EnumEnded);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_EnumEnded"));
                 return _currentElement;
             }
         }

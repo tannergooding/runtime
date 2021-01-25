@@ -12,7 +12,7 @@ namespace System.Globalization
             // which is less than 2^44, meaning we won't overflow totalSeconds.
             long totalSeconds = (long)hour * 3600 + (long)minute * 60 + (long)second;
             if (totalSeconds > MaxSeconds || totalSeconds < MinSeconds)
-                throw new ArgumentOutOfRangeException(null, SR.Overflow_TimeSpanTooLong);
+                throw new ArgumentOutOfRangeException(null, SR.GetResourceString("Overflow_TimeSpanTooLong"));
             return totalSeconds * TicksPerSecond;
         }
 

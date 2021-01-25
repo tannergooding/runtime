@@ -20,7 +20,7 @@ namespace System.Threading
         {
 #if TARGET_UNIX || TARGET_BROWSER
             if (name != null)
-                throw new PlatformNotSupportedException(SR.PlatformNotSupported_NamedSynchronizationPrimitives);
+                throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_NamedSynchronizationPrimitives"));
 #endif
             uint eventFlags = initialState ? Interop.Kernel32.CREATE_EVENT_INITIAL_SET : 0;
             if (mode == EventResetMode.ManualReset)
@@ -33,7 +33,7 @@ namespace System.Threading
             {
                 handle.SetHandleAsInvalid();
                 if (!string.IsNullOrEmpty(name) && errorCode == Interop.Errors.ERROR_INVALID_HANDLE)
-                    throw new WaitHandleCannotBeOpenedException(SR.Format(SR.Threading_WaitHandleCannotBeOpenedException_InvalidHandle, name));
+                    throw new WaitHandleCannotBeOpenedException(SR.Format(SR.GetResourceString("Threading_WaitHandleCannotBeOpenedException_InvalidHandle"), name));
 
                 throw Win32Marshal.GetExceptionForWin32Error(errorCode, name);
             }
@@ -47,7 +47,7 @@ namespace System.Threading
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
             if (name.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
 
             result = null;
             SafeWaitHandle myHandle = Interop.Kernel32.OpenEvent(AccessRights, false, name);
@@ -68,7 +68,7 @@ namespace System.Threading
             result = new EventWaitHandle(myHandle);
             return OpenExistingResult.Success;
 #else
-            throw new PlatformNotSupportedException(SR.PlatformNotSupported_NamedSynchronizationPrimitives);
+            throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_NamedSynchronizationPrimitives"));
 #endif
         }
 

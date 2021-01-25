@@ -26,7 +26,7 @@ namespace System
         // Creates a new ArgumentException with its message
         // string set to the empty string.
         public ArgumentException()
-            : base(SR.Arg_ArgumentException)
+            : base(SR.GetResourceString("Arg_ArgumentException"))
         {
             HResult = HResults.COR_E_ARGUMENT;
         }
@@ -81,7 +81,7 @@ namespace System
                 string s = base.Message;
                 if (!string.IsNullOrEmpty(_paramName))
                 {
-                    s += " " + SR.Format(SR.Arg_ParamName_Name, _paramName);
+                    s += " " + SR.Format(SR.GetResourceString("Arg_ParamName_Name"), _paramName);
                 }
 
                 return s;
@@ -92,7 +92,7 @@ namespace System
         {
             if (_message == null && HResult == System.HResults.COR_E_ARGUMENT)
             {
-                _message = SR.Arg_ArgumentException;
+                _message = SR.GetResourceString("Arg_ArgumentException");
             }
         }
 

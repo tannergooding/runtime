@@ -64,7 +64,7 @@ namespace System.Reflection
             MethodInfo? addMethod = GetAddMethod(nonPublic: false);
 
             if (addMethod == null)
-                throw new InvalidOperationException(SR.InvalidOperation_NoPublicAddMethod);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NoPublicAddMethod"));
 
             addMethod.Invoke(target, new object?[] { handler });
         }
@@ -76,7 +76,7 @@ namespace System.Reflection
             MethodInfo? removeMethod = GetRemoveMethod(nonPublic: false);
 
             if (removeMethod == null)
-                throw new InvalidOperationException(SR.InvalidOperation_NoPublicRemoveMethod);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NoPublicRemoveMethod"));
 
             removeMethod.Invoke(target, new object?[] { handler });
         }

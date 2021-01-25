@@ -312,7 +312,7 @@ namespace System.Reflection
                         {
                             // Should be a rare case where the app tries to feed an invalid Unicode surrogates pair
                             if (count == 1 || count == end - i)
-                                throw new FormatException(SR.Arg_FormatException);
+                                throw new FormatException(SR.GetResourceString("Arg_FormatException"));
                             // need to grab one more char as a Surrogate except when it's a bogus input
                             ++count;
                         }
@@ -328,7 +328,7 @@ namespace System.Reflection
                         // This is the only exception that built in UriParser can throw after a Uri ctor.
                         // Should not happen unless the app tries to feed an invalid Unicode string
                         if (numberOfBytes == 0)
-                            throw new FormatException(SR.Arg_FormatException);
+                            throw new FormatException(SR.GetResourceString("Arg_FormatException"));
 
                         i += (count - 1);
 

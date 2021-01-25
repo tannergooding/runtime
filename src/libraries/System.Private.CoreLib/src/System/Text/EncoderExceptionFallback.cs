@@ -34,7 +34,7 @@ namespace System.Text
         {
             // Fall back our char
             throw new EncoderFallbackException(
-                SR.Format(SR.Argument_InvalidCodePageConversionIndex, (int)charUnknown, index), charUnknown, index);
+                SR.Format(SR.GetResourceString("Argument_InvalidCodePageConversionIndex"), (int)charUnknown, index), charUnknown, index);
         }
 
         public override bool Fallback(char charUnknownHigh, char charUnknownLow, int index)
@@ -42,19 +42,19 @@ namespace System.Text
             if (!char.IsHighSurrogate(charUnknownHigh))
             {
                 throw new ArgumentOutOfRangeException(nameof(charUnknownHigh),
-                    SR.Format(SR.ArgumentOutOfRange_Range, 0xD800, 0xDBFF));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0xD800, 0xDBFF));
             }
             if (!char.IsLowSurrogate(charUnknownLow))
             {
                 throw new ArgumentOutOfRangeException(nameof(charUnknownLow),
-                    SR.Format(SR.ArgumentOutOfRange_Range, 0xDC00, 0xDFFF));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0xDC00, 0xDFFF));
             }
 
             int iTemp = char.ConvertToUtf32(charUnknownHigh, charUnknownLow);
 
             // Fall back our char
             throw new EncoderFallbackException(
-                SR.Format(SR.Argument_InvalidCodePageConversionIndex, iTemp, index), charUnknownHigh, charUnknownLow, index);
+                SR.Format(SR.GetResourceString("Argument_InvalidCodePageConversionIndex"), iTemp, index), charUnknownHigh, charUnknownLow, index);
         }
 
         public override char GetNextChar() => (char)0;
@@ -76,7 +76,7 @@ namespace System.Text
         private readonly int _index;
 
         public EncoderFallbackException()
-            : base(SR.Arg_ArgumentException)
+            : base(SR.GetResourceString("Arg_ArgumentException"))
         {
             HResult = HResults.COR_E_ARGUMENT;
         }
@@ -106,12 +106,12 @@ namespace System.Text
             if (!char.IsHighSurrogate(charUnknownHigh))
             {
                 throw new ArgumentOutOfRangeException(nameof(charUnknownHigh),
-                    SR.Format(SR.ArgumentOutOfRange_Range, 0xD800, 0xDBFF));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0xD800, 0xDBFF));
             }
             if (!char.IsLowSurrogate(charUnknownLow))
             {
                 throw new ArgumentOutOfRangeException(nameof(CharUnknownLow),
-                    SR.Format(SR.ArgumentOutOfRange_Range, 0xDC00, 0xDFFF));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0xDC00, 0xDFFF));
             }
 
             _charUnknownHigh = charUnknownHigh;

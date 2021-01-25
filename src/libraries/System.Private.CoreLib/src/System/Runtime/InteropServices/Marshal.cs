@@ -49,7 +49,7 @@ namespace System.Runtime.InteropServices
             }
             if (len < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(len), len, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(len), len, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             return new string((sbyte*)ptr, 0, len);
@@ -73,7 +73,7 @@ namespace System.Runtime.InteropServices
             }
             if (len < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(len), len, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(len), len, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             return new string((char*)ptr, 0, len);
@@ -98,7 +98,7 @@ namespace System.Runtime.InteropServices
             }
             if (byteLen < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(byteLen), byteLen, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(byteLen), byteLen, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             return string.CreateStringFromEncoding((byte*)ptr, byteLen, Encoding.UTF8);
@@ -132,11 +132,11 @@ namespace System.Runtime.InteropServices
             }
             if (!t.IsRuntimeImplemented())
             {
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(t));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(t));
             }
             if (t.IsGenericType)
             {
-                throw new ArgumentException(SR.Argument_NeedNonGenericType, nameof(t));
+                throw new ArgumentException(SR.GetResourceString("Argument_NeedNonGenericType"), nameof(t));
             }
 
             return SizeOfHelper(t, throwIfNotMarshalable: true);
@@ -268,9 +268,9 @@ namespace System.Runtime.InteropServices
             if (destination is null)
                 throw new ArgumentNullException(nameof(destination));
             if (startIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.ArgumentOutOfRange_StartIndex);
+                throw new ArgumentOutOfRangeException(nameof(startIndex), SR.GetResourceString("ArgumentOutOfRange_StartIndex"));
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
 
             // The rest of the argument validation is done by CopyTo
 
@@ -550,11 +550,11 @@ namespace System.Runtime.InteropServices
             }
             if (structureType.IsGenericType)
             {
-                throw new ArgumentException(SR.Argument_NeedNonGenericType, nameof(structureType));
+                throw new ArgumentException(SR.GetResourceString("Argument_NeedNonGenericType"), nameof(structureType));
             }
             if (!structureType.IsRuntimeImplemented())
             {
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(structureType));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(structureType));
             }
 
             return PtrToStructureHelper(ptr, structureType);
@@ -812,7 +812,7 @@ namespace System.Runtime.InteropServices
             }
             if (!type.IsRuntimeImplemented())
             {
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(type));
             }
 
             return type.GUID;
@@ -831,11 +831,11 @@ namespace System.Runtime.InteropServices
             }
             if (type.IsImport)
             {
-                throw new ArgumentException(SR.Argument_TypeMustNotBeComImport, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_TypeMustNotBeComImport"), nameof(type));
             }
             if (type.IsGenericType)
             {
-                throw new ArgumentException(SR.Argument_NeedNonGenericType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_NeedNonGenericType"), nameof(type));
             }
 
             ProgIdAttribute? progIdAttribute = type.GetCustomAttribute<ProgIdAttribute>();
@@ -860,11 +860,11 @@ namespace System.Runtime.InteropServices
             }
             if (!t.IsRuntimeImplemented())
             {
-                throw new ArgumentException(SR.Argument_MustBeRuntimeType, nameof(t));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeType"), nameof(t));
             }
             if (t.IsGenericType)
             {
-                throw new ArgumentException(SR.Argument_NeedNonGenericType, nameof(t));
+                throw new ArgumentException(SR.GetResourceString("Argument_NeedNonGenericType"), nameof(t));
             }
 
             // COMPAT: This block of code isn't entirely correct.
@@ -873,7 +873,7 @@ namespace System.Runtime.InteropServices
             Type? c = t.BaseType;
             if (c != typeof(Delegate) && c != typeof(MulticastDelegate))
             {
-                throw new ArgumentException(SR.Arg_MustBeDelegate, nameof(t));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeDelegate"), nameof(t));
             }
 
             return GetDelegateForFunctionPointerInternal(ptr, t);

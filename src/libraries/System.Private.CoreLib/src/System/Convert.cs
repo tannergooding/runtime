@@ -196,7 +196,7 @@ namespace System
 
             if (!(value is IConvertible v))
             {
-                throw new InvalidCastException(SR.InvalidCast_IConvertible);
+                throw new InvalidCastException(SR.GetResourceString("InvalidCast_IConvertible"));
             }
 
             // This line is invalid for things like Enums that return a TypeCode
@@ -220,9 +220,9 @@ namespace System
                 TypeCode.DateTime => v.ToDateTime(provider),
                 TypeCode.String => v.ToString(provider),
                 TypeCode.Object => value,
-                TypeCode.DBNull => throw new InvalidCastException(SR.InvalidCast_DBNull),
-                TypeCode.Empty => throw new InvalidCastException(SR.InvalidCast_Empty),
-                _ => throw new ArgumentException(SR.Arg_UnknownTypeCode),
+                TypeCode.DBNull => throw new InvalidCastException(SR.GetResourceString("InvalidCast_DBNull")),
+                TypeCode.Empty => throw new InvalidCastException(SR.GetResourceString("InvalidCast_Empty")),
+                _ => throw new ArgumentException(SR.GetResourceString("Arg_UnknownTypeCode")),
             };
         }
 
@@ -275,11 +275,11 @@ namespace System
             if (ReferenceEquals(targetType, EnumType))
                 return (Enum)value;
             if (ReferenceEquals(targetType, ConvertTypes[(int)TypeCode.DBNull]))
-                throw new InvalidCastException(SR.InvalidCast_DBNull);
+                throw new InvalidCastException(SR.GetResourceString("InvalidCast_DBNull"));
             if (ReferenceEquals(targetType, ConvertTypes[(int)TypeCode.Empty]))
-                throw new InvalidCastException(SR.InvalidCast_Empty);
+                throw new InvalidCastException(SR.GetResourceString("InvalidCast_Empty"));
 
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, value.GetType().FullName, targetType.FullName));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), value.GetType().FullName, targetType.FullName));
         }
 
         [return: NotNullIfNotNull("value")]
@@ -300,7 +300,7 @@ namespace System
             {
                 if (conversionType.IsValueType)
                 {
-                    throw new InvalidCastException(SR.InvalidCast_CannotCastNullToValueType);
+                    throw new InvalidCastException(SR.GetResourceString("InvalidCast_CannotCastNullToValueType"));
                 }
                 return null;
             }
@@ -311,7 +311,7 @@ namespace System
                 {
                     return value;
                 }
-                throw new InvalidCastException(SR.InvalidCast_IConvertible);
+                throw new InvalidCastException(SR.GetResourceString("InvalidCast_IConvertible"));
             }
 
             if (ReferenceEquals(conversionType, ConvertTypes[(int)TypeCode.Boolean]))
@@ -351,31 +351,31 @@ namespace System
         }
 
         [DoesNotReturn]
-        private static void ThrowCharOverflowException() { throw new OverflowException(SR.Overflow_Char); }
+        private static void ThrowCharOverflowException() { throw new OverflowException(SR.GetResourceString("Overflow_Char")); }
 
         [DoesNotReturn]
-        private static void ThrowByteOverflowException() { throw new OverflowException(SR.Overflow_Byte); }
+        private static void ThrowByteOverflowException() { throw new OverflowException(SR.GetResourceString("Overflow_Byte")); }
 
         [DoesNotReturn]
-        private static void ThrowSByteOverflowException() { throw new OverflowException(SR.Overflow_SByte); }
+        private static void ThrowSByteOverflowException() { throw new OverflowException(SR.GetResourceString("Overflow_SByte")); }
 
         [DoesNotReturn]
-        private static void ThrowInt16OverflowException() { throw new OverflowException(SR.Overflow_Int16); }
+        private static void ThrowInt16OverflowException() { throw new OverflowException(SR.GetResourceString("Overflow_Int16")); }
 
         [DoesNotReturn]
-        private static void ThrowUInt16OverflowException() { throw new OverflowException(SR.Overflow_UInt16); }
+        private static void ThrowUInt16OverflowException() { throw new OverflowException(SR.GetResourceString("Overflow_UInt16")); }
 
         [DoesNotReturn]
-        private static void ThrowInt32OverflowException() { throw new OverflowException(SR.Overflow_Int32); }
+        private static void ThrowInt32OverflowException() { throw new OverflowException(SR.GetResourceString("Overflow_Int32")); }
 
         [DoesNotReturn]
-        private static void ThrowUInt32OverflowException() { throw new OverflowException(SR.Overflow_UInt32); }
+        private static void ThrowUInt32OverflowException() { throw new OverflowException(SR.GetResourceString("Overflow_UInt32")); }
 
         [DoesNotReturn]
-        private static void ThrowInt64OverflowException() { throw new OverflowException(SR.Overflow_Int64); }
+        private static void ThrowInt64OverflowException() { throw new OverflowException(SR.GetResourceString("Overflow_Int64")); }
 
         [DoesNotReturn]
-        private static void ThrowUInt64OverflowException() { throw new OverflowException(SR.Overflow_UInt64); }
+        private static void ThrowUInt64OverflowException() { throw new OverflowException(SR.GetResourceString("Overflow_UInt64")); }
 
         // Conversions to Boolean
         public static bool ToBoolean(object? value)
@@ -560,7 +560,7 @@ namespace System
                 throw new ArgumentNullException(nameof(value));
 
             if (value.Length != 1)
-                throw new FormatException(SR.Format_NeedSingleChar);
+                throw new FormatException(SR.GetResourceString("Format_NeedSingleChar"));
 
             return value[0];
         }
@@ -1140,7 +1140,7 @@ namespace System
                     return result;
                 }
             }
-            throw new OverflowException(SR.Overflow_Int32);
+            throw new OverflowException(SR.GetResourceString("Overflow_Int32"));
         }
 
         public static int ToInt32(decimal value)
@@ -1261,7 +1261,7 @@ namespace System
                 if (dif > 0.5 || dif == 0.5 && (result & 1) != 0) result++;
                 return result;
             }
-            throw new OverflowException(SR.Overflow_UInt32);
+            throw new OverflowException(SR.GetResourceString("Overflow_UInt32"));
         }
 
         [CLSCompliant(false)]
@@ -2119,7 +2119,7 @@ namespace System
         {
             if (fromBase != 2 && fromBase != 8 && fromBase != 10 && fromBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
 
             if (value == null)
@@ -2142,7 +2142,7 @@ namespace System
         {
             if (fromBase != 2 && fromBase != 8 && fromBase != 10 && fromBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
 
             if (value == null)
@@ -2167,7 +2167,7 @@ namespace System
         {
             if (fromBase != 2 && fromBase != 8 && fromBase != 10 && fromBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
 
             if (value == null)
@@ -2193,7 +2193,7 @@ namespace System
         {
             if (fromBase != 2 && fromBase != 8 && fromBase != 10 && fromBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
 
             if (value == null)
@@ -2215,7 +2215,7 @@ namespace System
         {
             if (fromBase != 2 && fromBase != 8 && fromBase != 10 && fromBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
             return value != null ?
                 ParseNumbers.StringToInt(value.AsSpan(), fromBase, ParseNumbers.IsTight) :
@@ -2231,7 +2231,7 @@ namespace System
         {
             if (fromBase != 2 && fromBase != 8 && fromBase != 10 && fromBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
             return value != null ?
                 (uint)ParseNumbers.StringToInt(value.AsSpan(), fromBase, ParseNumbers.TreatAsUnsigned | ParseNumbers.IsTight) :
@@ -2246,7 +2246,7 @@ namespace System
         {
             if (fromBase != 2 && fromBase != 8 && fromBase != 10 && fromBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
             return value != null ?
                 ParseNumbers.StringToLong(value.AsSpan(), fromBase, ParseNumbers.IsTight) :
@@ -2262,7 +2262,7 @@ namespace System
         {
             if (fromBase != 2 && fromBase != 8 && fromBase != 10 && fromBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
             return value != null ?
                 (ulong)ParseNumbers.StringToLong(value.AsSpan(), fromBase, ParseNumbers.TreatAsUnsigned | ParseNumbers.IsTight) :
@@ -2274,7 +2274,7 @@ namespace System
         {
             if (toBase != 2 && toBase != 8 && toBase != 10 && toBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
             return ParseNumbers.IntToString((int)value, toBase, -1, ' ', ParseNumbers.PrintAsI1);
         }
@@ -2284,7 +2284,7 @@ namespace System
         {
             if (toBase != 2 && toBase != 8 && toBase != 10 && toBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
             return ParseNumbers.IntToString((int)value, toBase, -1, ' ', ParseNumbers.PrintAsI2);
         }
@@ -2294,7 +2294,7 @@ namespace System
         {
             if (toBase != 2 && toBase != 8 && toBase != 10 && toBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
             return ParseNumbers.IntToString(value, toBase, -1, ' ', 0);
         }
@@ -2304,7 +2304,7 @@ namespace System
         {
             if (toBase != 2 && toBase != 8 && toBase != 10 && toBase != 16)
             {
-                throw new ArgumentException(SR.Arg_InvalidBase);
+                throw new ArgumentException(SR.GetResourceString("Arg_InvalidBase"));
             }
             return ParseNumbers.LongToString(value, toBase, -1, ' ', 0);
         }
@@ -2337,11 +2337,11 @@ namespace System
             if (inArray == null)
                 throw new ArgumentNullException(nameof(inArray));
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_Index"));
             if (offset < 0)
-                throw new ArgumentOutOfRangeException(nameof(offset), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             if (offset > (inArray.Length - length))
-                throw new ArgumentOutOfRangeException(nameof(offset), SR.ArgumentOutOfRange_OffsetLength);
+                throw new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("ArgumentOutOfRange_OffsetLength"));
 
             return ToBase64String(new ReadOnlySpan<byte>(inArray, offset, length), options);
         }
@@ -2350,7 +2350,7 @@ namespace System
         {
             if (options < Base64FormattingOptions.None || options > Base64FormattingOptions.InsertLineBreaks)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_EnumIllegalVal, (int)options), nameof(options));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), (int)options), nameof(options));
             }
 
             if (bytes.Length == 0)
@@ -2387,15 +2387,15 @@ namespace System
             if (outArray == null)
                 throw new ArgumentNullException(nameof(outArray));
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_Index"));
             if (offsetIn < 0)
-                throw new ArgumentOutOfRangeException(nameof(offsetIn), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(offsetIn), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             if (offsetOut < 0)
-                throw new ArgumentOutOfRangeException(nameof(offsetOut), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(offsetOut), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
 
             if (options < Base64FormattingOptions.None || options > Base64FormattingOptions.InsertLineBreaks)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_EnumIllegalVal, (int)options), nameof(options));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), (int)options), nameof(options));
             }
 
             int retVal;
@@ -2407,7 +2407,7 @@ namespace System
             inArrayLength = inArray.Length;
 
             if (offsetIn > (int)(inArrayLength - length))
-                throw new ArgumentOutOfRangeException(nameof(offsetIn), SR.ArgumentOutOfRange_OffsetLength);
+                throw new ArgumentOutOfRangeException(nameof(offsetIn), SR.GetResourceString("ArgumentOutOfRange_OffsetLength"));
 
             if (inArrayLength == 0)
                 return 0;
@@ -2420,7 +2420,7 @@ namespace System
             numElementsToCopy = ToBase64_CalculateAndValidateOutputLength(length, insertLineBreaks);
 
             if (offsetOut > (int)(outArrayLength - numElementsToCopy))
-                throw new ArgumentOutOfRangeException(nameof(offsetOut), SR.ArgumentOutOfRange_OffsetOut);
+                throw new ArgumentOutOfRangeException(nameof(offsetOut), SR.GetResourceString("ArgumentOutOfRange_OffsetOut"));
 
             fixed (char* outChars = &outArray[offsetOut])
             {
@@ -2437,7 +2437,7 @@ namespace System
         {
             if (options < Base64FormattingOptions.None || options > Base64FormattingOptions.InsertLineBreaks)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_EnumIllegalVal, (int)options), nameof(options));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), (int)options), nameof(options));
             }
 
             if (bytes.Length == 0)
@@ -2715,13 +2715,13 @@ namespace System
                 throw new ArgumentNullException(nameof(inArray));
 
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_Index"));
 
             if (offset < 0)
-                throw new ArgumentOutOfRangeException(nameof(offset), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
 
             if (offset > inArray.Length - length)
-                throw new ArgumentOutOfRangeException(nameof(offset), SR.ArgumentOutOfRange_OffsetLength);
+                throw new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("ArgumentOutOfRange_OffsetLength"));
 
             if (inArray.Length == 0)
             {
@@ -2775,7 +2775,7 @@ namespace System
 
             // Convert Base64 chars into bytes:
             if (!TryFromBase64Chars(new ReadOnlySpan<char>(inputPtr, inputLength), decodedBytes, out int _))
-                throw new FormatException(SR.Format_BadBase64Char);
+                throw new FormatException(SR.GetResourceString("Format_BadBase64Char"));
 
             // Note that the number of bytes written can differ from resultLength if the caller is modifying the array
             // as it is being converted. Silently ignore the failure.
@@ -2833,7 +2833,7 @@ namespace System
                 else if (padding == 2)
                     padding = 1;
                 else
-                    throw new FormatException(SR.Format_BadBase64Char);
+                    throw new FormatException(SR.GetResourceString("Format_BadBase64Char"));
             }
 
             // Done:
@@ -2870,12 +2870,12 @@ namespace System
             if (chars.Length == 0)
                 return Array.Empty<byte>();
             if ((uint)chars.Length % 2 != 0)
-                throw new FormatException(SR.Format_BadHexLength);
+                throw new FormatException(SR.GetResourceString("Format_BadHexLength"));
 
             byte[] result = GC.AllocateUninitializedArray<byte>(chars.Length >> 1);
 
             if (!HexConverter.TryDecodeFromUtf16(chars, result))
-                throw new FormatException(SR.Format_BadHexChar);
+                throw new FormatException(SR.GetResourceString("Format_BadHexChar"));
 
             return result;
         }
@@ -2912,11 +2912,11 @@ namespace System
             if (inArray == null)
                 throw new ArgumentNullException(nameof(inArray));
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_Index"));
             if (offset < 0)
-                throw new ArgumentOutOfRangeException(nameof(offset), SR.ArgumentOutOfRange_GenericPositive);
+                throw new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("ArgumentOutOfRange_GenericPositive"));
             if (offset > (inArray.Length - length))
-                throw new ArgumentOutOfRangeException(nameof(offset), SR.ArgumentOutOfRange_OffsetLength);
+                throw new ArgumentOutOfRangeException(nameof(offset), SR.GetResourceString("ArgumentOutOfRange_OffsetLength"));
 
             return ToHexString(new ReadOnlySpan<byte>(inArray, offset, length));
         }
@@ -2932,7 +2932,7 @@ namespace System
             if (bytes.Length == 0)
                 return string.Empty;
             if (bytes.Length > int.MaxValue / 2)
-                throw new ArgumentOutOfRangeException(nameof(bytes), SR.ArgumentOutOfRange_InputTooLarge);
+                throw new ArgumentOutOfRangeException(nameof(bytes), SR.GetResourceString("ArgumentOutOfRange_InputTooLarge"));
 
             return HexConverter.ToString(bytes, HexConverter.Casing.Upper);
         }

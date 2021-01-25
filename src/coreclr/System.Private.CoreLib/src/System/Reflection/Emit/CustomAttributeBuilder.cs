@@ -64,17 +64,17 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(fieldValues));
 #pragma warning disable CA2208 // Instantiate argument exceptions correctly, combination of arguments used
             if (namedProperties.Length != propertyValues.Length)
-                throw new ArgumentException(SR.Arg_ArrayLengthsDiffer, "namedProperties, propertyValues");
+                throw new ArgumentException(SR.GetResourceString("Arg_ArrayLengthsDiffer"), "namedProperties, propertyValues");
             if (namedFields.Length != fieldValues.Length)
-                throw new ArgumentException(SR.Arg_ArrayLengthsDiffer, "namedFields, fieldValues");
+                throw new ArgumentException(SR.GetResourceString("Arg_ArrayLengthsDiffer"), "namedFields, fieldValues");
 #pragma warning restore CA2208
 
             if ((con.Attributes & MethodAttributes.Static) == MethodAttributes.Static ||
                 (con.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Private)
-                throw new ArgumentException(SR.Argument_BadConstructor);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadConstructor"));
 
             if ((con.CallingConvention & CallingConventions.Standard) != CallingConventions.Standard)
-                throw new ArgumentException(SR.Argument_BadConstructorCallConv);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadConstructorCallConv"));
 
             // Cache information used elsewhere.
             m_con = con;
@@ -89,12 +89,12 @@ namespace System.Reflection.Emit
 
             // Since we're guaranteed a non-var calling convention, the number of arguments must equal the number of parameters.
             if (paramTypes.Length != constructorArgs.Length)
-                throw new ArgumentException(SR.Argument_BadParameterCountsForConstructor);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadParameterCountsForConstructor"));
 
             // Verify that the constructor has a valid signature (custom attributes only support a subset of our type system).
             for (i = 0; i < paramTypes.Length; i++)
                 if (!ValidateType(paramTypes[i]))
-                    throw new ArgumentException(SR.Argument_BadTypeInCustomAttribute);
+                    throw new ArgumentException(SR.GetResourceString("Argument_BadTypeInCustomAttribute"));
 
             // Now verify that the types of the actual parameters are compatible with the types of the formal parameters.
             for (i = 0; i < paramTypes.Length; i++)
@@ -141,11 +141,11 @@ namespace System.Reflection.Emit
 
                 // Validate property type.
                 if (!ValidateType(propType))
-                    throw new ArgumentException(SR.Argument_BadTypeInCustomAttribute);
+                    throw new ArgumentException(SR.GetResourceString("Argument_BadTypeInCustomAttribute"));
 
                 // Property has to be writable.
                 if (!property.CanWrite)
-                    throw new ArgumentException(SR.Argument_NotAWritableProperty);
+                    throw new ArgumentException(SR.GetResourceString("Argument_NotAWritableProperty"));
 
                 // Property has to be from the same class or base class as ConstructorInfo.
                 if (property.DeclaringType != con.DeclaringType
@@ -163,7 +163,7 @@ namespace System.Reflection.Emit
                         // type is one.
                         if (!(property.DeclaringType is TypeBuilder) ||
                             !con.DeclaringType.IsSubclassOf(((TypeBuilder)property.DeclaringType).BakedRuntimeType))
-                            throw new ArgumentException(SR.Argument_BadPropertyForConstructorBuilder);
+                            throw new ArgumentException(SR.GetResourceString("Argument_BadPropertyForConstructorBuilder"));
                     }
                 }
 
@@ -199,7 +199,7 @@ namespace System.Reflection.Emit
 
                 // Validate field type.
                 if (!ValidateType(fldType))
-                    throw new ArgumentException(SR.Argument_BadTypeInCustomAttribute);
+                    throw new ArgumentException(SR.GetResourceString("Argument_BadTypeInCustomAttribute"));
 
                 // Field has to be from the same class or base class as ConstructorInfo.
                 if (namedField.DeclaringType != con.DeclaringType
@@ -217,7 +217,7 @@ namespace System.Reflection.Emit
                         // type is one.
                         if (!(namedField.DeclaringType is TypeBuilder) ||
                             !con.DeclaringType.IsSubclassOf(((TypeBuilder)namedFields[i].DeclaringType!).BakedRuntimeType))
-                            throw new ArgumentException(SR.Argument_BadFieldForConstructorBuilder);
+                            throw new ArgumentException(SR.GetResourceString("Argument_BadFieldForConstructorBuilder"));
                     }
                 }
 
@@ -280,11 +280,11 @@ namespace System.Reflection.Emit
         {
             if (type != typeof(object) && Type.GetTypeCode(passedType) != Type.GetTypeCode(type))
             {
-                throw new ArgumentException(SR.Argument_ConstantDoesntMatch);
+                throw new ArgumentException(SR.GetResourceString("Argument_ConstantDoesntMatch"));
             }
             if (passedType == typeof(IntPtr) || passedType == typeof(UIntPtr))
             {
-                throw new ArgumentException(SR.Format(SR.Argument_BadParameterTypeForCAB, passedType), paramName);
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_BadParameterTypeForCAB"), passedType), paramName);
             }
         }
 
@@ -430,7 +430,7 @@ namespace System.Reflection.Emit
                 {
                     string? typeName = TypeNameBuilder.ToString((Type)value, TypeNameBuilder.Format.AssemblyQualifiedName);
                     if (typeName == null)
-                        throw new ArgumentException(SR.Format(SR.Argument_InvalidTypeForCA, value.GetType()));
+                        throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidTypeForCA"), value.GetType()));
                     EmitString(writer, typeName);
                 }
             }
@@ -503,7 +503,7 @@ namespace System.Reflection.Emit
                 // value cannot be a "System.Object" object.
                 // If we allow this we will get into an infinite recursion
                 if (ot == typeof(object))
-                    throw new ArgumentException(SR.Format(SR.Argument_BadParameterTypeForCAB, ot));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_BadParameterTypeForCAB"), ot));
 
                 EmitType(writer, ot);
                 EmitValue(writer, ot, value);
@@ -515,7 +515,7 @@ namespace System.Reflection.Emit
                 if (value != null)
                     typename = value.GetType().ToString();
 
-                throw new ArgumentException(SR.Format(SR.Argument_BadParameterTypeForCAB, typename));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_BadParameterTypeForCAB"), typename));
             }
         }
 

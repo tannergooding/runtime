@@ -178,7 +178,7 @@ namespace System.Reflection
             // Check that the criteria object is a String object
             if (!(filterCriteria is string str))
             {
-                throw new InvalidFilterCriteriaException(SR.InvalidFilterCriteriaException_CritString);
+                throw new InvalidFilterCriteriaException(SR.GetResourceString("InvalidFilterCriteriaException_CritString"));
             }
             // Check to see if this is a prefix or exact match requirement
             if (str.Length > 0 && str[^1] == '*')

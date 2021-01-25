@@ -100,7 +100,7 @@ namespace System.IO
 
             // If we can't check the handle, just assume it is ok.
             if (!(IsHandleSynchronous(handle, ignoreInvalid: false) ?? true))
-                throw new ArgumentException(SR.Arg_HandleNotSync, nameof(handle));
+                throw new ArgumentException(SR.GetResourceString("Arg_HandleNotSync"), nameof(handle));
         }
     }
 }

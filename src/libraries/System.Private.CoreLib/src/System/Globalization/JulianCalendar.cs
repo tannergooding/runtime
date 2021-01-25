@@ -63,7 +63,7 @@ namespace System.Globalization
         {
             if (era != CurrentEra && era != JulianEra)
             {
-                throw new ArgumentOutOfRangeException(nameof(era), era, SR.ArgumentOutOfRange_InvalidEraValue);
+                throw new ArgumentOutOfRangeException(nameof(era), era, SR.GetResourceString("ArgumentOutOfRange_InvalidEraValue"));
             }
         }
 
@@ -75,7 +75,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(year),
                     year,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 1, MaxYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, MaxYear));
             }
         }
 
@@ -83,7 +83,7 @@ namespace System.Globalization
         {
             if (month < 1 || month > 12)
             {
-                throw new ArgumentOutOfRangeException(nameof(month), month, SR.ArgumentOutOfRange_Month);
+                throw new ArgumentOutOfRangeException(nameof(month), month, SR.GetResourceString("ArgumentOutOfRange_Month"));
             }
         }
 
@@ -101,7 +101,7 @@ namespace System.Globalization
                 // The minimum supported Julia date is Julian 0001/01/03.
                 if (day < 3)
                 {
-                    throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadYearMonthDay);
+                    throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadYearMonthDay"));
                 }
             }
 
@@ -113,7 +113,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(day),
                     day,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 1, monthDays));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 1, monthDays));
             }
         }
 
@@ -194,7 +194,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(months),
                     months,
-                    SR.Format(SR.ArgumentOutOfRange_Range, -120000, 120000));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), -120000, 120000));
             }
 
             int y = GetDatePart(time.Ticks, DatePartYear);
@@ -321,12 +321,12 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     nameof(millisecond),
                     millisecond,
-                    SR.Format(SR.ArgumentOutOfRange_Range, 0, MillisPerSecond - 1));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 0, MillisPerSecond - 1));
             }
 
             if (hour < 0 || hour >= 24 || minute < 0 || minute >= 60 || second < 0 || second >= 60)
             {
-                throw new ArgumentOutOfRangeException(null, SR.ArgumentOutOfRange_BadHourMinuteSecond);
+                throw new ArgumentOutOfRangeException(null, SR.GetResourceString("ArgumentOutOfRange_BadHourMinuteSecond"));
             }
 
             return new DateTime(DateToTicks(year, month, day) + (new TimeSpan(0, hour, minute, second, millisecond)).Ticks);
@@ -343,7 +343,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 99, MaxYear));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 99, MaxYear));
                 }
 
                 _twoDigitYearMax = value;
@@ -354,14 +354,14 @@ namespace System.Globalization
         {
             if (year < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(year), year, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(year), year, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (year > MaxYear)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(year),
                     year,
-                    SR.Format(SR.ArgumentOutOfRange_Bounds_Lower_Upper, 1, MaxYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Bounds_Lower_Upper"), 1, MaxYear));
             }
 
             return base.ToFourDigitYear(year);

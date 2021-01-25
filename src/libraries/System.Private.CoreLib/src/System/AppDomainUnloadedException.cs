@@ -10,7 +10,7 @@ namespace System
     public class AppDomainUnloadedException : SystemException
     {
         public AppDomainUnloadedException()
-            : base(SR.Arg_AppDomainUnloadedException)
+            : base(SR.GetResourceString("Arg_AppDomainUnloadedException"))
         {
             HResult = HResults.COR_E_APPDOMAINUNLOADED;
         }

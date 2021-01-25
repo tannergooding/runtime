@@ -38,12 +38,12 @@ namespace System.Threading
             // ThreadPool implementation follows those rules.
             //
             if (overlapped._completed)
-                throw new InvalidOperationException(SR.InvalidOperation_NativeOverlappedReused);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NativeOverlappedReused"));
 
             overlapped._completed = true;
 
             if (overlapped._boundHandle == null)
-                throw new InvalidOperationException(SR.Argument_NativeOverlappedAlreadyFree);
+                throw new InvalidOperationException(SR.GetResourceString("Argument_NativeOverlappedAlreadyFree"));
 
             overlapped._userCallback(errorCode, numBytes, nativeOverlapped);
         }

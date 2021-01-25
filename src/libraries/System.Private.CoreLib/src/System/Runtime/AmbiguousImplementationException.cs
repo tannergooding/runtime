@@ -10,7 +10,7 @@ namespace System.Runtime
     public sealed class AmbiguousImplementationException : Exception
     {
         public AmbiguousImplementationException()
-            : base(SR.AmbiguousImplementationException_NullMessage)
+            : base(SR.GetResourceString("AmbiguousImplementationException_NullMessage"))
         {
             HResult = HResults.COR_E_AMBIGUOUSIMPLEMENTATION;
         }

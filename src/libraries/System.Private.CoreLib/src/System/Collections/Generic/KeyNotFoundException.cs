@@ -10,7 +10,7 @@ namespace System.Collections.Generic
     public class KeyNotFoundException : SystemException
     {
         public KeyNotFoundException()
-            : base(SR.Arg_KeyNotFound)
+            : base(SR.GetResourceString("Arg_KeyNotFound"))
         {
             HResult = HResults.COR_E_KEYNOTFOUND;
         }

@@ -33,7 +33,7 @@ namespace System
                     {
                         if (c == Quote)
                         {
-                            throw new ApplicationException(SR.Argv_IncludeDoubleQuote);
+                            throw new ApplicationException(SR.GetResourceString("Argv_IncludeDoubleQuote"));
                         }
                         if (char.IsWhiteSpace(c))
                         {

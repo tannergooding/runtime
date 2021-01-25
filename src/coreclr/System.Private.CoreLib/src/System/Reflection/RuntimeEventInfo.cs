@@ -64,7 +64,7 @@ namespace System.Reflection
         public override string ToString()
         {
             if (m_addMethod == null || m_addMethod.GetParametersNoCopy().Length == 0)
-                throw new InvalidOperationException(SR.InvalidOperation_NoPublicAddMethod);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NoPublicAddMethod"));
 
             return m_addMethod.GetParametersNoCopy()[0].ParameterType.FormatTypeName() + " " + Name;
         }
@@ -84,7 +84,7 @@ namespace System.Reflection
             RuntimeType? attributeRuntimeType = attributeType.UnderlyingSystemType as RuntimeType;
 
             if (attributeRuntimeType == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(attributeType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(attributeType));
 
             return CustomAttribute.GetCustomAttributes(this, attributeRuntimeType);
         }
@@ -97,7 +97,7 @@ namespace System.Reflection
             RuntimeType? attributeRuntimeType = attributeType.UnderlyingSystemType as RuntimeType;
 
             if (attributeRuntimeType == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(attributeType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(attributeType));
 
             return CustomAttribute.IsDefined(this, attributeRuntimeType);
         }

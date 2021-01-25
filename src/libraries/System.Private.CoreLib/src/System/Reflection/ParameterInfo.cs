@@ -57,7 +57,7 @@ namespace System.Reflection
             // instance based on just two of them (MemberImpl and PositionImpl).
 
             if (MemberImpl == null)
-                throw new SerializationException(SR.Serialization_InsufficientState);
+                throw new SerializationException(SR.GetResourceString("Serialization_InsufficientState"));
 
             ParameterInfo[] args;
             switch (MemberImpl.MemberType)
@@ -69,7 +69,7 @@ namespace System.Reflection
                         if (MemberImpl.MemberType == MemberTypes.Method)
                             return ((MethodInfo)MemberImpl).ReturnParameter;
                         else
-                            throw new SerializationException(SR.Serialization_BadParameterInfo);
+                            throw new SerializationException(SR.GetResourceString("Serialization_BadParameterInfo"));
                     }
                     else
                     {
@@ -78,7 +78,7 @@ namespace System.Reflection
                         if (args != null && PositionImpl < args.Length)
                             return args[PositionImpl];
                         else
-                            throw new SerializationException(SR.Serialization_BadParameterInfo);
+                            throw new SerializationException(SR.GetResourceString("Serialization_BadParameterInfo"));
                     }
 
                 case MemberTypes.Property:
@@ -87,10 +87,10 @@ namespace System.Reflection
                     if (args != null && PositionImpl > -1 && PositionImpl < args.Length)
                         return args[PositionImpl];
                     else
-                        throw new SerializationException(SR.Serialization_BadParameterInfo);
+                        throw new SerializationException(SR.GetResourceString("Serialization_BadParameterInfo"));
 
                 default:
-                    throw new SerializationException(SR.Serialization_NoParameterInfo);
+                    throw new SerializationException(SR.GetResourceString("Serialization_NoParameterInfo"));
             }
         }
 

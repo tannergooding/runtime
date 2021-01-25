@@ -26,7 +26,7 @@ namespace System.Buffers.Text
                 case 'G':
                 case 'g':
                     if (format.HasPrecision)
-                        throw new NotSupportedException(SR.Argument_GWithPrecisionNotSupported); // With a precision, 'G' can produce exponential format, even for integers.
+                        throw new NotSupportedException(SR.GetResourceString("Argument_GWithPrecisionNotSupported")); // With a precision, 'G' can produce exponential format, even for integers.
                     return TryFormatUInt64D(value, format.Precision, destination, insertNegationSign: false, out bytesWritten);
 
                 case 'd':

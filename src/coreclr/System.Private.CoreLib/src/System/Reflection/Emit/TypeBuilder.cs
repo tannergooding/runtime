@@ -67,7 +67,7 @@ namespace System.Reflection.Emit
         public static MethodInfo GetMethod(Type type, MethodInfo method)
         {
             if (!(type is TypeBuilder) && !(type is TypeBuilderInstantiation))
-                throw new ArgumentException(SR.Argument_MustBeTypeBuilder);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeTypeBuilder"));
 
             // The following checks establishes invariants that more simply put require type to be generic and
             // method to be a generic method definition declared on the generic type definition of type.
@@ -77,13 +77,13 @@ namespace System.Reflection.Emit
             // if we wanted to but that just complicates things so these checks are designed to prevent that scenario.
 
             if (method.IsGenericMethod && !method.IsGenericMethodDefinition)
-                throw new ArgumentException(SR.Argument_NeedGenericMethodDefinition, nameof(method));
+                throw new ArgumentException(SR.GetResourceString("Argument_NeedGenericMethodDefinition"), nameof(method));
 
             if (method.DeclaringType == null || !method.DeclaringType.IsGenericTypeDefinition)
-                throw new ArgumentException(SR.Argument_MethodNeedGenericDeclaringType, nameof(method));
+                throw new ArgumentException(SR.GetResourceString("Argument_MethodNeedGenericDeclaringType"), nameof(method));
 
             if (type.GetGenericTypeDefinition() != method.DeclaringType)
-                throw new ArgumentException(SR.Argument_InvalidMethodDeclaringType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidMethodDeclaringType"), nameof(type));
 
             // The following converts from Type or TypeBuilder of G<T> to TypeBuilderInstantiation G<T>. These types
             // both logically represent the same thing. The runtime displays a similar convention by having
@@ -92,7 +92,7 @@ namespace System.Reflection.Emit
                 type = type.MakeGenericType(type.GetGenericArguments());
 
             if (!(type is TypeBuilderInstantiation))
-                throw new ArgumentException(SR.Argument_NeedNonGenericType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_NeedNonGenericType"), nameof(type));
 
             return MethodOnTypeBuilderInstantiation.GetMethod(method, (type as TypeBuilderInstantiation)!);
         }
@@ -102,20 +102,20 @@ namespace System.Reflection.Emit
         public static ConstructorInfo GetConstructor(Type type, ConstructorInfo constructor)
         {
             if (!(type is TypeBuilder) && !(type is TypeBuilderInstantiation))
-                throw new ArgumentException(SR.Argument_MustBeTypeBuilder);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeTypeBuilder"));
 
             if (!constructor.DeclaringType!.IsGenericTypeDefinition)
-                throw new ArgumentException(SR.Argument_ConstructorNeedGenericDeclaringType, nameof(constructor));
+                throw new ArgumentException(SR.GetResourceString("Argument_ConstructorNeedGenericDeclaringType"), nameof(constructor));
 
             if (!(type is TypeBuilderInstantiation))
-                throw new ArgumentException(SR.Argument_NeedNonGenericType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_NeedNonGenericType"), nameof(type));
 
             // TypeBuilder G<T> ==> TypeBuilderInstantiation G<T>
             if (type is TypeBuilder && type.IsGenericTypeDefinition)
                 type = type.MakeGenericType(type.GetGenericArguments());
 
             if (type.GetGenericTypeDefinition() != constructor.DeclaringType)
-                throw new ArgumentException(SR.Argument_InvalidConstructorDeclaringType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidConstructorDeclaringType"), nameof(type));
 
             return ConstructorOnTypeBuilderInstantiation.GetConstructor(constructor, (type as TypeBuilderInstantiation)!);
         }
@@ -125,20 +125,20 @@ namespace System.Reflection.Emit
         public static FieldInfo GetField(Type type, FieldInfo field)
         {
             if (!(type is TypeBuilder) && !(type is TypeBuilderInstantiation))
-                throw new ArgumentException(SR.Argument_MustBeTypeBuilder);
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeTypeBuilder"));
 
             if (!field.DeclaringType!.IsGenericTypeDefinition)
-                throw new ArgumentException(SR.Argument_FieldNeedGenericDeclaringType, nameof(field));
+                throw new ArgumentException(SR.GetResourceString("Argument_FieldNeedGenericDeclaringType"), nameof(field));
 
             if (!(type is TypeBuilderInstantiation))
-                throw new ArgumentException(SR.Argument_NeedNonGenericType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_NeedNonGenericType"), nameof(type));
 
             // TypeBuilder G<T> ==> TypeBuilderInstantiation G<T>
             if (type is TypeBuilder && type.IsGenericTypeDefinition)
                 type = type.MakeGenericType(type.GetGenericArguments());
 
             if (type.GetGenericTypeDefinition() != field.DeclaringType)
-                throw new ArgumentException(SR.Argument_InvalidFieldDeclaringType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidFieldDeclaringType"), nameof(type));
 
             return FieldOnTypeBuilderInstantiation.GetField(field, (type as TypeBuilderInstantiation)!);
         }
@@ -318,7 +318,7 @@ namespace System.Reflection.Emit
                         // The constant value supplied should match either the baked enum type or its underlying type
                         // we don't need to compare it with the EnumBuilder itself because you can never have an object of that type
                         if (type != enumBldr.m_typeBuilder.m_bakedRuntimeType && type != underlyingType)
-                            throw new ArgumentException(SR.Argument_ConstantDoesntMatch);
+                            throw new ArgumentException(SR.GetResourceString("Argument_ConstantDoesntMatch"));
                     }
                     else if (destType is TypeBuilder typeBldr)
                     {
@@ -327,7 +327,7 @@ namespace System.Reflection.Emit
                         // The constant value supplied should match either the baked enum type or its underlying type
                         // typeBldr.m_enumUnderlyingType is null if the user hasn't created a "value__" field on the enum
                         if (underlyingType == null || (type != typeBldr.UnderlyingSystemType && type != underlyingType))
-                            throw new ArgumentException(SR.Argument_ConstantDoesntMatch);
+                            throw new ArgumentException(SR.GetResourceString("Argument_ConstantDoesntMatch"));
                     }
                     else // must be a runtime Enum Type
                     {
@@ -337,7 +337,7 @@ namespace System.Reflection.Emit
 
                         // The constant value supplied should match either the enum itself or its underlying type
                         if (type != destType && type != underlyingType)
-                            throw new ArgumentException(SR.Argument_ConstantDoesntMatch);
+                            throw new ArgumentException(SR.GetResourceString("Argument_ConstantDoesntMatch"));
                     }
 
                     type = underlyingType;
@@ -346,7 +346,7 @@ namespace System.Reflection.Emit
                 {
                     // Note that it is non CLS compliant if destType != type. But RefEmit never guarantees CLS-Compliance.
                     if (!destType.IsAssignableFrom(type))
-                        throw new ArgumentException(SR.Argument_ConstantDoesntMatch);
+                        throw new ArgumentException(SR.GetResourceString("Argument_ConstantDoesntMatch"));
                 }
 
                 CorElementType corType = RuntimeTypeHandle.GetCorElementType((RuntimeType)type);
@@ -383,7 +383,7 @@ namespace System.Reflection.Emit
                         }
                         else
                         {
-                            throw new ArgumentException(SR.Format(SR.Argument_ConstantNotSupported, type));
+                            throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_ConstantNotSupported"), type));
                         }
                         break;
                 }
@@ -484,13 +484,13 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(fullname));
 
             if (fullname.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(fullname));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(fullname));
 
             if (fullname[0] == '\0')
-                throw new ArgumentException(SR.Argument_IllegalName, nameof(fullname));
+                throw new ArgumentException(SR.GetResourceString("Argument_IllegalName"), nameof(fullname));
 
             if (fullname.Length > 1023)
-                throw new ArgumentException(SR.Argument_TypeNameTooLong, nameof(fullname));
+                throw new ArgumentException(SR.GetResourceString("Argument_TypeNameTooLong"), nameof(fullname));
 
             int i;
             m_module = module;
@@ -505,7 +505,7 @@ namespace System.Reflection.Emit
                 // Nested Type should have nested attribute set.
                 // If we are renumbering TypeAttributes' bit, we need to change the logic here.
                 if (((attr & TypeAttributes.VisibilityMask) == TypeAttributes.Public) || ((attr & TypeAttributes.VisibilityMask) == TypeAttributes.NotPublic))
-                    throw new ArgumentException(SR.Argument_BadNestedTypeFlags, nameof(attr));
+                    throw new ArgumentException(SR.GetResourceString("Argument_BadNestedTypeFlags"), nameof(attr));
             }
 
             int[]? interfaceTokens = null;
@@ -585,10 +585,10 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(name));
 
             if (name.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
 
             if (size <= 0 || size >= 0x003f0000)
-                throw new ArgumentException(SR.Argument_BadSizeForData);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadSizeForData"));
 
             ThrowIfCreated();
 
@@ -623,7 +623,7 @@ namespace System.Reflection.Emit
                 // Not a nested class.
                 if (((attr & TypeAttributes.VisibilityMask) != TypeAttributes.NotPublic) && ((attr & TypeAttributes.VisibilityMask) != TypeAttributes.Public))
                 {
-                    throw new ArgumentException(SR.Argument_BadTypeAttrNestedVisibilityOnNonNestedType);
+                    throw new ArgumentException(SR.GetResourceString("Argument_BadTypeAttrNestedVisibilityOnNonNestedType"));
                 }
             }
             else
@@ -631,20 +631,20 @@ namespace System.Reflection.Emit
                 // Nested class.
                 if (((attr & TypeAttributes.VisibilityMask) == TypeAttributes.NotPublic) || ((attr & TypeAttributes.VisibilityMask) == TypeAttributes.Public))
                 {
-                    throw new ArgumentException(SR.Argument_BadTypeAttrNonNestedVisibilityNestedType);
+                    throw new ArgumentException(SR.GetResourceString("Argument_BadTypeAttrNonNestedVisibilityNestedType"));
                 }
             }
 
             // Verify that the layout mask is valid.
             if (((attr & TypeAttributes.LayoutMask) != TypeAttributes.AutoLayout) && ((attr & TypeAttributes.LayoutMask) != TypeAttributes.SequentialLayout) && ((attr & TypeAttributes.LayoutMask) != TypeAttributes.ExplicitLayout))
             {
-                throw new ArgumentException(SR.Argument_BadTypeAttrInvalidLayout);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadTypeAttrInvalidLayout"));
             }
 
             // Check if the user attempted to set any reserved bits.
             if ((attr & TypeAttributes.ReservedMask) != 0)
             {
-                throw new ArgumentException(SR.Argument_BadTypeAttrReservedBitsSet);
+                throw new ArgumentException(SR.GetResourceString("Argument_BadTypeAttrReservedBitsSet"));
             }
         }
 
@@ -671,7 +671,7 @@ namespace System.Reflection.Emit
         internal void ThrowIfCreated()
         {
             if (IsCreated())
-                throw new InvalidOperationException(SR.InvalidOperation_TypeHasBeenCreated);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_TypeHasBeenCreated"));
         }
 
         internal object SyncRoot => m_module.SyncRoot;
@@ -746,7 +746,7 @@ namespace System.Reflection.Emit
             get
             {
                 if (!IsCreated())
-                    throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                    throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
                 return m_bakedRuntimeType.GUID;
             }
@@ -757,14 +757,14 @@ namespace System.Reflection.Emit
             object?[]? args, ParameterModifier[]? modifiers, CultureInfo? culture, string[]? namedParameters)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.InvokeMember(name, invokeAttr, binder, target, args, modifiers, culture, namedParameters);
         }
 
         public override Assembly Assembly => m_module.Assembly;
 
-        public override RuntimeTypeHandle TypeHandle => throw new NotSupportedException(SR.NotSupported_DynamicModule);
+        public override RuntimeTypeHandle TypeHandle => throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
 
         public override string? FullName => m_strFullQualName ??= TypeNameBuilder.ToString(this, TypeNameBuilder.Format.FullName);
 
@@ -779,7 +779,7 @@ namespace System.Reflection.Emit
                 CallingConventions callConvention, Type[] types, ParameterModifier[]? modifiers)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetConstructor(bindingAttr, binder, callConvention, types, modifiers);
         }
@@ -788,7 +788,7 @@ namespace System.Reflection.Emit
         public override ConstructorInfo[] GetConstructors(BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetConstructors(bindingAttr);
         }
@@ -798,7 +798,7 @@ namespace System.Reflection.Emit
                 CallingConventions callConvention, Type[]? types, ParameterModifier[]? modifiers)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             if (types == null)
             {
@@ -814,7 +814,7 @@ namespace System.Reflection.Emit
         public override MethodInfo[] GetMethods(BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetMethods(bindingAttr);
         }
@@ -823,7 +823,7 @@ namespace System.Reflection.Emit
         public override FieldInfo? GetField(string name, BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetField(name, bindingAttr);
         }
@@ -832,7 +832,7 @@ namespace System.Reflection.Emit
         public override FieldInfo[] GetFields(BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetFields(bindingAttr);
         }
@@ -840,7 +840,7 @@ namespace System.Reflection.Emit
         public override Type? GetInterface(string name, bool ignoreCase)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetInterface(name, ignoreCase);
         }
@@ -864,7 +864,7 @@ namespace System.Reflection.Emit
         public override EventInfo? GetEvent(string name, BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetEvent(name, bindingAttr);
         }
@@ -873,7 +873,7 @@ namespace System.Reflection.Emit
         public override EventInfo[] GetEvents()
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetEvents();
         }
@@ -882,14 +882,14 @@ namespace System.Reflection.Emit
         protected override PropertyInfo GetPropertyImpl(string name, BindingFlags bindingAttr, Binder? binder,
                 Type? returnType, Type[]? types, ParameterModifier[]? modifiers)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.NonPublicProperties)]
         public override PropertyInfo[] GetProperties(BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetProperties(bindingAttr);
         }
@@ -898,7 +898,7 @@ namespace System.Reflection.Emit
         public override Type[] GetNestedTypes(BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetNestedTypes(bindingAttr);
         }
@@ -907,7 +907,7 @@ namespace System.Reflection.Emit
         public override Type? GetNestedType(string name, BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetNestedType(name, bindingAttr);
         }
@@ -916,7 +916,7 @@ namespace System.Reflection.Emit
         public override MemberInfo[] GetMember(string name, MemberTypes type, BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetMember(name, type, bindingAttr);
         }
@@ -924,7 +924,7 @@ namespace System.Reflection.Emit
         public override InterfaceMapping GetInterfaceMap(Type interfaceType)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetInterfaceMap(interfaceType);
         }
@@ -933,7 +933,7 @@ namespace System.Reflection.Emit
         public override EventInfo[] GetEvents(BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetEvents(bindingAttr);
         }
@@ -942,7 +942,7 @@ namespace System.Reflection.Emit
         public override MemberInfo[] GetMembers(BindingFlags bindingAttr)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return m_bakedRuntimeType.GetMembers(bindingAttr);
         }
@@ -1030,7 +1030,7 @@ namespace System.Reflection.Emit
         public override Type GetElementType()
         {
             // You will never have to deal with a TypeBuilder if you are just referring to arrays.
-            throw new NotSupportedException(SR.NotSupported_DynamicModule);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
         }
 
         protected override bool HasElementTypeImpl()
@@ -1074,7 +1074,7 @@ namespace System.Reflection.Emit
                 if (IsEnum)
                 {
                     if (m_enumUnderlyingType == null)
-                        throw new InvalidOperationException(SR.InvalidOperation_NoUnderlyingTypeOnEnum);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NoUnderlyingTypeOnEnum"));
 
                     return m_enumUnderlyingType;
                 }
@@ -1112,7 +1112,7 @@ namespace System.Reflection.Emit
         public override object[] GetCustomAttributes(bool inherit)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             return CustomAttribute.GetCustomAttributes(m_bakedRuntimeType, (typeof(object) as RuntimeType)!, inherit);
         }
@@ -1120,7 +1120,7 @@ namespace System.Reflection.Emit
         public override object[] GetCustomAttributes(Type attributeType, bool inherit)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             if (attributeType == null)
                 throw new ArgumentNullException(nameof(attributeType));
@@ -1128,7 +1128,7 @@ namespace System.Reflection.Emit
             RuntimeType? attributeRuntimeType = attributeType.UnderlyingSystemType as RuntimeType;
 
             if (attributeRuntimeType == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(attributeType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(attributeType));
 
             return CustomAttribute.GetCustomAttributes(m_bakedRuntimeType, attributeRuntimeType, inherit);
         }
@@ -1136,7 +1136,7 @@ namespace System.Reflection.Emit
         public override bool IsDefined(Type attributeType, bool inherit)
         {
             if (!IsCreated())
-                throw new NotSupportedException(SR.NotSupported_TypeNotYetCreated);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_TypeNotYetCreated"));
 
             if (attributeType == null)
                 throw new ArgumentNullException(nameof(attributeType));
@@ -1144,7 +1144,7 @@ namespace System.Reflection.Emit
             RuntimeType? attributeRuntimeType = attributeType.UnderlyingSystemType as RuntimeType;
 
             if (attributeRuntimeType == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(attributeType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(attributeType));
 
             return CustomAttribute.IsDefined(m_bakedRuntimeType, attributeRuntimeType, inherit);
         }
@@ -1173,7 +1173,7 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(names));
 
             if (names.Length == 0)
-                throw new ArgumentException(SR.Arg_EmptyArray, nameof(names));
+                throw new ArgumentException(SR.GetResourceString("Arg_EmptyArray"), nameof(names));
 
             for (int i = 0; i < names.Length; i++)
                 if (names[i] == null)
@@ -1231,7 +1231,7 @@ namespace System.Reflection.Emit
 
             if (!ReferenceEquals(methodInfoBody.DeclaringType, this))
                 // Loader restriction: body method has to be from this class
-                throw new ArgumentException(SR.ArgumentException_BadMethodImplBody);
+                throw new ArgumentException(SR.GetResourceString("ArgumentException_BadMethodImplBody"));
 
             int tkBody = m_module.GetMethodToken(methodInfoBody);
             int tkDecl = m_module.GetMethodToken(methodInfoDeclaration);
@@ -1283,7 +1283,7 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(name));
 
             if (name.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
 
             AssemblyBuilder.CheckContext(returnType);
             AssemblyBuilder.CheckContext(returnTypeRequiredCustomModifiers, returnTypeOptionalCustomModifiers, parameterTypes);
@@ -1293,10 +1293,10 @@ namespace System.Reflection.Emit
             if (parameterTypes != null)
             {
                 if (parameterTypeOptionalCustomModifiers != null && parameterTypeOptionalCustomModifiers.Length != parameterTypes.Length)
-                    throw new ArgumentException(SR.Format(SR.Argument_MismatchedArrays, nameof(parameterTypeOptionalCustomModifiers), nameof(parameterTypes)));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_MismatchedArrays"), nameof(parameterTypeOptionalCustomModifiers), nameof(parameterTypes)));
 
                 if (parameterTypeRequiredCustomModifiers != null && parameterTypeRequiredCustomModifiers.Length != parameterTypes.Length)
-                    throw new ArgumentException(SR.Format(SR.Argument_MismatchedArrays, nameof(parameterTypeRequiredCustomModifiers), nameof(parameterTypes)));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_MismatchedArrays"), nameof(parameterTypeRequiredCustomModifiers), nameof(parameterTypes)));
             }
 
             ThrowIfCreated();
@@ -1373,25 +1373,25 @@ namespace System.Reflection.Emit
                     throw new ArgumentNullException(nameof(name));
 
                 if (name.Length == 0)
-                    throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                    throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
 
                 if (dllName == null)
                     throw new ArgumentNullException(nameof(dllName));
 
                 if (dllName.Length == 0)
-                    throw new ArgumentException(SR.Argument_EmptyName, nameof(dllName));
+                    throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(dllName));
 
                 if (importName == null)
                     throw new ArgumentNullException(nameof(importName));
 
                 if (importName.Length == 0)
-                    throw new ArgumentException(SR.Argument_EmptyName, nameof(importName));
+                    throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(importName));
 
                 if ((attributes & MethodAttributes.Abstract) != 0)
-                    throw new ArgumentException(SR.Argument_BadPInvokeMethod);
+                    throw new ArgumentException(SR.GetResourceString("Argument_BadPInvokeMethod"));
 
                 if ((m_iAttr & TypeAttributes.ClassSemanticsMask) == TypeAttributes.Interface)
-                    throw new ArgumentException(SR.Argument_BadPInvokeOnInterface);
+                    throw new ArgumentException(SR.GetResourceString("Argument_BadPInvokeOnInterface"));
 
                 ThrowIfCreated();
 
@@ -1407,7 +1407,7 @@ namespace System.Reflection.Emit
 
                 if (m_listMethods!.Contains(method))
                 {
-                    throw new ArgumentException(SR.Argument_MethodRedefined);
+                    throw new ArgumentException(SR.GetResourceString("Argument_MethodRedefined"));
                 }
                 m_listMethods.Add(method);
 
@@ -1490,7 +1490,7 @@ namespace System.Reflection.Emit
         {
             if ((m_iAttr & TypeAttributes.Interface) == TypeAttributes.Interface)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ConstructorNotAllowedOnInterface);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ConstructorNotAllowedOnInterface"));
             }
 
             lock (SyncRoot)
@@ -1523,7 +1523,7 @@ namespace System.Reflection.Emit
                     genericTypeDefinition = ((TypeBuilder)genericTypeDefinition).m_bakedRuntimeType;
 
                 if (genericTypeDefinition == null)
-                    throw new NotSupportedException(SR.NotSupported_DynamicModule);
+                    throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicModule"));
 
                 Type inst = genericTypeDefinition.MakeGenericType(m_typeParent.GetGenericArguments());
 
@@ -1541,7 +1541,7 @@ namespace System.Reflection.Emit
             }
 
             if (con == null)
-                throw new NotSupportedException(SR.NotSupported_NoParentDefaultConstructor);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_NoParentDefaultConstructor"));
 
             // Define the constructor Builder
             constBuilder = DefineConstructor(attributes, CallingConventions.Standard, null);
@@ -1567,7 +1567,7 @@ namespace System.Reflection.Emit
         {
             if ((m_iAttr & TypeAttributes.Interface) == TypeAttributes.Interface && (attributes & MethodAttributes.Static) != MethodAttributes.Static)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_ConstructorNotAllowedOnInterface);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ConstructorNotAllowedOnInterface"));
             }
 
             lock (SyncRoot)
@@ -1790,7 +1790,7 @@ namespace System.Reflection.Emit
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
             if (name.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
 
             AssemblyBuilder.CheckContext(returnType);
             AssemblyBuilder.CheckContext(returnTypeRequiredCustomModifiers, returnTypeOptionalCustomModifiers, parameterTypes);
@@ -1845,9 +1845,9 @@ namespace System.Reflection.Emit
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
             if (name.Length == 0)
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
             if (name[0] == '\0')
-                throw new ArgumentException(SR.Argument_IllegalName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_IllegalName"), nameof(name));
 
             int tkType;
             int evToken;
@@ -2008,7 +2008,7 @@ namespace System.Reflection.Emit
                 // Check that they haven't declared an abstract method on a non-abstract class
                 if (((methodAttrs & MethodAttributes.Abstract) != 0) && ((m_iAttr & TypeAttributes.Abstract) == 0))
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_BadTypeAttributesNotAbstract);
+                    throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_BadTypeAttributesNotAbstract"));
                 }
 
                 byte[]? body = meth.GetBody();
@@ -2023,7 +2023,7 @@ namespace System.Reflection.Emit
                     // ((m_iAttr & TypeAttributes.ClassSemanticsMask) == TypeAttributes.Interface))
 
                     if (body != null)
-                        throw new InvalidOperationException(SR.Format(SR.InvalidOperation_BadMethodBody, meth.Name));
+                        throw new InvalidOperationException(SR.Format(SR.GetResourceString("InvalidOperation_BadMethodBody"), meth.Name));
                 }
                 else if (body == null || body.Length == 0)
                 {
@@ -2038,7 +2038,7 @@ namespace System.Reflection.Emit
 
                     if ((body == null || body.Length == 0) && !meth.m_canBeRuntimeImpl)
                         throw new InvalidOperationException(
-                            SR.Format(SR.InvalidOperation_BadEmptyMethodBody, meth.Name));
+                            SR.Format(SR.GetResourceString("InvalidOperation_BadEmptyMethodBody"), meth.Name));
                 }
 
                 int maxStack = meth.GetMaxStack();
@@ -2100,7 +2100,7 @@ namespace System.Reflection.Emit
                 AssemblyBuilder.CheckContext(parent);
 
                 if (parent.IsInterface)
-                    throw new ArgumentException(SR.Argument_CannotSetParentToInterface);
+                    throw new ArgumentException(SR.GetResourceString("Argument_CannotSetParentToInterface"));
 
                 m_typeParent = parent;
             }
@@ -2113,7 +2113,7 @@ namespace System.Reflection.Emit
                 else
                 {
                     if ((m_iAttr & TypeAttributes.Abstract) == 0)
-                        throw new InvalidOperationException(SR.InvalidOperation_BadInterfaceNotAbstract);
+                        throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_BadInterfaceNotAbstract"));
 
                     // there is no extends for interface class
                     m_typeParent = null;

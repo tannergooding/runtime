@@ -10,12 +10,12 @@ namespace System.Security.Cryptography
     public class CryptographicException : SystemException
     {
         public CryptographicException()
-            : base(SR.Arg_CryptographyException)
+            : base(SR.GetResourceString("Arg_CryptographyException"))
         {
         }
 
         public CryptographicException(int hr)
-            : base(SR.Arg_CryptographyException)
+            : base(SR.GetResourceString("Arg_CryptographyException"))
         {
             HResult = hr;
         }

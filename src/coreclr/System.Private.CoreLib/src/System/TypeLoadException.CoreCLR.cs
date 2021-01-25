@@ -32,12 +32,12 @@ namespace System
             {
                 if (_className == null && _resourceId == 0)
                 {
-                    _message = SR.Arg_TypeLoadException;
+                    _message = SR.GetResourceString("Arg_TypeLoadException");
                 }
                 else
                 {
-                    _assemblyName ??= SR.IO_UnknownFileName;
-                    _className ??= SR.IO_UnknownFileName;
+                    _assemblyName ??= SR.GetResourceString("IO_UnknownFileName");
+                    _className ??= SR.GetResourceString("IO_UnknownFileName");
 
                     string? format = null;
                     GetTypeLoadExceptionMessage(_resourceId, new StringHandleOnStack(ref format));

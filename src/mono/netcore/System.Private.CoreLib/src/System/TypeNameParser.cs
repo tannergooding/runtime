@@ -134,7 +134,7 @@ namespace System
             {
                 Assembly? assembly = assemblyResolver(aname);
                 if (assembly == null && throwOnError)
-                    throw new FileNotFoundException(SR.FileNotFound_ResolveAssembly, name);
+                    throw new FileNotFoundException(SR.GetResourceString("FileNotFound_ResolveAssembly"), name);
                 return assembly;
             }
         }
@@ -152,9 +152,9 @@ namespace System
                 if (type == null && throwOnError)
                 {
                     if (assembly == null)
-                        throw new TypeLoadException(SR.Format(SR.TypeLoad_ResolveType, name));
+                        throw new TypeLoadException(SR.Format(SR.GetResourceString("TypeLoad_ResolveType"), name));
                     else
-                        throw new TypeLoadException(SR.Format(SR.TypeLoad_ResolveTypeFromAssembly, name, assembly.FullName));
+                        throw new TypeLoadException(SR.Format(SR.GetResourceString("TypeLoad_ResolveTypeFromAssembly"), name, assembly.FullName));
                 }
             }
             else
@@ -179,7 +179,7 @@ namespace System
                 if (type == null)
                 {
                     if (throwOnError)
-                        throw new TypeLoadException(SR.Format(SR.TypeLoad_ResolveNestedType, names[i], names[i - 1]));
+                        throw new TypeLoadException(SR.Format(SR.GetResourceString("TypeLoad_ResolveNestedType"), names[i], names[i - 1]));
                     else
                         break;
                 }

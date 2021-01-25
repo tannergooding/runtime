@@ -126,7 +126,7 @@ namespace System.Resources
         {
             IDictionary? copyOfTableAsIDictionary = _table;  // Avoid a race with Dispose
             if (copyOfTableAsIDictionary == null)
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ResourceSet);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ResourceSet"));
 
              // Use IDictionary.GetEnumerator() for backward compatibility. Callers expect the enumerator to return DictionaryEntry instances.
             return copyOfTableAsIDictionary.GetEnumerator();
@@ -143,7 +143,7 @@ namespace System.Resources
             if (obj is null)
                 return null;
 
-            throw new InvalidOperationException(SR.Format(SR.InvalidOperation_ResourceNotString_Name, name));
+            throw new InvalidOperationException(SR.Format(SR.GetResourceString("InvalidOperation_ResourceNotString_Name"), name));
         }
 
         public virtual string? GetString(string name, bool ignoreCase)
@@ -154,7 +154,7 @@ namespace System.Resources
                 return s;
 
             if (obj is not null)
-                throw new InvalidOperationException(SR.Format(SR.InvalidOperation_ResourceNotString_Name, name));
+                throw new InvalidOperationException(SR.Format(SR.GetResourceString("InvalidOperation_ResourceNotString_Name"), name));
 
             if (!ignoreCase)
                 return null;
@@ -167,7 +167,7 @@ namespace System.Resources
             if (obj is null)
                 return null;
 
-            throw new InvalidOperationException(SR.Format(SR.InvalidOperation_ResourceNotString_Name, name));
+            throw new InvalidOperationException(SR.Format(SR.GetResourceString("InvalidOperation_ResourceNotString_Name"), name));
         }
 
         // Look up an object value for a resource given its name.
@@ -208,7 +208,7 @@ namespace System.Resources
             Dictionary<object, object?>? copyOfTable = _table;  // Avoid a race with Dispose
 
             if (copyOfTable == null)
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ResourceSet);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ResourceSet"));
 
             copyOfTable.TryGetValue(name, out object? value);
             return value;
@@ -219,7 +219,7 @@ namespace System.Resources
             Dictionary<object, object?>? copyOfTable = _table;  // Avoid a race with Dispose
 
             if (copyOfTable == null)
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_ResourceSet);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_ResourceSet"));
 
             Dictionary<string, object?>? caseTable = _caseInsensitiveTable;  // Avoid a race condition with Close
             if (caseTable == null)

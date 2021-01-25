@@ -86,12 +86,12 @@ namespace System.Reflection
                 {
                     if (target == null)
                     {
-                        throw new TargetException(SR.RFLCT_Targ_StatFldReqTarg);
+                        throw new TargetException(SR.GetResourceString("RFLCT_Targ_StatFldReqTarg"));
                     }
                     else
                     {
                         throw new ArgumentException(
-                            SR.Format(SR.Arg_FieldDeclTarget,
+                            SR.Format(SR.GetResourceString("Arg_FieldDeclTarget"),
                                 Name, m_declaringType, target.GetType()));
                     }
                 }
@@ -130,7 +130,7 @@ namespace System.Reflection
             if ((invocationFlags & INVOCATION_FLAGS.INVOCATION_FLAGS_NO_INVOKE) != 0)
             {
                 if (declaringType != null && DeclaringType!.ContainsGenericParameters)
-                    throw new InvalidOperationException(SR.Arg_UnboundGenField);
+                    throw new InvalidOperationException(SR.GetResourceString("Arg_UnboundGenField"));
 
                 throw new FieldAccessException();
             }
@@ -160,7 +160,7 @@ namespace System.Reflection
         public override object? GetValueDirect(TypedReference obj)
         {
             if (obj.IsNull)
-                throw new ArgumentException(SR.Arg_TypedReference_Null);
+                throw new ArgumentException(SR.GetResourceString("Arg_TypedReference_Null"));
 
             // Passing TypedReference by reference is easier to make correct in native code
             return RuntimeFieldHandle.GetValueDirect(this, (RuntimeType)FieldType, &obj, (RuntimeType?)DeclaringType);
@@ -176,7 +176,7 @@ namespace System.Reflection
             if ((invocationFlags & INVOCATION_FLAGS.INVOCATION_FLAGS_NO_INVOKE) != 0)
             {
                 if (declaringType != null && declaringType.ContainsGenericParameters)
-                    throw new InvalidOperationException(SR.Arg_UnboundGenField);
+                    throw new InvalidOperationException(SR.GetResourceString("Arg_UnboundGenField"));
 
                 throw new FieldAccessException();
             }
@@ -204,7 +204,7 @@ namespace System.Reflection
         public override void SetValueDirect(TypedReference obj, object value)
         {
             if (obj.IsNull)
-                throw new ArgumentException(SR.Arg_TypedReference_Null);
+                throw new ArgumentException(SR.GetResourceString("Arg_TypedReference_Null"));
 
             // Passing TypedReference by reference is easier to make correct in native code
             RuntimeFieldHandle.SetValueDirect(this, (RuntimeType)FieldType, &obj, value, (RuntimeType?)DeclaringType);

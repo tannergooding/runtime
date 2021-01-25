@@ -158,7 +158,7 @@ namespace System
             }
             if (!(obj is bool))
             {
-                throw new ArgumentException(SR.Arg_MustBeBoolean);
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeBoolean"));
             }
 
             if (m_value == ((bool)obj).m_value)
@@ -219,7 +219,7 @@ namespace System
         }
 
         public static bool Parse(ReadOnlySpan<char> value) =>
-            TryParse(value, out bool result) ? result : throw new FormatException(SR.Format(SR.Format_BadBoolean, new string(value)));
+            TryParse(value, out bool result) ? result : throw new FormatException(SR.Format(SR.GetResourceString("Format_BadBoolean"), new string(value)));
 
         // Determines whether a String represents true or false.
         //
@@ -310,7 +310,7 @@ namespace System
 
         char IConvertible.ToChar(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "Boolean", "Char"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "Boolean", "Char"));
         }
 
         sbyte IConvertible.ToSByte(IFormatProvider? provider)
@@ -370,7 +370,7 @@ namespace System
 
         DateTime IConvertible.ToDateTime(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "Boolean", "DateTime"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "Boolean", "DateTime"));
         }
 
         object IConvertible.ToType(Type type, IFormatProvider? provider)

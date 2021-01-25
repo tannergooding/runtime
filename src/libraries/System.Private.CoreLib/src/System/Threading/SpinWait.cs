@@ -145,7 +145,7 @@ namespace System.Threading
         {
             if (sleep1Threshold < -1)
             {
-                throw new ArgumentOutOfRangeException(nameof(sleep1Threshold), sleep1Threshold, SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(sleep1Threshold), sleep1Threshold, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
             }
 
             if (sleep1Threshold >= 0 && sleep1Threshold < YieldThreshold)
@@ -290,7 +290,7 @@ namespace System.Threading
             if (totalMilliseconds < -1 || totalMilliseconds > int.MaxValue)
             {
                 throw new System.ArgumentOutOfRangeException(
-                    nameof(timeout), timeout, SR.SpinWait_SpinUntil_TimeoutWrong);
+                    nameof(timeout), timeout, SR.GetResourceString("SpinWait_SpinUntil_TimeoutWrong"));
             }
 
             // Call wait with the timeout milliseconds
@@ -312,11 +312,11 @@ namespace System.Threading
             if (millisecondsTimeout < Timeout.Infinite)
             {
                 throw new ArgumentOutOfRangeException(
-                   nameof(millisecondsTimeout), millisecondsTimeout, SR.SpinWait_SpinUntil_TimeoutWrong);
+                   nameof(millisecondsTimeout), millisecondsTimeout, SR.GetResourceString("SpinWait_SpinUntil_TimeoutWrong"));
             }
             if (condition == null)
             {
-                throw new ArgumentNullException(nameof(condition), SR.SpinWait_SpinUntil_ArgumentNull);
+                throw new ArgumentNullException(nameof(condition), SR.GetResourceString("SpinWait_SpinUntil_ArgumentNull"));
             }
             uint startTime = 0;
             if (millisecondsTimeout != 0 && millisecondsTimeout != Timeout.Infinite)

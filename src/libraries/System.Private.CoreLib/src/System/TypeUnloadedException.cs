@@ -10,7 +10,7 @@ namespace System
     public class TypeUnloadedException : SystemException
     {
         public TypeUnloadedException()
-            : base(SR.Arg_TypeUnloadedException)
+            : base(SR.GetResourceString("Arg_TypeUnloadedException"))
         {
             HResult = HResults.COR_E_TYPEUNLOADED;
         }

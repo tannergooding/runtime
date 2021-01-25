@@ -21,13 +21,13 @@ namespace System.Runtime.InteropServices
             {
                 if (!(array is Array arrayObj) || (arrayObj.Rank != 1) || !Marshal.IsPinnable(arrayObj))
                 {
-                    throw new ArgumentException(SR.ArgumentException_NotIsomorphic);
+                    throw new ArgumentException(SR.GetResourceString("ArgumentException_NotIsomorphic"));
                 }
 
                 nuint nativeTotalSize = (nuint)arrayObj.LongLength * (nuint)arrayObj.GetElementSize();
                 if (nativeTotalSize > MaxSizeForInterop)
                 {
-                    throw new ArgumentException(SR.Argument_StructArrayTooLarge);
+                    throw new ArgumentException(SR.GetResourceString("Argument_StructArrayTooLarge"));
                 }
 
                 totalSize = (int)nativeTotalSize;
@@ -35,7 +35,7 @@ namespace System.Runtime.InteropServices
 
             if ((uint)offset > (uint)totalSize)
             {
-                throw new IndexOutOfRangeException(SR.IndexOutOfRange_ArrayWithOffset);
+                throw new IndexOutOfRangeException(SR.GetResourceString("IndexOutOfRange_ArrayWithOffset"));
             }
 
             m_array = array;

@@ -21,7 +21,7 @@ namespace System
         // the empty string, its HRESULT set to COR_E_MEMBERACCESS,
         // and its ExceptionInfo reference set to null.
         public MemberAccessException()
-            : base(SR.Arg_AccessException)
+            : base(SR.GetResourceString("Arg_AccessException"))
         {
             HResult = HResults.COR_E_MEMBERACCESS;
         }

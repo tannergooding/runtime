@@ -27,10 +27,10 @@ namespace System.Threading
                 throw new ArgumentNullException(nameof(name));
 
             if (name.Length == 0)
-                throw new ArgumentException(SR.Argument_StringZeroLength, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_StringZeroLength"), nameof(name));
 
             if (name.Length > MAX_PATH)
-                throw new ArgumentException(SR.Argument_WaitHandleNameTooLong);
+                throw new ArgumentException(SR.GetResourceString("Argument_WaitHandleNameTooLong"));
 
             var myHandle = new SafeWaitHandle(OpenSemaphore_internal(name,
                 /*SemaphoreRights.Modify | SemaphoreRights.Synchronize*/ 0x000002 | 0x100000,
@@ -61,14 +61,14 @@ namespace System.Threading
         private void CreateSemaphoreCore(int initialCount, int maximumCount, string? name, out bool createdNew)
         {
             if (name?.Length > MAX_PATH)
-                throw new ArgumentException(SR.Argument_WaitHandleNameTooLong);
+                throw new ArgumentException(SR.GetResourceString("Argument_WaitHandleNameTooLong"));
 
             var myHandle = new SafeWaitHandle(CreateSemaphore_internal(initialCount, maximumCount, name, out MonoIOError errorCode), true);
 
             if (myHandle.IsInvalid)
             {
                 if (errorCode == MonoIOError.ERROR_INVALID_HANDLE && !string.IsNullOrEmpty(name))
-                    throw new WaitHandleCannotBeOpenedException(SR.Format(SR.Threading_WaitHandleCannotBeOpenedException_InvalidHandle, name));
+                    throw new WaitHandleCannotBeOpenedException(SR.Format(SR.GetResourceString("Threading_WaitHandleCannotBeOpenedException_InvalidHandle"), name));
 
                 throw new IOException($"Unknown Error '{errorCode}'");
             }

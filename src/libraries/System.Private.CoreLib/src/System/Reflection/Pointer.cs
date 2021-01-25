@@ -25,9 +25,9 @@ namespace System.Reflection
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
             if (!type.IsPointer)
-                throw new ArgumentException(SR.Arg_MustBePointer, nameof(ptr));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBePointer"), nameof(ptr));
             if (!type.IsRuntimeImplemented())
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(ptr));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(ptr));
 
             return new Pointer(ptr, type);
         }
@@ -35,7 +35,7 @@ namespace System.Reflection
         public static void* Unbox(object ptr)
         {
             if (!(ptr is Pointer))
-                throw new ArgumentException(SR.Arg_MustBePointer, nameof(ptr));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBePointer"), nameof(ptr));
             return ((Pointer)ptr)._ptr;
         }
 

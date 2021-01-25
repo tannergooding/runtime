@@ -71,7 +71,7 @@ namespace System.Globalization
             }
             if (assembly != typeof(object).Module.Assembly)
             {
-                throw new ArgumentException(SR.Argument_OnlyMscorlib, nameof(assembly));
+                throw new ArgumentException(SR.GetResourceString("Argument_OnlyMscorlib"), nameof(assembly));
             }
 
             return GetCompareInfo(culture);
@@ -94,7 +94,7 @@ namespace System.Globalization
             }
             if (assembly != typeof(object).Module.Assembly)
             {
-                throw new ArgumentException(SR.Argument_OnlyMscorlib, nameof(assembly));
+                throw new ArgumentException(SR.GetResourceString("Argument_OnlyMscorlib"), nameof(assembly));
             }
 
             return GetCompareInfo(name);
@@ -108,7 +108,7 @@ namespace System.Globalization
         {
             if (CultureData.IsCustomCultureId(culture))
             {
-                throw new ArgumentException(SR.Argument_CustomCultureCannotBePassedByNumber, nameof(culture));
+                throw new ArgumentException(SR.GetResourceString("Argument_CustomCultureCannotBePassedByNumber"), nameof(culture));
             }
 
             return CultureInfo.GetCultureInfo(culture).CompareInfo;
@@ -400,21 +400,21 @@ namespace System.Globalization
 
             if (length1 < 0 || length2 < 0)
             {
-                throw new ArgumentOutOfRangeException((length1 < 0) ? nameof(length1) : nameof(length2), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException((length1 < 0) ? nameof(length1) : nameof(length2), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
 
             if (offset1 < 0 || offset2 < 0)
             {
-                throw new ArgumentOutOfRangeException((offset1 < 0) ? nameof(offset1) : nameof(offset2), SR.ArgumentOutOfRange_NeedPosNum);
+                throw new ArgumentOutOfRangeException((offset1 < 0) ? nameof(offset1) : nameof(offset2), SR.GetResourceString("ArgumentOutOfRange_NeedPosNum"));
             }
 
             if (offset1 > (string1 == null ? 0 : string1.Length) - length1)
             {
-                throw new ArgumentOutOfRangeException(nameof(string1), SR.ArgumentOutOfRange_OffsetLength);
+                throw new ArgumentOutOfRangeException(nameof(string1), SR.GetResourceString("ArgumentOutOfRange_OffsetLength"));
             }
 
             Debug.Assert(offset2 > (string2 == null ? 0 : string2.Length) - length2);
-            throw new ArgumentOutOfRangeException(nameof(string2), SR.ArgumentOutOfRange_OffsetLength);
+            throw new ArgumentOutOfRangeException(nameof(string2), SR.GetResourceString("ArgumentOutOfRange_OffsetLength"));
         }
 
         /// <summary>
@@ -502,7 +502,7 @@ namespace System.Globalization
         {
             throw new ArgumentException(
                 paramName: nameof(options),
-                message: ((options & CompareOptions.Ordinal) != 0) ? SR.Argument_CompareOptionOrdinal : SR.Argument_InvalidFlag);
+                message: ((options & CompareOptions.Ordinal) != 0) ? SR.GetResourceString("Argument_CompareOptionOrdinal") : SR.GetResourceString("Argument_InvalidFlag"));
         }
 
         private unsafe int CompareStringCore(ReadOnlySpan<char> string1, ReadOnlySpan<char> string2, CompareOptions options) =>
@@ -1362,7 +1362,7 @@ namespace System.Globalization
                     return Ordinal.LastIndexOfOrdinalIgnoreCase(source, value);
                 }
 
-                throw new ArgumentException(paramName: nameof(options), message: SR.Argument_InvalidFlag);
+                throw new ArgumentException(paramName: nameof(options), message: SR.GetResourceString("Argument_InvalidFlag"));
             }
         }
 

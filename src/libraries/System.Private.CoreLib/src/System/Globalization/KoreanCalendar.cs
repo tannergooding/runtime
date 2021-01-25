@@ -166,7 +166,7 @@ namespace System.Globalization
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.Format(SR.ArgumentOutOfRange_Range, 99, _helper.MaxYear));
+                        SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), 99, _helper.MaxYear));
                 }
 
                 _twoDigitYearMax = value;
@@ -177,7 +177,7 @@ namespace System.Globalization
         {
             if (year < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(year), year, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(year), year, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
 
             return _helper.ToFourDigitYear(year, TwoDigitYearMax);

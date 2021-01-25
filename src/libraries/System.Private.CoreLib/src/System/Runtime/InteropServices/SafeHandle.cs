@@ -145,7 +145,7 @@ namespace System.Runtime.InteropServices
                 oldState = _state;
                 if ((oldState & StateBits.Closed) != 0)
                 {
-                    throw new ObjectDisposedException(nameof(SafeHandle), SR.ObjectDisposed_SafeHandleClosed);
+                    throw new ObjectDisposedException(nameof(SafeHandle), SR.GetResourceString("ObjectDisposed_SafeHandleClosed"));
                 }
 
                 // Not closed, let's propose an update (to the ref count, just add
@@ -198,7 +198,7 @@ namespace System.Runtime.InteropServices
                 // used).
                 if ((oldState & StateBits.RefCount) == 0)
                 {
-                    throw new ObjectDisposedException(nameof(SafeHandle), SR.ObjectDisposed_SafeHandleClosed);
+                    throw new ObjectDisposedException(nameof(SafeHandle), SR.GetResourceString("ObjectDisposed_SafeHandleClosed"));
                 }
 
                 // If we're proposing a decrement to zero and the handle is not closed

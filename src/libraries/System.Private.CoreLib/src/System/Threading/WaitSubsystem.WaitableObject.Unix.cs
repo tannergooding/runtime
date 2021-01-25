@@ -271,7 +271,7 @@ namespace System.Threading
                     {
                         if (!_ownershipInfo.CanIncrementReacquireCount)
                         {
-                            throw new OverflowException(SR.Overflow_MutexReacquireCount);
+                            throw new OverflowException(SR.GetResourceString("Overflow_MutexReacquireCount"));
                         }
                         _ownershipInfo.IncrementReacquireCount();
                         return WaitHandle.WaitSuccess;
@@ -356,7 +356,7 @@ namespace System.Threading
                                 {
                                     if (!ownershipInfo.CanIncrementReacquireCount)
                                     {
-                                        throw new OverflowException(SR.Overflow_MutexReacquireCount);
+                                        throw new OverflowException(SR.GetResourceString("Overflow_MutexReacquireCount"));
                                     }
                                     ownershipInfo.IncrementReacquireCount();
                                     return WaitHandle.WaitSuccess + i;
@@ -390,7 +390,7 @@ namespace System.Threading
                                 {
                                     if (!ownershipInfo.CanIncrementReacquireCount)
                                     {
-                                        throw new OverflowException(SR.Overflow_MutexReacquireCount);
+                                        throw new OverflowException(SR.GetResourceString("Overflow_MutexReacquireCount"));
                                     }
                                     continue;
                                 }
@@ -712,7 +712,7 @@ namespace System.Threading
 
                 if (IsSignaled || _ownershipInfo.Thread != Thread.CurrentThread)
                 {
-                    throw new ApplicationException(SR.Arg_SynchronizationLockException);
+                    throw new ApplicationException(SR.GetResourceString("Arg_SynchronizationLockException"));
                 }
 
                 if (!_ownershipInfo.TryDecrementReacquireCount())

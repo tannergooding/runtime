@@ -373,7 +373,7 @@ namespace System
                     TypeCode.Decimal => new Variant(ic.ToDecimal(provider)),
                     TypeCode.DateTime => new Variant(ic.ToDateTime(provider)),
                     TypeCode.String => new Variant(ic.ToString(provider)),
-                    _ => throw new NotSupportedException(SR.Format(SR.NotSupported_UnknownTypeCode, ic.GetTypeCode())),
+                    _ => throw new NotSupportedException(SR.Format(SR.GetResourceString("NotSupported_UnknownTypeCode"), ic.GetTypeCode())),
                 };
             }
             else
@@ -427,7 +427,7 @@ namespace System
                         goto default;
 
                     default:
-                        throw new InvalidCastException(SR.InvalidCast_CannotCoerceByRefVariant);
+                        throw new InvalidCastException(SR.GetResourceString("InvalidCast_CannotCoerceByRefVariant"));
                 }
             }
             else
@@ -461,7 +461,7 @@ namespace System
                     21 => /*VT_UI8*/ new Variant(iv.ToUInt64(provider)),
                     22 => /*VT_INT*/ new Variant(iv.ToInt32(provider)),
                     23 => /*VT_UINT*/ new Variant(iv.ToUInt32(provider)),
-                    _ => throw new InvalidCastException(SR.InvalidCast_CannotCoerceByRefVariant),
+                    _ => throw new InvalidCastException(SR.GetResourceString("InvalidCast_CannotCoerceByRefVariant")),
                 };
             }
         }

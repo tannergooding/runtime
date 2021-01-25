@@ -282,7 +282,7 @@ namespace System
                     return;
                 }
             }
-            throw new ArgumentException(SR.Arg_DecBitCtor);
+            throw new ArgumentException(SR.GetResourceString("Arg_DecBitCtor"));
         }
 
         // Constructs a Decimal from its constituent parts.
@@ -290,7 +290,7 @@ namespace System
         public Decimal(int lo, int mid, int hi, bool isNegative, byte scale)
         {
             if (scale > 28)
-                throw new ArgumentOutOfRangeException(nameof(scale), SR.ArgumentOutOfRange_DecimalScale);
+                throw new ArgumentOutOfRangeException(nameof(scale), SR.GetResourceString("ArgumentOutOfRange_DecimalScale"));
             _lo64 = (uint)lo + ((ulong)(uint)mid << 32);
             _hi32 = (uint)hi;
             _flags = ((int)scale) << 16;
@@ -303,7 +303,7 @@ namespace System
             // OnDeserialization is called after each instance of this class is deserialized.
             // This callback method performs decimal validation after being deserialized.
             if (!IsValid(_flags))
-                throw new SerializationException(SR.Overflow_Decimal);
+                throw new SerializationException(SR.GetResourceString("Overflow_Decimal"));
         }
 
         // Constructs a Decimal from its constituent parts.
@@ -316,7 +316,7 @@ namespace System
                 _flags = flags;
                 return;
             }
-            throw new ArgumentException(SR.Arg_DecBitCtor);
+            throw new ArgumentException(SR.GetResourceString("Arg_DecBitCtor"));
         }
 
         private Decimal(in decimal d, int flags)
@@ -371,7 +371,7 @@ namespace System
             if (value == null)
                 return 1;
             if (!(value is decimal))
-                throw new ArgumentException(SR.Arg_MustBeDecimal);
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeDecimal"));
 
             decimal other = (decimal)value;
             return DecCalc.VarDecCmp(in this, in other);
@@ -661,9 +661,9 @@ namespace System
         private static decimal Round(ref decimal d, int decimals, MidpointRounding mode)
         {
             if ((uint)decimals > 28)
-                throw new ArgumentOutOfRangeException(nameof(decimals), SR.ArgumentOutOfRange_DecimalRound);
+                throw new ArgumentOutOfRangeException(nameof(decimals), SR.GetResourceString("ArgumentOutOfRange_DecimalRound"));
             if ((uint)mode > (uint)MidpointRounding.ToPositiveInfinity)
-                throw new ArgumentException(SR.Format(SR.Argument_InvalidEnumValue, mode, nameof(MidpointRounding)), nameof(mode));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Argument_InvalidEnumValue"), mode, nameof(MidpointRounding)), nameof(mode));
 
             int scale = d.Scale - decimals;
             if (scale > 0)
@@ -770,7 +770,7 @@ namespace System
                     if (i <= 0) return i;
                 }
             }
-            throw new OverflowException(SR.Overflow_Int32);
+            throw new OverflowException(SR.GetResourceString("Overflow_Int32"));
         }
 
         // Converts a Decimal to a long. The Decimal value is rounded towards zero
@@ -793,7 +793,7 @@ namespace System
                     if (l <= 0) return l;
                 }
             }
-            throw new OverflowException(SR.Overflow_Int64);
+            throw new OverflowException(SR.GetResourceString("Overflow_Int64"));
         }
 
         // Converts a Decimal to an ushort. The Decimal
@@ -831,7 +831,7 @@ namespace System
                 if (!d.IsNegative || i == 0)
                     return i;
             }
-            throw new OverflowException(SR.Overflow_UInt32);
+            throw new OverflowException(SR.GetResourceString("Overflow_UInt32"));
         }
 
         // Converts a Decimal to an unsigned long. The Decimal
@@ -848,7 +848,7 @@ namespace System
                 if (!d.IsNegative || l == 0)
                     return l;
             }
-            throw new OverflowException(SR.Overflow_UInt64);
+            throw new OverflowException(SR.GetResourceString("Overflow_UInt64"));
         }
 
         // Converts a Decimal to a float. Since a float has fewer significant
@@ -917,7 +917,7 @@ namespace System
             }
             catch (OverflowException e)
             {
-                throw new OverflowException(SR.Overflow_Char, e);
+                throw new OverflowException(SR.GetResourceString("Overflow_Char"), e);
             }
             return (char)temp;
         }
@@ -1007,7 +1007,7 @@ namespace System
 
         char IConvertible.ToChar(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "Decimal", "Char"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "Decimal", "Char"));
         }
 
         sbyte IConvertible.ToSByte(IFormatProvider? provider)
@@ -1067,7 +1067,7 @@ namespace System
 
         DateTime IConvertible.ToDateTime(IFormatProvider? provider)
         {
-            throw new InvalidCastException(SR.Format(SR.InvalidCast_FromTo, "Decimal", "DateTime"));
+            throw new InvalidCastException(SR.Format(SR.GetResourceString("InvalidCast_FromTo"), "Decimal", "DateTime"));
         }
 
         object IConvertible.ToType(Type type, IFormatProvider? provider)

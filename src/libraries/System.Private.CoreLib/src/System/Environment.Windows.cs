@@ -85,7 +85,7 @@ namespace System
 
         public static string MachineName =>
             Interop.Kernel32.GetComputerName() ??
-            throw new InvalidOperationException(SR.InvalidOperation_ComputerName);
+            throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_ComputerName"));
 
         [MethodImplAttribute(MethodImplOptions.NoInlining)] // Avoid inlining PInvoke frame into the hot path
         private static int GetProcessId() => unchecked((int)Interop.Kernel32.GetCurrentProcessId());
@@ -111,7 +111,7 @@ namespace System
         {
             if (Interop.NtDll.RtlGetVersionEx(out Interop.NtDll.RTL_OSVERSIONINFOEX osvi) != 0)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_GetVersion);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_GetVersion"));
             }
 
             var version = new Version((int)osvi.dwMajorVersion, (int)osvi.dwMinorVersion, (int)osvi.dwBuildNumber, 0);

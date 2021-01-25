@@ -28,7 +28,7 @@ namespace System
         /// Initializes a new instance of the <see cref="AggregateException"/> class.
         /// </summary>
         public AggregateException()
-            : this(SR.AggregateException_ctor_DefaultMessage)
+            : this(SR.GetResourceString("AggregateException_ctor_DefaultMessage"))
         {
         }
 
@@ -72,7 +72,7 @@ namespace System
         /// <exception cref="System.ArgumentException">An element of <paramref name="innerExceptions"/> is
         /// null.</exception>
         public AggregateException(IEnumerable<Exception> innerExceptions) :
-            this(SR.AggregateException_ctor_DefaultMessage, innerExceptions)
+            this(SR.GetResourceString("AggregateException_ctor_DefaultMessage"), innerExceptions)
         {
         }
 
@@ -86,7 +86,7 @@ namespace System
         /// <exception cref="System.ArgumentException">An element of <paramref name="innerExceptions"/> is
         /// null.</exception>
         public AggregateException(params Exception[] innerExceptions) :
-            this(SR.AggregateException_ctor_DefaultMessage, innerExceptions)
+            this(SR.GetResourceString("AggregateException_ctor_DefaultMessage"), innerExceptions)
         {
         }
 
@@ -136,7 +136,7 @@ namespace System
 
                 if (innerExceptions[i] == null)
                 {
-                    throw new ArgumentException(SR.AggregateException_ctor_InnerExceptionNull);
+                    throw new ArgumentException(SR.GetResourceString("AggregateException_ctor_InnerExceptionNull"));
                 }
             }
         }
@@ -153,7 +153,7 @@ namespace System
         /// <exception cref="System.ArgumentException">An element of <paramref name="innerExceptionInfos"/> is
         /// null.</exception>
         internal AggregateException(List<ExceptionDispatchInfo> innerExceptionInfos) :
-            this(SR.AggregateException_ctor_DefaultMessage, innerExceptionInfos)
+            this(SR.GetResourceString("AggregateException_ctor_DefaultMessage"), innerExceptionInfos)
         {
         }
 
@@ -197,7 +197,7 @@ namespace System
             Exception[]? innerExceptions = info.GetValue("InnerExceptions", typeof(Exception[])) as Exception[]; // Do not rename (binary serialization)
             if (innerExceptions is null)
             {
-                throw new SerializationException(SR.AggregateException_DeserializationFailure);
+                throw new SerializationException(SR.GetResourceString("AggregateException_DeserializationFailure"));
             }
 
             _innerExceptions = innerExceptions;
@@ -381,7 +381,7 @@ namespace System
                     continue; // Already logged in base.ToString()
 
                 text.Append(Environment.NewLineConst + InnerExceptionPrefix);
-                text.AppendFormat(CultureInfo.InvariantCulture, SR.AggregateException_InnerException, i);
+                text.AppendFormat(CultureInfo.InvariantCulture, SR.GetResourceString("AggregateException_InnerException"), i);
                 text.Append(_innerExceptions[i].ToString());
                 text.Append("<---");
                 text.AppendLine();

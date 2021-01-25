@@ -201,7 +201,7 @@ namespace System
             }
             catch (IOException ex)
             {
-                e = new InvalidTimeZoneException(SR.Format(SR.InvalidTimeZone_InvalidFileData, id, timeZoneFilePath), ex);
+                e = new InvalidTimeZoneException(SR.Format(SR.GetResourceString("InvalidTimeZone_InvalidFileData"), id, timeZoneFilePath), ex);
                 return TimeZoneInfoResult.InvalidTimeZoneException;
             }
 
@@ -209,7 +209,7 @@ namespace System
 
             if (value == null)
             {
-                e = new InvalidTimeZoneException(SR.Format(SR.InvalidTimeZone_InvalidFileData, id, timeZoneFilePath));
+                e = new InvalidTimeZoneException(SR.Format(SR.GetResourceString("InvalidTimeZone_InvalidFileData"), id, timeZoneFilePath));
                 return TimeZoneInfoResult.InvalidTimeZoneException;
             }
 
@@ -656,7 +656,7 @@ namespace System
             }
             else if (id.Length == 0 || id.Contains('\0'))
             {
-                throw new TimeZoneNotFoundException(SR.Format(SR.TimeZoneNotFound_MissingData, id));
+                throw new TimeZoneNotFoundException(SR.Format(SR.GetResourceString("TimeZoneNotFound_MissingData"), id));
             }
 
             TimeZoneInfo? value;
@@ -683,11 +683,11 @@ namespace System
             }
             else if (result == TimeZoneInfoResult.SecurityException)
             {
-                throw new SecurityException(SR.Format(SR.Security_CannotReadFileData, id), e);
+                throw new SecurityException(SR.Format(SR.GetResourceString("Security_CannotReadFileData"), id), e);
             }
             else
             {
-                throw new TimeZoneNotFoundException(SR.Format(SR.TimeZoneNotFound_MissingData, id), e);
+                throw new TimeZoneNotFoundException(SR.Format(SR.GetResourceString("TimeZoneNotFound_MissingData"), id), e);
             }
         }
 
@@ -1025,7 +1025,7 @@ namespace System
                 return transitionTypes[0];
             }
 
-            throw new InvalidTimeZoneException(SR.InvalidTimeZone_NoTTInfoStructures);
+            throw new InvalidTimeZoneException(SR.GetResourceString("InvalidTimeZone_NoTTInfoStructures"));
         }
 
         /// <summary>
@@ -1193,7 +1193,7 @@ namespace System
                 DayOfWeek day;
                 if (!TZif_ParseMDateRule(date, out month, out week, out day))
                 {
-                    throw new InvalidTimeZoneException(SR.Format(SR.InvalidTimeZone_UnparseablePosixMDateString, date.ToString()));
+                    throw new InvalidTimeZoneException(SR.Format(SR.GetResourceString("InvalidTimeZone_UnparseablePosixMDateString"), date.ToString()));
                 }
 
                 return TransitionTime.CreateFloatingDateRule(ParseTimeOfDay(time), month, week, day);
@@ -1250,7 +1250,7 @@ namespace System
 
             if (index >= date.Length || ((uint)(date[index] - '0') > '9'-'0'))
             {
-                throw new InvalidTimeZoneException(SR.InvalidTimeZone_InvalidJulianDay);
+                throw new InvalidTimeZoneException(SR.GetResourceString("InvalidTimeZone_InvalidJulianDay"));
             }
 
             int julianDay = 0;
@@ -1265,7 +1265,7 @@ namespace System
 
             if (julianDay == 0 || julianDay > days[days.Length - 1])
             {
-                throw new InvalidTimeZoneException(SR.InvalidTimeZone_InvalidJulianDay);
+                throw new InvalidTimeZoneException(SR.GetResourceString("InvalidTimeZone_InvalidJulianDay"));
             }
 
             int i = 1;
@@ -1629,7 +1629,7 @@ namespace System
             {
                 if (data == null || data.Length < index + Length)
                 {
-                    throw new ArgumentException(SR.Argument_TimeZoneInfoInvalidTZif, nameof(data));
+                    throw new ArgumentException(SR.GetResourceString("Argument_TimeZoneInfoInvalidTZif"), nameof(data));
                 }
                 UtcOffset = new TimeSpan(0, 0, TZif_ToInt32(data, index + 00));
                 IsDst = (data[index + 4] != 0);
@@ -1663,7 +1663,7 @@ namespace System
                 if (Magic != 0x545A6966)
                 {
                     // 0x545A6966 = {0x54, 0x5A, 0x69, 0x66} = "TZif"
-                    throw new ArgumentException(SR.Argument_TimeZoneInfoBadTZif, nameof(data));
+                    throw new ArgumentException(SR.GetResourceString("Argument_TimeZoneInfoBadTZif"), nameof(data));
                 }
 
                 byte version = data[index + 04];

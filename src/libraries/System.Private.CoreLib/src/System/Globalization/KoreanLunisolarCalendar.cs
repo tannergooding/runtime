@@ -1187,7 +1187,7 @@ namespace System.Globalization
                 throw new ArgumentOutOfRangeException(
                     "year",
                     lunarYear,
-                    SR.Format(SR.ArgumentOutOfRange_Range, MinLunisolarYear, MaxLunisolarYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), MinLunisolarYear, MaxLunisolarYear));
             }
 
             return s_yinfo[lunarYear - MinLunisolarYear, index];
@@ -1202,14 +1202,14 @@ namespace System.Globalization
         {
             if (era != CurrentEra && era != GregorianEra)
             {
-                throw new ArgumentOutOfRangeException(nameof(era), era, SR.ArgumentOutOfRange_InvalidEraValue);
+                throw new ArgumentOutOfRangeException(nameof(era), era, SR.GetResourceString("ArgumentOutOfRange_InvalidEraValue"));
             }
             if (year < MinLunisolarYear || year > MaxLunisolarYear)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(year),
                     year,
-                    SR.Format(SR.ArgumentOutOfRange_Range, MinLunisolarYear, MaxLunisolarYear));
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"), MinLunisolarYear, MaxLunisolarYear));
             }
 
             return year;

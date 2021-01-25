@@ -273,7 +273,7 @@ namespace System.Runtime.InteropServices
         {
             if (!(m is RuntimeMethodInfo))
             {
-                throw new ArgumentException(SR.Argument_MustBeRuntimeMethodInfo, nameof(m));
+                throw new ArgumentException(SR.GetResourceString("Argument_MustBeRuntimeMethodInfo"), nameof(m));
             }
 
             PrelinkInternal(m);

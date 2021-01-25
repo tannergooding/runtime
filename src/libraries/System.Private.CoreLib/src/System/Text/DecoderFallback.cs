@@ -124,14 +124,14 @@ namespace System.Text
                         {
                             // High Surrogate
                             if (bHighSurrogate)
-                                throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex);
+                                throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"));
                             bHighSurrogate = true;
                         }
                         else
                         {
                             // Low surrogate
                             if (!bHighSurrogate)
-                                throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex);
+                                throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"));
                             bHighSurrogate = false;
                         }
                     }
@@ -147,7 +147,7 @@ namespace System.Text
 
                 // Need to make sure that bHighSurrogate isn't true
                 if (bHighSurrogate)
-                    throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"));
 
                 // Now we aren't going to be false, so its OK to update chars
                 chars = charTemp;
@@ -179,14 +179,14 @@ namespace System.Text
                         {
                             // High Surrogate
                             if (bHighSurrogate)
-                                throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex);
+                                throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"));
                             bHighSurrogate = true;
                         }
                         else
                         {
                             // Low surrogate
                             if (!bHighSurrogate)
-                                throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex);
+                                throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"));
                             bHighSurrogate = false;
                         }
                     }
@@ -196,7 +196,7 @@ namespace System.Text
 
                 // Need to make sure that bHighSurrogate isn't true
                 if (bHighSurrogate)
-                    throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex);
+                    throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"));
 
                 return count;
             }
@@ -238,7 +238,7 @@ namespace System.Text
             char ch = GetNextChar();
             if (!Rune.TryCreate(ch, out Rune rune) && !Rune.TryCreate(ch, GetNextChar(), out rune))
             {
-                throw new ArgumentException(SR.Argument_InvalidCharSequenceNoIndex);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidCharSequenceNoIndex"));
             }
 
             return rune;
@@ -309,7 +309,7 @@ namespace System.Text
 
             // Throw it, using our complete bytes
             throw new ArgumentException(
-                SR.Format(SR.Argument_RecursiveFallbackBytes,
+                SR.Format(SR.GetResourceString("Argument_RecursiveFallbackBytes"),
                     strBytes.ToString()), nameof(bytesUnknown));
         }
     }

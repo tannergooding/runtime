@@ -10,7 +10,7 @@ namespace System.Reflection
         public ParameterModifier(int parameterCount)
         {
             if (parameterCount <= 0)
-                throw new ArgumentException(SR.Arg_ParmArraySize);
+                throw new ArgumentException(SR.GetResourceString("Arg_ParmArraySize"));
 
             _byRef = new bool[parameterCount];
         }

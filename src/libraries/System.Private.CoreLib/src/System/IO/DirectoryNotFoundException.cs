@@ -16,7 +16,7 @@ namespace System.IO
     public class DirectoryNotFoundException : IOException
     {
         public DirectoryNotFoundException()
-            : base(SR.Arg_DirectoryNotFoundException)
+            : base(SR.GetResourceString("Arg_DirectoryNotFoundException"))
         {
             HResult = HResults.COR_E_DIRECTORYNOTFOUND;
         }

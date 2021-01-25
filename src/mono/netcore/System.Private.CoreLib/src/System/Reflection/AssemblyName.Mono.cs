@@ -18,7 +18,7 @@ namespace System.Reflection
             if (assemblyName == null)
                 throw new ArgumentNullException(nameof(assemblyName));
             if (assemblyName.Length == 0 || assemblyName[0] == '\0')
-                throw new ArgumentException(SR.Format_StringZeroLength);
+                throw new ArgumentException(SR.GetResourceString("Format_StringZeroLength"));
 
             using (SafeStringMarshal name = RuntimeMarshal.MarshalString(assemblyName))
             {

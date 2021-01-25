@@ -144,7 +144,7 @@ namespace System.Globalization
                                                   null, null, _sortHandle);
                 if (sortKeyLength == 0)
                 {
-                    throw new ArgumentException(SR.Arg_ExternalException);
+                    throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
                 }
 
                 // Note in calls to LCMapStringEx below, the input buffer is specified in wchars (and wchar count),
@@ -165,7 +165,7 @@ namespace System.Globalization
                                                       pSortKey, sortKeyLength,
                                                       null, null, _sortHandle) != sortKeyLength)
                     {
-                        throw new ArgumentException(SR.Arg_ExternalException);
+                        throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
                     }
                 }
 
@@ -199,7 +199,7 @@ namespace System.Globalization
                 int result = Interop.Kernel32.CompareStringOrdinal(char1, count1, char2, count2, bIgnoreCase: true);
                 if (result == 0)
                 {
-                    throw new ArgumentException(SR.Arg_ExternalException);
+                    throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
                 }
                 return result - 2;
             }
@@ -247,7 +247,7 @@ namespace System.Globalization
 
                 if (result == 0)
                 {
-                    throw new ArgumentException(SR.Arg_ExternalException);
+                    throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
                 }
 
                 // Map CompareStringEx return value to -1, 0, 1.
@@ -375,7 +375,7 @@ namespace System.Globalization
 
             if ((options & ValidCompareMaskOffFlags) != 0)
             {
-                throw new ArgumentException(SR.Argument_InvalidFlag, nameof(options));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidFlag"), nameof(options));
             }
 
             byte[] keyData;
@@ -399,7 +399,7 @@ namespace System.Globalization
                                             null, null, _sortHandle);
                 if (sortKeyLength == 0)
                 {
-                    throw new ArgumentException(SR.Arg_ExternalException);
+                    throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
                 }
 
                 keyData = new byte[sortKeyLength];
@@ -412,7 +412,7 @@ namespace System.Globalization
                                             pBytes, keyData.Length,
                                             null, null, _sortHandle) != sortKeyLength)
                     {
-                        throw new ArgumentException(SR.Arg_ExternalException);
+                        throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
                     }
                 }
             }
@@ -486,7 +486,7 @@ namespace System.Globalization
 
                     if (requiredSortKeyLength <= 0)
                     {
-                        throw new ArgumentException(SR.Arg_ExternalException);
+                        throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
                     }
                 }
 #endif
@@ -512,7 +512,7 @@ namespace System.Globalization
                 }
                 else
                 {
-                    throw new ArgumentException(SR.Arg_ExternalException);
+                    throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
                 }
             }
 
@@ -557,7 +557,7 @@ namespace System.Globalization
                 // This could fail for a variety of reasons, including NLS being unable
                 // to allocate a temporary buffer large enough to hold intermediate state.
 
-                throw new ArgumentException(SR.Arg_ExternalException);
+                throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
             }
 
             return sortKeyLength;

@@ -16,7 +16,7 @@ namespace System
 #if CORECLR
             GetMessageFromNativeResources(ExceptionMessageKind.OutOfMemory)
 #else
-            SR.Arg_OutOfMemoryException
+            SR.GetResourceString("Arg_OutOfMemoryException")
 #endif
             )
         {

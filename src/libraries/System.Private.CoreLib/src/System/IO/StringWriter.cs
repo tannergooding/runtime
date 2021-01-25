@@ -39,7 +39,7 @@ namespace System.IO
         {
             if (sb == null)
             {
-                throw new ArgumentNullException(nameof(sb), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(sb), SR.GetResourceString("ArgumentNull_Buffer"));
             }
 
             _sb = sb;
@@ -87,7 +87,7 @@ namespace System.IO
         {
             if (!_isOpen)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_WriterClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_WriterClosed"));
             }
 
             _sb.Append(value);
@@ -102,23 +102,23 @@ namespace System.IO
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer), SR.ArgumentNull_Buffer);
+                throw new ArgumentNullException(nameof(buffer), SR.GetResourceString("ArgumentNull_Buffer"));
             }
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(index), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException(nameof(count), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegNum"));
             }
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidOffLen"));
             }
             if (!_isOpen)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_WriterClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_WriterClosed"));
             }
 
             _sb.Append(buffer, index, count);
@@ -136,7 +136,7 @@ namespace System.IO
 
             if (!_isOpen)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_WriterClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_WriterClosed"));
             }
 
             _sb.Append(buffer);
@@ -149,7 +149,7 @@ namespace System.IO
         {
             if (!_isOpen)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_WriterClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_WriterClosed"));
             }
 
             if (value != null)
@@ -170,7 +170,7 @@ namespace System.IO
 
             if (!_isOpen)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_WriterClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_WriterClosed"));
             }
 
             _sb.Append(value);
@@ -188,7 +188,7 @@ namespace System.IO
 
             if (!_isOpen)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_WriterClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_WriterClosed"));
             }
 
             _sb.Append(buffer);
@@ -207,7 +207,7 @@ namespace System.IO
 
             if (!_isOpen)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_WriterClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_WriterClosed"));
             }
 
             _sb.Append(value);
@@ -261,7 +261,7 @@ namespace System.IO
 
             if (!_isOpen)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_WriterClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_WriterClosed"));
             }
 
             _sb.Append(value);
@@ -296,7 +296,7 @@ namespace System.IO
 
             if (!_isOpen)
             {
-                throw new ObjectDisposedException(null, SR.ObjectDisposed_WriterClosed);
+                throw new ObjectDisposedException(null, SR.GetResourceString("ObjectDisposed_WriterClosed"));
             }
 
             _sb.Append(value);

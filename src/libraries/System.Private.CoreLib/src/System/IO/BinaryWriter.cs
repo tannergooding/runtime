@@ -55,7 +55,7 @@ namespace System.IO
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
             if (!output.CanWrite)
-                throw new ArgumentException(SR.Argument_StreamNotWritable);
+                throw new ArgumentException(SR.GetResourceString("Argument_StreamNotWritable"));
 
             OutStream = output;
             _buffer = new byte[16];
@@ -185,7 +185,7 @@ namespace System.IO
         public virtual unsafe void Write(char ch)
         {
             if (char.IsSurrogate(ch))
-                throw new ArgumentException(SR.Arg_SurrogatesNotAllowedAsSingleChar);
+                throw new ArgumentException(SR.GetResourceString("Arg_SurrogatesNotAllowedAsSingleChar"));
 
             Debug.Assert(_encoding.GetMaxByteCount(1) <= 16, "_encoding.GetMaxByteCount(1) <= 16)");
             int numBytes = 0;

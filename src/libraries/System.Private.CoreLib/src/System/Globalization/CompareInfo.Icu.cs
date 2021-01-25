@@ -621,7 +621,7 @@ namespace System.Globalization
 
             if ((options & ValidCompareMaskOffFlags) != 0)
             {
-                throw new ArgumentException(SR.Argument_InvalidFlag, nameof(options));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidFlag"), nameof(options));
             }
 
             byte[] keyData;
@@ -634,7 +634,7 @@ namespace System.Globalization
                 {
                     if (Interop.Globalization.GetSortKey(_sortHandle, pSource, source.Length, pSortKey, sortKeyLength, options) != sortKeyLength)
                     {
-                        throw new ArgumentException(SR.Arg_ExternalException);
+                        throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
                     }
                 }
             }
@@ -668,7 +668,7 @@ namespace System.Globalization
                 }
                 else
                 {
-                    throw new ArgumentException(SR.Arg_ExternalException);
+                    throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
                 }
             }
 
@@ -755,7 +755,7 @@ namespace System.Globalization
 
             if (sortKeyLength == 0 || sortKeyLength > sortKey.Length) // internal error (0) or a bug (2nd call failed) in ucol_getSortKey
             {
-                throw new ArgumentException(SR.Arg_ExternalException);
+                throw new ArgumentException(SR.GetResourceString("Arg_ExternalException"));
             }
 
             int hash = Marvin.ComputeHash32(sortKey.Slice(0, sortKeyLength), Marvin.DefaultSeed);
@@ -816,7 +816,7 @@ namespace System.Globalization
                         if (resultCode == Interop.Globalization.ResultCode.OutOfMemory)
                             throw new OutOfMemoryException();
                         else if (resultCode != Interop.Globalization.ResultCode.Success)
-                            throw new ExternalException(SR.Arg_ExternalException);
+                            throw new ExternalException(SR.GetResourceString("Arg_ExternalException"));
 
                         try
                         {

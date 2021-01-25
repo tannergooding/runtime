@@ -73,42 +73,42 @@ namespace System.Reflection.Emit
 
         public override string[] GetManifestResourceNames()
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicAssembly);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicAssembly"));
         }
 
         public override FileStream GetFile(string name)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicAssembly);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicAssembly"));
         }
 
         public override FileStream[] GetFiles(bool getResourceModules)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicAssembly);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicAssembly"));
         }
 
         public override Stream? GetManifestResourceStream(Type type, string name)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicAssembly);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicAssembly"));
         }
 
         public override Stream? GetManifestResourceStream(string name)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicAssembly);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicAssembly"));
         }
 
         public override ManifestResourceInfo? GetManifestResourceInfo(string resourceName)
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicAssembly);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicAssembly"));
         }
 
-        public override string Location => throw new NotSupportedException(SR.NotSupported_DynamicAssembly);
+        public override string Location => throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicAssembly"));
 
-        public override string? CodeBase => throw new NotSupportedException(SR.NotSupported_DynamicAssembly);
+        public override string? CodeBase => throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicAssembly"));
 
         [RequiresUnreferencedCode("Types might be removed")]
         public override Type[] GetExportedTypes()
         {
-            throw new NotSupportedException(SR.NotSupported_DynamicAssembly);
+            throw new NotSupportedException(SR.GetResourceString("NotSupported_DynamicAssembly"));
         }
 
         public override string ImageRuntimeVersion => Assembly.GetExecutingAssembly().ImageRuntimeVersion;
@@ -168,7 +168,7 @@ namespace System.Reflection.Emit
             }
             if (access != AssemblyBuilderAccess.Run && access != AssemblyBuilderAccess.RunAndCollect)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_EnumIllegalVal, (int)access), nameof(access));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumIllegalVal"), (int)access), nameof(access));
             }
 
             // Clone the name in case the caller modifies it underneath us.
@@ -314,17 +314,17 @@ namespace System.Reflection.Emit
             }
             if (name.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
             }
             if (name[0] == '\0')
             {
-                throw new ArgumentException(SR.Argument_InvalidName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_InvalidName"), nameof(name));
             }
 
             // Create the dynamic module- only one ModuleBuilder per AssemblyBuilder can be created.
             if (_isManifestModuleUsedAsDefinedModule)
             {
-                throw new InvalidOperationException(SR.InvalidOperation_NoMultiModuleAssembly);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NoMultiModuleAssembly"));
             }
 
             Debug.Assert(_assemblyData != null, "_assemblyData is null in DefineDynamicModuleInternal");
@@ -390,7 +390,7 @@ namespace System.Reflection.Emit
 
                 if (type.Module == null || type.Module.Assembly == null)
                 {
-                    throw new ArgumentException(SR.Argument_TypeNotValid);
+                    throw new ArgumentException(SR.GetResourceString("Argument_TypeNotValid"));
                 }
 
                 if (type.Module.Assembly == typeof(object).Module.Assembly)
@@ -554,7 +554,7 @@ namespace System.Reflection.Emit
             }
             if (name.Length == 0)
             {
-                throw new ArgumentException(SR.Argument_EmptyName, nameof(name));
+                throw new ArgumentException(SR.GetResourceString("Argument_EmptyName"), nameof(name));
             }
 
             for (int i = 0; i < _assemblyData._moduleBuilderList.Count; i++)

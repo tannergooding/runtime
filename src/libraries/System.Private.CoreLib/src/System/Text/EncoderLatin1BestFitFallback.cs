@@ -54,12 +54,12 @@ namespace System.Text
             // Double check input surrogate pair
             if (!char.IsHighSurrogate(charUnknownHigh))
                 throw new ArgumentOutOfRangeException(nameof(charUnknownHigh),
-                    SR.Format(SR.ArgumentOutOfRange_Range,
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"),
                     0xD800, 0xDBFF));
 
             if (!char.IsLowSurrogate(charUnknownLow))
                 throw new ArgumentOutOfRangeException(nameof(charUnknownLow),
-                    SR.Format(SR.ArgumentOutOfRange_Range,
+                    SR.Format(SR.GetResourceString("ArgumentOutOfRange_Range"),
                     0xDC00, 0xDFFF));
 
             // If we had a buffer already we're being recursive, throw, it's probably at the suspect

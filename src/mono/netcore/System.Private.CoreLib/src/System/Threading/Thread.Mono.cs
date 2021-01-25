@@ -201,7 +201,7 @@ namespace System.Threading
         public bool Join(int millisecondsTimeout)
         {
             if (millisecondsTimeout < Timeout.Infinite)
-                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), millisecondsTimeout, SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), millisecondsTimeout, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
             return JoinInternal(this, millisecondsTimeout);
         }
 
@@ -225,7 +225,7 @@ namespace System.Threading
         public static void Sleep(int millisecondsTimeout)
         {
             if (millisecondsTimeout < Timeout.Infinite)
-                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), millisecondsTimeout, SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), millisecondsTimeout, SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
 
             SleepInternal(millisecondsTimeout, true);
         }
@@ -272,7 +272,7 @@ namespace System.Threading
              {
                 if (throwOnError)
                 {
-                    throw new PlatformNotSupportedException(SR.PlatformNotSupported_ComInterop);
+                    throw new PlatformNotSupportedException(SR.GetResourceString("PlatformNotSupported_ComInterop"));
                 }
 
                 return false;

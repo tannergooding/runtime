@@ -32,7 +32,7 @@ namespace System
             const int MaxUserEnvVariableLength = 255; // User-wide env vars stored in the registry have names limited to 255 chars
             if (!fromMachine && variable.Length >= MaxUserEnvVariableLength)
             {
-                throw new ArgumentException(SR.Argument_LongEnvVarValue, nameof(variable));
+                throw new ArgumentException(SR.GetResourceString("Argument_LongEnvVarValue"), nameof(variable));
             }
 
             using (RegistryKey? environmentKey = OpenEnvironmentKeyIfExists(fromMachine, writable: true))

@@ -12,7 +12,7 @@ namespace System
         private readonly double _offendingNumber;
 
         public NotFiniteNumberException()
-            : base(SR.Arg_NotFiniteNumberException)
+            : base(SR.GetResourceString("Arg_NotFiniteNumberException"))
         {
             _offendingNumber = 0;
             HResult = HResults.COR_E_NOTFINITENUMBER;

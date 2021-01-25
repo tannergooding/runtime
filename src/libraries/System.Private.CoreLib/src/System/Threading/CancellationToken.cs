@@ -365,6 +365,6 @@ namespace System.Threading
         // Throws an OCE; separated out to enable better inlining of ThrowIfCancellationRequested
         [DoesNotReturn]
         private void ThrowOperationCanceledException() =>
-            throw new OperationCanceledException(SR.OperationCanceled, this);
+            throw new OperationCanceledException(SR.GetResourceString("OperationCanceled"), this);
     }
 }

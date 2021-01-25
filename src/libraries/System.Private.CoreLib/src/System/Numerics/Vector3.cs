@@ -508,17 +508,17 @@ namespace System.Numerics
             if (array is null)
             {
                 // Match the JIT's exception type here. For perf, a NullReference is thrown instead of an ArgumentNull.
-                throw new NullReferenceException(SR.Arg_NullArgumentNullRef);
+                throw new NullReferenceException(SR.GetResourceString("Arg_NullArgumentNullRef"));
             }
 
             if ((index < 0) || (index >= array.Length))
             {
-                throw new ArgumentOutOfRangeException(nameof(index), SR.Format(SR.Arg_ArgumentOutOfRangeException, index));
+                throw new ArgumentOutOfRangeException(nameof(index), SR.Format(SR.GetResourceString("Arg_ArgumentOutOfRangeException"), index));
             }
 
             if ((array.Length - index) < 3)
             {
-                throw new ArgumentException(SR.Format(SR.Arg_ElementsInSourceIsGreaterThanDestination, index));
+                throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_ElementsInSourceIsGreaterThanDestination"), index));
             }
 
             array[index] = X;

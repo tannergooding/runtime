@@ -51,7 +51,7 @@ namespace System.Threading
         [DoesNotReturn]
         private static void ThrowLockTakenException()
         {
-            throw new ArgumentException(SR.Argument_MustBeFalse, "lockTaken");
+            throw new ArgumentException(SR.GetResourceString("Argument_MustBeFalse"), "lockTaken");
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -154,7 +154,7 @@ namespace System.Threading
             if (obj == null)
                 throw (new ArgumentNullException(nameof(obj)));
             if (millisecondsTimeout < -1)
-                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.ArgumentOutOfRange_NeedNonNegOrNegative1);
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout), SR.GetResourceString("ArgumentOutOfRange_NeedNonNegOrNegative1"));
 
             return ObjWait(millisecondsTimeout, obj);
         }

@@ -22,7 +22,7 @@ namespace System
                 throw new ArgumentNullException(nameof(type));
 
             if (type is System.Reflection.Emit.TypeBuilder)
-                throw new NotSupportedException(SR.NotSupported_CreateInstanceWithTypeBuilder);
+                throw new NotSupportedException(SR.GetResourceString("NotSupported_CreateInstanceWithTypeBuilder"));
 
             // If they didn't specify a lookup, then we will provide the default lookup.
             const int LookupMask = 0x000000FF;
@@ -30,12 +30,12 @@ namespace System
                 bindingAttr |= ConstructorDefault;
 
             if (activationAttributes?.Length > 0)
-                throw new PlatformNotSupportedException(SR.NotSupported_ActivAttr);
+                throw new PlatformNotSupportedException(SR.GetResourceString("NotSupported_ActivAttr"));
 
             if (type.UnderlyingSystemType is RuntimeType rt)
                 return rt.CreateInstanceImpl(bindingAttr, binder, args, culture);
 
-            throw new ArgumentException(SR.Arg_MustBeType, nameof(type));
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(type));
         }
 
         [System.Security.DynamicSecurityMethod]
@@ -92,7 +92,7 @@ namespace System
                 throw new ArgumentNullException(nameof(type));
 
             if (type.UnderlyingSystemType is not RuntimeType rt)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(type));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(type));
 
             return rt.CreateInstanceDefaultCtor(publicOnly: !nonPublic, wrapExceptions: wrapExceptions);
         }

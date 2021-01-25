@@ -20,7 +20,7 @@ namespace System
     public class RankException : SystemException
     {
         public RankException()
-            : base(SR.Arg_RankException)
+            : base(SR.GetResourceString("Arg_RankException"))
         {
             HResult = HResults.COR_E_RANK;
         }

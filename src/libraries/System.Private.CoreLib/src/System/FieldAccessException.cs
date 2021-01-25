@@ -17,7 +17,7 @@ namespace System
     public class FieldAccessException : MemberAccessException
     {
         public FieldAccessException()
-            : base(SR.Arg_FieldAccessException)
+            : base(SR.GetResourceString("Arg_FieldAccessException"))
         {
             HResult = HResults.COR_E_FIELDACCESS;
         }

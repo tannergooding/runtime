@@ -59,7 +59,7 @@ namespace System
             long l = info.GetInt64("value");
 
             if (Size == 4 && (l > int.MaxValue || l < int.MinValue))
-                throw new ArgumentException(SR.Serialization_InvalidPtrValue);
+                throw new ArgumentException(SR.GetResourceString("Serialization_InvalidPtrValue"));
 
             _value = (void*)l;
         }
@@ -194,7 +194,7 @@ namespace System
                 return 0;
             }
 
-            throw new ArgumentException(SR.Arg_MustBeIntPtr);
+            throw new ArgumentException(SR.GetResourceString("Arg_MustBeIntPtr"));
         }
 
         public unsafe int CompareTo(IntPtr value) => ((nint_t)_value).CompareTo((nint_t)value);

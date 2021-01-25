@@ -41,7 +41,7 @@ namespace System
         public override int GetArrayRank()
         {
             if (!IsArrayImpl())
-                throw new ArgumentException(SR.Argument_HasToBeArrayClass);
+                throw new ArgumentException(SR.GetResourceString("Argument_HasToBeArrayClass"));
 
             return RuntimeTypeHandle.GetArrayRank(this);
         }
@@ -61,7 +61,7 @@ namespace System
             RuntimeType? attributeRuntimeType = attributeType.UnderlyingSystemType as RuntimeType;
 
             if (attributeRuntimeType == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(attributeType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(attributeType));
 
             return CustomAttribute.GetCustomAttributes(this, attributeRuntimeType, inherit);
         }
@@ -104,7 +104,7 @@ namespace System
             Type valueType = value.GetType();
 
             if (!(valueType.IsEnum || IsIntegerType(valueType)))
-                throw new ArgumentException(SR.Arg_MustBeEnumBaseTypeOrEnum, nameof(value));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeEnumBaseTypeOrEnum"), nameof(value));
 
             ulong ulValue = Enum.ToUInt64(value);
 
@@ -114,7 +114,7 @@ namespace System
         public override string[] GetEnumNames()
         {
             if (!IsEnum)
-                throw new ArgumentException(SR.Arg_MustBeEnum, "enumType");
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeEnum"), "enumType");
 
             string[] ret = Enum.InternalGetNames(this);
 
@@ -125,7 +125,7 @@ namespace System
         public override Array GetEnumValues()
         {
             if (!IsEnum)
-                throw new ArgumentException(SR.Arg_MustBeEnum, "enumType");
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeEnum"), "enumType");
 
             // Get all of the values
             ulong[] values = Enum.InternalGetValues(this);
@@ -145,7 +145,7 @@ namespace System
         public override Type GetEnumUnderlyingType()
         {
             if (!IsEnum)
-                throw new ArgumentException(SR.Arg_MustBeEnum, "enumType");
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeEnum"), "enumType");
 
             return Enum.InternalGetUnderlyingType(this);
         }
@@ -153,7 +153,7 @@ namespace System
         public override Type GetGenericTypeDefinition()
         {
             if (!IsGenericType)
-                throw new InvalidOperationException(SR.InvalidOperation_NotGenericType);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_NotGenericType"));
 
             return RuntimeTypeHandle.GetGenericTypeDefinition(this);
         }
@@ -248,7 +248,7 @@ namespace System
             RuntimeType? attributeRuntimeType = attributeType.UnderlyingSystemType as RuntimeType;
 
             if (attributeRuntimeType == null)
-                throw new ArgumentException(SR.Arg_MustBeType, nameof(attributeType));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeType"), nameof(attributeType));
 
             return CustomAttribute.IsDefined(this, attributeRuntimeType, inherit);
         }
@@ -259,7 +259,7 @@ namespace System
                 throw new ArgumentNullException(nameof(value));
 
             if (!IsEnum)
-                throw new ArgumentException(SR.Arg_MustBeEnum, "enumType");
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeEnum"), "enumType");
 
             // Check if both of them are of the same type
             RuntimeType valueType = (RuntimeType)value.GetType();
@@ -268,7 +268,7 @@ namespace System
             if (valueType.IsEnum)
             {
                 if (!valueType.IsEquivalentTo(this))
-                    throw new ArgumentException(SR.Format(SR.Arg_EnumAndObjectMustBeSameType, valueType, this));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumAndObjectMustBeSameType"), valueType, this));
 
                 valueType = (RuntimeType)valueType.GetEnumUnderlyingType();
             }
@@ -286,7 +286,7 @@ namespace System
             {
                 RuntimeType underlyingType = Enum.InternalGetUnderlyingType(this);
                 if (underlyingType != valueType)
-                    throw new ArgumentException(SR.Format(SR.Arg_EnumUnderlyingTypeAndObjectMustBeSameType, valueType, underlyingType));
+                    throw new ArgumentException(SR.Format(SR.GetResourceString("Arg_EnumUnderlyingTypeAndObjectMustBeSameType"), valueType, underlyingType));
 
                 ulong[] ulValues = Enum.InternalGetValues(this);
                 ulong ulValue = Enum.ToUInt64(value);
@@ -295,7 +295,7 @@ namespace System
             }
             else
             {
-                throw new InvalidOperationException(SR.InvalidOperation_UnknownEnumType);
+                throw new InvalidOperationException(SR.GetResourceString("InvalidOperation_UnknownEnumType"));
             }
         }
 
@@ -384,11 +384,11 @@ namespace System
             const BindingFlags BinderNonFieldGetSet = (BindingFlags)0x00FFF300;
 
             if (IsGenericParameter)
-                throw new InvalidOperationException(SR.Arg_GenericParameter);
+                throw new InvalidOperationException(SR.GetResourceString("Arg_GenericParameter"));
 
             if ((bindingFlags & InvocationMask) == 0)
                 // "Must specify binding flags describing the invoke operation required."
-                throw new ArgumentException(SR.Arg_NoAccessSpec, nameof(bindingFlags));
+                throw new ArgumentException(SR.GetResourceString("Arg_NoAccessSpec"), nameof(bindingFlags));
 
             // Provide a default binding mask if none is provided
             if ((bindingFlags & MemberBindingMask) == 0)
@@ -405,12 +405,12 @@ namespace System
                 if (providedArgs != null)
                 {
                     if (namedParams.Length > providedArgs.Length)
-                        throw new ArgumentException(SR.Arg_NamedParamTooBig, nameof(namedParams));
+                        throw new ArgumentException(SR.GetResourceString("Arg_NamedParamTooBig"), nameof(namedParams));
                 }
                 else
                 {
                     if (namedParams.Length != 0)
-                        throw new ArgumentException(SR.Arg_NamedParamTooBig, nameof(namedParams));
+                        throw new ArgumentException(SR.GetResourceString("Arg_NamedParamTooBig"), nameof(namedParams));
                 }
             }
 
@@ -422,22 +422,22 @@ namespace System
                     BindingFlags.PutDispProperty | BindingFlags.PutRefDispProperty;
 
                 if ((bindingFlags & ClassicBindingMask) == 0)
-                    throw new ArgumentException(SR.Arg_COMAccess, nameof(bindingFlags));
+                    throw new ArgumentException(SR.GetResourceString("Arg_COMAccess"), nameof(bindingFlags));
 
                 if ((bindingFlags & BindingFlags.GetProperty) != 0 && (bindingFlags & ClassicBindingMask & ~(BindingFlags.GetProperty | BindingFlags.InvokeMethod)) != 0)
-                    throw new ArgumentException(SR.Arg_PropSetGet, nameof(bindingFlags));
+                    throw new ArgumentException(SR.GetResourceString("Arg_PropSetGet"), nameof(bindingFlags));
 
                 if ((bindingFlags & BindingFlags.InvokeMethod) != 0 && (bindingFlags & ClassicBindingMask & ~(BindingFlags.GetProperty | BindingFlags.InvokeMethod)) != 0)
-                    throw new ArgumentException(SR.Arg_PropSetInvoke, nameof(bindingFlags));
+                    throw new ArgumentException(SR.GetResourceString("Arg_PropSetInvoke"), nameof(bindingFlags));
 
                 if ((bindingFlags & BindingFlags.SetProperty) != 0 && (bindingFlags & ClassicBindingMask & ~BindingFlags.SetProperty) != 0)
-                    throw new ArgumentException(SR.Arg_COMPropSetPut, nameof(bindingFlags));
+                    throw new ArgumentException(SR.GetResourceString("Arg_COMPropSetPut"), nameof(bindingFlags));
 
                 if ((bindingFlags & BindingFlags.PutDispProperty) != 0 && (bindingFlags & ClassicBindingMask & ~BindingFlags.PutDispProperty) != 0)
-                    throw new ArgumentException(SR.Arg_COMPropSetPut, nameof(bindingFlags));
+                    throw new ArgumentException(SR.GetResourceString("Arg_COMPropSetPut"), nameof(bindingFlags));
 
                 if ((bindingFlags & BindingFlags.PutRefDispProperty) != 0 && (bindingFlags & ClassicBindingMask & ~BindingFlags.PutRefDispProperty) != 0)
-                    throw new ArgumentException(SR.Arg_COMPropSetPut, nameof(bindingFlags));
+                    throw new ArgumentException(SR.GetResourceString("Arg_COMPropSetPut"), nameof(bindingFlags));
 
                 if (name == null)
                     throw new ArgumentNullException(nameof(name));
@@ -464,7 +464,7 @@ namespace System
 #endif // FEATURE_COMINTEROP
 
             if (namedParams != null && Array.IndexOf(namedParams, null!) != -1)
-                throw new ArgumentException(SR.Arg_NamedParamNull, nameof(namedParams));
+                throw new ArgumentException(SR.GetResourceString("Arg_NamedParamNull"), nameof(namedParams));
 
             int argCnt = (providedArgs != null) ? providedArgs.Length : 0;
 
@@ -475,7 +475,7 @@ namespace System
             {
                 if ((bindingFlags & BindingFlags.CreateInstance) != 0 && (bindingFlags & BinderNonCreateInstance) != 0)
                     // "Can not specify both CreateInstance and another access type."
-                    throw new ArgumentException(SR.Arg_CreatInstAccess, nameof(bindingFlags));
+                    throw new ArgumentException(SR.GetResourceString("Arg_CreatInstAccess"), nameof(bindingFlags));
 
                 return Activator.CreateInstance(this, bindingFlags, binder, providedArgs, culture);
             }
@@ -502,10 +502,10 @@ namespace System
                 if (IsGetField)
                 {
                     if (IsSetField)
-                        throw new ArgumentException(SR.Arg_FldSetGet, nameof(bindingFlags));
+                        throw new ArgumentException(SR.GetResourceString("Arg_FldSetGet"), nameof(bindingFlags));
 
                     if ((bindingFlags & BindingFlags.SetProperty) != 0)
-                        throw new ArgumentException(SR.Arg_FldGetPropSet, nameof(bindingFlags));
+                        throw new ArgumentException(SR.GetResourceString("Arg_FldGetPropSet"), nameof(bindingFlags));
                 }
                 else
                 {
@@ -515,10 +515,10 @@ namespace System
                         throw new ArgumentNullException(nameof(providedArgs));
 
                     if ((bindingFlags & BindingFlags.GetProperty) != 0)
-                        throw new ArgumentException(SR.Arg_FldSetPropGet, nameof(bindingFlags));
+                        throw new ArgumentException(SR.GetResourceString("Arg_FldSetPropGet"), nameof(bindingFlags));
 
                     if ((bindingFlags & BindingFlags.InvokeMethod) != 0)
-                        throw new ArgumentException(SR.Arg_FldSetInvoke, nameof(bindingFlags));
+                        throw new ArgumentException(SR.GetResourceString("Arg_FldSetInvoke"), nameof(bindingFlags));
                 }
 
                 // Lookup Field
@@ -564,7 +564,7 @@ namespace System
                                 }
                                 catch (InvalidCastException)
                                 {
-                                    throw new ArgumentException(SR.Arg_IndexMustBeInt);
+                                    throw new ArgumentException(SR.GetResourceString("Arg_IndexMustBeInt"));
                                 }
                             }
 
@@ -587,14 +587,14 @@ namespace System
                     if (IsGetField)
                     {
                         if (argCnt != 0)
-                            throw new ArgumentException(SR.Arg_FldGetArgErr, nameof(bindingFlags));
+                            throw new ArgumentException(SR.GetResourceString("Arg_FldGetArgErr"), nameof(bindingFlags));
 
                         return selFld.GetValue(target);
                     }
                     else
                     {
                         if (argCnt != 1)
-                            throw new ArgumentException(SR.Arg_FldSetArgErr, nameof(bindingFlags));
+                            throw new ArgumentException(SR.GetResourceString("Arg_FldSetArgErr"), nameof(bindingFlags));
 
                         selFld.SetValue(target, providedArgs![0], bindingFlags, binder, culture);
                         return null;
@@ -616,7 +616,7 @@ namespace System
                     Debug.Assert(!IsSetField);
 
                     if (isSetProperty)
-                        throw new ArgumentException(SR.Arg_PropSetGet, nameof(bindingFlags));
+                        throw new ArgumentException(SR.GetResourceString("Arg_PropSetGet"), nameof(bindingFlags));
                 }
                 else
                 {
@@ -625,7 +625,7 @@ namespace System
                     Debug.Assert(!IsGetField);
 
                     if ((bindingFlags & BindingFlags.InvokeMethod) != 0)
-                        throw new ArgumentException(SR.Arg_PropSetInvoke, nameof(bindingFlags));
+                        throw new ArgumentException(SR.GetResourceString("Arg_PropSetInvoke"), nameof(bindingFlags));
                 }
             }
 
@@ -790,7 +790,7 @@ namespace System
         {
             if (type.IsPointer || type.IsByRef || type == typeof(void))
                 throw new ArgumentException(
-                    SR.Format(SR.Argument_NeverValidGenericArgument, type));
+                    SR.Format(SR.GetResourceString("Argument_NeverValidGenericArgument"), type));
         }
 
         internal static void SanityCheckGenericArguments(RuntimeType[] genericArguments, RuntimeType[] genericParamters)
@@ -808,7 +808,7 @@ namespace System
 
             if (genericArguments.Length != genericParamters.Length)
                 throw new ArgumentException(
-                    SR.Format(SR.Argument_NotEnoughGenArguments, genericArguments.Length, genericParamters.Length));
+                    SR.Format(SR.GetResourceString("Argument_NotEnoughGenArguments"), genericArguments.Length, genericParamters.Length));
         }
     }
 }

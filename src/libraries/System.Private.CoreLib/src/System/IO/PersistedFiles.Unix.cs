@@ -69,7 +69,7 @@ namespace System.IO
 
             if (string.IsNullOrEmpty(userHomeDirectory))
             {
-                throw new InvalidOperationException(SR.PersistedFiles_NoHomeDirectory);
+                throw new InvalidOperationException(SR.GetResourceString("PersistedFiles_NoHomeDirectory"));
             }
 
             s_userProductDirectory = Path.Combine(

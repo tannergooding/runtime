@@ -14,7 +14,7 @@ namespace System.Runtime.InteropServices
         public ErrorWrapper(object errorCode)
         {
             if (!(errorCode is int))
-                throw new ArgumentException(SR.Arg_MustBeInt32, nameof(errorCode));
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeInt32"), nameof(errorCode));
             ErrorCode = (int)errorCode;
         }
 

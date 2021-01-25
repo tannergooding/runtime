@@ -256,7 +256,7 @@ namespace System
                     return Ordinal.CompareStringIgnoreCase(ref strA.GetRawStringData(), strA.Length, ref strB.GetRawStringData(), strB.Length);
 
                 default:
-                    throw new ArgumentException(SR.NotSupported_StringComparison, nameof(comparisonType));
+                    throw new ArgumentException(SR.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType));
             }
         }
 
@@ -381,19 +381,19 @@ namespace System
 
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NegativeLength);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NegativeLength"));
             }
 
             if (indexA < 0 || indexB < 0)
             {
                 string paramName = indexA < 0 ? nameof(indexA) : nameof(indexB);
-                throw new ArgumentOutOfRangeException(paramName, SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(paramName, SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (strA.Length - indexA < 0 || strB.Length - indexB < 0)
             {
                 string paramName = strA.Length - indexA < 0 ? nameof(indexA) : nameof(indexB);
-                throw new ArgumentOutOfRangeException(paramName, SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(paramName, SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (length == 0 || (object.ReferenceEquals(strA, strB) && indexA == indexB))
@@ -476,13 +476,13 @@ namespace System
 
             if (length < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), SR.ArgumentOutOfRange_NegativeCount);
+                throw new ArgumentOutOfRangeException(nameof(length), SR.GetResourceString("ArgumentOutOfRange_NegativeCount"));
             }
 
             if (indexA < 0 || indexB < 0)
             {
                 string paramName = indexA < 0 ? nameof(indexA) : nameof(indexB);
-                throw new ArgumentOutOfRangeException(paramName, SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(paramName, SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             int lengthA = Math.Min(length, strA.Length - indexA);
@@ -491,7 +491,7 @@ namespace System
             if (lengthA < 0 || lengthB < 0)
             {
                 string paramName = lengthA < 0 ? nameof(indexA) : nameof(indexB);
-                throw new ArgumentOutOfRangeException(paramName, SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(paramName, SR.GetResourceString("ArgumentOutOfRange_Index"));
             }
 
             if (length == 0 || (object.ReferenceEquals(strA, strB) && indexA == indexB))
@@ -515,7 +515,7 @@ namespace System
 
             if (!(value is string other))
             {
-                throw new ArgumentException(SR.Arg_MustBeString);
+                throw new ArgumentException(SR.GetResourceString("Arg_MustBeString"));
             }
 
             return CompareTo(other); // will call the string-based overload
@@ -577,7 +577,7 @@ namespace System
                             (Ordinal.CompareStringIgnoreCase(ref Unsafe.Add(ref this.GetRawStringData(), this.Length - value.Length), value.Length, ref value.GetRawStringData(), value.Length) == 0);
 
                 default:
-                    throw new ArgumentException(SR.NotSupported_StringComparison, nameof(comparisonType));
+                    throw new ArgumentException(SR.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType));
             }
         }
 
@@ -673,7 +673,7 @@ namespace System
                     return EqualsOrdinalIgnoreCaseNoLengthCheck(this, value);
 
                 default:
-                    throw new ArgumentException(SR.NotSupported_StringComparison, nameof(comparisonType));
+                    throw new ArgumentException(SR.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType));
             }
         }
 
@@ -729,7 +729,7 @@ namespace System
                     return EqualsOrdinalIgnoreCaseNoLengthCheck(a, b);
 
                 default:
-                    throw new ArgumentException(SR.NotSupported_StringComparison, nameof(comparisonType));
+                    throw new ArgumentException(SR.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType));
             }
         }
 
@@ -990,7 +990,7 @@ namespace System
                     return Ordinal.EqualsIgnoreCase(ref this.GetRawStringData(), ref value.GetRawStringData(), value.Length);
 
                 default:
-                    throw new ArgumentException(SR.NotSupported_StringComparison, nameof(comparisonType));
+                    throw new ArgumentException(SR.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType));
             }
         }
 

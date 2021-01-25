@@ -66,7 +66,7 @@ namespace System.Collections
             if (b is IComparable ib)
                 return -ib.CompareTo(a);
 
-            throw new ArgumentException(SR.Argument_ImplementIComparable);
+            throw new ArgumentException(SR.GetResourceString("Argument_ImplementIComparable"));
         }
     }
 }
