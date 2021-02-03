@@ -3035,6 +3035,7 @@ public:
                                    GenTree*               op2,
                                    CorInfoInlineTypeCheck typeCheckInliningResult);
     GenTree* gtFoldExprCall(GenTreeCall* call);
+    GenTree* gtFoldExprCast(GenTreeCast* cast);
     GenTree* gtFoldTypeCompare(GenTree* tree);
     GenTree* gtFoldTypeEqualityCall(CorInfoIntrinsics methodID, GenTree* op1, GenTree* op2);
 

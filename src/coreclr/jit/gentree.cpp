@@ -482,7 +482,7 @@ void GenTree::ReportOperBashing(FILE* f)
         unsigned opOld = BashHash[h].bhOperOld;
         unsigned opNew = BashHash[h].bhOperNew;
 
-        fprintf(f, "    GT_%-13s -> GT_%-13s [size: %3u->%3u] %c %7u\n", OpName((genTreeOps)opOld),
+        fprintf(f, "    GT_%-13s->GT_%-13s [size: %3u->%3u] %c %7u\n", OpName((genTreeOps)opOld),
                 OpName((genTreeOps)opNew), s_gtTrueSizes[opOld], s_gtTrueSizes[opNew],
                 (s_gtTrueSizes[opOld] < s_gtTrueSizes[opNew]) ? 'X' : ' ', count);
         total += count;
@@ -7436,24 +7436,24 @@ GenTree* Compiler::gtClone(GenTree* tree, bool complexOK)
 
 //------------------------------------------------------------------------
 // gtCloneExpr: Create a copy of `tree`, adding flags `addFlags`, mapping
-//              local `varNum` to int constant `varVal` if it appears at
-//              the root, and mapping uses of local `deepVarNum` to constant
-//              `deepVarVal` if they occur beyond the root.
+//              local `varNum`to int constant `varVal`if it appears at
+//              the root, and mapping uses of local `deepVarNum`to constant
+//              `deepVarVal`if they occur beyond the root.
 //
 // Arguments:
 //    tree - GenTree to create a copy of
 //    addFlags - GTF_* flags to add to the copied tree nodes
 //    varNum - lclNum to replace at the root, or ~0 for no root replacement
-//    varVal - If replacing at root, replace local `varNum` with IntCns `varVal`
+//    varVal - If replacing at root, replace local `varNum`with IntCns `varVal`
 //    deepVarNum - lclNum to replace uses of beyond the root, or ~0 for no replacement
-//    deepVarVal - If replacing beyond root, replace `deepVarNum` with IntCns `deepVarVal`
+//    deepVarVal - If replacing beyond root, replace `deepVarNum`with IntCns `deepVarVal`
 //
 // Return Value:
 //    A copy of the given tree with the replacements and added flags specified.
 //
 // Notes:
 //    Top-level callers should generally call the overload that doesn't have
-//    the explicit `deepVarNum` and `deepVarVal` parameters; those are used in
+//    the explicit `deepVarNum`and `deepVarVal`parameters; those are used in
 //    recursive invocations to avoid replacing defs.
 
 GenTree* Compiler::gtCloneExpr(
@@ -8054,7 +8054,7 @@ DONE:
 //    tree - the call to clone
 //    addFlags - GTF_* flags to add to the copied tree nodes
 //    deepVarNum - lclNum to replace uses of beyond the root, or BAD_VAR_NUM for no replacement
-//    deepVarVal - If replacing beyond root, replace `deepVarNum` with IntCns `deepVarVal`
+//    deepVarVal - If replacing beyond root, replace `deepVarNum`with IntCns `deepVarVal`
 //
 // Returns:
 //    Cloned copy of call and all subtrees.
@@ -8247,7 +8247,7 @@ GenTree* Compiler::gtReplaceTree(Statement* stmt, GenTree* tree, GenTree* replac
         assert(treeParent != nullptr);
 
         // Check to see if the node to be replaced is a call argument and if so,
-        // set `treeParent` to the call node.
+        // set `treeParent`to the call node.
         GenTree* cursor = treeParent;
         while ((cursor != nullptr) && (cursor->OperGet() == GT_LIST))
         {
@@ -9319,7 +9319,7 @@ void GenTreeUseEdgeIterator::AdvanceBoundsChk()
 //------------------------------------------------------------------------
 // GenTreeUseEdgeIterator::AdvanceArrElem: produces the next operand of a ArrElem node and advances the state.
 //
-// Because these nodes are variadic, this function uses `m_state` to index into the list of array indices.
+// Because these nodes are variadic, this function uses `m_state`to index into the list of array indices.
 //
 void GenTreeUseEdgeIterator::AdvanceArrElem()
 {
@@ -9455,8 +9455,8 @@ void GenTreeUseEdgeIterator::AdvancePhi()
 //------------------------------------------------------------------------
 // GenTreeUseEdgeIterator::AdvanceBinOp: produces the next operand of a binary node and advances the state.
 //
-// This function must be instantiated s.t. `ReverseOperands` is `true` iff the node is marked with the
-// `GTF_REVERSE_OPS` flag.
+// This function must be instantiated s.t. `ReverseOperands`is `true`iff the node is marked with the
+// `GTF_REVERSE_OPS`flag.
 //
 template <bool ReverseOperands>
 void           GenTreeUseEdgeIterator::AdvanceBinOp()
@@ -9501,7 +9501,7 @@ void GenTreeUseEdgeIterator::SetEntryStateForBinOp()
 //------------------------------------------------------------------------
 // GenTreeUseEdgeIterator::AdvanceList: produces the next operand of a variadic node and advances the state.
 //
-// This function does not use `m_state` for anything meaningful; it simply walks the `m_argList` until
+// This function does not use `m_state`for anything meaningful; it simply walks the `m_argList`until
 // there are no further entries.
 //
 void GenTreeUseEdgeIterator::AdvanceList()
@@ -9535,11 +9535,11 @@ void GenTreeUseEdgeIterator::SetEntryStateForList(GenTreeArgList* list)
 //
 // This function is a bit tricky: in order to avoid doing unnecessary work, it is instantiated with the
 // state number the iterator will be in when it is called. For example, `AdvanceCall<CALL_INSTANCE>`
-// is the instantiation used when the iterator is at the `CALL_INSTANCE` state (i.e. the entry state).
+// is the instantiation used when the iterator is at the `CALL_INSTANCE`state (i.e. the entry state).
 // This sort of templating allows each state to avoid processing earlier states without unnecessary
 // duplication of code.
 //
-// Note that this method expands the argument lists (`gtCallArgs` and `gtCallLateArgs`) into their
+// Note that this method expands the argument lists (`gtCallArgs`and `gtCallLateArgs`) into their
 // component operands.
 //
 template <int state>
@@ -11220,7 +11220,7 @@ void Compiler::gtDispLeaf(GenTree* tree, IndentStack* indentStack)
                         printf("\n");
                         printf("                                                  ");
                         printIndent(indentStack);
-                        printf("    %-6s V%02u.%s (offs=0x%02x) -> ", varTypeName(fieldVarDsc->TypeGet()),
+                        printf("    %-6s V%02u.%s (offs=0x%02x)->", varTypeName(fieldVarDsc->TypeGet()),
                                tree->AsLclVarCommon()->GetLclNum(), fieldName, fieldVarDsc->lvFldOffset);
                         gtDispLclVar(i);
 
@@ -12473,6 +12473,11 @@ GenTree* Compiler::gtFoldExpr(GenTree* tree)
         {
             return gtFoldExprConst(tree);
         }
+        else if (tree->OperIs(GT_CAST))
+        {
+            // Casts can sometimes be folded
+            return gtFoldExprCast(tree->AsCast());
+        }
     }
     else if ((kind & GTK_BINOP) && op1 && tree->AsOp()->gtOp2 &&
              // Don't take out conditionals for debugging
@@ -12555,6 +12560,537 @@ GenTree* Compiler::gtFoldExpr(GenTree* tree)
     /* Return the original node (folded/bashed or not) */
 
     return tree;
+}
+
+//------------------------------------------------------------------------
+// gtFoldExprCast: see if a cast is foldable
+//
+// Arguments:
+//    cast - cast to examine
+//
+// Returns:
+//    The original cast if no folding happened.
+//    An alternative tree if folding happens.
+//
+// Notes:
+//    Checks for casts which can be optimized
+GenTree* Compiler::gtFoldExprCast(GenTreeCast* cast)
+{
+    GenTree* result = nullptr;
+
+    if (opts.OptimizationDisabled())
+    {
+        // Don't fold if optimizations are disabled
+        return cast;
+    }
+
+    GenTree* castOp = cast->CastOp();
+
+    var_types fromType = cast->CastFromType();
+    var_types toType   = cast->CastToType();
+    var_types castType = cast->TypeGet();
+
+    bool isLargerToSmaller = genTypeSize(fromType) > genTypeSize(toType);
+    bool isOverflow        = cast->gtOverflow();
+    bool isFromFloating    = varTypeIsFloating(fromType);
+    bool isFromUnsigned    = cast->IsUnsigned();
+    bool isToFloating      = varTypeIsFloating(toType);
+    bool isToUnsigned      = varTypeIsUnsigned(toType);
+    bool isSignChange      = isFromUnsigned != isToUnsigned;
+
+    if (varTypeIsSmall(toType) && !isOverflow && castOp->TypeIs(TYP_INT) && castOp->OperIs(GT_AND))
+    {
+        GenTree* op2 = castOp->AsOp()->gtGetOp2();
+
+        if (op2->OperIs(GT_CNS_INT))
+        {
+            ssize_t ival = op2->AsIntCon()->gtIconVal;
+            ssize_t mask, umask;
+
+            switch (toType)
+            {
+                case TYP_BYTE:
+                case TYP_UBYTE:
+                {
+                    mask  = 0x00FF;
+                    umask = 0x007F;
+                    break;
+                }
+
+                case TYP_USHORT:
+                case TYP_SHORT:
+                {
+                    mask  = 0xFFFF;
+                    umask = 0x7FFF;
+                    break;
+                }
+
+                default:
+                {
+                    assert(!"unexpected type");
+                    return cast;
+                }
+            }
+
+            if (((ival & umask) == ival) || (((ival & mask) == ival) && isFromUnsigned))
+            {
+                // Toss the cast, it's a waste of time
+                result = castOp;
+            }
+            else if (ival == mask)
+            {
+                // Toss the masking, it's a waste of time, since
+                // we sign-extend from the small value anyways
+
+                result = castOp->AsOp()->gtGetOp1();
+            }
+
+            if (result != nullptr)
+            {
+                JITDUMP("\nFolding cast operator:\n");
+                DISPTREE(cast);
+                goto DONE_FOLD;
+            }
+        }
+    }
+
+    if (isOverflow && !isFromFloating && !isToFloating && ((!isSignChange && !isLargerToSmaller) ||
+                       (isFromUnsigned && (genTypeSize(fromType) < genTypeSize(toType)))))
+    {
+        // We are going from a smaller type to a larger or equal type without changing
+        // the sign, or from a smaller unsigned type to a larger signed type, so it is
+        // impossible for this to overflow.
+
+        // This can occur, for example, on 64-bit builds when using nint to index
+        // into an array. C# may emit a `nint->long->nint.ovfl`cast in this scenario
+        // which is functionally `long->long->long.ovfl`.
+
+        JITDUMP("\nFolding cast operator:\n");
+        DISPTREE(cast);
+
+        cast->gtFlags &= ~(GTF_OVERFLOW | GTF_EXCEPT);
+
+        isOverflow = false;
+        result     = cast;
+    }
+
+    // TODO: This currently asserts downstream in System.Collections.Concurrent for InitializeFromCollection
+    //       as it produces a GT_FIELD where the parent is null during fgMorphStructField
+    //
+    // if (!isOverflow && (fromType == castType) && (genTypeSize(castType) == genTypeSize(toType)))
+    // {
+    //     JITDUMP("\nFolding cast operator:\n");
+    //     DISPTREE(cast);
+    //
+    //     result = castOp;
+    //     goto DONE_FOLD;
+    // }
+
+    if (!castOp->OperIs(GT_CAST))
+    {
+        if (result != nullptr)
+        {
+            // This exists to catch the case where we simply trimmed the overflow flag
+            goto DONE_FOLD;
+        }
+
+        // Don't otherwise fold if the cast op isn't itself a cast
+        return cast;
+    }
+
+    GenTreeCast* nestedCast = castOp->AsCast();
+
+    var_types nestedFromType = nestedCast->CastFromType();
+    var_types nestedToType   = nestedCast->CastToType();
+
+    bool isNestedLargerToSmaller = genTypeSize(nestedFromType) > genTypeSize(nestedToType);
+    bool isNestedOverflow        = nestedCast->gtOverflow();
+    bool isNestedFromFloating    = varTypeIsFloating(nestedFromType);
+    bool isNestedFromUnsigned    = nestedCast->IsUnsigned();
+    bool isNestedToFloating      = varTypeIsFloating(nestedToType);
+    bool isNestedToUnsigned      = varTypeIsUnsigned(nestedToType);
+    bool isNestedSignChange      = isNestedFromUnsigned != isNestedToUnsigned;
+
+    if (isNestedFromFloating || isNestedToFloating || isFromFloating || isToFloating)
+    {
+        if (isNestedOverflow || isOverflow || isNestedLargerToSmaller || !isLargerToSmaller)
+        {
+            if (result != nullptr)
+            {
+                // This exists to catch the case where we simply trimmed the overflow flag
+                goto DONE_FOLD;
+            }
+        }
+        else if (isNestedFromFloating && isNestedToFloating && isFromFloating && isToFloating)
+        {
+            JITDUMP("\nFolding cast operator:\n");
+            DISPTREE(cast);
+
+            // We are staying a floating-point op the entire time and
+            // are doing `float->double->float`so we can elide the cast.
+            result = nestedCast->CastOp();
+
+            goto DONE_FOLD;
+        }
+
+        // Don't otherwise fold
+        return cast;
+    }
+
+    if (result == nullptr)
+    {
+        JITDUMP("\nFolding cast operator:\n");
+        DISPTREE(cast);
+
+        result = cast;
+    }
+
+    assert(result == cast);
+
+    // We should never hit cases such as the following as one of the overflow flags should have been stripped:
+    // * uint->uint.ovf
+    // * uint.ovf->uint
+    // * uint->long.ovf
+    // * uint->ulong.ovf
+    // * int->int.ovf
+    // * int.ovf->int
+    // * int->long.ovf
+
+    // Likewise, we should never encounter cases such as:
+    // * uint->uint
+    // * uint->int
+    // * int->uint
+    // * int->int
+
+    if (isNestedLargerToSmaller)
+    {
+        if (isLargerToSmaller && (isNestedOverflow == isOverflow))
+        {
+            if (isOverflow && isNestedToUnsigned && !isFromUnsigned && !isToUnsigned)
+            {
+                // For example: `int->ushort.ovf->sbyte.ovf`
+                //
+                // Normally goes from [-2147483648, 2147483647] to [0, 65535] to [-32768, 32767] to [-128, 127]
+                // Where [65408, 65535] become [-128, -1]
+                //
+                // Treating it as signed or unsigned would not handle [65408, 65535]
+
+                // For example: `uint->ushort.ovf.un->sbyte.ovf`
+                //
+                // Normally goes from [0, 4294967295] to [0, 65535] to [-32768, 32767] to [-128, 127]
+                // Where [65408, 65535] become [-128, -1]
+                //
+                // Treating it as signed or unsigned would not handle [65408, 65535]
+            }
+            else
+            {
+                // For example: `int->ushort->byte`, `int->ushort->sbyte`, `int->short->byte`, and `int->short->sbyte`
+                //              `uint->ushort->byte`, `uint->ushort->sbyte`, `uint->short->byte`, and `uint->short->sbyte`
+                // These are all effectively just `value & 0xFFFF & 0xFF`
+
+                // For example: `int->ushort.ovf->byte.ovf`
+                //
+                // Normally goes from [-2147483648, 2147483647] to [0, 65535] to [-32768, 32767] to [0, 255]
+                // Where [32768, 65535] become [-32768, -1] and [0, 255] become [0, 255]
+                //
+                // Treating it as signed or unsigned preserves the semantics as [0, 255] are the valid inputs
+
+                // For example: `int->ushort.ovf->byte.ovf.un`
+                //
+                // Normally goes from [-2147483648, 2147483647] to [0, 65535] to [0, 255]
+                //
+                // Treating it as signed or unsigned preserves the semantics as [0, 255] are the valid inputs
+
+                // For example: `int->ushort.ovf->sbyte.ovf.un`
+                //
+                // Normally goes from [-2147483648, 2147483647] to [0, 65535] to [0, 127]
+                //
+                // Treating it as signed would allow [4294967168, 4294967295] to become [-128, -1]
+                // Treating it as unsigned preserves the smenatics as [0, 127] are the valid inputs
+
+                // For example: `int->short.ovf->byte.ovf`
+                //
+                // Normally goes from [-2147483648, 2147483647] to [-32768, 32767] to [0, 255]
+                //
+                // Treating it as signed or unsigned preserves the semantics as [0, 255] are the valid inputs
+
+                // For example: `int->short.ovf->byte.ovf.un`
+                //
+                // Normally goes from [-2147483648, 2147483647] to [-32768, 32767] to [0, 65535] to [0, 255]
+                //
+                // Treating it as signed or unsigned preserves the semantics as [0, 255] are the valid inputs
+
+                // For example: `int->short.ovf->sbyte.ovf`
+                //
+                // Normally goes from [-2147483648, 2147483647] to [-32768, 32767] to [-128, 127]
+                //
+                // Treating it as signed preserves the semantics as [-128, 127] are the valid inputs
+                // Treating it as unsigned would not handle [-128, -1]
+
+                // For example: `int->short.ovf->sbyte.ovf.un`
+                //
+                // Normally goes from [-2147483648, 2147483647] to [-32768, 32767] to [0, 65535] to [0, 127]
+                //
+                // Treating it as signed would not handle [-128, -1]
+                // Treating it as unsigned would preserves the semantics as [0, 127] are the valid inputs
+
+                // For example: `uint->ushort.ovf.un->byte.ovf`
+                //
+                // Normally goes from [0, 4294967295] to [0, 65535] to [-32768, 32767] to [0, 255]
+                // Where [32768, 65535] become [-32768, -1] and [0, 255] become [0, 255]
+                //
+                // Treating it as signed or unsigned preserves the semantics as [0, 255] are the valid inputs
+
+                // For example: `uint->ushort.ovf.un->byte.ovf.un`
+                //
+                // Normally goes from [0, 4294967295] to [0, 65535] to [0, 255]
+                //
+                // Treating it as signed or unsigned preserves the semantics as [0, 255] are the valid inputs
+
+                // For example: `uint->ushort.ovf.un->sbyte.ovf.un`
+                //
+                // Normally goes from [0, 4294967295] to [0, 65535] to [0, 127]
+                //
+                // Treating it as signed would allow [4294967168, 4294967295] to become [-128, -1]
+                // Treating it as unsigned preserves the semantics as [0, 127] are the valid inputs
+
+                // For example: `uint->short.ovf.un->byte.ovf`
+                //
+                // Normally goes from [0, 4294967295] to [0, 32767] to [0, 255]
+                //
+                // Treating it as signed or unsigned preserves the semantics as [0, 255] are the valid inputs
+
+                // For example: `uint->short.ovf.un->byte.ovf.un`
+                //
+                // Normally goes from [0, 4294967295] to [0, 32767] to [0, 127]
+                //
+                // Treating it as signed would allow [4294967168, 4294967295] to become [-128, -1]
+                // Treating it as unsigned preserves the semantics as [0, 127] are the valid inputs
+
+                // For example: `uint->short.ovf.un->sbyte.ovf`
+                //
+                // Normally goes from [0, 4294967295] to [0, 32767] to [0, 127]
+                //
+                // Treating it as signed would allow [4294967168, 4294967295] to become [-128, -1]
+                // Treating it as unsigned preserves the semantics as [0, 127] are the valid inputs
+
+                // For example: `uint->short.ovf.un->sbyte.ovf.un`
+                //
+                // Normally goes from [0, 4294967295] to [0, 32767] to [0, 127]
+                //
+                // Treating it as signed would allow [4294967168, 4294967295] to become [-128, -1]
+                // Treating it as unsigned preserves the semantics as [0, 127] are the valid inputs
+
+                result->AsOp()->gtOp1 = nestedCast->CastOp();
+
+                if (isOverflow && isNestedFromUnsigned && !isNestedToUnsigned && !isNestedFromUnsigned && !isNestedToUnsigned)
+                {
+                    result->gtFlags |= GTF_UNSIGNED;
+                }
+            }
+        }
+        else if (isNestedOverflow)
+        {
+            if (isOverflow)
+            {
+                // Since unsigned types can't overflow when getting larger the cast must be
+                // either a signed type to an unsigned type or the unsigned type must be going
+                // to a signed type of the same size.
+
+                if (!isToUnsigned)
+                {
+                    assert(isFromUnsigned && (genTypeSize(fromType) == genTypeSize(toType)));
+
+                    // For example: `long->int.ovf->int.ovf.un`
+                    //
+                    // Normally goes from [-9223372036854775808, 9223372036854775807] to [-2147483648, 2147483647]
+                    // to [0, 4294967295] to [0, 2147483647]
+                    //
+                    // Treating it as signed would incorrectly handle [-2147483648, -1]
+                    // Treating it as unsigned preserves the semantics as [0, 2147483647] are the valid inputs
+
+                    // For example: `long->uint.ovf->int.ovf.un`
+                    //
+                    // Normally goes from [-9223372036854775808, 9223372036854775807] to [0, 4294967295]
+                    // to [0, 2147483647]
+                    //
+                    // Treating it as signed would incorrectly handle [-2147483648, -1]
+                    // Treating it as unsigned preserves the semantics as [0, 2147483647] are the valid inputs
+
+                    // For example: `ulong->int.ovf.un->int.ovf.un`
+                    //
+                    // Normally goes from [0, 18446744073709551615] to [0, 2147483647] to [0, 2147483647]
+                    // to [0, 2147483647]
+                    //
+                    // Treating it as signed would incorrectly handle [18446744071562067968, 18446744073709551615]
+                    // Treating it as unsigned preserves the semantics as [0, 2147483647] are the valid inputs
+
+                    // For example: `ulong->uint.ovf.un->int.ovf.un`
+                    //
+                    // Normally goes from [0, 18446744073709551615] to [0, 4294967295] to [0, 2147483647]
+                    //
+                    // Treating it as signed would incorrectly handle [18446744071562067968, 18446744073709551615]
+                    // Treating it as unsigned preserves the semantics as [0, 2147483647] are the valid inputs
+
+                    result->AsOp()->gtOp1 = nestedCast->CastOp();
+                }
+                else
+                {
+                    assert(!isFromUnsigned && isSignChange);
+
+                    if (isNestedFromUnsigned)
+                    {
+                        // For example: `ulong->int.ovf.un->ulong.ovf`
+                        //
+                        // Normally goes from [0, 18446744073709551615] to [0, 2147483647] to [0, 2147483647]
+                        //
+                        // We can't elide the cast but we can remove the second overflow
+
+                        // For example: `ulong->uint.ovf.un->ulong.ovf`
+                        //
+                        // Normally goes from [0, 18446744073709551615] to [0, 4294967295] to [0, 4294967295]
+                        //
+                        // We can't elide the cast but we can remove the second overflow
+
+                        result->gtFlags &= ~(GTF_OVERFLOW | GTF_EXCEPT);
+                    }
+                    else
+                    {
+                        unreached();
+                    }
+                }
+            }
+            else
+            {
+                // If we are doing a single overflow, we can't elide either because we'd mishandle
+                // cases like `int->ushort.ovf->byte` since 65537 should overflow. Likewise cases like
+                // `int->ushort.ovf->int` should have overflowed for -1
+            }
+        }
+        else if (isOverflow)
+        {
+            // If we are doing a single overflow, we can't elide either because we'd mishandle
+            // cases like `int->ushort->byte.ovf` since 65537 should become 1. Likewise cases like
+            // `uint->sbyte->ushort.ovf` needs to treat 257 as 1
+        }
+        else
+        {
+            // We can't fold cases such as `int->ushort->ulong` since that would
+            // incorrectly handle 65537 whether it was treated as signed or unsigned
+        }
+    }
+    else if (isLargerToSmaller && (isNestedOverflow == isOverflow))
+    {
+        assert(!isOverflow || isNestedToUnsigned);
+
+        // For example: `int->uint->byte`, `int->uint->sbyte`, `int->long->byte`, and `int->long->sbyte`
+        //              `uint->ulong->byte`, `uint->ulong->sbyte`, `uint->long->byte`, and `uint->long->sbyte`
+        // These are all effectively just `value & 0xFFFF & 0xFF`
+
+        // For example: `int->uint.ovf->byte.ovf`
+        //
+        // Normally goes from [-2147483648, 2147483647] to [0, 2147483647] to [0, 2147483647] to [0, 255]
+        //
+        // Treating it as signed or unsigned preserves the semantics as [0, 255] are the valid inputs
+
+        // For example: `int->uint.ovf->byte.ovf.un`
+        //
+        // Normally goes from [-2147483648, 2147483647] to [0, 2147483647] to [0, 255]
+        //
+        // Treating it as signed or unsigned preserves the semantics as [0, 255] are the valid inputs
+
+        // For example: `int->uint.ovf->sbyte.ovf`
+        //
+        // Normally goes from [-2147483648, 2147483647] to [0, 2147483647] to [0, 2147483647] to [0, 127]
+        //
+        // Treating it as signed would allow incorrectly handle `[-127, -1]`
+        // Treating it as unsigned preserves the semantics as [0, 127] are the valid inputs
+
+        // For example: `int->uint.ovf->sbyte.ovf.un`
+        //
+        // Normally goes from [-2147483648, 2147483647] to [0, 2147483647] to [0, 127]
+        //
+        // Treating it as signed would allow [4294967168, 4294967295] to become [-128, -1]
+        // Treating it as unsigned preserves the semantics as [0, 127] are the valid inputs
+
+        result->AsOp()->gtOp1 = nestedCast->CastOp();
+
+        if (isOverflow && !isFromUnsigned && !isToUnsigned)
+        {
+            result->gtFlags |= GTF_UNSIGNED;
+        }
+    }
+    else if (isNestedOverflow)
+    {
+        if (isOverflow)
+        {
+            // Since unsigned types can't overflow when getting larger the cast must be
+            // either a signed type to an unsigned type or the unsigned type must be going
+            // to a signed type of the same size.
+
+            if (!isToUnsigned)
+            {
+                assert(isFromUnsigned && (genTypeSize(fromType) == genTypeSize(toType)));
+
+                // For example: `int->uint.ovf->int.ovf.un`
+                //
+                // Normally goes from [-2147483648, 2147483647] to [0, 2147483647] to to [0, 2147483647]
+                //
+                // Treating it as signed would incorrectly handle [-2147483648, -1]
+                // Treating it as unsigned preserves the semantics as [0, 2147483647] are the valid inputs
+
+                result->AsOp()->gtOp1 = nestedCast->CastOp();
+            }
+            else
+            {
+                assert(!isFromUnsigned && isSignChange);
+
+                if (isNestedFromUnsigned)
+                {
+                    // For example: `uint->int.ovf.un->uint.ovf`
+                    //
+                    // Normally goes from [0, 4294967295] to [0, 2147483647] to [0, 2147483647]
+                    //
+                    // Treating it as signed preserves the semantics as [0, 2147483647] are the valid inputs
+                    // Treating it as unsigned would incorrectly handle [2147483648, 4294967295]
+
+                    result->AsOp()->gtOp1 = nestedCast->CastOp();
+                }
+                else
+                {
+                    unreached();
+                }
+            }
+        }
+        else
+        {
+            // We can't fold cases such as `uint->int.ovf.un->long` since that would
+            // incorrectly handle 2147483648 whether it was treated as signed or unsigned
+        }
+    }
+    else
+    {
+        // We can't fold cases such as `short->ushort->ulong` since that would incorrectly handle -1
+    }
+
+DONE_FOLD:
+
+    if (fgGlobalMorph)
+    {
+        fgMorphTreeDone(result, cast);
+    }
+    else if (result != cast)
+    {
+        result->gtPrev = cast->gtPrev;
+        result->gtNext = cast->gtNext;
+
+        DEBUG_DESTROY_NODE(cast);
+    }
+
+    JITDUMP("Transformed into:\n");
+    DISPTREE(result);
+
+    return result;
 }
 
 //------------------------------------------------------------------------
@@ -12998,7 +13534,7 @@ GenTree* Compiler::gtFoldTypeCompare(GenTree* tree)
     CORINFO_CLASS_HANDLE objCls     = gtGetClassHandle(objOp, &pIsExact, &pIsNonNull);
 
     // if both classes are "final" (e.g. System.String[]) we can replace the comparison
-    // with `true/false` + null check.
+    // with `true/false`+ null check.
     if ((objCls != NO_CLASS_HANDLE) && (pIsExact || impIsClassExact(objCls)))
     {
         TypeCompareState tcs = info.compCompHnd->compareTypesForEquality(objCls, clsHnd);
@@ -13011,7 +13547,7 @@ GenTree* Compiler::gtFoldTypeCompare(GenTree* tree)
             if (!pIsNonNull)
             {
                 // we still have to emit a null-check
-                // obj.GetType == typeof() -> (nullcheck) true/false
+                // obj.GetType == typeof()->(nullcheck) true/false
                 GenTree* nullcheck = gtNewNullCheck(objOp, compCurBB);
                 return gtNewOperNode(GT_COMMA, tree->TypeGet(), nullcheck, compareResult);
             }
@@ -13152,7 +13688,7 @@ GenTree* Compiler::gtFoldExprSpecial(GenTree* tree)
     bool opHasSideEffects = (op->gtFlags & GTF_SIDE_EFFECT) != 0;
 
     // Helper function that creates a new IntCon node and morphs it, if required
-    auto NewMorphedIntConNode = [&](int value) -> GenTreeIntCon* {
+    auto NewMorphedIntConNode = [&](int value)->GenTreeIntCon* {
         GenTreeIntCon* icon = gtNewIconNode(value);
         if (fgGlobalMorph)
         {
@@ -13161,8 +13697,8 @@ GenTree* Compiler::gtFoldExprSpecial(GenTree* tree)
         return icon;
     };
 
-    // Here `op` is the non-constant operand, `cons` is the constant operand
-    // and `val` is the constant value.
+    // Here `op`is the non-constant operand, `cons`is the constant operand
+    // and `val`is the constant value.
 
     switch (oper)
     {
@@ -14727,7 +15263,7 @@ GenTree* Compiler::gtFoldExprConst(GenTree* tree)
                     i1 >>= (i2 & 0x1f);
                     break;
                 case GT_RSZ:
-                    /* logical shift -> make it unsigned to not propagate the sign bit */
+                    /* logical shift->make it unsigned to not propagate the sign bit */
                     i1 = UINT32(i1) >> (i2 & 0x1f);
                     break;
                 case GT_ROL:
@@ -15122,7 +15658,7 @@ GenTree* Compiler::gtFoldExprConst(GenTree* tree)
                     lval1 >>= (lval2 & 0x3f);
                     break;
                 case GT_RSZ:
-                    /* logical shift -> make it unsigned to not propagate the sign bit */
+                    /* logical shift->make it unsigned to not propagate the sign bit */
                     lval1 = UINT64(lval1) >> (lval2 & 0x3f);
                     break;
                 case GT_ROL:
@@ -15475,7 +16011,7 @@ GenTree* Compiler::gtNewTempAssign(
         }
         else if ((dstTyp == TYP_STRUCT) && (valTyp == TYP_INT))
         {
-            // It could come from `ASG(struct, 0)` that was propagated to `RETURN struct(0)`,
+            // It could come from `ASG(struct, 0)`that was propagated to `RETURN struct(0)`,
             // and now it is merging to a struct again.
             assert(!compDoOldStructRetyping());
             assert(tmp == genReturnLocal);
@@ -15527,7 +16063,7 @@ GenTree* Compiler::gtNewTempAssign(
         // There are 2 special cases:
         // 1. we have lost classHandle from a FIELD node  because the parent struct has overlapping fields,
         //     the field was transformed as IND opr GT_LCL_FLD;
-        // 2. we are propagation `ASG(struct V01, 0)` to `RETURN(struct V01)`, `CNT_INT` doesn't `structHnd`;
+        // 2. we are propagation `ASG(struct V01, 0)`to `RETURN(struct V01)`, `CNT_INT`doesn't `structHnd`;
         // in these cases, we can use the type of the merge return for the assignment.
         assert(val->OperIs(GT_IND, GT_LCL_FLD, GT_CNS_INT));
         assert(!compDoOldStructRetyping());
@@ -16092,7 +16628,7 @@ void dispNodeList(GenTree* list, bool verbose)
 
         if (verbose)
         {
-            printf("%08X -> %08X -> %08X\n", last, list, next);
+            printf("%08X->%08X->%08X\n", last, list, next);
         }
 
         assert(!last || last->gtNext == list);
@@ -17872,7 +18408,7 @@ CORINFO_CLASS_HANDLE Compiler::gtGetClassHandle(GenTree* tree, bool* pIsExact, b
 
             if (indir->HasBase() && !indir->HasIndex())
             {
-                // indir(addr(lcl)) --> lcl
+                // indir(addr(lcl)) -->lcl
                 //
                 // This comes up during constrained callvirt on ref types.
 
@@ -17887,7 +18423,7 @@ CORINFO_CLASS_HANDLE Compiler::gtGetClassHandle(GenTree* tree, bool* pIsExact, b
                 }
                 else if (base->OperGet() == GT_ARR_ELEM)
                 {
-                    // indir(arr_elem(...)) -> array element type
+                    // indir(arr_elem(...))->array element type
 
                     GenTree* array = base->AsArrElem()->gtArrObj;
 
@@ -19533,7 +20069,7 @@ regNumber GenTree::ExtractTempReg(regMaskTP mask /* = (regMaskTP)-1 */)
 }
 
 //------------------------------------------------------------------------
-// GetLclOffs: if `this` is a field or a field address it returns offset
+// GetLclOffs: if `this`is a field or a field address it returns offset
 // of the field inside the struct, for not a field it returns 0.
 //
 // Return Value:

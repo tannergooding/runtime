@@ -13399,6 +13399,7 @@ void Compiler::impImportBlockCode(BasicBlock* block)
                 goto _CONV;
 
             _CONV:
+            {
                 // just check that we have a number on the stack
                 if (tiVerificationNeeded)
                 {
@@ -13458,7 +13459,7 @@ void Compiler::impImportBlockCode(BasicBlock* block)
                 op1 = impPopStack().val;
                 impBashVarAddrsToI(op1);
 
-                if (varTypeIsSmall(lclTyp) && !ovfl && op1->gtType == TYP_INT && op1->gtOper == GT_AND)
+                if (varTypeIsSmall(lclTyp) && !ovfl && op1->TypeIs(TYP_INT) && op1->OperIs(GT_AND))
                 {
                     op2 = op1->AsOp()->gtOp2;
 
@@ -13509,14 +13510,36 @@ void Compiler::impImportBlockCode(BasicBlock* block)
 
                 type = genActualType(lclTyp);
 
-                // If this is a no-op cast, just use op1.
-                if (!ovfl && (type == op1->TypeGet()) && (genTypeSize(type) == genTypeSize(lclTyp)))
+                bool isLargerToSmaller = genTypeSize(op1->TypeGet()) > genTypeSize(lclTyp);
+                bool isFromFloating    = varTypeIsFloating(op1->TypeGet());
+                bool isFromUnsigned    = uns;
+                bool isToFloating      = varTypeIsFloating(lclTyp);
+                bool isToUnsigned      = varTypeIsUnsigned(lclTyp);
+                bool isSignChange      = isFromUnsigned != isToUnsigned;
+
+                if (ovfl && !isFromFloating && !isToFloating && ((!isSignChange && !isLargerToSmaller) ||
+                             (isFromUnsigned && (genTypeSize(op1->TypeGet()) < genTypeSize(lclTyp)))))
                 {
-                    // Nothing needs to change
+                    // We are going from a smaller type to a larger or equal type without changing
+                    // the sign, or from a smaller unsigned type to a larger signed type, so it is
+                    // impossible for this to overflow.
+
+                    // This can occur, for example, on 64-bit builds when using nint to index
+                    // into an array. C# may emit a `nint->long->nint.ovfl` cast in this scenario
+                    // which is functionally `long->long->long.ovfl`.
+
+                    JITDUMP("\nCast unnecessarily marked as overflow, dropping flag.");
+                    ovfl = false;
                 }
-                // Work is evidently required, add cast node
+
+                if (!ovfl && op1->TypeIs(type) && (genTypeSize(type) == genTypeSize(lclTyp)))
+                {
+                    // If this is a no-op cast, just use op1 as nothing needs to change.
+                }
                 else
                 {
+                    // Work is evidently required, add cast node
+
                     if (callNode)
                     {
                         op1 = gtNewCastNodeL(type, op1, uns, lclTyp);
@@ -13531,15 +13554,16 @@ void Compiler::impImportBlockCode(BasicBlock* block)
                         op1->gtFlags |= (GTF_OVERFLOW | GTF_EXCEPT);
                     }
 
-                    if (op1->gtGetOp1()->OperIsConst() && opts.OptimizationEnabled())
+                    if (opts.OptimizationEnabled())
                     {
                         // Try and fold the introduced cast
-                        op1 = gtFoldExprConst(op1);
+                        op1 = gtFoldExpr(op1);
                     }
                 }
 
                 impPushOnStack(op1, tiRetVal);
                 break;
+            }
 
             case CEE_NEG:
                 if (tiVerificationNeeded)
