@@ -2044,11 +2044,8 @@ void CodeGen::genCodeForStoreLclVar(GenTreeLclVar* lclNode)
         }
         else // store into register (i.e move into register)
         {
-            if (dataReg != targetReg)
-            {
-                // Assign into targetReg when dataReg (from op1) is not the same register
-                inst_RV_RV(ins_Copy(targetType), targetReg, dataReg, targetType);
-            }
+            // Assign into targetReg when dataReg (from op1) is not the same register
+            inst_RV_RV(ins_Copy(targetType), targetReg, dataReg, targetType);
             genProduceReg(lclNode);
         }
     }
@@ -2075,36 +2072,9 @@ void CodeGen::genSimpleReturn(GenTree* treeNode)
     assert(targetType != TYP_VOID);
 
     regNumber retReg = varTypeUsesFloatArgReg(treeNode) ? REG_FLOATRET : REG_INTRET;
+    emitAttr  attr   = emitActualTypeSize(targetType);
 
-    bool movRequired = (op1->GetRegNum() != retReg);
-
-    if (!movRequired)
-    {
-        if (op1->OperGet() == GT_LCL_VAR)
-        {
-            GenTreeLclVarCommon* lcl            = op1->AsLclVarCommon();
-            bool                 isRegCandidate = compiler->lvaTable[lcl->GetLclNum()].lvIsRegCandidate();
-            if (isRegCandidate && ((op1->gtFlags & GTF_SPILLED) == 0))
-            {
-                // We may need to generate a zero-extending mov instruction to load the value from this GT_LCL_VAR
-
-                unsigned   lclNum  = lcl->GetLclNum();
-                LclVarDsc* varDsc  = &(compiler->lvaTable[lclNum]);
-                var_types  op1Type = genActualType(op1->TypeGet());
-                var_types  lclType = genActualType(varDsc->TypeGet());
-
-                if (genTypeSize(op1Type) < genTypeSize(lclType))
-                {
-                    movRequired = true;
-                }
-            }
-        }
-    }
-    if (movRequired)
-    {
-        emitAttr attr = emitActualTypeSize(targetType);
-        GetEmitter()->emitIns_R_R(INS_mov, attr, retReg, op1->GetRegNum());
-    }
+    GetEmitter()->emitIns_R_R(INS_mov, attr, retReg, op1->GetRegNum());
 }
 
 /***********************************************************************************************
@@ -2170,10 +2140,7 @@ void CodeGen::genLclHeap(GenTree* tree)
         else
         {
             regCnt = tree->ExtractTempReg();
-            if (regCnt != targetReg)
-            {
-                inst_RV_RV(INS_mov, regCnt, targetReg, size->TypeGet());
-            }
+            inst_RV_RV(INS_mov, regCnt, targetReg, size->TypeGet());
         }
 
         // Align to STACK_ALIGN
@@ -2956,14 +2923,12 @@ void CodeGen::genCodeForCmpXchg(GenTreeCmpXchg* treeNode)
         emitAttr dataSize = emitActualTypeSize(data);
 
         // casal use the comparand as the target reg
-        if (targetReg != comparandReg)
-        {
-            GetEmitter()->emitIns_R_R(INS_mov, dataSize, targetReg, comparandReg);
+        GetEmitter()->emitIns_R_R(INS_mov, dataSize, targetReg, comparandReg);
 
-            // Catch case we destroyed data or address before use
-            noway_assert(addrReg != targetReg);
-            noway_assert(dataReg != targetReg);
-        }
+        // Catch case we destroyed data or address before use
+        noway_assert(addrReg != targetReg);
+        noway_assert(dataReg != targetReg);
+
         GetEmitter()->emitIns_R_R_R(INS_casal, dataSize, targetReg, dataReg, addrReg);
     }
     else
@@ -3517,10 +3482,7 @@ void CodeGen::genCkfinite(GenTree* treeNode)
     genJumpToThrowHlpBlk(EJ_eq, SCK_ARITH_EXCPN);
 
     // if it is a finite value copy it to targetReg
-    if (treeNode->GetRegNum() != fpReg)
-    {
-        emit->emitIns_R_R(ins_Copy(targetType), emitActualTypeSize(treeNode), treeNode->GetRegNum(), fpReg);
-    }
+    emit->emitIns_R_R(ins_Copy(targetType), emitActualTypeSize(treeNode), treeNode->GetRegNum(), fpReg);
     genProduceReg(treeNode);
 }
 
@@ -4173,10 +4135,7 @@ void CodeGen::genSIMDIntrinsicInitN(GenTreeSIMD* simdNode)
     }
 
     // Load the initialized value.
-    if (targetReg != vectorReg)
-    {
-        GetEmitter()->emitIns_R_R(INS_mov, EA_16BYTE, targetReg, vectorReg);
-    }
+    GetEmitter()->emitIns_R_R(INS_mov, EA_16BYTE, targetReg, vectorReg);
 
     genProduceReg(simdNode);
 }

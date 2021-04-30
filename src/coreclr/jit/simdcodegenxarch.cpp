@@ -405,22 +405,21 @@ void CodeGen::genSIMDScalarMove(
     switch (moveType)
     {
         case SMT_PreserveUpper:
-            if (srcReg != targetReg)
+        {
+            instruction ins = ins_Store(baseType);
+            if (GetEmitter()->IsDstSrcSrcAVXInstruction(ins))
             {
-                instruction ins = ins_Store(baseType);
-                if (GetEmitter()->IsDstSrcSrcAVXInstruction(ins))
-                {
-                    // In general, when we use a three-operands move instruction, we want to merge the src with
-                    // itself. This is an exception in that we actually want the "merge" behavior, so we must
-                    // specify it with all 3 operands.
-                    inst_RV_RV_RV(ins, targetReg, targetReg, srcReg, emitTypeSize(baseType));
-                }
-                else
-                {
-                    inst_RV_RV(ins, targetReg, srcReg, baseType, emitTypeSize(baseType));
-                }
+                // In general, when we use a three-operands move instruction, we want to merge the src with
+                // itself. This is an exception in that we actually want the "merge" behavior, so we must
+                // specify it with all 3 operands.
+                inst_RV_RV_RV(ins, targetReg, targetReg, srcReg, emitTypeSize(baseType));
+            }
+            else
+            {
+                inst_RV_RV(ins, targetReg, srcReg, baseType, emitTypeSize(baseType));
             }
             break;
+        }
 
         case SMT_ZeroInitUpper:
             if (compiler->canUseVexEncoding())
@@ -453,13 +452,12 @@ void CodeGen::genSIMDScalarMove(
             break;
 
         case SMT_ZeroInitUpper_SrcHasUpperZeros:
-            if (srcReg != targetReg)
-            {
-                instruction ins = ins_Copy(baseType);
-                assert(!GetEmitter()->IsDstSrcSrcAVXInstruction(ins));
-                inst_RV_RV(ins, targetReg, srcReg, baseType, emitTypeSize(baseType));
-            }
+        {
+            instruction ins = ins_Copy(baseType);
+            assert(!GetEmitter()->IsDstSrcSrcAVXInstruction(ins));
+            inst_RV_RV(ins, targetReg, srcReg, baseType, emitTypeSize(baseType));
             break;
+        }
 
         default:
             unreached();
@@ -645,10 +643,7 @@ void CodeGen::genSIMDIntrinsicInit(GenTreeSIMD* simdNode)
         }
         else // Vector<T>
         {
-            if (op1Reg != targetReg)
-            {
-                inst_RV_RV(ins_Copy(op1Reg, TYP_FLOAT), targetReg, op1Reg, baseType, emitTypeSize(baseType));
-            }
+            inst_RV_RV(ins_Copy(op1Reg, TYP_FLOAT), targetReg, op1Reg, baseType, emitTypeSize(baseType));
         }
 
         ins = getOpForSIMDIntrinsic(SIMDIntrinsicShuffleSSE2, baseType);
@@ -736,10 +731,7 @@ void CodeGen::genSIMDIntrinsicInitN(GenTreeSIMD* simdNode)
     noway_assert(offset == simdNode->GetSimdSize());
 
     // Load the initialized value.
-    if (targetReg != vectorReg)
-    {
-        inst_RV_RV(ins_Copy(targetType), targetReg, vectorReg, targetType, emitActualTypeSize(targetType));
-    }
+    inst_RV_RV(ins_Copy(targetType), targetReg, vectorReg, targetType, emitActualTypeSize(targetType));
     genProduceReg(simdNode);
 }
 
@@ -764,10 +756,7 @@ void CodeGen::genSIMDIntrinsicUnOp(GenTreeSIMD* simdNode)
 
     regNumber   op1Reg = genConsumeReg(op1);
     instruction ins    = getOpForSIMDIntrinsic(simdNode->gtSIMDIntrinsicID, baseType);
-    if (simdNode->gtSIMDIntrinsicID != SIMDIntrinsicCast || targetReg != op1Reg)
-    {
-        inst_RV_RV(ins, targetReg, op1Reg, targetType, emitActualTypeSize(targetType));
-    }
+    inst_RV_RV(ins, targetReg, op1Reg, targetType, emitActualTypeSize(targetType));
     genProduceReg(simdNode);
 }
 
@@ -814,10 +803,7 @@ void CodeGen::genSIMDIntrinsic32BitConvert(GenTreeSIMD* simdNode)
         //   vcvtdq2ps tmpReg2, tmpReg2         (convert lower 16 bits of src and put it into tmpReg2)
         //   vaddps   targetReg, tmpReg2        (add upper 16 bits and lower 16 bits)
         inst_RV_RV(INS_movdqu, tmpReg2, op1Reg, baseType, emitActualTypeSize(targetType));
-        if (targetReg != op1Reg)
-        {
-            inst_RV_RV(INS_movdqu, targetReg, op1Reg, baseType, emitActualTypeSize(targetType));
-        }
+        inst_RV_RV(INS_movdqu, targetReg, op1Reg, baseType, emitActualTypeSize(targetType));
 
         // prepare upper 16 bits
         GetEmitter()->emitIns_R_I(INS_psrld, emitActualTypeSize(targetType), targetReg, 16);
@@ -976,10 +962,7 @@ void CodeGen::genSIMDIntrinsic64BitConvert(GenTreeSIMD* simdNode)
         //   vsubpd   tmpReg2, tmpReg               (convert lower 32 bits of src and put it into tmpReg2)
         //   vaddpd   targetReg, tmpReg2            (add upper 32 bits and lower 32 bits together)
         inst_RV_RV(INS_movdqu, tmpReg2, op1Reg, baseType, emitActualTypeSize(simdType));
-        if (targetReg != op1Reg)
-        {
-            inst_RV_RV(INS_movdqu, targetReg, op1Reg, baseType, emitActualTypeSize(simdType));
-        }
+        inst_RV_RV(INS_movdqu, targetReg, op1Reg, baseType, emitActualTypeSize(simdType));
 
         // prepare upper 32 bits
         GetEmitter()->emitIns_R_I(INS_psrlq, emitActualTypeSize(simdType), targetReg, 32);
@@ -1074,10 +1057,7 @@ void CodeGen::genSIMDIntrinsic64BitConvert(GenTreeSIMD* simdNode)
         genSIMDLo64BitConvert(intrinsicID, simdType, baseType, op1Reg, tmpIntReg, tmpReg);
 
         // Merge or copy the results (only at this point are we done with op1Reg).
-        if (tmpReg != targetReg)
-        {
-            inst_RV_RV(INS_movaps, targetReg, tmpReg, simdType, emitActualTypeSize(simdType));
-        }
+        inst_RV_RV(INS_movaps, targetReg, tmpReg, simdType, emitActualTypeSize(simdType));
 
         if (level == SIMD_AVX2_Supported)
         {
@@ -1218,10 +1198,7 @@ void CodeGen::genSIMDExtractUpperHalf(GenTreeSIMD* simdNode, regNumber srcReg, r
     else
     {
         instruction shiftIns = getOpForSIMDIntrinsic(SIMDIntrinsicShiftRightInternal, TYP_SIMD16);
-        if (tgtReg != srcReg)
-        {
-            inst_RV_RV(ins_Copy(simdType), tgtReg, srcReg, simdType, emitSize);
-        }
+        inst_RV_RV(ins_Copy(simdType), tgtReg, srcReg, simdType, emitSize);
         GetEmitter()->emitIns_R_I(shiftIns, emitSize, tgtReg, 8);
     }
 }
@@ -1283,7 +1260,7 @@ void CodeGen::genSIMDIntrinsicWiden(GenTreeSIMD* simdNode)
             assert((ival >= 0) && (ival <= 255));
             GetEmitter()->emitIns_R_R_I(INS_vpermq, emitSize, targetReg, op1Reg, (int8_t)ival);
         }
-        else if (targetReg != op1Reg)
+        else
         {
             inst_RV_RV(ins_Copy(simdType), targetReg, op1Reg, simdType, emitSize);
         }
@@ -1496,7 +1473,7 @@ void CodeGen::genSIMDIntrinsicBinOp(GenTreeSIMD* simdNode)
 
     // Currently AVX doesn't support integer.
     // if the ins is INS_cvtsi2ss or INS_cvtsi2sd, we won't use AVX.
-    if (op1Reg != targetReg && compiler->getSIMDSupportLevel() == SIMD_AVX2_Supported &&
+    if (compiler->getSIMDSupportLevel() == SIMD_AVX2_Supported &&
         !(ins == INS_cvtsi2ss || ins == INS_cvtsi2sd) && GetEmitter()->IsThreeOperandAVXInstruction(ins))
     {
         inst_RV_RV_RV(ins, targetReg, op1Reg, op2Reg, emitActualTypeSize(targetType));
@@ -1507,7 +1484,7 @@ void CodeGen::genSIMDIntrinsicBinOp(GenTreeSIMD* simdNode)
         {
             otherReg = op1Reg;
         }
-        else if (op1Reg != targetReg)
+        else
         {
             inst_RV_RV(ins_Copy(targetType), targetReg, op1Reg, targetType, emitActualTypeSize(targetType));
         }
@@ -1563,17 +1540,14 @@ void CodeGen::genSIMDIntrinsicRelOp(GenTreeSIMD* simdNode)
             // targetReg = op1reg > op2reg
             // Therefore, we can optimize if op1Reg == targetReg
             otherReg = op2Reg;
-            if (op1Reg != targetReg)
+            if (op2Reg == targetReg)
             {
-                if (op2Reg == targetReg)
-                {
-                    assert(simdNode->gtSIMDIntrinsicID == SIMDIntrinsicEqual);
-                    otherReg = op1Reg;
-                }
-                else
-                {
-                    inst_RV_RV(ins_Copy(targetType), targetReg, op1Reg, targetType, emitActualTypeSize(targetType));
-                }
+                assert(simdNode->gtSIMDIntrinsicID == SIMDIntrinsicEqual);
+                otherReg = op1Reg;
+            }
+            else
+            {
+                inst_RV_RV(ins_Copy(targetType), targetReg, op1Reg, targetType, emitActualTypeSize(targetType));
             }
 
             if (varTypeIsFloating(baseType))
@@ -1797,10 +1771,7 @@ void CodeGen::genSIMDIntrinsicGetItem(GenTreeSIMD* simdNode)
     //   mov_xmm2i targetReg, tmpReg
     if (varTypeIsFloating(baseType))
     {
-        if (targetReg != srcReg)
-        {
-            inst_RV_RV(ins_Copy(simdType), targetReg, srcReg, simdType, emitActualTypeSize(simdType));
-        }
+        inst_RV_RV(ins_Copy(simdType), targetReg, srcReg, simdType, emitActualTypeSize(simdType));
 
         if (byteShiftCnt != 0)
         {
@@ -1869,10 +1840,7 @@ void CodeGen::genSIMDIntrinsicGetItem(GenTreeSIMD* simdNode)
             {
                 assert(tmpReg != REG_NA);
 
-                if (tmpReg != srcReg)
-                {
-                    inst_RV_RV(ins_Copy(simdType), tmpReg, srcReg, simdType, emitActualTypeSize(simdType));
-                }
+                inst_RV_RV(ins_Copy(simdType), tmpReg, srcReg, simdType, emitActualTypeSize(simdType));
 
                 assert((byteShiftCnt > 0) && (byteShiftCnt <= 32));
                 instruction ins = getOpForSIMDIntrinsic(SIMDIntrinsicShiftRightInternal, TYP_SIMD16);
@@ -1948,10 +1916,7 @@ void CodeGen::genSIMDIntrinsicSetItem(GenTreeSIMD* simdNode)
     regNumber op2Reg = op2->GetRegNum();
 
     // TODO-CQ: For AVX we don't need to do a copy because it supports 3 operands plus immediate.
-    if (targetReg != op1Reg)
-    {
-        inst_RV_RV(ins_Copy(targetType), targetReg, op1Reg, targetType, emitActualTypeSize(targetType));
-    }
+    inst_RV_RV(ins_Copy(targetType), targetReg, op1Reg, targetType, emitActualTypeSize(targetType));
 
     // Right now this intrinsic is supported only for float base type vectors.
     // If in future need to support on other base type vectors, the below
@@ -2012,10 +1977,7 @@ void CodeGen::genSIMDIntrinsicShuffleSSE2(GenTreeSIMD* simdNode)
     assert(targetReg != REG_NA);
 
     regNumber op1Reg = genConsumeReg(op1);
-    if (targetReg != op1Reg)
-    {
-        inst_RV_RV(ins_Copy(targetType), targetReg, op1Reg, targetType, emitActualTypeSize(targetType));
-    }
+    inst_RV_RV(ins_Copy(targetType), targetReg, op1Reg, targetType, emitActualTypeSize(targetType));
 
     instruction ins = getOpForSIMDIntrinsic(simdNode->gtSIMDIntrinsicID, baseType);
     assert((shuffleControl >= 0) && (shuffleControl <= 255));

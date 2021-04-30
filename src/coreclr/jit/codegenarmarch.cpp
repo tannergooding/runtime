@@ -1116,10 +1116,7 @@ void CodeGen::genPutArgReg(GenTreeOp* tree)
     genConsumeReg(op1);
 
     // If child node is not already in the register we need, move it
-    if (targetReg != op1->GetRegNum())
-    {
-        inst_RV_RV(ins_Copy(targetType), targetReg, op1->GetRegNum(), targetType);
-    }
+    inst_RV_RV(ins_Copy(targetType), targetReg, op1->GetRegNum(), targetType);
 
     genProduceReg(tree);
 }
@@ -1231,10 +1228,7 @@ void CodeGen::genPutArgSplit(GenTreePutArgSplit* treeNode)
                     // Handle the first INT, and then handle the 2nd below.
                     assert(nextArgNode->OperIs(GT_BITCAST));
                     type = TYP_INT;
-                    if (argReg != fieldReg)
-                    {
-                        inst_RV_RV(ins_Copy(type), argReg, fieldReg, type);
-                    }
+                    inst_RV_RV(ins_Copy(type), argReg, fieldReg, type);
                     // Now set up the next register for the 2nd INT
                     argReg = REG_NEXT(argReg);
                     regIndex++;
@@ -1244,10 +1238,7 @@ void CodeGen::genPutArgSplit(GenTreePutArgSplit* treeNode)
 #endif // TARGET_ARM
 
                 // If child node is not already in the register we need, move it
-                if (argReg != fieldReg)
-                {
-                    inst_RV_RV(ins_Copy(type), argReg, fieldReg, type);
-                }
+                inst_RV_RV(ins_Copy(type), argReg, fieldReg, type);
                 regIndex++;
             }
         }
@@ -1523,11 +1514,8 @@ void CodeGen::genCodeForPhysReg(GenTreePhysReg* tree)
     var_types targetType = tree->TypeGet();
     regNumber targetReg  = tree->GetRegNum();
 
-    if (targetReg != tree->gtSrcReg)
-    {
-        inst_RV_RV(ins_Copy(targetType), targetReg, tree->gtSrcReg, targetType);
-        genTransferRegGCState(targetReg, tree->gtSrcReg);
-    }
+    inst_RV_RV(ins_Copy(targetType), targetReg, tree->gtSrcReg, targetType);
+    genTransferRegGCState(targetReg, tree->gtSrcReg);
 
     genProduceReg(tree);
 }
@@ -1688,10 +1676,7 @@ void CodeGen::genCodeForArrOffset(GenTreeArrOffs* arrOffset)
     else
     {
         regNumber indexReg = genConsumeReg(indexNode);
-        if (indexReg != tgtReg)
-        {
-            inst_RV_RV(INS_mov, tgtReg, indexReg, TYP_INT);
-        }
+        inst_RV_RV(INS_mov, tgtReg, indexReg, TYP_INT);
     }
     genProduceReg(arrOffset);
 }
@@ -2336,10 +2321,7 @@ void CodeGen::genCallInstruction(GenTreeCall* call)
 
                 genConsumeReg(putArgRegNode);
 
-                if (putArgRegNode->GetRegNum() != argReg)
-                {
-                    inst_RV_RV(ins_Move_Extend(putArgRegNode->TypeGet(), true), argReg, putArgRegNode->GetRegNum());
-                }
+                inst_RV_RV(ins_Move_Extend(putArgRegNode->TypeGet(), true), argReg, putArgRegNode->GetRegNum());
 
                 argReg = genRegArgNext(argReg);
 
@@ -2361,10 +2343,7 @@ void CodeGen::genCallInstruction(GenTreeCall* call)
             {
                 regNumber argReg   = (regNumber)((unsigned)curArgTabEntry->GetRegNum() + idx);
                 regNumber allocReg = argNode->AsPutArgSplit()->GetRegNumByIdx(idx);
-                if (argReg != allocReg)
-                {
-                    inst_RV_RV(ins_Move_Extend(argNode->TypeGet(), true), argReg, allocReg);
-                }
+                inst_RV_RV(ins_Move_Extend(argNode->TypeGet(), true), argReg, allocReg);
             }
         }
 #endif // FEATURE_ARG_SPLIT
@@ -2372,10 +2351,7 @@ void CodeGen::genCallInstruction(GenTreeCall* call)
         {
             regNumber argReg = curArgTabEntry->GetRegNum();
             genConsumeReg(argNode);
-            if (argNode->GetRegNum() != argReg)
-            {
-                inst_RV_RV(ins_Move_Extend(argNode->TypeGet(), true), argReg, argNode->GetRegNum());
-            }
+            inst_RV_RV(ins_Move_Extend(argNode->TypeGet(), true), argReg, argNode->GetRegNum());
         }
     }
 
@@ -2431,10 +2407,7 @@ void CodeGen::genCallInstruction(GenTreeCall* call)
             genConsumeReg(target);
 
             // Use IP0 on ARM64 and R12 on ARM32 as the call target register.
-            if (target->GetRegNum() != REG_FASTTAILCALL_TARGET)
-            {
-                inst_RV_RV(INS_mov, REG_FASTTAILCALL_TARGET, target->GetRegNum());
-            }
+            inst_RV_RV(INS_mov, REG_FASTTAILCALL_TARGET, target->GetRegNum());
         }
 
         return;
@@ -2622,10 +2595,7 @@ void CodeGen::genCallInstruction(GenTreeCall* call)
                 var_types regType      = pRetTypeDesc->GetReturnRegType(i);
                 returnReg              = pRetTypeDesc->GetABIReturnReg(i);
                 regNumber allocatedReg = call->GetRegNumByIdx(i);
-                if (returnReg != allocatedReg)
-                {
-                    inst_RV_RV(ins_Copy(regType), allocatedReg, returnReg, regType);
-                }
+                inst_RV_RV(ins_Copy(regType), allocatedReg, returnReg, regType);
             }
         }
         else
@@ -3243,7 +3213,7 @@ void CodeGen::genFloatToFloatCast(GenTree* treeNode)
         GetEmitter()->emitIns_R_R(INS_fcvt, emitActualTypeSize(treeNode), treeNode->GetRegNum(), op1->GetRegNum(),
                                   cvtOption);
     }
-    else if (treeNode->GetRegNum() != op1->GetRegNum())
+    else
     {
         // If double to double cast or float to float cast. Emit a move instruction.
         GetEmitter()->emitIns_R_R(INS_mov, emitActualTypeSize(treeNode), treeNode->GetRegNum(), op1->GetRegNum());
@@ -3591,10 +3561,7 @@ void CodeGen::genLeaInstruction(GenTreeAddrMode* lea)
             }
             else // offset is zero
             {
-                if (lea->GetRegNum() != memBase->GetRegNum())
-                {
-                    emit->emitIns_R_R(INS_mov, size, lea->GetRegNum(), memBase->GetRegNum());
-                }
+                emit->emitIns_R_R(INS_mov, size, lea->GetRegNum(), memBase->GetRegNum());
             }
         }
         else

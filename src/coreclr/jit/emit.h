@@ -2095,7 +2095,6 @@ public:
     void emitInsSanityCheck(instrDesc* id);
 #endif
 
-#ifdef TARGET_ARMARCH
     // Returns true if instruction "id->idIns()" writes to a register that might be used to contain a GC
     // pointer. This exempts the SP and PC registers, and floating point registers. Memory access
     // instructions that pre- or post-increment their memory address registers are *not* considered to write
@@ -2105,6 +2104,7 @@ public:
     // This may return false positives.
     bool emitInsMayWriteToGCReg(instrDesc* id);
 
+#ifdef TARGET_ARMARCH
     // Returns "true" if instruction "id->idIns()" writes to a LclVar stack location.
     bool emitInsWritesToLclVarStackLoc(instrDesc* id);
 

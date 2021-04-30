@@ -2005,7 +2005,15 @@ void emitter::emitIns_MovRelocatableImmediate(instruction ins, emitAttr attr, re
 
 static bool IsRedundantMov(instruction ins, regNumber reg1, regNumber reg2, insFlags flags)
 {
-    return (ins == INS_mov) && (reg1 == reg2) && (flags == INS_FLAGS_NOT_SET);
+    switch (ins)
+    {
+        case INS_mov:
+        case INS_vmov:
+            return (reg1 == reg2) && (flags == INS_FLAGS_NOT_SET);
+
+        default:
+            return false;
+    }
 }
 
 /*****************************************************************************
@@ -2329,18 +2337,18 @@ void emitter::emitIns_R_R(
     instrDesc* id  = emitNewInstrSmall(attr);
     insSize    isz = emitInsSize(fmt);
 
-    if (IsRedundantMov(ins, reg1, reg2, sf))
-    {
-        // We need to track redundant moves as zero size since they won't actually output any code.
-        isz = 0;
-    }
-
     id->idIns(ins);
     id->idInsFmt(fmt);
     id->idInsSize(isz);
     id->idInsFlags(sf);
     id->idReg1(reg1);
     id->idReg2(reg2);
+
+    if (IsRedundantMov(ins, reg1, reg2, sf) && !emitInsMayWriteToGCReg(id))
+    {
+        // Redundant moves that can't write to GC registers don't need liveness updates
+        return;
+    }
 
     dispIns(id);
     appendToCurIG(id);
@@ -2458,10 +2466,7 @@ void emitter::emitIns_R_R_I(instruction ins,
             {
                 // Is the mov even necessary?
                 // Fix 383915 ARM ILGEN
-                if (reg1 != reg2)
-                {
-                    emitIns_R_R(INS_mov, attr, reg1, reg2, flags);
-                }
+                emitIns_R_R(INS_mov, attr, reg1, reg2, flags);
                 return;
             }
             // Can we encode the immediate 'imm' using a Thumb-1 encoding?
@@ -2699,11 +2704,7 @@ void emitter::emitIns_R_R_I(instruction ins,
             if (imm == 0)
             {
                 // Additional Fix 383915 ARM ILGEN
-                if ((reg1 != reg2) || insMustSetFlags(flags))
-                {
-                    // Use MOV/MOVS instriction
-                    emitIns_R_R(INS_mov, attr, reg1, reg2, flags);
-                }
+                emitIns_R_R(INS_mov, attr, reg1, reg2, flags);
                 return;
             }
 
@@ -5647,7 +5648,9 @@ size_t emitter::emitOutputInstr(insGroup* ig, instrDesc* id, BYTE** dp)
 
     VARSET_TP GCvars(VarSetOps::UninitVal());
 
-    if (IsRedundantMov(ins, id->idReg1(), id->idReg2(), id->idInsFlags()))
+    bool isRedundantMov = IsRedundantMov(ins, id->idReg1(), id->idReg2(), id->idInsFlags());
+
+    if (isRedundantMov)
     {
         // We don't emit anything for redundant moves but still need to update gc liveness
         goto DONE_OUTPUT;
@@ -6551,7 +6554,7 @@ DONE_OUTPUT:
 #ifdef DEBUG
     /* Make sure we set the instruction descriptor size correctly */
 
-    size_t expected = emitSizeOfInsDsc(id);
+    size_t expected = isRedundantMov ? 0 : emitSizeOfInsDsc(id);
     assert(sz == expected);
 
     if (emitComp->opts.disAsm || emitComp->verbose)
@@ -6994,7 +6997,7 @@ void emitter::emitDispInsHelp(
         // We don't want to display redundant moves since they aren't actually emitting anything
         return;
     }
-    
+
     if (EMITVERBOSE)
     {
         unsigned idNum = id->idDebugOnlyInfo()->idNum; // Do not remove this!  It is needed for VisualStudio

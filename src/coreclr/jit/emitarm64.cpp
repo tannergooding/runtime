@@ -4819,6 +4819,12 @@ void emitter::emitIns_R_R(
     id->idReg1(reg1);
     id->idReg2(reg2);
 
+    if (IsRedundantMov(ins, attr, reg1, reg2) && !emitInsMayWriteToGCReg(id))
+    {
+        // Redundant moves that can't write to GC registers don't need liveness updates
+        return;
+    }
+
     dispIns(id);
     appendToCurIG(id);
 }
@@ -5575,10 +5581,7 @@ void emitter::emitIns_R_R_I(
             if (imm == 0)
             {
                 // Is the mov even necessary?
-                if (reg1 != reg2)
-                {
-                    emitIns_R_R(INS_mov, attr, reg1, reg2);
-                }
+                emitIns_R_R(INS_mov, attr, reg1, reg2);
                 return;
             }
 
@@ -15504,7 +15507,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
 
 bool emitter::IsRedundantMov(instruction ins, emitAttr size, regNumber dst, regNumber src)
 {
-    if (ins != INS_mov)
+    if ((ins != INS_fmov) && (ins != INS_mov))
     {
         return false;
     }

@@ -559,10 +559,7 @@ void CodeGen::genCodeForNegNot(GenTree* tree)
         assert(operand->isUsedFromReg());
         regNumber operandReg = genConsumeReg(operand);
 
-        if (operandReg != targetReg)
-        {
-            inst_RV_RV(INS_mov, targetReg, operandReg, targetType);
-        }
+        inst_RV_RV(INS_mov, targetReg, operandReg, targetType);
 
         instruction ins = genGetInsForOper(tree->OperGet(), targetType);
         inst_RV(ins, targetReg, targetType);
@@ -592,10 +589,7 @@ void CodeGen::genCodeForBswap(GenTree* tree)
     assert(operand->isUsedFromReg());
     regNumber operandReg = genConsumeReg(operand);
 
-    if (operandReg != targetReg)
-    {
-        inst_RV_RV(INS_mov, targetReg, operandReg, targetType);
-    }
+    inst_RV_RV(INS_mov, targetReg, operandReg, targetType);
 
     if (tree->OperIs(GT_BSWAP))
     {
@@ -641,10 +635,7 @@ void CodeGen::genCodeForMulHi(GenTreeOp* treeNode)
     assert(regOp->isUsedFromReg());
 
     // Setup targetReg when neither of the source operands was a matching register
-    if (regOp->GetRegNum() != REG_RAX)
-    {
-        inst_RV_RV(ins_Copy(targetType), REG_RAX, regOp->GetRegNum(), targetType);
-    }
+    inst_RV_RV(ins_Copy(targetType), REG_RAX, regOp->GetRegNum(), targetType);
 
     instruction ins;
     if ((treeNode->gtFlags & GTF_UNSIGNED) == 0)
@@ -658,7 +649,7 @@ void CodeGen::genCodeForMulHi(GenTreeOp* treeNode)
     emit->emitInsBinary(ins, size, treeNode, rmOp);
 
     // Move the result to the desired register, if necessary
-    if (treeNode->OperGet() == GT_MULHI && targetReg != REG_RDX)
+    if (treeNode->OperGet() == GT_MULHI)
     {
         inst_RV_RV(INS_mov, targetReg, REG_RDX, targetType);
     }
@@ -743,10 +734,7 @@ void CodeGen::genCodeForLongUMod(GenTreeOp* node)
     inst_RV(INS_div, divisor->GetRegNum(), TYP_INT);
 
     const regNumber targetReg = node->GetRegNum();
-    if (targetReg != REG_EDX)
-    {
-        inst_RV_RV(INS_mov, targetReg, REG_RDX, TYP_INT);
-    }
+    inst_RV_RV(INS_mov, targetReg, REG_RDX, TYP_INT);
     genProduceReg(node);
 }
 #endif // TARGET_X86
@@ -818,18 +806,12 @@ void CodeGen::genCodeForDivMod(GenTreeOp* treeNode)
     // Move the result to the desired register, if necessary
     if (oper == GT_DIV || oper == GT_UDIV)
     {
-        if (targetReg != REG_RAX)
-        {
-            inst_RV_RV(INS_mov, targetReg, REG_RAX, targetType);
-        }
+        inst_RV_RV(INS_mov, targetReg, REG_RAX, targetType);
     }
     else
     {
         assert((oper == GT_MOD) || (oper == GT_UMOD));
-        if (targetReg != REG_RDX)
-        {
-            inst_RV_RV(INS_mov, targetReg, REG_RDX, targetType);
-        }
+        inst_RV_RV(INS_mov, targetReg, REG_RDX, targetType);
     }
     genProduceReg(treeNode);
 }
@@ -1062,11 +1044,8 @@ void CodeGen::genCodeForMul(GenTreeOp* treeNode)
             uint64_t     zextImm     = static_cast<uint64_t>(static_cast<size_t>(imm));
             unsigned int shiftAmount = genLog2(zextImm);
 
-            if (targetReg != rmOp->GetRegNum())
-            {
-                // Copy reg src to dest register
-                inst_RV_RV(INS_mov, targetReg, rmOp->GetRegNum(), targetType);
-            }
+            // Copy reg src to dest register
+            inst_RV_RV(INS_mov, targetReg, rmOp->GetRegNum(), targetType);
             inst_RV_SH(INS_shl, size, targetReg, shiftAmount);
         }
         else
@@ -1103,15 +1082,12 @@ void CodeGen::genCodeForMul(GenTreeOp* treeNode)
         assert(regOp->isUsedFromReg());
 
         // Setup targetReg when neither of the source operands was a matching register
-        if (regOp->GetRegNum() != mulTargetReg)
-        {
-            inst_RV_RV(INS_mov, mulTargetReg, regOp->GetRegNum(), targetType);
-        }
+        inst_RV_RV(INS_mov, mulTargetReg, regOp->GetRegNum(), targetType);
 
         emit->emitInsBinary(ins, size, treeNode, rmOp);
 
         // Move the result to the desired register, if necessary
-        if ((ins == INS_mulEAX) && (targetReg != REG_RAX))
+        if (ins == INS_mulEAX)
         {
             inst_RV_RV(INS_mov, targetReg, REG_RAX, targetType);
         }
@@ -1158,7 +1134,7 @@ void CodeGen::genSIMDSplitReturn(GenTree* src, ReturnTypeDesc* retTypeDesc)
 #ifdef TARGET_AMD64
     assert(src->TypeIs(TYP_SIMD16));
     assert(srcIsFloatReg == dstIsFloatReg);
-    if (opReg != reg0 && opReg != reg1)
+    if (opReg != reg1)
     {
         // Operand reg is different from return regs.
         // Copy opReg to reg0 and let it to be handled by one of the
@@ -1169,7 +1145,6 @@ void CodeGen::genSIMDSplitReturn(GenTree* src, ReturnTypeDesc* retTypeDesc)
 
     if (opReg == reg0)
     {
-        assert(opReg != reg1);
         // reg1 = opReg.
         inst_RV_RV(ins_Copy(opReg, TYP_SIMD16), reg1, opReg, TYP_SIMD16);
     }
@@ -1947,7 +1922,7 @@ void CodeGen::genMultiRegStoreToSIMDLocal(GenTreeLclVar* lclNode)
         }
     }
 
-    if (targetReg != reg0 && targetReg != reg1)
+    if (targetReg != reg1)
     {
         // targetReg = reg0;
         // targetReg[127:64] = reg1[127:64]
@@ -2351,11 +2326,9 @@ void CodeGen::genLclHeap(GenTree* tree)
         else
         {
             regCnt = tree->ExtractTempReg();
-            if (regCnt != targetReg)
-            {
-                // Above, we put the size in targetReg. Now, copy it to our new temp register if necessary.
-                inst_RV_RV(INS_mov, regCnt, targetReg, size->TypeGet());
-            }
+
+            // Above, we put the size in targetReg. Now, copy it to our new temp register if necessary.
+            inst_RV_RV(INS_mov, regCnt, targetReg, size->TypeGet());
         }
 
         // Round up the number of bytes to allocate to a STACK_ALIGN boundary. This is done
@@ -3627,14 +3600,11 @@ void CodeGen::genLockedInstructions(GenTreeOp* node)
 
     genConsumeOperands(node);
 
-    if (node->GetRegNum() != data->GetRegNum())
-    {
-        // If the destination register is different from the data register then we need
-        // to first move the data to the target register. Make sure we don't overwrite
-        // the address, the register allocator should have taken care of this.
-        assert(node->GetRegNum() != addr->GetRegNum());
-        GetEmitter()->emitIns_R_R(INS_mov, size, node->GetRegNum(), data->GetRegNum());
-    }
+    // If the destination register is different from the data register then we need
+    // to first move the data to the target register. Make sure we don't overwrite
+    // the address, the register allocator should have taken care of this.
+    assert(node->GetRegNum() != addr->GetRegNum());
+    GetEmitter()->emitIns_R_R(INS_mov, size, node->GetRegNum(), data->GetRegNum());
 
     instruction ins = node->OperIs(GT_XADD) ? INS_xadd : INS_xchg;
 
@@ -3675,10 +3645,7 @@ void CodeGen::genCodeForCmpXchg(GenTreeCmpXchg* tree)
     // comparand goes to RAX;
     // Note that we must issue this move after the genConsumeRegs(), in case any of the above
     // have a GT_COPY from RAX.
-    if (comparand->GetRegNum() != REG_RAX)
-    {
-        inst_RV_RV(ins_Copy(comparand->TypeGet()), REG_RAX, comparand->GetRegNum(), comparand->TypeGet());
-    }
+    inst_RV_RV(ins_Copy(comparand->TypeGet()), REG_RAX, comparand->GetRegNum(), comparand->TypeGet());
 
     // location is Rm
     instGen(INS_lock);
@@ -3686,10 +3653,7 @@ void CodeGen::genCodeForCmpXchg(GenTreeCmpXchg* tree)
     GetEmitter()->emitIns_AR_R(INS_cmpxchg, emitTypeSize(targetType), value->GetRegNum(), location->GetRegNum(), 0);
 
     // Result is in RAX
-    if (targetReg != REG_RAX)
-    {
-        inst_RV_RV(ins_Copy(targetType), targetReg, REG_RAX, targetType);
-    }
+    inst_RV_RV(ins_Copy(targetType), targetReg, REG_RAX, targetType);
 
     genProduceReg(tree);
 }
@@ -3784,11 +3748,8 @@ void CodeGen::genCodeForPhysReg(GenTreePhysReg* tree)
     var_types targetType = tree->TypeGet();
     regNumber targetReg  = tree->GetRegNum();
 
-    if (targetReg != tree->gtSrcReg)
-    {
-        inst_RV_RV(ins_Copy(targetType), targetReg, tree->gtSrcReg, targetType);
-        genTransferRegGCState(targetReg, tree->gtSrcReg);
-    }
+    inst_RV_RV(ins_Copy(targetType), targetReg, tree->gtSrcReg, targetType);
+    genTransferRegGCState(targetReg, tree->gtSrcReg);
 
     genProduceReg(tree);
 }
@@ -3875,10 +3836,7 @@ void CodeGen::genCodeForArrIndex(GenTreeArrIndex* arrIndex)
 
     // Subtract the lower bound for this dimension.
     // TODO-XArch-CQ: make this contained if it's an immediate that fits.
-    if (tgtReg != indexReg)
-    {
-        inst_RV_RV(INS_mov, tgtReg, indexReg, indexNode->TypeGet());
-    }
+    inst_RV_RV(INS_mov, tgtReg, indexReg, indexNode->TypeGet());
     GetEmitter()->emitIns_R_AR(INS_sub, emitActualTypeSize(TYP_INT), tgtReg, arrReg,
                                genOffsetOfMDArrayLowerBound(elemType, rank, dim));
     GetEmitter()->emitIns_R_AR(INS_cmp, emitActualTypeSize(TYP_INT), tgtReg, arrReg,
@@ -3963,19 +3921,13 @@ void CodeGen::genCodeForArrOffset(GenTreeArrOffs* arrOffset)
         }
         else
         {
-            if (indexReg != tgtReg)
-            {
-                inst_RV_RV(INS_mov, tgtReg, indexReg, TYP_I_IMPL);
-            }
+            inst_RV_RV(INS_mov, tgtReg, indexReg, TYP_I_IMPL);
             inst_RV_RV(INS_add, tgtReg, tmpReg);
         }
     }
     else
     {
-        if (indexReg != tgtReg)
-        {
-            inst_RV_RV(INS_mov, tgtReg, indexReg, TYP_INT);
-        }
+        inst_RV_RV(INS_mov, tgtReg, indexReg, TYP_INT);
     }
     genProduceReg(arrOffset);
 }
@@ -4125,10 +4077,7 @@ void CodeGen::genCodeForShift(GenTree* tree)
             // First, move the operand to the destination register and
             // later on perform the shift in-place.
             // (LSRA will try to avoid this situation through preferencing.)
-            if (tree->GetRegNum() != operandReg)
-            {
-                inst_RV_RV(INS_mov, tree->GetRegNum(), operandReg, targetType);
-            }
+            inst_RV_RV(INS_mov, tree->GetRegNum(), operandReg, targetType);
             inst_RV_SH(ins, size, tree->GetRegNum(), shiftByValue);
         }
     }
@@ -4142,10 +4091,7 @@ void CodeGen::genCodeForShift(GenTree* tree)
         // The operand to be shifted must not be in ECX
         noway_assert(operandReg != REG_RCX);
 
-        if (tree->GetRegNum() != operandReg)
-        {
-            inst_RV_RV(INS_mov, tree->GetRegNum(), operandReg, targetType);
-        }
+        inst_RV_RV(INS_mov, tree->GetRegNum(), operandReg, targetType);
         inst_RV_CL(ins, tree->GetRegNum(), targetType);
     }
 
@@ -4199,10 +4145,7 @@ void CodeGen::genCodeForShiftLong(GenTree* tree)
 
     regNumber regResult = (oper == GT_LSH_HI) ? regHi : regLo;
 
-    if (regResult != tree->GetRegNum())
-    {
-        inst_RV_RV(INS_mov, tree->GetRegNum(), regResult, targetType);
-    }
+    inst_RV_RV(INS_mov, tree->GetRegNum(), regResult, targetType);
 
     if (oper == GT_LSH_HI)
     {
@@ -4509,7 +4452,7 @@ void CodeGen::genCodeForStoreLclVar(GenTreeLclVar* lclNode)
                 assert((op1->GetRegNum() == REG_NA) && op1->OperIsConst());
                 genSetRegToConst(targetReg, targetType, op1);
             }
-            else if (op1->GetRegNum() != targetReg)
+            else
             {
                 assert(op1->GetRegNum() != REG_NA);
                 emit->emitInsBinary(ins_Move_Extend(targetType, true), emitTypeSize(lclNode), lclNode, op1);
@@ -5017,10 +4960,7 @@ void CodeGen::genCallInstruction(GenTreeCall* call)
 
                 // Validate the putArgRegNode has the right type.
                 assert(varTypeUsesFloatReg(putArgRegNode->TypeGet()) == genIsValidFloatReg(argReg));
-                if (putArgRegNode->GetRegNum() != argReg)
-                {
-                    inst_RV_RV(ins_Move_Extend(putArgRegNode->TypeGet(), false), argReg, putArgRegNode->GetRegNum());
-                }
+                inst_RV_RV(ins_Move_Extend(putArgRegNode->TypeGet(), false), argReg, putArgRegNode->GetRegNum());
             }
         }
         else
@@ -5028,10 +4968,7 @@ void CodeGen::genCallInstruction(GenTreeCall* call)
         {
             regNumber argReg = curArgTabEntry->GetRegNum();
             genConsumeReg(argNode);
-            if (argNode->GetRegNum() != argReg)
-            {
-                inst_RV_RV(ins_Move_Extend(argNode->TypeGet(), false), argReg, argNode->GetRegNum());
-            }
+            inst_RV_RV(ins_Move_Extend(argNode->TypeGet(), false), argReg, argNode->GetRegNum());
         }
 
 #if FEATURE_VARARG
@@ -5419,10 +5356,7 @@ void CodeGen::genCallInstruction(GenTreeCall* call)
                     var_types regType      = retTypeDesc->GetReturnRegType(i);
                     returnReg              = retTypeDesc->GetABIReturnReg(i);
                     regNumber allocatedReg = call->GetRegNumByIdx(i);
-                    if (returnReg != allocatedReg)
-                    {
-                        inst_RV_RV(ins_Copy(regType), allocatedReg, returnReg, regType);
-                    }
+                    inst_RV_RV(ins_Copy(regType), allocatedReg, returnReg, regType);
                 }
 
 #ifdef FEATURE_SIMD
@@ -5461,10 +5395,7 @@ void CodeGen::genCallInstruction(GenTreeCall* call)
                     returnReg = REG_INTRET;
                 }
 
-                if (call->GetRegNum() != returnReg)
-                {
-                    inst_RV_RV(ins_Copy(returnType), call->GetRegNum(), returnReg, returnType);
-                }
+                inst_RV_RV(ins_Copy(returnType), call->GetRegNum(), returnReg, returnType);
             }
 
             genProduceReg(call);
@@ -5990,10 +5921,7 @@ void CodeGen::genCompareInt(GenTree* treeNode)
             // Morph/Lowering are responsible to rotate "0<x" to "x>0" so we won't handle it here.
             if ((targetReg != REG_NA) && tree->OperIs(GT_LT, GT_GE) && !tree->IsUnsigned())
             {
-                if (targetReg != op1->GetRegNum())
-                {
-                    inst_RV_RV(INS_mov, targetReg, op1->GetRegNum(), op1->TypeGet());
-                }
+                inst_RV_RV(INS_mov, targetReg, op1->GetRegNum(), op1->TypeGet());
                 if (tree->OperIs(GT_GE))
                 {
                     // emit "not" for "x>=0" case
@@ -6152,10 +6080,7 @@ void CodeGen::genLongToIntCast(GenTree* cast)
         }
     }
 
-    if (dstReg != loSrcReg)
-    {
-        inst_RV_RV(INS_mov, dstReg, loSrcReg, TYP_INT, EA_4BYTE);
-    }
+    inst_RV_RV(INS_mov, dstReg, loSrcReg, TYP_INT, EA_4BYTE);
 
     genProduceReg(cast);
 }
@@ -6185,7 +6110,6 @@ void CodeGen::genIntCastOverflowCheck(GenTreeCast* cast, const GenIntCastDesc& d
             // cannot be encoded in an immediate operand. Use a right shift to test if the
             // upper 32 bits are zero. This requires a temporary register.
             const regNumber tempReg = cast->GetSingleTempReg();
-            assert(tempReg != reg);
             GetEmitter()->emitIns_R_R(INS_mov, EA_8BYTE, tempReg, reg);
             GetEmitter()->emitIns_R_I(INS_shr_N, EA_8BYTE, tempReg, 32);
             genJumpToThrowHlpBlk(EJ_jne, SCK_OVERFLOW);
@@ -6289,7 +6213,6 @@ void CodeGen::genIntToIntCast(GenTreeCast* cast)
 #endif
             default:
                 assert(desc.ExtendKind() == GenIntCastDesc::COPY);
-                assert(srcReg != dstReg);
                 ins     = INS_mov;
                 insSize = desc.ExtendSrcSize();
                 break;
@@ -6608,10 +6531,7 @@ void CodeGen::genCkfinite(GenTree* treeNode)
     genJumpToThrowHlpBlk(EJ_je, SCK_ARITH_EXCPN);
 
     // if it is a finite value copy it to targetReg
-    if (targetReg != op1->GetRegNum())
-    {
-        inst_RV_RV(ins_Copy(targetType), targetReg, op1->GetRegNum(), targetType);
-    }
+    inst_RV_RV(ins_Copy(targetType), targetReg, op1->GetRegNum(), targetType);
 
 #else // !TARGET_64BIT
 
@@ -6648,10 +6568,7 @@ void CodeGen::genCkfinite(GenTree* treeNode)
 
     if (targetType == TYP_DOUBLE)
     {
-        if (targetReg != op1->GetRegNum())
-        {
-            inst_RV_RV(ins_Copy(targetType), targetReg, op1->GetRegNum(), targetType);
-        }
+        inst_RV_RV(ins_Copy(targetType), targetReg, op1->GetRegNum(), targetType);
         inst_RV_RV_IV(INS_shufps, EA_16BYTE, targetReg, targetReg, (int8_t)0xb1);
         copyToTmpSrcReg = targetReg;
     }
@@ -7085,7 +7002,7 @@ void CodeGen::genBitCast(var_types targetType, regNumber targetReg, var_types sr
     {
         inst_RV_RV(ins_Copy(srcReg, targetType), targetReg, srcReg, targetType);
     }
-    else if (targetReg != srcReg)
+    else
     {
         inst_RV_RV(ins_Copy(targetType), targetReg, srcReg, targetType);
     }
@@ -7710,10 +7627,7 @@ void CodeGen::genPutArgReg(GenTreeOp* tree)
     genConsumeReg(op1);
 
     // If child node is not already in the register we need, move it
-    if (targetReg != op1->GetRegNum())
-    {
-        inst_RV_RV(ins_Copy(targetType), targetReg, op1->GetRegNum(), targetType);
-    }
+    inst_RV_RV(ins_Copy(targetType), targetReg, op1->GetRegNum(), targetType);
 
     genProduceReg(tree);
 }

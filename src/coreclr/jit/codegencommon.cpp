@@ -7739,11 +7739,8 @@ void CodeGen::genFnProlog()
 
         if (varDsc->lvIsInReg())
         {
-            if (varDsc->GetRegNum() != REG_EAX)
-            {
-                GetEmitter()->emitIns_R_R(INS_mov, EA_PTRSIZE, varDsc->GetRegNum(), REG_EAX);
-                regSet.verifyRegUsed(varDsc->GetRegNum());
-            }
+            GetEmitter()->emitIns_R_R(INS_mov, EA_PTRSIZE, varDsc->GetRegNum(), REG_EAX);
+            regSet.verifyRegUsed(varDsc->GetRegNum());
         }
         else
         {
@@ -10968,14 +10965,9 @@ void CodeGen::genLongReturn(GenTree* treeNode)
 
     genConsumeReg(loRetVal);
     genConsumeReg(hiRetVal);
-    if (loRetVal->GetRegNum() != REG_LNGRET_LO)
-    {
-        inst_RV_RV(ins_Copy(targetType), REG_LNGRET_LO, loRetVal->GetRegNum(), TYP_INT);
-    }
-    if (hiRetVal->GetRegNum() != REG_LNGRET_HI)
-    {
-        inst_RV_RV(ins_Copy(targetType), REG_LNGRET_HI, hiRetVal->GetRegNum(), TYP_INT);
-    }
+
+    inst_RV_RV(ins_Copy(targetType), REG_LNGRET_LO, loRetVal->GetRegNum(), TYP_INT);
+    inst_RV_RV(ins_Copy(targetType), REG_LNGRET_HI, hiRetVal->GetRegNum(), TYP_INT);
 }
 #endif // TARGET_X86 || TARGET_ARM
 
@@ -11060,10 +11052,7 @@ void CodeGen::genReturn(GenTree* treeNode)
 #endif // TARGET_ARM
             {
                 regNumber retReg = varTypeUsesFloatReg(treeNode) ? REG_FLOATRET : REG_INTRET;
-                if (op1->GetRegNum() != retReg)
-                {
-                    inst_RV_RV(ins_Move_Extend(targetType, true), retReg, op1->GetRegNum(), targetType);
-                }
+                inst_RV_RV(ins_Move_Extend(targetType, true), retReg, op1->GetRegNum(), targetType);
             }
 #endif // !TARGET_ARM64
         }
@@ -11291,7 +11280,7 @@ void CodeGen::genStructReturn(GenTree* treeNode)
                 assert(compiler->lvaGetDesc(fieldVarNum)->lvOnFrame);
                 GetEmitter()->emitIns_R_S(ins_Load(type), emitTypeSize(type), toReg, fieldVarNum, 0);
             }
-            else if (fromReg != toReg)
+            else
             {
                 // Note that ins_Copy(fromReg, type) will return the appropriate register to copy
                 // between register files if needed.
@@ -11407,11 +11396,10 @@ void CodeGen::genMultiRegStoreToLocal(GenTreeLclVar* lclNode)
             if (varReg != REG_NA)
             {
                 hasRegs = true;
-                if (varReg != reg)
-                {
-                    // We may need a cross register-file copy here.
-                    inst_RV_RV(ins_Copy(reg, destType), varReg, reg, destType);
-                }
+
+                // We may need a cross register-file copy here.
+                inst_RV_RV(ins_Copy(reg, destType), varReg, reg, destType);
+
                 fieldVarDsc->SetRegNum(varReg);
             }
             else
@@ -11630,8 +11618,6 @@ regNumber CodeGen::genRegCopy(GenTree* treeNode, unsigned multiRegIndex)
     // on the source is still valid at the consumer).
     if (targetReg != REG_NA)
     {
-        // We shouldn't specify a no-op move.
-        assert(sourceReg != targetReg);
         var_types type;
         if (op1->IsMultiRegLclVar())
         {

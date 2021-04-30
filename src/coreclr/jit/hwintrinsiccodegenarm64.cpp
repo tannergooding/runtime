@@ -280,10 +280,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                     assert(targetReg != op2Reg);
                     assert(targetReg != op3Reg);
 
-                    if (targetReg != op1Reg)
-                    {
-                        GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
-                    }
+                    GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
 
                     HWIntrinsicImmOpHelper helper(this, intrin.op4, node);
 
@@ -313,11 +310,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                     assert(targetReg != op2Reg);
                     assert(targetReg != op3Reg);
 
-                    if (targetReg != op1Reg)
-                    {
-                        GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
-                    }
-
+                    GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
                     GetEmitter()->emitIns_R_R_R_I(ins, emitSize, targetReg, op2Reg, op3Reg, 0, opt);
                 }
                 else
@@ -333,10 +326,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
 
             if (isRMW)
             {
-                if (targetReg != op1Reg)
-                {
-                    GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
-                }
+                GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
 
                 HWIntrinsicImmOpHelper helper(this, intrin.op3, node);
 
@@ -374,10 +364,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                     {
                         assert(targetReg != op2Reg);
 
-                        if (targetReg != op1Reg)
-                        {
-                            GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
-                        }
+                        GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
                         GetEmitter()->emitIns_R_R(ins, emitSize, targetReg, op2Reg, opt);
                     }
                     else
@@ -391,11 +378,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                     assert(targetReg != op2Reg);
                     assert(targetReg != op3Reg);
 
-                    if (targetReg != op1Reg)
-                    {
-                        GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
-                    }
-
+                    GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
                     GetEmitter()->emitIns_R_R_R(ins, emitSize, targetReg, op2Reg, op3Reg, opt);
                     break;
 
@@ -585,10 +568,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
             case NI_AdvSimd_Insert:
                 assert(isRMW);
 
-                if (targetReg != op1Reg)
-                {
-                    GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
-                }
+                GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
 
                 if (intrin.op3->isContainedFltOrDblImmed())
                 {
@@ -630,10 +610,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                 assert(isRMW);
                 assert(targetReg != op3Reg);
 
-                if (targetReg != op1Reg)
-                {
-                    GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
-                }
+                GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
 
                 HWIntrinsicImmOpHelper helper(this, intrin.op2, node);
 
@@ -651,10 +628,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                 assert(isRMW);
                 assert(targetReg != op3Reg);
 
-                if (targetReg != op1Reg)
-                {
-                    GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
-                }
+                GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
 
                 const int resultIndex = (int)intrin.op2->AsIntCon()->gtIconVal;
                 const int valueIndex  = (int)intrin.op4->AsIntCon()->gtIconVal;
@@ -667,10 +641,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                 assert(isRMW);
                 assert(targetReg != op3Reg);
 
-                if (targetReg != op1Reg)
-                {
-                    GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
-                }
+                GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
 
                 HWIntrinsicImmOpHelper helper(this, intrin.op2, node);
 
@@ -752,11 +723,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                 {
                     ins = varTypeIsUnsigned(intrin.baseType) ? INS_usqadd : INS_suqadd;
 
-                    if (targetReg != op1Reg)
-                    {
-                        GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
-                    }
-
+                    GetEmitter()->emitIns_R_R(INS_mov, emitTypeSize(node), targetReg, op1Reg);
                     GetEmitter()->emitIns_R_R(ins, emitSize, targetReg, op2Reg, opt);
                 }
                 else
@@ -816,10 +783,7 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
 
             case NI_Vector64_ToVector128Unsafe:
             case NI_Vector128_GetLower:
-                if (op1Reg != targetReg)
-                {
-                    GetEmitter()->emitIns_R_R(ins, emitSize, targetReg, op1Reg);
-                }
+                GetEmitter()->emitIns_R_R(ins, emitSize, targetReg, op1Reg);
                 break;
 
             case NI_Vector64_GetElement:

@@ -1286,10 +1286,7 @@ void CodeGen::genCopyRegIfNeeded(GenTree* node, regNumber needReg)
 {
     assert((node->GetRegNum() != REG_NA) && (needReg != REG_NA));
     assert(!node->isUsedFromSpillTemp());
-    if (node->GetRegNum() != needReg)
-    {
-        inst_RV_RV(INS_mov, needReg, node->GetRegNum(), node->TypeGet());
-    }
+    inst_RV_RV(INS_mov, needReg, node->GetRegNum(), node->TypeGet());
 }
 
 // Do Liveness update for a subnodes that is being consumed by codegen
@@ -1458,7 +1455,7 @@ regNumber CodeGen::genConsumeReg(GenTree* tree)
     {
         GenTreeLclVarCommon* lcl    = tree->AsLclVarCommon();
         LclVarDsc*           varDsc = &compiler->lvaTable[lcl->GetLclNum()];
-        if (varDsc->GetRegNum() != REG_STK && varDsc->GetRegNum() != tree->GetRegNum())
+        if (varDsc->GetRegNum() != REG_STK)
         {
             inst_RV_RV(ins_Copy(tree->TypeGet()), tree->GetRegNum(), varDsc->GetRegNum());
         }
@@ -1757,7 +1754,6 @@ void CodeGen::genConsumePutStructArgStk(GenTreePutArgStk* putArgNode,
     CLANG_FORMAT_COMMENT_ANCHOR;
 
 #ifdef TARGET_X86
-    assert(dstReg != REG_SPBASE);
     inst_RV_RV(INS_mov, dstReg, REG_SPBASE);
 #else  // !TARGET_X86
     GenTree* dstAddr = putArgNode;
@@ -1909,10 +1905,7 @@ void CodeGen::genSetBlockSize(GenTreeBlk* blkNode, regNumber sizeReg)
         else
         {
             GenTree* sizeNode = blkNode->AsDynBlk()->gtDynamicSize;
-            if (sizeNode->GetRegNum() != sizeReg)
-            {
-                inst_RV_RV(INS_mov, sizeReg, sizeNode->GetRegNum(), sizeNode->TypeGet());
-            }
+            inst_RV_RV(INS_mov, sizeReg, sizeNode->GetRegNum(), sizeNode->TypeGet());
         }
     }
 }

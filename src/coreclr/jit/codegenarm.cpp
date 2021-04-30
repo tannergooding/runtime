@@ -925,11 +925,7 @@ void CodeGen::genCodeForShiftLong(GenTree* tree)
     unsigned count = (unsigned)shiftBy->AsIntConCommon()->IconValue();
 
     regNumber regResult = (oper == GT_LSH_HI) ? regHi : regLo;
-
-    if (regResult != tree->GetRegNum())
-    {
-        inst_RV_RV(INS_mov, tree->GetRegNum(), regResult, targetType);
-    }
+    inst_RV_RV(INS_mov, tree->GetRegNum(), regResult, targetType);
 
     if (oper == GT_LSH_HI)
     {
@@ -1093,11 +1089,8 @@ void CodeGen::genCodeForStoreLclVar(GenTreeLclVar* tree)
             }
             else // store into register (i.e move into register)
             {
-                if (dataReg != targetReg)
-                {
-                    // Assign into targetReg when dataReg (from op1) is not the same register
-                    inst_RV_RV(ins_Copy(targetType), targetReg, dataReg, targetType);
-                }
+                // Assign into targetReg when dataReg (from op1) is not the same register
+                inst_RV_RV(ins_Copy(targetType), targetReg, dataReg, targetType);
                 genProduceReg(tree);
             }
         }
@@ -1200,10 +1193,7 @@ void CodeGen::genCkfinite(GenTree* treeNode)
     genJumpToThrowHlpBlk(EJ_eq, SCK_ARITH_EXCPN);
 
     // If it's a finite value, copy it to targetReg
-    if (targetReg != fpReg)
-    {
-        emit->emitIns_R_R(ins_Copy(targetType), emitTypeSize(treeNode), targetReg, fpReg);
-    }
+    emit->emitIns_R_R(ins_Copy(targetType), emitTypeSize(treeNode), targetReg, fpReg);
     genProduceReg(treeNode);
 }
 
@@ -1313,16 +1303,10 @@ void CodeGen::genCodeForStoreInd(GenTreeStoreInd* tree)
         noway_assert(data->GetRegNum() != REG_ARG_0);
 
         // addr goes in REG_ARG_0
-        if (addr->GetRegNum() != REG_ARG_0)
-        {
-            inst_RV_RV(INS_mov, REG_ARG_0, addr->GetRegNum(), addr->TypeGet());
-        }
+        inst_RV_RV(INS_mov, REG_ARG_0, addr->GetRegNum(), addr->TypeGet());
 
         // data goes in REG_ARG_1
-        if (data->GetRegNum() != REG_ARG_1)
-        {
-            inst_RV_RV(INS_mov, REG_ARG_1, data->GetRegNum(), data->TypeGet());
-        }
+        inst_RV_RV(INS_mov, REG_ARG_1, data->GetRegNum(), data->TypeGet());
 
         genGCWriteBarrier(tree, writeBarrierForm);
     }
@@ -1425,10 +1409,7 @@ void CodeGen::genLongToIntCast(GenTree* cast)
         }
     }
 
-    if (dstReg != loSrcReg)
-    {
-        inst_RV_RV(INS_mov, dstReg, loSrcReg, TYP_INT, EA_4BYTE);
-    }
+    inst_RV_RV(INS_mov, dstReg, loSrcReg, TYP_INT, EA_4BYTE);
 
     genProduceReg(cast);
 }

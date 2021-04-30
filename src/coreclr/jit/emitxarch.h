@@ -240,6 +240,9 @@ ssize_t emitGetInsAmdCns(instrDesc* id, CnsVal* cv);
 void emitGetInsDcmCns(instrDesc* id, CnsVal* cv);
 ssize_t emitGetInsAmdAny(instrDesc* id);
 
+bool emitInstHasNoCode(instrDesc* id);
+bool IsRedundantMov(instruction ins, emitAttr attr, regNumber reg1, regNumber reg2);
+
 /************************************************************************/
 /*               Private helpers for instruction output                 */
 /************************************************************************/
