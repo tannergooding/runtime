@@ -2003,6 +2003,11 @@ void emitter::emitIns_MovRelocatableImmediate(instruction ins, emitAttr attr, re
     appendToCurIG(id);
 }
 
+static bool IsRedundantMov(instruction ins, regNumber reg1, regNumber reg2, insFlags flags)
+{
+    return (ins == INS_mov) && (reg1 == reg2) && (flags == INS_FLAGS_NOT_SET);
+}
+
 /*****************************************************************************
  *
  *  Add an instruction referencing two registers
@@ -2041,7 +2046,6 @@ void emitter::emitIns_R_R(
         case INS_mov:
             if (insDoesNotSetFlags(flags))
             {
-                assert(reg1 != reg2);
                 fmt = IF_T1_D0;
                 sf  = INS_FLAGS_NOT_SET;
             }
@@ -2324,6 +2328,12 @@ void emitter::emitIns_R_R(
 
     instrDesc* id  = emitNewInstrSmall(attr);
     insSize    isz = emitInsSize(fmt);
+
+    if (IsRedundantMov(ins, reg1, reg2, sf))
+    {
+        // We need to track redundant moves as zero size since they won't actually output any code.
+        isz = 0;
+    }
 
     id->idIns(ins);
     id->idInsFmt(fmt);
@@ -5637,6 +5647,12 @@ size_t emitter::emitOutputInstr(insGroup* ig, instrDesc* id, BYTE** dp)
 
     VARSET_TP GCvars(VarSetOps::UninitVal());
 
+    if (IsRedundantMov(ins, id->idReg1(), id->idReg2(), id->idInsFlags()))
+    {
+        // We don't emit anything for redundant moves but still need to update gc liveness
+        goto DONE_OUTPUT;
+    }
+
     /* What instruction format have we got? */
 
     switch (fmt)
@@ -6457,6 +6473,8 @@ size_t emitter::emitOutputInstr(insGroup* ig, instrDesc* id, BYTE** dp)
             break;
     }
 
+DONE_OUTPUT:
+
     // Determine if any registers now hold GC refs, or whether a register that was overwritten held a GC ref.
     // We assume here that "id->idGCref()" is not GC_NONE only if the instruction described by "id" writes a
     // GC ref to register "id->idReg1()".  (It may, apparently, also not be GC_NONE in other cases, such as
@@ -6971,6 +6989,12 @@ void emitter::emitDispInsHex(instrDesc* id, BYTE* code, size_t sz)
 void emitter::emitDispInsHelp(
     instrDesc* id, bool isNew, bool doffs, bool asmfm, unsigned offset, BYTE* code, size_t sz, insGroup* ig)
 {
+    if (IsRedundantMov(id->idIns(), id->idReg1(), id->idReg2(), id->idInsFlags()))
+    {
+        // We don't want to display redundant moves since they aren't actually emitting anything
+        return;
+    }
+    
     if (EMITVERBOSE)
     {
         unsigned idNum = id->idDebugOnlyInfo()->idNum; // Do not remove this!  It is needed for VisualStudio

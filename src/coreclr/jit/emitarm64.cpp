@@ -4077,12 +4077,6 @@ void emitter::emitIns_R_R(
         case INS_mov:
             assert(insOptsNone(opt));
 
-            // Is the mov even necessary?
-            if (emitComp->opts.OptimizationEnabled() && IsRedundantMov(ins, size, reg1, reg2))
-            {
-                return;
-            }
-
             // Check for the 'mov' aliases for the vector registers
             if (isVectorRegister(reg1))
             {
@@ -10287,6 +10281,15 @@ size_t emitter::emitOutputInstr(insGroup* ig, instrDesc* id, BYTE** dp)
 
     assert(REG_NA == (int)REG_NA);
 
+    if (IsRedundantMov(ins, size, id->idReg1(), id->idReg2()))
+    {
+        // We need to track redundant moves as zero size since they won't actually output any code.
+        sz = 0;
+
+        // We don't emit anything for redundant moves but still need to update gc liveness
+        goto DONE_OUTPUT;
+    }
+
     /* What instruction format have we got? */
 
     switch (fmt)
@@ -11400,6 +11403,8 @@ size_t emitter::emitOutputInstr(insGroup* ig, instrDesc* id, BYTE** dp)
             break;
     }
 
+DONE_OUTPUT:
+
     // Determine if any registers now hold GC refs, or whether a register that was overwritten held a GC ref.
     // We assume here that "id->idGCref()" is not GC_NONE only if the instruction described by "id" writes a
     // GC ref to register "id->idReg1()".  (It may, apparently, also not be GC_NONE in other cases, such as
@@ -12127,6 +12132,12 @@ void emitter::emitDispInsHex(instrDesc* id, BYTE* code, size_t sz)
 void emitter::emitDispIns(
     instrDesc* id, bool isNew, bool doffs, bool asmfm, unsigned offset, BYTE* pCode, size_t sz, insGroup* ig)
 {
+    if (IsRedundantMov(id->idIns(), id->idOpSize(), id->idReg1(), id->idReg2()))
+    {
+        // We don't want to display redundant moves since they aren't actually emitting anything
+        return;
+    }
+
     if (EMITVERBOSE)
     {
         unsigned idNum =
@@ -15493,7 +15504,10 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
 
 bool emitter::IsRedundantMov(instruction ins, emitAttr size, regNumber dst, regNumber src)
 {
-    assert(ins == INS_mov);
+    if (ins != INS_mov)
+    {
+        return false;
+    }
 
     if (dst == src)
     {

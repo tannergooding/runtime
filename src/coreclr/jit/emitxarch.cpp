@@ -49,6 +49,15 @@ bool IsBMIInstruction(instruction ins)
     return (ins >= INS_FIRST_BMI_INSTRUCTION) && (ins <= INS_LAST_BMI_INSTRUCTION);
 }
 
+static bool IsRedundantMov(instruction ins, emitAttr attr, regNumber reg1, regNumber reg2)
+{
+#ifdef TARGET_AMD64
+    return (ins == INS_mov) && (reg1 == reg2) && (size != EA_4BYTE);
+#else
+    return (ins == INS_mov) && (reg1 == reg2);
+#endif // TARGET_AMD64
+}
+
 regNumber getBmiRegNumber(instruction ins)
 {
     switch (ins)
@@ -4165,18 +4174,16 @@ void emitter::emitIns_R_R(instruction ins, emitAttr attr, regNumber reg1, regNum
     /* We don't want to generate any useless mov instructions! */
     CLANG_FORMAT_COMMENT_ANCHOR;
 
-#ifdef TARGET_AMD64
-    // Same-reg 4-byte mov can be useful because it performs a
-    // zero-extension to 8 bytes.
-    assert(ins != INS_mov || reg1 != reg2 || size == EA_4BYTE);
-#else
-    assert(ins != INS_mov || reg1 != reg2);
-#endif // TARGET_AMD64
-
     assert(size <= EA_32BYTE);
     noway_assert(emitVerifyEncodable(ins, size, reg1, reg2));
 
     UNATIVE_OFFSET sz = emitInsSizeRR(ins, reg1, reg2, attr);
+
+    if (IsRedundantMov(ins, attr, reg1, reg2))
+    {
+        // We need to track redundant moves as zero size since they won't actually output any code.
+        sz = 0;
+    }
 
     /* Special case: "XCHG" uses a different format */
     insFormat fmt = (ins == INS_xchg) ? IF_RRW_RRW : emitInsModeFormat(ins, IF_RRD_RRD);
@@ -8887,8 +8894,9 @@ void emitter::emitDispIns(
                 printf("%s, %s", emitRegName(id->idReg1(), EA_4BYTE), emitRegName(id->idReg2(), attr));
             }
 #endif // FEATURE_HW_INTRINSICS
-            else
+            else if (!IsRedundantMov(ins, attr, id->idReg1(), id->idReg2()))
             {
+                // We don't want to display redundant moves since they aren't actually emitting anything
                 printf("%s, %s", emitRegName(id->idReg1(), attr), emitRegName(id->idReg2(), attr));
             }
             break;
@@ -11462,6 +11470,12 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
     regNumber   reg2 = id->idReg2();
     emitAttr    size = id->idOpSize();
 
+    if (IsRedundantMov(ins, size, reg1, reg2))
+    {
+        // We don't emit anything for redundant moves but still need to update gc liveness
+        goto DONE_OUTPUT;
+    }
+
     if (IsSSEOrAVXInstruction(ins))
     {
         assert((ins != INS_movd) || (isFloatReg(reg1) != isFloatReg(reg2)));
@@ -11664,6 +11678,8 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
         dst += emitOutputWord(dst, code);
         dst += emitOutputByte(dst, (0xC0 | regCode));
     }
+
+DONE_OUTPUT:
 
     // Does this instruction operate on a GC ref value?
     if (id->idGCref())
