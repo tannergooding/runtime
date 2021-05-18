@@ -4,6 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 
 namespace System
 {
@@ -25,7 +26,19 @@ namespace System
     // an appropriate custom ILMarshaler to keep WInRT interop scenarios enabled.
     //
     [Serializable]
-    public readonly struct TimeSpan : IComparable, IComparable<TimeSpan>, IEquatable<TimeSpan>, ISpanFormattable
+    public readonly struct TimeSpan
+        : IAdditionOperators<TimeSpan, TimeSpan, TimeSpan>,
+          IAdditiveIdentity<TimeSpan, TimeSpan>,
+          IComparisonOperators<TimeSpan, TimeSpan>,
+          IDivisionOperators<TimeSpan, double, TimeSpan>,
+          IDivisionOperators<TimeSpan, TimeSpan, double>,
+          IMinMaxValue<TimeSpan>,
+          IMultiplyOperators<TimeSpan, double, TimeSpan>,
+          IMultiplicativeIdentity<TimeSpan, double>,
+          IUnaryNegationOperators<TimeSpan, TimeSpan>,
+          IUnaryPlusOperators<TimeSpan, TimeSpan>,
+          ISpanFormattable,
+          ISubtractionOperators<TimeSpan, TimeSpan, TimeSpan>
     {
         public const long TicksPerMillisecond = 10000;
 
@@ -487,5 +500,88 @@ namespace System
         public static bool operator >(TimeSpan t1, TimeSpan t2) => t1._ticks > t2._ticks;
 
         public static bool operator >=(TimeSpan t1, TimeSpan t2) => t1._ticks >= t2._ticks;
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static TimeSpan IAdditionOperators<TimeSpan, TimeSpan, TimeSpan>.op_AdditionChecked(TimeSpan left, TimeSpan right)
+            => checked(left + right);
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static TimeSpan IAdditiveIdentity<TimeSpan, TimeSpan>.AdditiveIdentity => default;
+
+        //
+        // IDivisionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static TimeSpan IDivisionOperators<TimeSpan, double, TimeSpan>.op_DivisionChecked(TimeSpan left, double right)
+            => checked(left / right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static double IDivisionOperators<TimeSpan, TimeSpan, double>.op_DivisionChecked(TimeSpan left, TimeSpan right)
+            => checked(left / right);
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static TimeSpan IMinMaxValue<TimeSpan>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static TimeSpan IMinMaxValue<TimeSpan>.MaxValue => MaxValue;
+
+        //
+        // IMultiplicativeIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static double IMultiplicativeIdentity<TimeSpan, double>.MultiplicativeIdentity => 1.0;
+
+        //
+        // IMultiplyOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static TimeSpan IMultiplyOperators<TimeSpan, double, TimeSpan>.op_MultiplyChecked(TimeSpan left, double right)
+            => checked(left * right);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static TimeSpan ISubtractionOperators<TimeSpan, TimeSpan, TimeSpan>.op_SubtractionChecked(TimeSpan left, TimeSpan right)
+            => checked(left - right);
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static TimeSpan IUnaryNegationOperators<TimeSpan, TimeSpan>.op_UnaryNegationChecked(TimeSpan value)
+            => checked(-value);
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static TimeSpan IUnaryPlusOperators<TimeSpan, TimeSpan>.op_UnaryPlusChecked(TimeSpan value)
+            => checked(+value);
     }
 }

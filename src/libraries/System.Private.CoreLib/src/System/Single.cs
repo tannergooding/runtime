@@ -23,7 +23,10 @@ namespace System
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
     [TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public readonly struct Single : IComparable, IConvertible, ISpanFormattable, IComparable<float>, IEquatable<float>
+    public readonly struct Single
+        : IBinaryFloatingPoint<float>,
+          IConvertible,
+          IMinMaxValue<float>
     {
         private readonly float m_value; // Do not rename (binary serialization)
 
@@ -436,5 +439,488 @@ namespace System
         {
             return Convert.DefaultToType((IConvertible)this, type, provider);
         }
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static float IAdditionOperators<float, float, float>.operator +(float left, float right)
+            => left + right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static float IAdditionOperators<float, float, float>.op_AdditionChecked(float left, float right)
+            => checked(left + right);
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static float IAdditiveIdentity<float, float>.AdditiveIdentity => 0.0f;
+
+        //
+        // IBinaryNumber
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IBinaryNumber<float>.IsPow2(float value)
+        {
+            var bits = (uint)BitConverter.SingleToInt32Bits(value);
+
+            var exponent = (uint)(bits >> ExponentShift) & ShiftedExponentMask;
+            var significand = bits & SignificandMask;
+
+            return (value > 0)
+                && (exponent != MinExponent) && (exponent != MaxExponent)
+                && (significand == MinSignificand);
+        }
+
+        [RequiresPreviewFeatures]
+        static float IBinaryNumber<float>.Log2(float value)
+            => MathF.Log2(value);
+
+        //
+        // IBitwiseOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static float IBitwiseOperators<float, float, float>.operator &(float left, float right)
+        {
+            var bits = BitConverter.SingleToInt32Bits(left) & BitConverter.SingleToInt32Bits(right);
+            return BitConverter.Int32BitsToSingle(bits);
+        }
+
+        [RequiresPreviewFeatures]
+        static float IBitwiseOperators<float, float, float>.operator |(float left, float right)
+        {
+            var bits = BitConverter.SingleToInt32Bits(left) | BitConverter.SingleToInt32Bits(right);
+            return BitConverter.Int32BitsToSingle(bits);
+        }
+
+        [RequiresPreviewFeatures]
+        static float IBitwiseOperators<float, float, float>.operator ^(float left, float right)
+        {
+            var bits = BitConverter.SingleToInt32Bits(left) ^ BitConverter.SingleToInt32Bits(right);
+            return BitConverter.Int32BitsToSingle(bits);
+        }
+
+        [RequiresPreviewFeatures]
+        static float IBitwiseOperators<float, float, float>.operator ~(float value)
+        {
+            var bits = ~BitConverter.SingleToInt32Bits(value);
+            return BitConverter.Int32BitsToSingle(bits);
+        }
+
+        //
+        // IDecrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static float IDecrementOperators<float>.operator --(float value)
+            => value--;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static float IDecrementOperators<float>.op_DecrementChecked(float value)
+            => checked(value--);
+
+        //
+        // IDivisionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static float IDivisionOperators<float, float, float>.operator /(float left, float right)
+            => left / right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static float IDivisionOperators<float, float, float>.op_DivisionChecked(float left, float right)
+            => checked(left / right);
+
+        //
+        // IFloatingPoint
+        //
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.E => MathF.E;
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Epsilon => Epsilon;
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.NaN => NaN;
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.NegativeInfinity => NegativeInfinity;
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Pi => MathF.PI;
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.PositiveInfinity => PositiveInfinity;
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Tau => MathF.Tau;
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Acos(float x)
+            => MathF.Acos(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Acosh(float x)
+            => MathF.Acosh(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Asin(float x)
+            => MathF.Asin(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Asinh(float x)
+            => MathF.Asinh(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Atan(float x)
+            => MathF.Atan(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Atan2(float y, float x)
+            => MathF.Atan2(y, x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Atanh(float x)
+            => MathF.Atanh(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.BitIncrement(float x)
+            => MathF.BitIncrement(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.BitDecrement(float x)
+            => MathF.BitDecrement(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Cbrt(float x)
+            => MathF.Cbrt(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Ceiling(float x)
+            => MathF.Ceiling(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.CopySign(float x, float y)
+            => MathF.CopySign(x, y);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Cos(float x)
+            => MathF.Cos(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Cosh(float x)
+            => MathF.Cosh(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Exp(float x)
+            => MathF.Exp(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Floor(float x)
+            => MathF.Floor(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.FusedMultiplyAdd(float x, float y, float z)
+            => MathF.FusedMultiplyAdd(x, y, z);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.IEEERemainder(float x, float y)
+            => MathF.IEEERemainder(x, y);
+
+        [RequiresPreviewFeatures]
+        static int IFloatingPoint<float>.ILogB(float x)
+            => MathF.ILogB(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Log(float x)
+            => MathF.Log(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Log(float x, float newBase)
+            => MathF.Log(x, newBase);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Log2(float x)
+            => MathF.Log2(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Log10(float x)
+            => MathF.Log10(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.MaxMagnitude(float x, float y)
+            => MathF.MaxMagnitude(x, y);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.MinMagnitude(float x, float y)
+            => MathF.MinMagnitude(x, y);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Pow(float x, float y)
+            => MathF.Pow(x, y);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Round(float x)
+            => MathF.Round(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Round(float x, int digits)
+            => MathF.Round(x, digits);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Round(float x, MidpointRounding mode)
+            => MathF.Round(x, mode);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Round(float x, int digits, MidpointRounding mode)
+            => MathF.Round(x, digits, mode);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.ScaleB(float x, int n)
+            => MathF.ScaleB(x, n);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Sin(float x)
+            => MathF.Sin(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Sinh(float x)
+            => MathF.Sinh(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Sqrt(float x)
+            => MathF.Sqrt(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Tan(float x)
+            => MathF.Tan(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Tanh(float x)
+            => MathF.Tanh(x);
+
+        [RequiresPreviewFeatures]
+        static float IFloatingPoint<float>.Truncate(float x)
+            => MathF.Truncate(x);
+
+        // static float IFloatingPoint<float>.AcosPi(float x)
+        //     => MathF.AcosPi(x);
+        //
+        // static float IFloatingPoint<float>.AsinPi(float x)
+        //     => MathF.AsinPi(x);
+        //
+        // static float IFloatingPoint<float>.AtanPi(float x)
+        //     => MathF.AtanPi(x);
+        //
+        // static float IFloatingPoint<float>.Atan2Pi(float y, float x)
+        //     => MathF.Atan2Pi(y, x);
+        //
+        // static float IFloatingPoint<float>.Compound(float x, float n)
+        //     => MathF.Compound(x, n);
+        //
+        // static float IFloatingPoint<float>.CosPi(float x)
+        //     => MathF.CosPi(x);
+        //
+        // static float IFloatingPoint<float>.ExpM1(float x)
+        //     => MathF.ExpM1(x);
+        //
+        // static float IFloatingPoint<float>.Exp2(float x)
+        //     => MathF.Exp2(x);
+        //
+        // static float IFloatingPoint<float>.Exp2M1(float x)
+        //     => MathF.Exp2M1(x);
+        //
+        // static float IFloatingPoint<float>.Exp10(float x)
+        //     => MathF.Exp10(x);
+        //
+        // static float IFloatingPoint<float>.Exp10M1(float x)
+        //     => MathF.Exp10M1(x);
+        //
+        // static float IFloatingPoint<float>.Hypot(float x, float y)
+        //     => MathF.Hypot(x, y);
+        //
+        // static float IFloatingPoint<float>.LogP1(float x)
+        //     => MathF.LogP1(x);
+        //
+        // static float IFloatingPoint<float>.Log2P1(float x)
+        //     => MathF.Log2P1(x);
+        //
+        // static float IFloatingPoint<float>.Log10P1(float x)
+        //     => MathF.Log10P1(x);
+        //
+        // static float IFloatingPoint<float>.MaxMagnitudeNumber(float x, float y)
+        //     => MathF.MaxMagnitudeNumber(x, y);
+        //
+        // static float IFloatingPoint<float>.MaxNumber(float x, float y)
+        //     => MathF.MaxNumber(x, y);
+        //
+        // static float IFloatingPoint<float>.MinMagnitudeNumber(float x, float y)
+        //     => MathF.MinMagnitudeNumber(x, y);
+        //
+        // static float IFloatingPoint<float>.MinNumber(float x, float y)
+        //     => MathF.MinNumber(x, y);
+        //
+        // static float IFloatingPoint<float>.Root(float x, float n)
+        //     => MathF.Root(x, n);
+        //
+        // static float IFloatingPoint<float>.SinPi(float x)
+        //     => MathF.SinPi(x, y);
+        //
+        // static float TanPi(float x)
+        //     => MathF.TanPi(x, y);
+
+        //
+        // IIncrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static float IIncrementOperators<float>.operator ++(float value)
+            => value++;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static float IIncrementOperators<float>.op_IncrementChecked(float value)
+            => checked(value++);
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static float IMinMaxValue<float>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static float IMinMaxValue<float>.MaxValue => MaxValue;
+
+        //
+        // IModulusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static float IModulusOperators<float, float, float>.operator %(float left, float right)
+            => left % right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static float IModulusOperators<float, float, float>.op_ModulusChecked(float left, float right)
+            => checked(left % right);
+
+        //
+        // IMultiplicativeIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static float IMultiplicativeIdentity<float, float>.MultiplicativeIdentity => 1.0f;
+
+        //
+        // IMultiplyOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static float IMultiplyOperators<float, float, float>.operator *(float left, float right)
+            => (float)(left * right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static float IMultiplyOperators<float, float, float>.op_MultiplyChecked(float left, float right)
+            => checked((float)(left * right));
+
+        //
+        // INumber
+        //
+
+        [RequiresPreviewFeatures]
+        static float INumber<float>.One => 1.0f;
+
+        [RequiresPreviewFeatures]
+        static float INumber<float>.Zero => 0.0f;
+
+        [RequiresPreviewFeatures]
+        static float INumber<float>.Abs(float value)
+            => MathF.Abs(value);
+
+        [RequiresPreviewFeatures]
+        static float INumber<float>.Clamp(float value, float min, float max)
+            => Math.Clamp(value, min, max);
+
+        [RequiresPreviewFeatures]
+        static (float Quotient, float Remainder) INumber<float>.DivRem(float left, float right)
+            => (left / right, left % right);
+
+        [RequiresPreviewFeatures]
+        static float INumber<float>.Max(float x, float y)
+            => MathF.Max(x, y);
+
+        [RequiresPreviewFeatures]
+        static float INumber<float>.Min(float x, float y)
+            => MathF.Min(x, y);
+
+        [RequiresPreviewFeatures]
+        static float INumber<float>.Sign(float value)
+            => MathF.Sign(value);
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<float>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out float result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static float ISpanParseable<float>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, NumberStyles.Integer, provider);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<float>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out float result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static float ISubtractionOperators<float, float, float>.operator -(float left, float right)
+            => (float)(left - right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static float ISubtractionOperators<float, float, float>.op_SubtractionChecked(float left, float right)
+            => checked((float)(left - right));
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static float IUnaryNegationOperators<float, float>.operator -(float value) => (float)(-value);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static float IUnaryNegationOperators<float, float>.op_UnaryNegationChecked(float value) => checked((float)(-value));
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static float IUnaryPlusOperators<float, float>.operator +(float value) => (float)(+value);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static float IUnaryPlusOperators<float, float>.op_UnaryPlusChecked(float value) => checked((float)(+value));
     }
 }

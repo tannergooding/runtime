@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Runtime.Versioning;
 
 namespace System
 {
@@ -43,7 +44,17 @@ namespace System
     [StructLayout(LayoutKind.Auto)]
     [Serializable]
     [System.Runtime.CompilerServices.TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public readonly partial struct DateTime : IComparable, ISpanFormattable, IConvertible, IComparable<DateTime>, IEquatable<DateTime>, ISerializable
+    public readonly partial struct DateTime
+        : IAdditionOperators<DateTime, TimeSpan, DateTime>,
+          IAdditiveIdentity<DateTime, TimeSpan>,
+          IComparisonOperators<DateTime, DateTime>,
+          IConvertible,
+          IMinMaxValue<DateTime>,
+          ISerializable,
+          ISpanFormattable,
+          ISpanParseable<DateTime>,
+          ISubtractionOperators<DateTime, TimeSpan, DateTime>,
+          ISubtractionOperators<DateTime, DateTime, TimeSpan>
     {
         // Number of 100ns ticks per time unit
         private const long TicksPerMillisecond = 10000;
@@ -1503,5 +1514,66 @@ namespace System
             result = new DateTime(ticks);
             return true;
         }
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static DateTime IAdditionOperators<DateTime, TimeSpan, DateTime>.op_AdditionChecked(DateTime left, TimeSpan right)
+            => checked(left + right);
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static TimeSpan IAdditiveIdentity<DateTime, TimeSpan>.AdditiveIdentity
+            => default;
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static DateTime IMinMaxValue<DateTime>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static DateTime IMinMaxValue<DateTime>.MaxValue => MaxValue;
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<DateTime>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out DateTime result)
+            => TryParse(s, provider, DateTimeStyles.None, out result);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static DateTime ISpanParseable<DateTime>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, provider, DateTimeStyles.None);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<DateTime>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out DateTime result)
+            => TryParse(s, provider, DateTimeStyles.None, out result);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static DateTime ISubtractionOperators<DateTime, TimeSpan, DateTime>.op_SubtractionChecked(DateTime left, TimeSpan right)
+            => checked(left - right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static TimeSpan ISubtractionOperators<DateTime, DateTime, TimeSpan>.op_SubtractionChecked(DateTime left, DateTime right)
+            => checked(left - right);
     }
 }

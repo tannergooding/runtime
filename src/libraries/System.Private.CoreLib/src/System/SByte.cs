@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -13,7 +14,11 @@ namespace System
     [CLSCompliant(false)]
     [StructLayout(LayoutKind.Sequential)]
     [TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public readonly struct SByte : IComparable, IConvertible, ISpanFormattable, IComparable<sbyte>, IEquatable<sbyte>
+    public readonly struct SByte
+        : IBinaryInteger<sbyte>,
+          IConvertible,
+          IMinMaxValue<sbyte>,
+          ISignedNumber<sbyte>
     {
         private readonly sbyte m_value; // Do not rename (binary serialization)
 
@@ -283,5 +288,313 @@ namespace System
         {
             return Convert.DefaultToType((IConvertible)this, type, provider);
         }
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IAdditionOperators<sbyte, sbyte, sbyte>.operator +(sbyte left, sbyte right)
+            => (sbyte)(left + right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IAdditionOperators<sbyte, sbyte, sbyte>.op_AdditionChecked(sbyte left, sbyte right)
+            => checked((sbyte)(left + right));
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IAdditiveIdentity<sbyte, sbyte>.AdditiveIdentity => 0;
+
+        //
+        // IBinaryInteger
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IBinaryInteger<sbyte>.LeadingZeroCount(sbyte value)
+            => (sbyte)(BitOperations.LeadingZeroCount((byte)value) - 16);
+
+        [RequiresPreviewFeatures]
+        static sbyte IBinaryInteger<sbyte>.PopCount(sbyte value)
+            => (sbyte)BitOperations.PopCount((byte)value);
+
+        [RequiresPreviewFeatures]
+        static sbyte IBinaryInteger<sbyte>.RotateLeft(sbyte value, sbyte rotateAmount)
+            => (sbyte)((value << (rotateAmount & 7)) | (value >> ((8 - rotateAmount) & 7)));
+
+        [RequiresPreviewFeatures]
+        static sbyte IBinaryInteger<sbyte>.RotateRight(sbyte value, sbyte rotateAmount)
+            => (sbyte)((value >> (rotateAmount & 7)) | (value << ((8 - rotateAmount) & 7)));
+
+        [RequiresPreviewFeatures]
+        static sbyte IBinaryInteger<sbyte>.TrailingZeroCount(sbyte value)
+            => (sbyte)(BitOperations.TrailingZeroCount(value << 24) - 24);
+
+        //
+        // IBinaryNumber
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IBinaryNumber<sbyte>.IsPow2(sbyte value)
+            => BitOperations.IsPow2(value);
+
+        [RequiresPreviewFeatures]
+        static sbyte IBinaryNumber<sbyte>.Log2(sbyte value)
+        {
+            if (value < 0)
+            {
+                ThrowHelper.ThrowValueArgumentOutOfRange_NeedNonNegNumException();
+            }
+            return (sbyte)BitOperations.Log2((byte)value);
+        }
+
+        //
+        // IBitwiseOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IBitwiseOperators<sbyte, sbyte, sbyte>.operator &(sbyte left, sbyte right)
+            => (sbyte)(left & right);
+
+        [RequiresPreviewFeatures]
+        static sbyte IBitwiseOperators<sbyte, sbyte, sbyte>.operator |(sbyte left, sbyte right)
+            => (sbyte)(left | right);
+
+        [RequiresPreviewFeatures]
+        static sbyte IBitwiseOperators<sbyte, sbyte, sbyte>.operator ^(sbyte left, sbyte right)
+            => (sbyte)(left ^ right);
+
+        [RequiresPreviewFeatures]
+        static sbyte IBitwiseOperators<sbyte, sbyte, sbyte>.operator ~(sbyte value)
+            => (sbyte)(~value);
+
+        //
+        // IComparisonOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<sbyte, sbyte>.operator <(sbyte left, sbyte right)
+            => left < right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<sbyte, sbyte>.operator <=(sbyte left, sbyte right)
+            => left <= right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<sbyte, sbyte>.operator >(sbyte left, sbyte right)
+            => left > right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<sbyte, sbyte>.operator >=(sbyte left, sbyte right)
+            => left >= right;
+
+        //
+        // IDecrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IDecrementOperators<sbyte>.operator --(sbyte value)
+            => value--;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IDecrementOperators<sbyte>.op_DecrementChecked(sbyte value)
+            => checked(value--);
+
+        //
+        // IDivisionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IDivisionOperators<sbyte, sbyte, sbyte>.operator /(sbyte left, sbyte right)
+            => (sbyte)(left / right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IDivisionOperators<sbyte, sbyte, sbyte>.op_DivisionChecked(sbyte left, sbyte right)
+            => checked((sbyte)(left / right));
+
+        //
+        // IEqualityOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<sbyte, sbyte>.operator ==(sbyte left, sbyte right)
+            => left == right;
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<sbyte, sbyte>.operator !=(sbyte left, sbyte right)
+            => left != right;
+
+        //
+        // IIncrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IIncrementOperators<sbyte>.operator ++(sbyte value)
+            => value++;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IIncrementOperators<sbyte>.op_IncrementChecked(sbyte value)
+            => checked(value++);
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IMinMaxValue<sbyte>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static sbyte IMinMaxValue<sbyte>.MaxValue => MaxValue;
+
+        //
+        // IModulusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IModulusOperators<sbyte, sbyte, sbyte>.operator %(sbyte left, sbyte right)
+            => (sbyte)(left % right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IModulusOperators<sbyte, sbyte, sbyte>.op_ModulusChecked(sbyte left, sbyte right)
+            => checked((sbyte)(left % right));
+
+        //
+        // IMultiplicativeIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IMultiplicativeIdentity<sbyte, sbyte>.MultiplicativeIdentity => 1;
+
+        //
+        // IMultiplyOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IMultiplyOperators<sbyte, sbyte, sbyte>.operator *(sbyte left, sbyte right)
+            => (sbyte)(left * right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IMultiplyOperators<sbyte, sbyte, sbyte>.op_MultiplyChecked(sbyte left, sbyte right)
+            => checked((sbyte)(left * right));
+
+        //
+        // INumber
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte INumber<sbyte>.One => 1;
+
+        [RequiresPreviewFeatures]
+        static sbyte INumber<sbyte>.Zero => 0;
+
+        [RequiresPreviewFeatures]
+        static sbyte INumber<sbyte>.Abs(sbyte value)
+            => Math.Abs(value);
+
+        [RequiresPreviewFeatures]
+        static sbyte INumber<sbyte>.Clamp(sbyte value, sbyte min, sbyte max)
+            => Math.Clamp(value, min, max);
+
+        [RequiresPreviewFeatures]
+        static (sbyte Quotient, sbyte Remainder) INumber<sbyte>.DivRem(sbyte left, sbyte right)
+            => Math.DivRem(left, right);
+
+        [RequiresPreviewFeatures]
+        static sbyte INumber<sbyte>.Max(sbyte x, sbyte y)
+            => Math.Max(x, y);
+
+        [RequiresPreviewFeatures]
+        static sbyte INumber<sbyte>.Min(sbyte x, sbyte y)
+            => Math.Min(x, y);
+
+        [RequiresPreviewFeatures]
+        static sbyte INumber<sbyte>.Sign(sbyte value)
+            => (sbyte)Math.Sign(value);
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<sbyte>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out sbyte result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // IShiftOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IShiftOperators<sbyte, sbyte, sbyte>.op_LeftShift(sbyte value, sbyte shiftAmount)
+            => (sbyte)(value << shiftAmount);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IShiftOperators<sbyte, sbyte, sbyte>.op_RightShift(sbyte value, sbyte shiftAmount)
+            => (sbyte)(value >> shiftAmount);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IShiftOperators<sbyte, sbyte, sbyte>.op_UnsignedRightShift(sbyte value, sbyte shiftAmount)
+            => (sbyte)((byte)value >> shiftAmount);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte ISpanParseable<sbyte>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, NumberStyles.Integer, provider);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<sbyte>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out sbyte result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte ISubtractionOperators<sbyte, sbyte, sbyte>.operator -(sbyte left, sbyte right)
+            => (sbyte)(left - right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte ISubtractionOperators<sbyte, sbyte, sbyte>.op_SubtractionChecked(sbyte left, sbyte right)
+            => checked((sbyte)(left - right));
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IUnaryNegationOperators<sbyte, sbyte>.operator -(sbyte value)
+            => (sbyte)(-value);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IUnaryNegationOperators<sbyte, sbyte>.op_UnaryNegationChecked(sbyte value)
+            => checked((sbyte)(-value));
+
+        //
+        // IUnaryPlusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static sbyte IUnaryPlusOperators<sbyte, sbyte>.operator +(sbyte value)
+            => (sbyte)(+value);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static sbyte IUnaryPlusOperators<sbyte, sbyte>.op_UnaryPlusChecked(sbyte value)
+            => checked((sbyte)(+value));
     }
 }

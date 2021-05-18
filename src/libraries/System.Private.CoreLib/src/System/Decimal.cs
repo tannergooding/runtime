@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Runtime.Versioning;
 
 namespace System
 {
@@ -57,7 +58,12 @@ namespace System
     [Serializable]
     [System.Runtime.Versioning.NonVersionable] // This only applies to field layout
     [System.Runtime.CompilerServices.TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public readonly partial struct Decimal : ISpanFormattable, IComparable, IConvertible, IComparable<decimal>, IEquatable<decimal>, ISerializable, IDeserializationCallback
+    public readonly partial struct Decimal
+        : IConvertible,
+          IDeserializationCallback,
+          IMinMaxValue<decimal>,
+          ISerializable,
+          ISignedNumber<decimal>
     {
         // Sign mask for the flags field. A value of zero in this bit indicates a
         // positive Decimal value, and a value of one in this bit indicates a
@@ -1072,5 +1078,164 @@ namespace System
         {
             return Convert.DefaultToType((IConvertible)this, type, provider);
         }
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static decimal IAdditionOperators<decimal, decimal, decimal>.op_AdditionChecked(decimal left, decimal right)
+            => checked(left + right);
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static decimal IAdditiveIdentity<decimal, decimal>.AdditiveIdentity => 0.0m;
+
+        //
+        // IDecrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static decimal IDecrementOperators<decimal>.op_DecrementChecked(decimal value)
+            => checked(value--);
+
+        //
+        // IDivisionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static decimal IDivisionOperators<decimal, decimal, decimal>.op_DivisionChecked(decimal left, decimal right)
+            => checked(left / right);
+
+        //
+        // IIncrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static decimal IIncrementOperators<decimal>.op_IncrementChecked(decimal value)
+            => checked(value++);
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static decimal IMinMaxValue<decimal>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static decimal IMinMaxValue<decimal>.MaxValue => MaxValue;
+
+        //
+        // IModulusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static decimal IModulusOperators<decimal, decimal, decimal>.op_ModulusChecked(decimal left, decimal right)
+            => checked(left % right);
+
+        //
+        // IMultiplicativeIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static decimal IMultiplicativeIdentity<decimal, decimal>.MultiplicativeIdentity => 1.0m;
+
+        //
+        // IMultiplyOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static decimal IMultiplyOperators<decimal, decimal, decimal>.op_MultiplyChecked(decimal left, decimal right)
+            => checked(left * right);
+
+        //
+        // INumber
+        //
+
+        [RequiresPreviewFeatures]
+        static decimal INumber<decimal>.One => 1.0m;
+
+        [RequiresPreviewFeatures]
+        static decimal INumber<decimal>.Zero => 0.0m;
+
+        [RequiresPreviewFeatures]
+        static decimal INumber<decimal>.Abs(decimal value)
+            => Math.Abs(value);
+
+        [RequiresPreviewFeatures]
+        static decimal INumber<decimal>.Clamp(decimal value, decimal min, decimal max)
+            => Math.Clamp(value, min, max);
+
+        [RequiresPreviewFeatures]
+        static (decimal Quotient, decimal Remainder) INumber<decimal>.DivRem(decimal left, decimal right)
+            => (left / right, left % right);
+
+        [RequiresPreviewFeatures]
+        static decimal INumber<decimal>.Max(decimal x, decimal y)
+            => Math.Max(x, y);
+
+        [RequiresPreviewFeatures]
+        static decimal INumber<decimal>.Min(decimal x, decimal y)
+            => Math.Min(x, y);
+
+        [RequiresPreviewFeatures]
+        static decimal INumber<decimal>.Sign(decimal value)
+            => Math.Sign(value);
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<decimal>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out decimal result)
+            => TryParse(s, NumberStyles.Number, provider, out result);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static decimal ISpanParseable<decimal>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, NumberStyles.Number, provider);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<decimal>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out decimal result)
+            => TryParse(s, NumberStyles.Number, provider, out result);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static decimal ISubtractionOperators<decimal, decimal, decimal>.op_SubtractionChecked(decimal left, decimal right)
+            => checked(left - right);
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static decimal IUnaryNegationOperators<decimal, decimal>.op_UnaryNegationChecked(decimal value)
+            => checked(-value);
+
+        //
+        // IUnaryPlusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static decimal IUnaryPlusOperators<decimal, decimal>.op_UnaryPlusChecked(decimal value)
+            => checked(+value);
     }
 }

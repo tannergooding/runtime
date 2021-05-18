@@ -2,14 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 
 namespace System
 {
     /// <summary>
     /// Represents a time of day, as would be read from a clock, within the range 00:00:00 to 23:59:59.9999999.
     /// </summary>
-    public readonly struct TimeOnly : IComparable, IComparable<TimeOnly>, IEquatable<TimeOnly>, ISpanFormattable
+    public readonly struct TimeOnly
+        : IComparisonOperators<TimeOnly, TimeOnly>,
+          IMinMaxValue<TimeOnly>,
+          ISpanFormattable,
+          ISpanParseable<TimeOnly>,
+          ISubtractionOperators<TimeOnly, TimeOnly, TimeSpan>
     {
         // represent the number of ticks map to the time of the day. 1 ticks = 100-nanosecond in time measurements.
         private readonly long _ticks;
@@ -891,5 +899,38 @@ namespace System
 
             return DateTimeFormat.TryFormat(ToDateTime(), destination, out charsWritten, format, provider);
         }
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static TimeOnly IParseable<TimeOnly>.Parse(string s, IFormatProvider? provider)
+            => Parse(s, provider, DateTimeStyles.None);
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<TimeOnly>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out TimeOnly result)
+            => TryParse(s!, provider, DateTimeStyles.None, out result);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static TimeOnly ISpanParseable<TimeOnly>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, provider, DateTimeStyles.None);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<TimeOnly>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out TimeOnly result)
+            => TryParse(s, provider, DateTimeStyles.None, out result);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static TimeSpan ISubtractionOperators<TimeOnly, TimeOnly, TimeSpan>.op_SubtractionChecked(TimeOnly left, TimeOnly right)
+            => checked(left - right);
     }
 }

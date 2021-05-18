@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -12,7 +13,11 @@ namespace System
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
     [TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public readonly struct Byte : IComparable, IConvertible, ISpanFormattable, IComparable<byte>, IEquatable<byte>
+    public readonly struct Byte
+        : IBinaryInteger<byte>,
+          IConvertible,
+          IMinMaxValue<byte>,
+          IUnsignedNumber<byte>
     {
         private readonly byte m_value; // Do not rename (binary serialization)
 
@@ -21,7 +26,6 @@ namespace System
 
         // The minimum value that a Byte may represent: 0.
         public const byte MinValue = 0;
-
 
         // Compares this object to another object, returning an integer that
         // indicates the relationship.
@@ -190,13 +194,13 @@ namespace System
         }
 
         //
-        // IConvertible implementation
+        // IConvertible
         //
+
         public TypeCode GetTypeCode()
         {
             return TypeCode.Byte;
         }
-
 
         bool IConvertible.ToBoolean(IFormatProvider? provider)
         {
@@ -272,5 +276,307 @@ namespace System
         {
             return Convert.DefaultToType((IConvertible)this, type, provider);
         }
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IAdditionOperators<byte, byte, byte>.operator +(byte left, byte right)
+            => (byte)(left + right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IAdditionOperators<byte, byte, byte>.op_AdditionChecked(byte left, byte right)
+            => checked((byte)(left + right));
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IAdditiveIdentity<byte, byte>.AdditiveIdentity => 0;
+
+        //
+        // IBinaryInteger
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IBinaryInteger<byte>.LeadingZeroCount(byte value)
+            => (byte)(BitOperations.LeadingZeroCount(value) - 24);
+
+        [RequiresPreviewFeatures]
+        static byte IBinaryInteger<byte>.PopCount(byte value)
+            => (byte)BitOperations.PopCount(value);
+
+        [RequiresPreviewFeatures]
+        static byte IBinaryInteger<byte>.RotateLeft(byte value, byte rotateAmount)
+            => (byte)((value << (rotateAmount & 7)) | (value >> ((8 - rotateAmount) & 7)));
+
+        [RequiresPreviewFeatures]
+        static byte IBinaryInteger<byte>.RotateRight(byte value, byte rotateAmount)
+            => (byte)((value >> (rotateAmount & 7)) | (value << ((8 - rotateAmount) & 7)));
+
+        [RequiresPreviewFeatures]
+        static byte IBinaryInteger<byte>.TrailingZeroCount(byte value)
+            => (byte)(BitOperations.TrailingZeroCount(value << 24) - 24);
+
+        //
+        // IBinaryNumber
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IBinaryNumber<byte>.IsPow2(byte value)
+            => BitOperations.IsPow2((uint)value);
+
+        [RequiresPreviewFeatures]
+        static byte IBinaryNumber<byte>.Log2(byte value)
+            => (byte)BitOperations.Log2(value);
+
+        //
+        // IBitwiseOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IBitwiseOperators<byte, byte, byte>.operator &(byte left, byte right)
+            => (byte)(left & right);
+
+        [RequiresPreviewFeatures]
+        static byte IBitwiseOperators<byte, byte, byte>.operator |(byte left, byte right)
+            => (byte)(left | right);
+
+        [RequiresPreviewFeatures]
+        static byte IBitwiseOperators<byte, byte, byte>.operator ^(byte left, byte right)
+            => (byte)(left ^ right);
+
+        [RequiresPreviewFeatures]
+        static byte IBitwiseOperators<byte, byte, byte>.operator ~(byte value)
+            => (byte)(~value);
+
+        //
+        // IComparisonOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<byte, byte>.operator <(byte left, byte right)
+            => left < right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<byte, byte>.operator <=(byte left, byte right)
+            => left <= right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<byte, byte>.operator >(byte left, byte right)
+            => left > right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<byte, byte>.operator >=(byte left, byte right)
+            => left >= right;
+
+        //
+        // IDecrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IDecrementOperators<byte>.operator --(byte value)
+            => value--;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IDecrementOperators<byte>.op_DecrementChecked(byte value)
+            => checked(value--);
+
+        //
+        // IDivisionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IDivisionOperators<byte, byte, byte>.operator /(byte left, byte right)
+            => (byte)(left / right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IDivisionOperators<byte, byte, byte>.op_DivisionChecked(byte left, byte right)
+            => checked((byte)(left / right));
+
+        //
+        // IEqualityOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<byte, byte>.operator ==(byte left, byte right)
+            => left == right;
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<byte, byte>.operator !=(byte left, byte right)
+            => left != right;
+
+        //
+        // IIncrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IIncrementOperators<byte>.operator ++(byte value)
+            => value++;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IIncrementOperators<byte>.op_IncrementChecked(byte value)
+            => checked(value++);
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IMinMaxValue<byte>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static byte IMinMaxValue<byte>.MaxValue => MaxValue;
+
+        //
+        // IModulusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IModulusOperators<byte, byte, byte>.operator %(byte left, byte right)
+            => (byte)(left % right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IModulusOperators<byte, byte, byte>.op_ModulusChecked(byte left, byte right)
+            => checked((byte)(left % right));
+
+        //
+        // IMultiplicativeIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IMultiplicativeIdentity<byte, byte>.MultiplicativeIdentity => 1;
+
+        //
+        // IMultiplyOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IMultiplyOperators<byte, byte, byte>.operator *(byte left, byte right)
+            => (byte)(left * right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IMultiplyOperators<byte, byte, byte>.op_MultiplyChecked(byte left, byte right)
+            => checked((byte)(left * right));
+
+        //
+        // INumber
+        //
+
+        [RequiresPreviewFeatures]
+        static byte INumber<byte>.One => 1;
+
+        [RequiresPreviewFeatures]
+        static byte INumber<byte>.Zero => 0;
+
+        [RequiresPreviewFeatures]
+        static byte INumber<byte>.Abs(byte value)
+            => value;
+
+        [RequiresPreviewFeatures]
+        static byte INumber<byte>.Clamp(byte value, byte min, byte max)
+            => Math.Clamp(value, min, max);
+
+        [RequiresPreviewFeatures]
+        static (byte Quotient, byte Remainder) INumber<byte>.DivRem(byte left, byte right)
+            => Math.DivRem(left, right);
+
+        [RequiresPreviewFeatures]
+        static byte INumber<byte>.Max(byte x, byte y)
+            => Math.Max(x, y);
+
+        [RequiresPreviewFeatures]
+        static byte INumber<byte>.Min(byte x, byte y)
+            => Math.Min(x, y);
+
+        [RequiresPreviewFeatures]
+        static byte INumber<byte>.Sign(byte value)
+            => (byte)((value == 0) ? 0 : 1);
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<byte>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out byte result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // IShiftOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IShiftOperators<byte, byte, byte>.op_LeftShift(byte value, byte shiftAmount)
+            => (byte)(value << shiftAmount);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IShiftOperators<byte, byte, byte>.op_RightShift(byte value, byte shiftAmount)
+            => (byte)(value >> shiftAmount);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IShiftOperators<byte, byte, byte>.op_UnsignedRightShift(byte value, byte shiftAmount)
+            => (byte)(value >> shiftAmount);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static byte ISpanParseable<byte>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, NumberStyles.Integer, provider);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<byte>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out byte result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static byte ISubtractionOperators<byte, byte, byte>.operator -(byte left, byte right)
+            => (byte)(left - right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte ISubtractionOperators<byte, byte, byte>.op_SubtractionChecked(byte left, byte right)
+            => checked((byte)(left - right));
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IUnaryNegationOperators<byte, byte>.operator -(byte value)
+            => (byte)(-value);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IUnaryNegationOperators<byte, byte>.op_UnaryNegationChecked(byte value)
+            => checked((byte)(-value));
+
+        //
+        // IUnaryPlusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static byte IUnaryPlusOperators<byte, byte>.operator +(byte value)
+            => (byte)(+value);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static byte IUnaryPlusOperators<byte, byte>.op_UnaryPlusChecked(byte value)
+            => checked((byte)(+value));
     }
 }

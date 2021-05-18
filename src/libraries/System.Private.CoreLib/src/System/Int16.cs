@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -12,7 +13,11 @@ namespace System
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
     [TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public readonly struct Int16 : IComparable, IConvertible, ISpanFormattable, IComparable<short>, IEquatable<short>
+    public readonly struct Int16
+        : IBinaryInteger<short>,
+          IConvertible,
+          IMinMaxValue<short>,
+          ISignedNumber<short>
     {
         private readonly short m_value; // Do not rename (binary serialization)
 
@@ -274,5 +279,313 @@ namespace System
         {
             return Convert.DefaultToType((IConvertible)this, type, provider);
         }
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static short IAdditionOperators<short, short, short>.operator +(short left, short right)
+            => (short)(left + right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IAdditionOperators<short, short, short>.op_AdditionChecked(short left, short right)
+            => checked((short)(left + right));
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static short IAdditiveIdentity<short, short>.AdditiveIdentity => 0;
+
+        //
+        // IBinaryInteger
+        //
+
+        [RequiresPreviewFeatures]
+        static short IBinaryInteger<short>.LeadingZeroCount(short value)
+            => (short)(BitOperations.LeadingZeroCount((ushort)value) - 16);
+
+        [RequiresPreviewFeatures]
+        static short IBinaryInteger<short>.PopCount(short value)
+            => (short)BitOperations.PopCount((ushort)value);
+
+        [RequiresPreviewFeatures]
+        static short IBinaryInteger<short>.RotateLeft(short value, short rotateAmount)
+            => (short)((value << (rotateAmount & 15)) | (value >> ((16 - rotateAmount) & 15)));
+
+        [RequiresPreviewFeatures]
+        static short IBinaryInteger<short>.RotateRight(short value, short rotateAmount)
+            => (short)((value >> (rotateAmount & 15)) | (value << ((16 - rotateAmount) & 15)));
+
+        [RequiresPreviewFeatures]
+        static short IBinaryInteger<short>.TrailingZeroCount(short value)
+            => (byte)(BitOperations.TrailingZeroCount(value << 16) - 16);
+
+        //
+        // IBinaryNumber
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IBinaryNumber<short>.IsPow2(short value)
+            => BitOperations.IsPow2(value);
+
+        [RequiresPreviewFeatures]
+        static short IBinaryNumber<short>.Log2(short value)
+        {
+            if (value < 0)
+            {
+                ThrowHelper.ThrowValueArgumentOutOfRange_NeedNonNegNumException();
+            }
+            return (short)BitOperations.Log2((ushort)value);
+        }
+
+        //
+        // IBitwiseOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static short IBitwiseOperators<short, short, short>.operator &(short left, short right)
+            => (short)(left & right);
+
+        [RequiresPreviewFeatures]
+        static short IBitwiseOperators<short, short, short>.operator |(short left, short right)
+            => (short)(left | right);
+
+        [RequiresPreviewFeatures]
+        static short IBitwiseOperators<short, short, short>.operator ^(short left, short right)
+            => (short)(left ^ right);
+
+        [RequiresPreviewFeatures]
+        static short IBitwiseOperators<short, short, short>.operator ~(short value)
+            => (short)(~value);
+
+        //
+        // IComparisonOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<short, short>.operator <(short left, short right)
+            => left < right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<short, short>.operator <=(short left, short right)
+            => left <= right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<short, short>.operator >(short left, short right)
+            => left > right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<short, short>.operator >=(short left, short right)
+            => left >= right;
+
+        //
+        // IDecrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static short IDecrementOperators<short>.operator --(short value)
+            => value--;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IDecrementOperators<short>.op_DecrementChecked(short value)
+            => checked(value--);
+
+        //
+        // IDivisionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static short IDivisionOperators<short, short, short>.operator /(short left, short right)
+            => (short)(left / right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IDivisionOperators<short, short, short>.op_DivisionChecked(short left, short right)
+            => checked((short)(left / right));
+
+        //
+        // IEqualityOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<short, short>.operator ==(short left, short right)
+            => left == right;
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<short, short>.operator !=(short left, short right)
+            => left != right;
+
+        //
+        // IIncrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static short IIncrementOperators<short>.operator ++(short value)
+            => value++;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IIncrementOperators<short>.op_IncrementChecked(short value)
+            => checked(value++);
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static short IMinMaxValue<short>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static short IMinMaxValue<short>.MaxValue => MaxValue;
+
+        //
+        // IModulusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static short IModulusOperators<short, short, short>.operator %(short left, short right)
+            => (short)(left % right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IModulusOperators<short, short, short>.op_ModulusChecked(short left, short right)
+            => checked((short)(left % right));
+
+        //
+        // IMultiplicativeIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static short IMultiplicativeIdentity<short, short>.MultiplicativeIdentity => 1;
+
+        //
+        // IMultiplyOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static short IMultiplyOperators<short, short, short>.operator *(short left, short right)
+            => (short)(left * right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IMultiplyOperators<short, short, short>.op_MultiplyChecked(short left, short right)
+            => checked((short)(left * right));
+
+        //
+        // INumber
+        //
+
+        [RequiresPreviewFeatures]
+        static short INumber<short>.One => 1;
+
+        [RequiresPreviewFeatures]
+        static short INumber<short>.Zero => 0;
+
+        [RequiresPreviewFeatures]
+        static short INumber<short>.Abs(short value)
+            => Math.Abs(value);
+
+        [RequiresPreviewFeatures]
+        static short INumber<short>.Clamp(short value, short min, short max)
+            => Math.Clamp(value, min, max);
+
+        [RequiresPreviewFeatures]
+        static (short Quotient, short Remainder) INumber<short>.DivRem(short left, short right)
+            => Math.DivRem(left, right);
+
+        [RequiresPreviewFeatures]
+        static short INumber<short>.Max(short x, short y)
+            => Math.Max(x, y);
+
+        [RequiresPreviewFeatures]
+        static short INumber<short>.Min(short x, short y)
+            => Math.Min(x, y);
+
+        [RequiresPreviewFeatures]
+        static short INumber<short>.Sign(short value)
+            => (short)Math.Sign(value);
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<short>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out short result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // IShiftOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IShiftOperators<short, short, short>.op_LeftShift(short value, short shiftAmount)
+            => (short)(value << shiftAmount);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IShiftOperators<short, short, short>.op_RightShift(short value, short shiftAmount)
+            => (short)(value >> shiftAmount);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IShiftOperators<short, short, short>.op_UnsignedRightShift(short value, short shiftAmount)
+            => (short)((ushort)value >> shiftAmount);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static short ISpanParseable<short>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, NumberStyles.Integer, provider);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<short>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out short result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static short ISubtractionOperators<short, short, short>.operator -(short left, short right)
+            => (short)(left - right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short ISubtractionOperators<short, short, short>.op_SubtractionChecked(short left, short right)
+            => checked((short)(left - right));
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static short IUnaryNegationOperators<short, short>.operator -(short value)
+            => (short)(-value);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IUnaryNegationOperators<short, short>.op_UnaryNegationChecked(short value)
+            => checked((short)(-value));
+
+        //
+        // IUnaryPlusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static short IUnaryPlusOperators<short, short>.operator +(short value)
+            => (short)(+value);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static short IUnaryPlusOperators<short, short>.op_UnaryPlusChecked(short value)
+            => checked((short)(+value));
     }
 }

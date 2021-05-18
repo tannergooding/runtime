@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -12,7 +13,11 @@ namespace System
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
     [TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public readonly struct Int64 : IComparable, IConvertible, ISpanFormattable, IComparable<long>, IEquatable<long>
+    public readonly struct Int64
+        : IBinaryInteger<long>,
+          IConvertible,
+          IMinMaxValue<long>,
+          ISignedNumber<long>
     {
         private readonly long m_value; // Do not rename (binary serialization)
 
@@ -253,5 +258,313 @@ namespace System
         {
             return Convert.DefaultToType((IConvertible)this, type, provider);
         }
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static long IAdditionOperators<long, long, long>.operator +(long left, long right)
+            => left + right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IAdditionOperators<long, long, long>.op_AdditionChecked(long left, long right)
+            => checked(left + right);
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static long IAdditiveIdentity<long, long>.AdditiveIdentity => 0;
+
+        //
+        // IBinaryInteger
+        //
+
+        [RequiresPreviewFeatures]
+        static long IBinaryInteger<long>.LeadingZeroCount(long value)
+            => BitOperations.LeadingZeroCount((ulong)value);
+
+        [RequiresPreviewFeatures]
+        static long IBinaryInteger<long>.PopCount(long value)
+            => BitOperations.PopCount((ulong)value);
+
+        [RequiresPreviewFeatures]
+        static long IBinaryInteger<long>.RotateLeft(long value, long rotateAmount)
+            => (long)BitOperations.RotateLeft((ulong)value, (int)rotateAmount);
+
+        [RequiresPreviewFeatures]
+        static long IBinaryInteger<long>.RotateRight(long value, long rotateAmount)
+            => (long)BitOperations.RotateRight((ulong)value, (int)rotateAmount);
+
+        [RequiresPreviewFeatures]
+        static long IBinaryInteger<long>.TrailingZeroCount(long value)
+            => BitOperations.TrailingZeroCount(value);
+
+        //
+        // IBinaryNumber
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IBinaryNumber<long>.IsPow2(long value)
+            => BitOperations.IsPow2(value);
+
+        [RequiresPreviewFeatures]
+        static long IBinaryNumber<long>.Log2(long value)
+        {
+            if (value < 0)
+            {
+                ThrowHelper.ThrowValueArgumentOutOfRange_NeedNonNegNumException();
+            }
+            return BitOperations.Log2((ulong)value);
+        }
+
+        //
+        // IBitwiseOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static long IBitwiseOperators<long, long, long>.operator &(long left, long right)
+            => left & right;
+
+        [RequiresPreviewFeatures]
+        static long IBitwiseOperators<long, long, long>.operator |(long left, long right)
+            => left | right;
+
+        [RequiresPreviewFeatures]
+        static long IBitwiseOperators<long, long, long>.operator ^(long left, long right)
+            => left ^ right;
+
+        [RequiresPreviewFeatures]
+        static long IBitwiseOperators<long, long, long>.operator ~(long value)
+            => ~value;
+
+        //
+        // IComparisonOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<long, long>.operator <(long left, long right)
+            => left < right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<long, long>.operator <=(long left, long right)
+            => left <= right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<long, long>.operator >(long left, long right)
+            => left > right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<long, long>.operator >=(long left, long right)
+            => left >= right;
+
+        //
+        // IDecrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static long IDecrementOperators<long>.operator --(long value)
+            => value--;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IDecrementOperators<long>.op_DecrementChecked(long value)
+            => checked(value--);
+
+        //
+        // IDivisionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static long IDivisionOperators<long, long, long>.operator /(long left, long right)
+            => left / right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IDivisionOperators<long, long, long>.op_DivisionChecked(long left, long right)
+            => checked(left / right);
+
+        //
+        // IEqualityOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<long, long>.operator ==(long left, long right)
+            => left == right;
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<long, long>.operator !=(long left, long right)
+            => left != right;
+
+        //
+        // IIncrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static long IIncrementOperators<long>.operator ++(long value)
+            => value++;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IIncrementOperators<long>.op_IncrementChecked(long value)
+            => checked(value++);
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static long IMinMaxValue<long>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static long IMinMaxValue<long>.MaxValue => MaxValue;
+
+        //
+        // IModulusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static long IModulusOperators<long, long, long>.operator %(long left, long right)
+            => left % right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IModulusOperators<long, long, long>.op_ModulusChecked(long left, long right)
+            => checked(left % right);
+
+        //
+        // IMultiplicativeIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static long IMultiplicativeIdentity<long, long>.MultiplicativeIdentity => 1;
+
+        //
+        // IMultiplyOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static long IMultiplyOperators<long, long, long>.operator *(long left, long right)
+            => left * right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IMultiplyOperators<long, long, long>.op_MultiplyChecked(long left, long right)
+            => checked(left * right);
+
+        //
+        // INumber
+        //
+
+        [RequiresPreviewFeatures]
+        static long INumber<long>.One => 1;
+
+        [RequiresPreviewFeatures]
+        static long INumber<long>.Zero => 0;
+
+        [RequiresPreviewFeatures]
+        static long INumber<long>.Abs(long value)
+            => Math.Abs(value);
+
+        [RequiresPreviewFeatures]
+        static long INumber<long>.Clamp(long value, long min, long max)
+            => Math.Clamp(value, min, max);
+
+        [RequiresPreviewFeatures]
+        static (long Quotient, long Remainder) INumber<long>.DivRem(long left, long right)
+            => Math.DivRem(left, right);
+
+        [RequiresPreviewFeatures]
+        static long INumber<long>.Max(long x, long y)
+            => Math.Max(x, y);
+
+        [RequiresPreviewFeatures]
+        static long INumber<long>.Min(long x, long y)
+            => Math.Min(x, y);
+
+        [RequiresPreviewFeatures]
+        static long INumber<long>.Sign(long value)
+            => Math.Sign(value);
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<long>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out long result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // IShiftOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IShiftOperators<long, long, long>.op_LeftShift(long value, long shiftAmount)
+            => value << (int)shiftAmount;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IShiftOperators<long, long, long>.op_RightShift(long value, long shiftAmount)
+            => value >> (int)shiftAmount;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IShiftOperators<long, long, long>.op_UnsignedRightShift(long value, long shiftAmount)
+            => (long)((ulong)value >> (int)shiftAmount);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static long ISpanParseable<long>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, NumberStyles.Integer, provider);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<long>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out long result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static long ISubtractionOperators<long, long, long>.operator -(long left, long right)
+            => left - right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long ISubtractionOperators<long, long, long>.op_SubtractionChecked(long left, long right)
+            => checked(left - right);
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static long IUnaryNegationOperators<long, long>.operator -(long value)
+            => -value;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IUnaryNegationOperators<long, long>.op_UnaryNegationChecked(long value)
+            => checked(-value);
+
+        //
+        // IUnaryPlusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static long IUnaryPlusOperators<long, long>.operator +(long value)
+            => +value;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static long IUnaryPlusOperators<long, long>.op_UnaryPlusChecked(long value)
+            => checked(+value);
     }
 }

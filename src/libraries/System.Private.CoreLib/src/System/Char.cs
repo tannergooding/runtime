@@ -14,7 +14,10 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 
 namespace System
@@ -22,7 +25,11 @@ namespace System
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
     [System.Runtime.CompilerServices.TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public readonly struct Char : IComparable, IComparable<char>, IEquatable<char>, IConvertible, ISpanFormattable
+    public readonly struct Char
+        : IBinaryInteger<char>,
+          IConvertible,
+          IMinMaxValue<char>,
+          IUnsignedNumber<char>
     {
         //
         // Member Variables
@@ -1049,5 +1056,355 @@ namespace System
             // Not a high-surrogate or low-surrogate. Genereate the UTF32 value for the BMP characters.
             return (int)s[index];
         }
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static char IAdditionOperators<char, char, char>.operator +(char left, char right)
+            => (char)(left + right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IAdditionOperators<char, char, char>.op_AdditionChecked(char left, char right)
+            => checked((char)(left + right));
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static char IAdditiveIdentity<char, char>.AdditiveIdentity => (char)0;
+
+        //
+        // IBinaryInteger
+        //
+
+        [RequiresPreviewFeatures]
+        static char IBinaryInteger<char>.LeadingZeroCount(char value)
+            => (char)(BitOperations.LeadingZeroCount(value) - 16);
+
+        [RequiresPreviewFeatures]
+        static char IBinaryInteger<char>.PopCount(char value)
+            => (char)BitOperations.PopCount(value);
+
+        [RequiresPreviewFeatures]
+        static char IBinaryInteger<char>.RotateLeft(char value, char rotateAmount)
+            => (char)((value << (rotateAmount & 15)) | (value >> ((16 - rotateAmount) & 15)));
+
+        [RequiresPreviewFeatures]
+        static char IBinaryInteger<char>.RotateRight(char value, char rotateAmount)
+            => (char)((value >> (rotateAmount & 15)) | (value << ((16 - rotateAmount) & 15)));
+
+        [RequiresPreviewFeatures]
+        static char IBinaryInteger<char>.TrailingZeroCount(char value)
+            => (char)(BitOperations.TrailingZeroCount(value << 16) - 16);
+
+        //
+        // IBinaryNumber
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IBinaryNumber<char>.IsPow2(char value)
+            => BitOperations.IsPow2((uint)value);
+
+        [RequiresPreviewFeatures]
+        static char IBinaryNumber<char>.Log2(char value)
+            => (char)BitOperations.Log2(value);
+
+        //
+        // IBitwiseOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static char IBitwiseOperators<char, char, char>.operator &(char left, char right)
+            => (char)(left & right);
+
+        [RequiresPreviewFeatures]
+        static char IBitwiseOperators<char, char, char>.operator |(char left, char right)
+            => (char)(left | right);
+
+        [RequiresPreviewFeatures]
+        static char IBitwiseOperators<char, char, char>.operator ^(char left, char right)
+            => (char)(left ^ right);
+
+        [RequiresPreviewFeatures]
+        static char IBitwiseOperators<char, char, char>.operator ~(char value)
+            => (char)(~value);
+
+        //
+        // IComparisonOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<char, char>.operator <(char left, char right)
+            => left < right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<char, char>.operator <=(char left, char right)
+            => left <= right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<char, char>.operator >(char left, char right)
+            => left > right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<char, char>.operator >=(char left, char right)
+            => left >= right;
+
+        //
+        // IDecrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static char IDecrementOperators<char>.operator --(char value)
+            => value--;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IDecrementOperators<char>.op_DecrementChecked(char value)
+            => checked(value--);
+
+        //
+        // IDivisionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static char IDivisionOperators<char, char, char>.operator /(char left, char right)
+            => (char)(left / right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IDivisionOperators<char, char, char>.op_DivisionChecked(char left, char right)
+            => checked((char)(left / right));
+
+        //
+        // IEqualityOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<char, char>.operator ==(char left, char right)
+            => left == right;
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<char, char>.operator !=(char left, char right)
+            => left != right;
+
+        //
+        // IIncrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static char IIncrementOperators<char>.operator ++(char value)
+            => value++;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IIncrementOperators<char>.op_IncrementChecked(char value)
+            => checked(value++);
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static char IMinMaxValue<char>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static char IMinMaxValue<char>.MaxValue => MaxValue;
+
+        //
+        // IModulusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static char IModulusOperators<char, char, char>.operator %(char left, char right)
+            => (char)(left % right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IModulusOperators<char, char, char>.op_ModulusChecked(char left, char right)
+            => checked((char)(left % right));
+
+        //
+        // IMultiplicativeIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static char IMultiplicativeIdentity<char, char>.MultiplicativeIdentity => (char)1;
+
+        //
+        // IMultiplyOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static char IMultiplyOperators<char, char, char>.operator *(char left, char right)
+            => (char)(left * right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IMultiplyOperators<char, char, char>.op_MultiplyChecked(char left, char right)
+            => checked((char)(left * right));
+
+        //
+        // INumber
+        //
+
+        [RequiresPreviewFeatures]
+        static char INumber<char>.One => (char)1;
+
+        [RequiresPreviewFeatures]
+        static char INumber<char>.Zero => (char)0;
+
+        [RequiresPreviewFeatures]
+        static char INumber<char>.Abs(char value)
+            => value;
+
+        [RequiresPreviewFeatures]
+        static char INumber<char>.Clamp(char value, char min, char max)
+            => (char)Math.Clamp(value, min, max);
+
+        [RequiresPreviewFeatures]
+        static (char Quotient, char Remainder) INumber<char>.DivRem(char left, char right)
+            => ((char, char))Math.DivRem(left, right);
+
+        [RequiresPreviewFeatures]
+        static char INumber<char>.Max(char x, char y)
+            => (char)Math.Max(x, y);
+
+        [RequiresPreviewFeatures]
+        static char INumber<char>.Min(char x, char y)
+            => (char)Math.Min(x, y);
+
+        [RequiresPreviewFeatures]
+        static char INumber<char>.Parse(string s, NumberStyles style, IFormatProvider? provider)
+            => Parse(s);
+
+        [RequiresPreviewFeatures]
+        static char INumber<char>.Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
+        {
+            if (s.Length != 1)
+            {
+                throw new FormatException(SR.Format_NeedSingleChar);
+            }
+            return s[0];
+        }
+
+        [RequiresPreviewFeatures]
+        static char INumber<char>.Sign(char value)
+            => (char)((value == 0) ? 0 : 1);
+
+        [RequiresPreviewFeatures]
+        static bool INumber<char>.TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, out char result)
+            => TryParse(s, out result);
+
+        [RequiresPreviewFeatures]
+        static bool INumber<char>.TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, out char result)
+        {
+            if (s.Length != 1)
+            {
+                result = default;
+                return false;
+            }
+            result = s[0];
+            return true;
+        }
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static char IParseable<char>.Parse(string s, IFormatProvider? provider)
+            => Parse(s);
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<char>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out char result)
+            => TryParse(s, out result);
+
+        //
+        // IShiftOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IShiftOperators<char, char, char>.op_LeftShift(char value, char shiftAmount)
+            => (char)(value << shiftAmount);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IShiftOperators<char, char, char>.op_RightShift(char value, char shiftAmount)
+            => (char)(value >> shiftAmount);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IShiftOperators<char, char, char>.op_UnsignedRightShift(char value, char shiftAmount)
+            => (char)(value >> shiftAmount);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static char ISpanParseable<char>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+        {
+            if (s.Length != 1)
+            {
+                throw new FormatException(SR.Format_NeedSingleChar);
+            }
+            return s[0];
+        }
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<char>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out char result)
+        {
+            if (s.Length != 1)
+            {
+                result = default;
+                return false;
+            }
+            result = s[0];
+            return true;
+        }
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static char ISubtractionOperators<char, char, char>.operator -(char left, char right)
+            => (char)(left - right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char ISubtractionOperators<char, char, char>.op_SubtractionChecked(char left, char right)
+            => checked((char)(left - right));
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static char IUnaryNegationOperators<char, char>.operator -(char value)
+            => (char)(-value);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IUnaryNegationOperators<char, char>.op_UnaryNegationChecked(char value)
+            => checked((char)(-value));
+
+        //
+        // IUnaryPlusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static char IUnaryPlusOperators<char, char>.operator +(char value)
+            => (char)(+value);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static char IUnaryPlusOperators<char, char>.op_UnaryPlusChecked(char value)
+            => checked((char)(+value));
     }
 }

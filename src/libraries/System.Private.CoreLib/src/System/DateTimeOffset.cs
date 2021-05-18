@@ -4,8 +4,10 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Runtime.Versioning;
 
 namespace System
 {
@@ -31,7 +33,17 @@ namespace System
     [StructLayout(LayoutKind.Auto)]
     [Serializable]
     [System.Runtime.CompilerServices.TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public readonly struct DateTimeOffset : IComparable, ISpanFormattable, IComparable<DateTimeOffset>, IEquatable<DateTimeOffset>, ISerializable, IDeserializationCallback
+    public readonly struct DateTimeOffset
+        : IAdditionOperators<DateTimeOffset, TimeSpan, DateTimeOffset>,
+          IAdditiveIdentity<DateTimeOffset, TimeSpan>,
+          IComparisonOperators<DateTimeOffset, DateTimeOffset>,
+          IDeserializationCallback,
+          IMinMaxValue<DateTimeOffset>,
+          ISerializable,
+          ISpanFormattable,
+          ISpanParseable<DateTimeOffset>,
+          ISubtractionOperators<DateTimeOffset, TimeSpan, DateTimeOffset>,
+          ISubtractionOperators<DateTimeOffset, DateTimeOffset, TimeSpan>
     {
         // Constants
         internal const long MaxOffset = TimeSpan.TicksPerHour * 14;
@@ -852,5 +864,65 @@ namespace System
 
         public static bool operator >=(DateTimeOffset left, DateTimeOffset right) =>
             left.UtcDateTime >= right.UtcDateTime;
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static DateTimeOffset IAdditionOperators<DateTimeOffset, TimeSpan, DateTimeOffset>.op_AdditionChecked(DateTimeOffset left, TimeSpan right)
+            => checked(left + right);
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static TimeSpan IAdditiveIdentity<DateTimeOffset, TimeSpan>.AdditiveIdentity => default;
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static DateTimeOffset IMinMaxValue<DateTimeOffset>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static DateTimeOffset IMinMaxValue<DateTimeOffset>.MaxValue => MaxValue;
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<DateTimeOffset>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out DateTimeOffset result)
+            => TryParse(s, provider, DateTimeStyles.None, out result);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static DateTimeOffset ISpanParseable<DateTimeOffset>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, provider, DateTimeStyles.None);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<DateTimeOffset>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out DateTimeOffset result)
+            => TryParse(s, provider, DateTimeStyles.None, out result);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static DateTimeOffset ISubtractionOperators<DateTimeOffset, TimeSpan, DateTimeOffset>.op_SubtractionChecked(DateTimeOffset left, TimeSpan right)
+            => checked(left - right);
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static TimeSpan ISubtractionOperators<DateTimeOffset, DateTimeOffset, TimeSpan>.op_SubtractionChecked(DateTimeOffset left, DateTimeOffset right)
+            => checked(left - right);
     }
 }

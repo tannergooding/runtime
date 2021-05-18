@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -13,7 +14,11 @@ namespace System
     [CLSCompliant(false)]
     [StructLayout(LayoutKind.Sequential)]
     [TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public readonly struct UInt64 : IComparable, IConvertible, ISpanFormattable, IComparable<ulong>, IEquatable<ulong>
+    public readonly struct UInt64
+        : IBinaryInteger<ulong>,
+          IConvertible,
+          IMinMaxValue<ulong>,
+          IUnsignedNumber<ulong>
     {
         private readonly ulong m_value; // Do not rename (binary serialization)
 
@@ -250,5 +255,307 @@ namespace System
         {
             return Convert.DefaultToType((IConvertible)this, type, provider);
         }
+
+        //
+        // IAdditionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IAdditionOperators<ulong, ulong, ulong>.operator +(ulong left, ulong right)
+            => left + right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IAdditionOperators<ulong, ulong, ulong>.op_AdditionChecked(ulong left, ulong right)
+            => checked(left + right);
+
+        //
+        // IAdditiveIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IAdditiveIdentity<ulong, ulong>.AdditiveIdentity => 0;
+
+        //
+        // IBinaryInteger
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IBinaryInteger<ulong>.LeadingZeroCount(ulong value)
+            => (ulong)BitOperations.LeadingZeroCount(value);
+
+        [RequiresPreviewFeatures]
+        static ulong IBinaryInteger<ulong>.PopCount(ulong value)
+            => (ulong)BitOperations.PopCount(value);
+
+        [RequiresPreviewFeatures]
+        static ulong IBinaryInteger<ulong>.RotateLeft(ulong value, ulong rotateAmount)
+            => BitOperations.RotateLeft(value, (int)rotateAmount);
+
+        [RequiresPreviewFeatures]
+        static ulong IBinaryInteger<ulong>.RotateRight(ulong value, ulong rotateAmount)
+            => BitOperations.RotateRight(value, (int)rotateAmount);
+
+        [RequiresPreviewFeatures]
+        static ulong IBinaryInteger<ulong>.TrailingZeroCount(ulong value)
+            => (ulong)BitOperations.TrailingZeroCount(value);
+
+        //
+        // IBinaryNumber
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IBinaryNumber<ulong>.IsPow2(ulong value)
+            => BitOperations.IsPow2(value);
+
+        [RequiresPreviewFeatures]
+        static ulong IBinaryNumber<ulong>.Log2(ulong value)
+            => (ulong)BitOperations.Log2(value);
+
+        //
+        // IBitwiseOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IBitwiseOperators<ulong, ulong, ulong>.operator &(ulong left, ulong right)
+            => left & right;
+
+        [RequiresPreviewFeatures]
+        static ulong IBitwiseOperators<ulong, ulong, ulong>.operator |(ulong left, ulong right)
+            => left | right;
+
+        [RequiresPreviewFeatures]
+        static ulong IBitwiseOperators<ulong, ulong, ulong>.operator ^(ulong left, ulong right)
+            => left ^ right;
+
+        [RequiresPreviewFeatures]
+        static ulong IBitwiseOperators<ulong, ulong, ulong>.operator ~(ulong value)
+            => ~value;
+
+        //
+        // IComparisonOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<ulong, ulong>.operator <(ulong left, ulong right)
+            => left < right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<ulong, ulong>.operator <=(ulong left, ulong right)
+            => left <= right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<ulong, ulong>.operator >(ulong left, ulong right)
+            => left > right;
+
+        [RequiresPreviewFeatures]
+        static bool IComparisonOperators<ulong, ulong>.operator >=(ulong left, ulong right)
+            => left >= right;
+
+        //
+        // IDecrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IDecrementOperators<ulong>.operator --(ulong value)
+            => value--;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IDecrementOperators<ulong>.op_DecrementChecked(ulong value)
+            => checked(value--);
+
+        //
+        // IDivisionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IDivisionOperators<ulong, ulong, ulong>.operator /(ulong left, ulong right)
+            => left / right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IDivisionOperators<ulong, ulong, ulong>.op_DivisionChecked(ulong left, ulong right)
+            => checked(left / right);
+
+        //
+        // IEqualityOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<ulong, ulong>.operator ==(ulong left, ulong right)
+            => left == right;
+
+        [RequiresPreviewFeatures]
+        static bool IEqualityOperators<ulong, ulong>.operator !=(ulong left, ulong right)
+            => left != right;
+
+        //
+        // IIncrementOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IIncrementOperators<ulong>.operator ++(ulong value)
+            => value++;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IIncrementOperators<ulong>.op_IncrementChecked(ulong value)
+            => checked(value++);
+
+        //
+        // IMinMaxValue
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IMinMaxValue<ulong>.MinValue => MinValue;
+
+        [RequiresPreviewFeatures]
+        static ulong IMinMaxValue<ulong>.MaxValue => MaxValue;
+
+        //
+        // IModulusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IModulusOperators<ulong, ulong, ulong>.operator %(ulong left, ulong right)
+            => left % right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IModulusOperators<ulong, ulong, ulong>.op_ModulusChecked(ulong left, ulong right)
+            => checked(left % right);
+
+        //
+        // IMultiplicativeIdentity
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IMultiplicativeIdentity<ulong, ulong>.MultiplicativeIdentity => 1;
+
+        //
+        // IMultiplyOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IMultiplyOperators<ulong, ulong, ulong>.operator *(ulong left, ulong right)
+            => left * right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IMultiplyOperators<ulong, ulong, ulong>.op_MultiplyChecked(ulong left, ulong right)
+            => checked(left * right);
+
+        //
+        // INumber
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong INumber<ulong>.One => 1;
+
+        [RequiresPreviewFeatures]
+        static ulong INumber<ulong>.Zero => 0;
+
+        [RequiresPreviewFeatures]
+        static ulong INumber<ulong>.Abs(ulong value)
+            => value;
+
+        [RequiresPreviewFeatures]
+        static ulong INumber<ulong>.Clamp(ulong value, ulong min, ulong max)
+            => Math.Clamp(value, min, max);
+
+        [RequiresPreviewFeatures]
+        static (ulong Quotient, ulong Remainder) INumber<ulong>.DivRem(ulong left, ulong right)
+            => Math.DivRem(left, right);
+
+        [RequiresPreviewFeatures]
+        static ulong INumber<ulong>.Max(ulong x, ulong y)
+            => Math.Max(x, y);
+
+        [RequiresPreviewFeatures]
+        static ulong INumber<ulong>.Min(ulong x, ulong y)
+            => Math.Min(x, y);
+
+        [RequiresPreviewFeatures]
+        static ulong INumber<ulong>.Sign(ulong value)
+            => (ulong)((value == 0) ? 0 : 1);
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<ulong>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ulong result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // IShiftOperators
+        //
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IShiftOperators<ulong, ulong, ulong>.op_LeftShift(ulong value, ulong shiftAmount)
+            => value << (int)shiftAmount;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IShiftOperators<ulong, ulong, ulong>.op_RightShift(ulong value, ulong shiftAmount)
+            => value >> (int)shiftAmount;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IShiftOperators<ulong, ulong, ulong>.op_UnsignedRightShift(ulong value, ulong shiftAmount)
+            => value >> (int)shiftAmount;
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong ISpanParseable<ulong>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, NumberStyles.Integer, provider);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<ulong>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out ulong result)
+            => TryParse(s, NumberStyles.Integer, provider, out result);
+
+        //
+        // ISubtractionOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong ISubtractionOperators<ulong, ulong, ulong>.operator -(ulong left, ulong right)
+            => left - right;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong ISubtractionOperators<ulong, ulong, ulong>.op_SubtractionChecked(ulong left, ulong right)
+            => checked(left - right);
+
+        //
+        // IUnaryNegationOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IUnaryNegationOperators<ulong, ulong>.operator -(ulong value)
+            => 0UL - value;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IUnaryNegationOperators<ulong, ulong>.op_UnaryNegationChecked(ulong value)
+            => checked(0UL - value);
+
+        //
+        // IUnaryPlusOperators
+        //
+
+        [RequiresPreviewFeatures]
+        static ulong IUnaryPlusOperators<ulong, ulong>.operator +(ulong value)
+            => +value;
+
+        [RequiresPreviewFeatures]
+        [SpecialName]
+        static ulong IUnaryPlusOperators<ulong, ulong>.op_UnaryPlusChecked(ulong value)
+            => checked(+value);
     }
 }

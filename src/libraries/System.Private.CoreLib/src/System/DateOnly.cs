@@ -2,14 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Runtime.Versioning;
 
 namespace System
 {
     /// <summary>
     /// Represents dates with values ranging from January 1, 0001 Anno Domini (Common Era) through December 31, 9999 A.D. (C.E.) in the Gregorian calendar.
     /// </summary>
-    public readonly struct DateOnly : IComparable, IComparable<DateOnly>, IEquatable<DateOnly>, ISpanFormattable
+    public readonly struct DateOnly
+        : IComparisonOperators<DateOnly, DateOnly>,
+          IMinMaxValue<DateOnly>,
+          ISpanFormattable,
+          ISpanParseable<DateOnly>
     {
         private readonly int _dayNumber;
 
@@ -821,5 +827,29 @@ namespace System
 
             return DateTimeFormat.TryFormat(GetEquivalentDateTime(), destination, out charsWritten, format, provider);
         }
+
+        //
+        // IParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static DateOnly IParseable<DateOnly>.Parse(string s, IFormatProvider? provider)
+            => Parse(s, provider, DateTimeStyles.None);
+
+        [RequiresPreviewFeatures]
+        static bool IParseable<DateOnly>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out DateOnly result)
+            => TryParse(s!, provider, DateTimeStyles.None, out result);
+
+        //
+        // ISpanParseable
+        //
+
+        [RequiresPreviewFeatures]
+        static DateOnly ISpanParseable<DateOnly>.Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+            => Parse(s, provider, DateTimeStyles.None);
+
+        [RequiresPreviewFeatures]
+        static bool ISpanParseable<DateOnly>.TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out DateOnly result)
+            => TryParse(s, provider, DateTimeStyles.None, out result);
     }
 }
