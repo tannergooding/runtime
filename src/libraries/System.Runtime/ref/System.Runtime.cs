@@ -687,7 +687,7 @@ namespace System
         public unsafe static void MemoryCopy(void* source, void* destination, ulong destinationSizeInBytes, ulong sourceBytesToCopy) { }
         public static void SetByte(System.Array array, int index, byte value) { }
     }
-    public readonly partial struct Byte : System.IComparable, System.IComparable<byte>, System.IConvertible, System.IEquatable<byte>, System.ISpanFormattable
+    public readonly partial struct Byte : System.IAdditionOperators<byte, byte, byte>, System.IAdditiveIdentity<byte, byte>, System.IBinaryInteger<byte>, System.IBinaryNumber<byte>, System.IBitwiseOperators<byte, byte, byte>, System.IComparable, System.IComparable<byte>, System.IComparisonOperators<byte, byte>, System.IConvertible, System.IDecrementOperators<byte>, System.IDivisionOperators<byte, byte, byte>, System.IEqualityOperators<byte, byte>, System.IEquatable<byte>, System.IFormattable, System.IIncrementOperators<byte>, System.IMinMaxValue<byte>, System.IModulusOperators<byte, byte, byte>, System.IMultiplicativeIdentity<byte, byte>, System.IMultiplyOperators<byte, byte, byte>, System.INumber<byte>, System.IParseable<byte>, System.IShiftOperators<byte, byte, byte>, System.ISpanFormattable, System.ISpanParseable<byte>, System.ISubtractionOperators<byte, byte, byte>, System.IUnaryNegationOperators<byte, byte>, System.IUnaryPlusOperators<byte, byte>, System.IUnsignedNumber<byte>
     {
         private readonly byte _dummyPrimitive;
         public const byte MaxValue = (byte)255;
@@ -727,6 +727,134 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Byte result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.Byte result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Byte result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IAdditiveIdentity<byte, byte>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IMinMaxValue<byte>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IMinMaxValue<byte>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IMultiplicativeIdentity<byte, byte>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte INumber<byte>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte INumber<byte>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IAdditionOperators<byte, byte, byte>.operator +(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IAdditionOperators<byte, byte, byte>.op_AdditionChecked(byte left, byte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IBinaryInteger<byte>.LeadingZeroCount(byte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IBinaryInteger<byte>.PopCount(byte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IBinaryInteger<byte>.RotateLeft(byte value, byte rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IBinaryInteger<byte>.RotateRight(byte value, byte rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IBinaryInteger<byte>.TrailingZeroCount(byte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<byte>.IsPow2(byte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IBinaryNumber<byte>.Log2(byte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IBitwiseOperators<byte, byte, byte>.operator &(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IBitwiseOperators<byte, byte, byte>.operator |(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IBitwiseOperators<byte, byte, byte>.operator ^(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IBitwiseOperators<byte, byte, byte>.operator ~(byte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<byte, byte>.operator <(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<byte, byte>.operator <=(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<byte, byte>.operator >(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<byte, byte>.operator >=(byte left, byte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IDecrementOperators<byte>.operator --(byte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IDecrementOperators<byte>.op_DecrementChecked(byte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IDivisionOperators<byte, byte, byte>.operator /(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IDivisionOperators<byte, byte, byte>.op_DivisionChecked(byte left, byte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<byte, byte>.operator ==(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<byte, byte>.operator !=(byte left, byte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IIncrementOperators<byte>.operator ++(byte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IIncrementOperators<byte>.op_IncrementChecked(byte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IModulusOperators<byte, byte, byte>.operator %(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IModulusOperators<byte, byte, byte>.op_ModulusChecked(byte left, byte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IMultiplyOperators<byte, byte, byte>.operator *(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IMultiplyOperators<byte, byte, byte>.op_MultiplyChecked(byte left, byte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte INumber<byte>.Abs(byte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte INumber<byte>.Clamp(byte value, byte min, byte max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (byte Quotient, byte Remainder) INumber<byte>.DivRem(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte INumber<byte>.Max(byte x, byte y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte INumber<byte>.Min(byte x, byte y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte INumber<byte>.Sign(byte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<byte>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out byte result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IShiftOperators<byte, byte, byte>.op_LeftShift(byte value, byte shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IShiftOperators<byte, byte, byte>.op_RightShift(byte value, byte shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IShiftOperators<byte, byte, byte>.op_UnsignedRightShift(byte value, byte shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte ISpanParseable<byte>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<byte>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out byte result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte ISubtractionOperators<byte, byte, byte>.operator -(byte left, byte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte ISubtractionOperators<byte, byte, byte>.op_SubtractionChecked(byte left, byte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IUnaryNegationOperators<byte, byte>.operator -(byte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IUnaryNegationOperators<byte, byte>.op_UnaryNegationChecked(byte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static byte IUnaryPlusOperators<byte, byte>.operator +(byte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static byte IUnaryPlusOperators<byte, byte>.op_UnaryPlusChecked(byte value) { throw null; }
     }
     public partial class CannotUnloadAppDomainException : System.SystemException
     {
@@ -735,7 +863,7 @@ namespace System
         public CannotUnloadAppDomainException(string? message) { }
         public CannotUnloadAppDomainException(string? message, System.Exception? innerException) { }
     }
-    public readonly partial struct Char : System.IComparable, System.IComparable<char>, System.IConvertible, System.IEquatable<char>, System.ISpanFormattable
+    public readonly partial struct Char : System.IAdditionOperators<char, char, char>, System.IAdditiveIdentity<char, char>, System.IBinaryInteger<char>, System.IBinaryNumber<char>, System.IBitwiseOperators<char, char, char>, System.IComparable, System.IComparable<char>, System.IComparisonOperators<char, char>, System.IConvertible, System.IDecrementOperators<char>, System.IDivisionOperators<char, char, char>, System.IEqualityOperators<char, char>, System.IEquatable<char>, System.IFormattable, System.IIncrementOperators<char>, System.IMinMaxValue<char>, System.IModulusOperators<char, char, char>, System.IMultiplicativeIdentity<char, char>, System.IMultiplyOperators<char, char, char>, System.INumber<char>, System.IParseable<char>, System.IShiftOperators<char, char, char>, System.ISpanFormattable, System.ISpanParseable<char>, System.ISubtractionOperators<char, char, char>, System.IUnaryNegationOperators<char, char>, System.IUnaryPlusOperators<char, char>, System.IUnsignedNumber<char>
     {
         private readonly char _dummyPrimitive;
         public const char MaxValue = '\uFFFF';
@@ -812,6 +940,144 @@ namespace System
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.Char result) { throw null; }
         bool System.ISpanFormattable.TryFormat(System.Span<char> destination, out int charsWritten, System.ReadOnlySpan<char> format, System.IFormatProvider? provider) { throw null; }
         string System.IFormattable.ToString(string? format, IFormatProvider? formatProvider) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IAdditiveIdentity<char, char>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IMinMaxValue<char>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IMinMaxValue<char>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IMultiplicativeIdentity<char, char>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char INumber<char>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char INumber<char>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IAdditionOperators<char, char, char>.operator +(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IAdditionOperators<char, char, char>.op_AdditionChecked(char left, char right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IBinaryInteger<char>.LeadingZeroCount(char value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IBinaryInteger<char>.PopCount(char value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IBinaryInteger<char>.RotateLeft(char value, char rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IBinaryInteger<char>.RotateRight(char value, char rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IBinaryInteger<char>.TrailingZeroCount(char value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<char>.IsPow2(char value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IBinaryNumber<char>.Log2(char value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IBitwiseOperators<char, char, char>.operator &(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IBitwiseOperators<char, char, char>.operator |(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IBitwiseOperators<char, char, char>.operator ^(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IBitwiseOperators<char, char, char>.operator ~(char value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<char, char>.operator <(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<char, char>.operator <=(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<char, char>.operator >(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<char, char>.operator >=(char left, char right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IDecrementOperators<char>.operator --(char value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IDecrementOperators<char>.op_DecrementChecked(char value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IDivisionOperators<char, char, char>.operator /(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IDivisionOperators<char, char, char>.op_DivisionChecked(char left, char right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<char, char>.operator ==(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<char, char>.operator !=(char left, char right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IIncrementOperators<char>.operator ++(char value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IIncrementOperators<char>.op_IncrementChecked(char value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IModulusOperators<char, char, char>.operator %(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IModulusOperators<char, char, char>.op_ModulusChecked(char left, char right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IMultiplyOperators<char, char, char>.operator *(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IMultiplyOperators<char, char, char>.op_MultiplyChecked(char left, char right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char INumber<char>.Abs(char value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char INumber<char>.Clamp(char value, char min, char max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (char Quotient, char Remainder) INumber<char>.DivRem(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char INumber<char>.Max(char x, char y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char INumber<char>.Min(char x, char y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char INumber<char>.Parse(string s, System.Globalization.NumberStyles style, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char INumber<char>.Parse(System.ReadOnlySpan<char> s, System.Globalization.NumberStyles style, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char INumber<char>.Sign(char value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool INumber<char>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out char result) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool INumber<char>.TryParse(System.ReadOnlySpan<char> s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out char result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IParseable<char>.Parse(string s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<char>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out char result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IShiftOperators<char, char, char>.op_LeftShift(char value, char shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IShiftOperators<char, char, char>.op_RightShift(char value, char shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IShiftOperators<char, char, char>.op_UnsignedRightShift(char value, char shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char ISpanParseable<char>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<char>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out char result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char ISubtractionOperators<char, char, char>.operator -(char left, char right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char ISubtractionOperators<char, char, char>.op_SubtractionChecked(char left, char right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IUnaryNegationOperators<char, char>.operator -(char value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IUnaryNegationOperators<char, char>.op_UnaryNegationChecked(char value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static char IUnaryPlusOperators<char, char>.operator +(char value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static char IUnaryPlusOperators<char, char>.op_UnaryPlusChecked(char value) { throw null; }
     }
     public sealed partial class CharEnumerator : System.Collections.Generic.IEnumerator<char>, System.Collections.IEnumerator, System.ICloneable, System.IDisposable
     {
@@ -1300,7 +1566,7 @@ namespace System
         public static bool TryToBase64Chars(System.ReadOnlySpan<byte> bytes, System.Span<char> chars, out int charsWritten, System.Base64FormattingOptions options = System.Base64FormattingOptions.None) { throw null; }
     }
     public delegate TOutput Converter<in TInput, out TOutput>(TInput input);
-    public readonly struct DateOnly : System.IComparable, System.IComparable<System.DateOnly>, System.IEquatable<System.DateOnly>, System.ISpanFormattable
+    public readonly partial struct DateOnly : System.IComparable, System.IComparable<System.DateOnly>, System.IComparisonOperators<System.DateOnly, System.DateOnly>, System.IEqualityOperators<System.DateOnly, System.DateOnly>, System.IEquatable<System.DateOnly>, System.IFormattable, System.IMinMaxValue<System.DateOnly>, System.IParseable<System.DateOnly>, System.ISpanFormattable, System.ISpanParseable<System.DateOnly>
     {
         public static DateOnly MinValue { get { throw null; } }
         public static DateOnly MaxValue { get { throw null; } }
@@ -1359,8 +1625,18 @@ namespace System
         public string ToString(System.IFormatProvider? provider) { throw null; }
         public string ToString(string? format, System.IFormatProvider? provider) { throw null; }
         public bool TryFormat(System.Span<char> destination, out int charsWritten, System.ReadOnlySpan<char> format = default(System.ReadOnlySpan<char>), System.IFormatProvider? provider = null) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.DateOnly IParseable<System.DateOnly>.Parse(string s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<System.DateOnly>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out System.DateOnly result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.DateOnly ISpanParseable<System.DateOnly>.Parse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<System.DateOnly>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out System.DateOnly result) { throw null; }
     }
-    public readonly partial struct DateTime : System.IComparable, System.IComparable<System.DateTime>, System.IConvertible, System.IEquatable<System.DateTime>, System.ISpanFormattable, System.Runtime.Serialization.ISerializable
+    public readonly partial struct DateTime : System.IAdditionOperators<System.DateTime, System.TimeSpan, System.DateTime>, System.IAdditiveIdentity<System.DateTime, System.TimeSpan>, System.IComparable, System.IComparable<System.DateTime>, System.IComparisonOperators<System.DateTime, System.DateTime>, System.IConvertible, System.IEqualityOperators<System.DateTime, System.DateTime>, System.IEquatable<System.DateTime>, System.IFormattable, System.IMinMaxValue<System.DateTime>, System.IParseable<System.DateTime>, System.ISpanFormattable, System.ISpanParseable<System.DateTime>, System.ISubtractionOperators<System.DateTime, System.DateTime, System.TimeSpan>, System.ISubtractionOperators<System.DateTime, System.TimeSpan, System.DateTime>, System.Runtime.Serialization.ISerializable
     {
         private readonly int _dummyPrimitive;
         public static readonly System.DateTime MaxValue;
@@ -1481,6 +1757,30 @@ namespace System
         public static bool TryParseExact(System.ReadOnlySpan<char> s, [System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string?[]? formats, System.IFormatProvider? provider, System.Globalization.DateTimeStyles style, out System.DateTime result) { throw null; }
         public static bool TryParseExact([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, [System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? format, System.IFormatProvider? provider, System.Globalization.DateTimeStyles style, out System.DateTime result) { throw null; }
         public static bool TryParseExact([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, [System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string?[]? formats, System.IFormatProvider? provider, System.Globalization.DateTimeStyles style, out System.DateTime result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.TimeSpan IAdditiveIdentity<System.DateTime, System.TimeSpan>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.DateTime IMinMaxValue<System.DateTime>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.DateTime IMinMaxValue<System.DateTime>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.DateTime IAdditionOperators<System.DateTime, System.TimeSpan, System.DateTime>.op_AdditionChecked(System.DateTime left, System.TimeSpan right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<System.DateTime>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out System.DateTime result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.DateTime ISpanParseable<System.DateTime>.Parse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<System.DateTime>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out System.DateTime result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.DateTime ISubtractionOperators<System.DateTime, System.TimeSpan, System.DateTime>.op_SubtractionChecked(System.DateTime left, System.TimeSpan right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.TimeSpan ISubtractionOperators<System.DateTime, System.DateTime, System.TimeSpan>.op_SubtractionChecked(System.DateTime left, System.DateTime right) { throw null; }
     }
     public enum DateTimeKind
     {
@@ -1488,7 +1788,7 @@ namespace System
         Utc = 1,
         Local = 2,
     }
-    public readonly partial struct DateTimeOffset : System.IComparable, System.IComparable<System.DateTimeOffset>, System.IEquatable<System.DateTimeOffset>, System.ISpanFormattable, System.Runtime.Serialization.IDeserializationCallback, System.Runtime.Serialization.ISerializable
+    public readonly partial struct DateTimeOffset : System.IAdditionOperators<System.DateTimeOffset, System.TimeSpan, System.DateTimeOffset>, System.IAdditiveIdentity<System.DateTimeOffset, System.TimeSpan>, System.IComparable, System.IComparable<System.DateTimeOffset>, System.IComparisonOperators<System.DateTimeOffset, System.DateTimeOffset>, System.IEqualityOperators<System.DateTimeOffset, System.DateTimeOffset>, System.IEquatable<System.DateTimeOffset>, System.IFormattable, System.IMinMaxValue<System.DateTimeOffset>, System.IParseable<System.DateTimeOffset>, System.ISpanFormattable, System.ISpanParseable<System.DateTimeOffset>, System.ISubtractionOperators<System.DateTimeOffset, System.DateTimeOffset, System.TimeSpan>, System.ISubtractionOperators<System.DateTimeOffset, System.TimeSpan, System.DateTimeOffset>, System.Runtime.Serialization.IDeserializationCallback, System.Runtime.Serialization.ISerializable
     {
         private readonly int _dummyPrimitive;
         public static readonly System.DateTimeOffset MaxValue;
@@ -1581,6 +1881,30 @@ namespace System
         public static bool TryParseExact(System.ReadOnlySpan<char> input, [System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string?[]? formats, System.IFormatProvider? formatProvider, System.Globalization.DateTimeStyles styles, out System.DateTimeOffset result) { throw null; }
         public static bool TryParseExact([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? input, [System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? format, System.IFormatProvider? formatProvider, System.Globalization.DateTimeStyles styles, out System.DateTimeOffset result) { throw null; }
         public static bool TryParseExact([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? input, [System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string?[]? formats, System.IFormatProvider? formatProvider, System.Globalization.DateTimeStyles styles, out System.DateTimeOffset result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.TimeSpan IAdditiveIdentity<System.DateTimeOffset, System.TimeSpan>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.DateTimeOffset IMinMaxValue<System.DateTimeOffset>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.DateTimeOffset IMinMaxValue<System.DateTimeOffset>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.DateTimeOffset IAdditionOperators<System.DateTimeOffset, System.TimeSpan, System.DateTimeOffset>.op_AdditionChecked(System.DateTimeOffset left, System.TimeSpan right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<System.DateTimeOffset>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out System.DateTimeOffset result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.DateTimeOffset ISpanParseable<System.DateTimeOffset>.Parse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<System.DateTimeOffset>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out System.DateTimeOffset result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.DateTimeOffset ISubtractionOperators<System.DateTimeOffset, System.TimeSpan, System.DateTimeOffset>.op_SubtractionChecked(System.DateTimeOffset left, System.TimeSpan right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.TimeSpan ISubtractionOperators<System.DateTimeOffset, System.DateTimeOffset, System.TimeSpan>.op_SubtractionChecked(System.DateTimeOffset left, System.DateTimeOffset right) { throw null; }
     }
     public enum DayOfWeek
     {
@@ -1616,7 +1940,7 @@ namespace System
         public override string ToString() { throw null; }
         public string ToString(System.IFormatProvider? provider) { throw null; }
     }
-    public readonly partial struct Decimal : System.IComparable, System.IComparable<decimal>, System.IConvertible, System.IEquatable<decimal>, System.ISpanFormattable, System.Runtime.Serialization.IDeserializationCallback, System.Runtime.Serialization.ISerializable
+    public readonly partial struct Decimal : System.IAdditionOperators<decimal, decimal, decimal>, System.IAdditiveIdentity<decimal, decimal>, System.IComparable, System.IComparable<decimal>, System.IComparisonOperators<decimal, decimal>, System.IConvertible, System.IDecrementOperators<decimal>, System.IDivisionOperators<decimal, decimal, decimal>, System.IEqualityOperators<decimal, decimal>, System.IEquatable<decimal>, System.IFormattable, System.IIncrementOperators<decimal>, System.IMinMaxValue<decimal>, System.IModulusOperators<decimal, decimal, decimal>, System.IMultiplicativeIdentity<decimal, decimal>, System.IMultiplyOperators<decimal, decimal, decimal>, System.INumber<decimal>, System.IParseable<decimal>, System.ISignedNumber<decimal>, System.ISpanFormattable, System.ISpanParseable<decimal>, System.ISubtractionOperators<decimal, decimal, decimal>, System.IUnaryNegationOperators<decimal, decimal>, System.IUnaryPlusOperators<decimal, decimal>, System.Runtime.Serialization.IDeserializationCallback, System.Runtime.Serialization.ISerializable
     {
         private readonly int _dummyPrimitive;
         [System.Runtime.CompilerServices.DecimalConstantAttribute((byte)0, (byte)0, (uint)4294967295, (uint)4294967295, (uint)4294967295)]
@@ -1756,6 +2080,70 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Decimal result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.Decimal result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Decimal result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal IAdditiveIdentity<decimal, decimal>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal IMinMaxValue<decimal>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal IMinMaxValue<decimal>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal IMultiplicativeIdentity<decimal, decimal>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal INumber<decimal>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal INumber<decimal>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static decimal IAdditionOperators<decimal, decimal, decimal>.op_AdditionChecked(decimal left, decimal right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static decimal IDecrementOperators<decimal>.op_DecrementChecked(decimal value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static decimal IDivisionOperators<decimal, decimal, decimal>.op_DivisionChecked(decimal left, decimal right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static decimal IIncrementOperators<decimal>.op_IncrementChecked(decimal value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static decimal IModulusOperators<decimal, decimal, decimal>.op_ModulusChecked(decimal left, decimal right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static decimal IMultiplyOperators<decimal, decimal, decimal>.op_MultiplyChecked(decimal left, decimal right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal INumber<decimal>.Abs(decimal value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal INumber<decimal>.Clamp(decimal value, decimal min, decimal max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (decimal Quotient, decimal Remainder) INumber<decimal>.DivRem(decimal left, decimal right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal INumber<decimal>.Max(decimal x, decimal y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal INumber<decimal>.Min(decimal x, decimal y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal INumber<decimal>.Sign(decimal value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<decimal>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out decimal result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static decimal ISpanParseable<decimal>.Parse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<decimal>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out decimal result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static decimal ISubtractionOperators<decimal, decimal, decimal>.op_SubtractionChecked(decimal left, decimal right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static decimal IUnaryNegationOperators<decimal, decimal>.op_UnaryNegationChecked(decimal value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static decimal IUnaryPlusOperators<decimal, decimal>.op_UnaryPlusChecked(decimal value) { throw null; }
     }
     public abstract partial class Delegate : System.ICloneable, System.Runtime.Serialization.ISerializable
     {
@@ -1803,7 +2191,7 @@ namespace System
         public DivideByZeroException(string? message) { }
         public DivideByZeroException(string? message, System.Exception? innerException) { }
     }
-    public readonly partial struct Double : System.IComparable, System.IComparable<double>, System.IConvertible, System.IEquatable<double>, System.ISpanFormattable
+    public readonly partial struct Double : System.IAdditionOperators<double, double, double>, System.IAdditiveIdentity<double, double>, System.IBinaryFloatingPoint<double>, System.IBinaryNumber<double>, System.IBitwiseOperators<double, double, double>, System.IComparable, System.IComparable<double>, System.IComparisonOperators<double, double>, System.IConvertible, System.IDecrementOperators<double>, System.IDivisionOperators<double, double, double>, System.IEqualityOperators<double, double>, System.IEquatable<double>, System.IFloatingPoint<double>, System.IFormattable, System.IIncrementOperators<double>, System.IMinMaxValue<double>, System.IModulusOperators<double, double, double>, System.IMultiplicativeIdentity<double, double>, System.IMultiplyOperators<double, double, double>, System.INumber<double>, System.IParseable<double>, System.ISignedNumber<double>, System.ISpanFormattable, System.ISpanParseable<double>, System.ISubtractionOperators<double, double, double>, System.IUnaryNegationOperators<double, double>, System.IUnaryPlusOperators<double, double>
     {
         private readonly double _dummyPrimitive;
         public const double Epsilon = 5E-324;
@@ -1861,6 +2249,192 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Double result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.Double result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Double result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IAdditiveIdentity<double, double>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.E { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Epsilon { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.NaN { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.NegativeInfinity { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Pi { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.PositiveInfinity { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Tau { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IMinMaxValue<double>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IMinMaxValue<double>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double INumber<double>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double INumber<double>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IMultiplicativeIdentity<double, double>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IAdditionOperators<double, double, double>.operator +(double left, double right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static double IAdditionOperators<double, double, double>.op_AdditionChecked(double left, double right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<double>.IsPow2(double value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IBinaryNumber<double>.Log2(double value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IBitwiseOperators<double, double, double>.operator &(double left, double right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IBitwiseOperators<double, double, double>.operator |(double left, double right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IBitwiseOperators<double, double, double>.operator ^(double left, double right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IBitwiseOperators<double, double, double>.operator ~(double value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IDecrementOperators<double>.operator --(double value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static double IDecrementOperators<double>.op_DecrementChecked(double value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IDivisionOperators<double, double, double>.operator /(double left, double right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static double IDivisionOperators<double, double, double>.op_DivisionChecked(double left, double right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Acos(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Acosh(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Asin(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Asinh(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Atan(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Atan2(double y, double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Atanh(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.BitIncrement(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.BitDecrement(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Cbrt(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Ceiling(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.CopySign(double x, double y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Cos(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Cosh(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Exp(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Floor(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.FusedMultiplyAdd(double x, double y, double z) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.IEEERemainder(double x, double y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IFloatingPoint<double>.ILogB(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Log(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Log(double x, double newBase) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Log2(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Log10(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.MaxMagnitude(double x, double y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.MinMagnitude(double x, double y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Pow(double x, double y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Round(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Round(double x, int digits) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Round(double x, System.MidpointRounding mode) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Round(double x, int digits, System.MidpointRounding mode) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.ScaleB(double x, int n) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Sin(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Sinh(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Sqrt(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Tan(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Tanh(double x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IFloatingPoint<double>.Truncate(double x) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IIncrementOperators<double>.operator ++(double value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static double IIncrementOperators<double>.op_IncrementChecked(double value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IModulusOperators<double, double, double>.operator %(double left, double right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static double IModulusOperators<double, double, double>.op_ModulusChecked(double left, double right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IMultiplyOperators<double, double, double>.operator *(double left, double right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static double IMultiplyOperators<double, double, double>.op_MultiplyChecked(double left, double right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double INumber<double>.Abs(double value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double INumber<double>.Clamp(double value, double min, double max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (double Quotient, double Remainder) INumber<double>.DivRem(double left, double right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double INumber<double>.Max(double x, double y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double INumber<double>.Min(double x, double y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double INumber<double>.Sign(double value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<double>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out double result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double ISpanParseable<double>.Parse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<double>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out double result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double ISubtractionOperators<double, double, double>.operator -(double left, double right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static double ISubtractionOperators<double, double, double>.op_SubtractionChecked(double left, double right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IUnaryNegationOperators<double, double>.operator -(double value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static double IUnaryNegationOperators<double, double>.op_UnaryNegationChecked(double value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IUnaryPlusOperators<double, double>.operator +(double value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static double IUnaryPlusOperators<double, double>.op_UnaryPlusChecked(double value) { throw null; }
     }
     public partial class DuplicateWaitObjectException : System.ArgumentException
     {
@@ -2252,7 +2826,7 @@ namespace System
     {
         public GopherStyleUriParser() { }
     }
-    public readonly partial struct Guid : System.IComparable, System.IComparable<System.Guid>, System.IEquatable<System.Guid>, System.ISpanFormattable
+    public readonly partial struct Guid : System.IComparable, System.IComparable<System.Guid>, System.IComparisonOperators<System.Guid, System.Guid>, System.IEqualityOperators<System.Guid, System.Guid>, System.IEquatable<System.Guid>, System.IFormattable, System.IParseable<System.Guid>, System.ISpanFormattable, System.ISpanParseable<System.Guid>
     {
         private readonly int _dummyPrimitive;
         public static readonly System.Guid Empty;
@@ -2286,8 +2860,27 @@ namespace System
         public static bool TryParseExact([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? input, [System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? format, out System.Guid result) { throw null; }
         public bool TryWriteBytes(System.Span<byte> destination) { throw null; }
         bool System.ISpanFormattable.TryFormat(System.Span<char> destination, out int charsWritten, System.ReadOnlySpan<char> format, System.IFormatProvider? provider) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<System.Guid, System.Guid>.operator <(System.Guid left, System.Guid right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<System.Guid, System.Guid>.operator <=(System.Guid left, System.Guid right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<System.Guid, System.Guid>.operator >(System.Guid left, System.Guid right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<System.Guid, System.Guid>.operator >=(System.Guid left, System.Guid right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Guid IParseable<Guid>.Parse(string s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<Guid>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out System.Guid result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Guid ISpanParseable<Guid>.Parse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<Guid>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out System.Guid result) { throw null; }
     }
-    public readonly partial struct Half : System.IComparable, System.IComparable<System.Half>, System.IEquatable<System.Half>, System.ISpanFormattable
+    public readonly partial struct Half : System.IAdditionOperators<System.Half, System.Half, System.Half>, System.IAdditiveIdentity<System.Half, System.Half>, System.IBinaryFloatingPoint<System.Half>, System.IBinaryNumber<System.Half>, System.IBitwiseOperators<System.Half, System.Half, System.Half>, System.IComparable, System.IComparable<System.Half>, System.IComparisonOperators<System.Half, System.Half>, System.IDecrementOperators<System.Half>, System.IDivisionOperators<System.Half, System.Half, System.Half>, System.IEqualityOperators<System.Half, System.Half>, System.IEquatable<System.Half>, System.IFloatingPoint<System.Half>, System.IFormattable, System.IIncrementOperators<System.Half>, System.IMinMaxValue<System.Half>, System.IModulusOperators<System.Half, System.Half, System.Half>, System.IMultiplicativeIdentity<System.Half, System.Half>, System.IMultiplyOperators<System.Half, System.Half, System.Half>, System.INumber<System.Half>, System.IParseable<System.Half>, System.ISignedNumber<System.Half>, System.ISpanFormattable, System.ISpanParseable<System.Half>, System.ISubtractionOperators<System.Half, System.Half, System.Half>, System.IUnaryNegationOperators<System.Half, System.Half>, System.IUnaryPlusOperators<System.Half, System.Half>
     {
         private readonly int _dummyPrimitive;
         public static System.Half Epsilon { get { throw null; } }
@@ -2333,6 +2926,192 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.Half result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Half result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.Half result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IAdditiveIdentity<System.Half, System.Half>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.E { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Epsilon { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.NaN { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.NegativeInfinity { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Pi { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.PositiveInfinity { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Tau { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IMinMaxValue<System.Half>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IMinMaxValue<System.Half>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half INumber<System.Half>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half INumber<System.Half>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IMultiplicativeIdentity<System.Half, System.Half>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IAdditionOperators<System.Half, System.Half, System.Half>.operator +(System.Half left, System.Half right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.Half IAdditionOperators<System.Half, System.Half, System.Half>.op_AdditionChecked(System.Half left, System.Half right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<System.Half>.IsPow2(System.Half value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IBinaryNumber<System.Half>.Log2(System.Half value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IBitwiseOperators<System.Half, System.Half, System.Half>.operator &(System.Half left, System.Half right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IBitwiseOperators<System.Half, System.Half, System.Half>.operator |(System.Half left, System.Half right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IBitwiseOperators<System.Half, System.Half, System.Half>.operator ^(System.Half left, System.Half right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IBitwiseOperators<System.Half, System.Half, System.Half>.operator ~(System.Half value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IDecrementOperators<System.Half>.operator --(System.Half value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.Half IDecrementOperators<System.Half>.op_DecrementChecked(System.Half value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IDivisionOperators<System.Half, System.Half, System.Half>.operator /(System.Half left, System.Half right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.Half IDivisionOperators<System.Half, System.Half, System.Half>.op_DivisionChecked(System.Half left, System.Half right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Acos(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Acosh(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Asin(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Asinh(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Atan(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Atan2(System.Half y, System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Atanh(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.BitIncrement(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.BitDecrement(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Cbrt(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Ceiling(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.CopySign(System.Half x, System.Half y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Cos(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Cosh(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Exp(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Floor(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.FusedMultiplyAdd(System.Half x, System.Half y, System.Half z) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.IEEERemainder(System.Half x, System.Half y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IFloatingPoint<System.Half>.ILogB(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Log(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Log(System.Half x, System.Half newBase) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Log2(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Log10(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.MaxMagnitude(System.Half x, System.Half y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.MinMagnitude(System.Half x, System.Half y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Pow(System.Half x, System.Half y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Round(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Round(System.Half x, int digits) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Round(System.Half x, System.MidpointRounding mode) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Round(System.Half x, int digits, System.MidpointRounding mode) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.ScaleB(System.Half x, int n) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Sin(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Sinh(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Sqrt(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Tan(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Tanh(System.Half x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IFloatingPoint<System.Half>.Truncate(System.Half x) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IIncrementOperators<System.Half>.operator ++(System.Half value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.Half IIncrementOperators<System.Half>.op_IncrementChecked(System.Half value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IModulusOperators<System.Half, System.Half, System.Half>.operator %(System.Half left, System.Half right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.Half IModulusOperators<System.Half, System.Half, System.Half>.op_ModulusChecked(System.Half left, System.Half right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IMultiplyOperators<System.Half, System.Half, System.Half>.operator *(System.Half left, System.Half right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.Half IMultiplyOperators<System.Half, System.Half, System.Half>.op_MultiplyChecked(System.Half left, System.Half right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half INumber<System.Half>.Abs(System.Half value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half INumber<System.Half>.Clamp(System.Half value, System.Half min, System.Half max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (System.Half Quotient, System.Half Remainder) INumber<System.Half>.DivRem(System.Half left, System.Half right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half INumber<System.Half>.Max(System.Half x, System.Half y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half INumber<System.Half>.Min(System.Half x, System.Half y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half INumber<System.Half>.Sign(System.Half value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<System.Half>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out System.Half result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half ISpanParseable<System.Half>.Parse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<System.Half>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out System.Half result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half ISubtractionOperators<System.Half, System.Half, System.Half>.operator -(System.Half left, System.Half right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.Half ISubtractionOperators<System.Half, System.Half, System.Half>.op_SubtractionChecked(System.Half left, System.Half right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IUnaryNegationOperators<System.Half, System.Half>.operator -(System.Half value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.Half IUnaryNegationOperators<System.Half, System.Half>.op_UnaryNegationChecked(System.Half value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.Half IUnaryPlusOperators<System.Half, System.Half>.operator +(System.Half value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.Half IUnaryPlusOperators<System.Half, System.Half>.op_UnaryPlusChecked(System.Half value) { throw null; }
     }
     public partial struct HashCode
     {
@@ -2359,6 +3138,20 @@ namespace System
     {
         public HttpStyleUriParser() { }
     }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IAdditionOperators<TSelf, TOther, TResult>
+        where TSelf : System.IAdditionOperators<TSelf, TOther, TResult>
+    {
+        static abstract TResult operator +(TSelf left, TOther right);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TResult op_AdditionChecked(TSelf left, TOther right);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IAdditiveIdentity<TSelf, TResult>
+        where TSelf : System.IAdditiveIdentity<TSelf, TResult>
+    {
+        static abstract TResult AdditiveIdentity { get; }
+    }
     public partial interface IAsyncDisposable
     {
         System.Threading.Tasks.ValueTask DisposeAsync();
@@ -2369,6 +3162,37 @@ namespace System
         System.Threading.WaitHandle AsyncWaitHandle { get; }
         bool CompletedSynchronously { get; }
         bool IsCompleted { get; }
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IBinaryFloatingPoint<TSelf> : System.IBinaryNumber<TSelf>, System.IFloatingPoint<TSelf>
+        where TSelf : IBinaryFloatingPoint<TSelf>
+    {
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IBinaryInteger<TSelf> : System.IBinaryNumber<TSelf>, System.IShiftOperators<TSelf, TSelf, TSelf>
+        where TSelf : IBinaryInteger<TSelf>
+    {
+        static abstract TSelf LeadingZeroCount(TSelf value);
+        static abstract TSelf PopCount(TSelf value);
+        static abstract TSelf RotateLeft(TSelf value, TSelf rotateAmount);
+        static abstract TSelf RotateRight(TSelf value, TSelf rotateAmount);
+        static abstract TSelf TrailingZeroCount(TSelf value);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IBinaryNumber<TSelf> : System.IBitwiseOperators<TSelf, TSelf, TSelf>, System.INumber<TSelf>
+        where TSelf : IBinaryNumber<TSelf>
+    {
+        static abstract bool IsPow2(TSelf value);
+        static abstract TSelf Log2(TSelf value);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IBitwiseOperators<TSelf, TOther, TResult>
+        where TSelf : System.IBitwiseOperators<TSelf, TOther, TResult>
+    {
+        static abstract TResult operator &(TSelf left, TOther right);
+        static abstract TResult operator |(TSelf left, TOther right);
+        static abstract TResult operator ^(TSelf left, TOther right);
+        static abstract TResult operator ~(TSelf value);
     }
     public partial interface ICloneable
     {
@@ -2381,6 +3205,15 @@ namespace System
     public partial interface IComparable<in T>
     {
         int CompareTo(T? other);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IComparisonOperators<TSelf, TOther> : System.IComparable, System.IComparable<TOther>, System.IEqualityOperators<TSelf, TOther>
+        where TSelf : IComparisonOperators<TSelf, TOther>
+    {
+        static abstract bool operator <(TSelf left, TOther right);
+        static abstract bool operator <=(TSelf left, TOther right);
+        static abstract bool operator >(TSelf left, TOther right);
+        static abstract bool operator >=(TSelf left, TOther right);
     }
     [System.CLSCompliantAttribute(false)]
     public partial interface IConvertible
@@ -2407,13 +3240,93 @@ namespace System
     {
         string Format(string? format, object? arg, System.IFormatProvider? formatProvider);
     }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IDecrementOperators<TSelf>
+        where TSelf : System.IDecrementOperators<TSelf>
+    {
+        static abstract TSelf operator --(TSelf value);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TSelf op_DecrementChecked(TSelf value);
+    }
     public partial interface IDisposable
     {
         void Dispose();
     }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IDivisionOperators<TSelf, TOther, TResult>
+        where TSelf : System.IDivisionOperators<TSelf, TOther, TResult>
+    {
+        static abstract TResult operator /(TSelf left, TOther right);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TResult op_DivisionChecked(TSelf left, TOther right);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IEqualityOperators<TSelf, TOther> : IEquatable<TOther>
+        where TSelf : System.IEqualityOperators<TSelf, TOther>
+    {
+        static abstract bool operator ==(TSelf left, TOther right);
+        static abstract bool operator !=(TSelf left, TOther right);
+    }
     public partial interface IEquatable<T>
     {
         bool Equals(T? other);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IFloatingPoint<TSelf> : System.ISignedNumber<TSelf>
+        where TSelf : System.IFloatingPoint<TSelf>
+    {
+        static abstract TSelf E { get; }
+        static abstract TSelf Epsilon { get; }
+        static abstract TSelf NaN { get; }
+        static abstract TSelf NegativeInfinity { get; }
+        static abstract TSelf Pi { get; }
+        static abstract TSelf PositiveInfinity { get; }
+        static abstract TSelf Tau { get; }
+        static abstract TSelf Acos(TSelf x);
+        static abstract TSelf Acosh(TSelf x);
+        static abstract TSelf Asin(TSelf x);
+        static abstract TSelf Asinh(TSelf x);
+        static abstract TSelf Atan(TSelf x);
+        static abstract TSelf Atan2(TSelf y, TSelf x);
+        static abstract TSelf Atanh(TSelf x);
+        static abstract TSelf BitIncrement(TSelf x);
+        static abstract TSelf BitDecrement(TSelf x);
+        static abstract TSelf Cbrt(TSelf x);
+        static abstract TSelf Ceiling(TSelf x);
+        static abstract TSelf CopySign(TSelf x, TSelf y);
+        static abstract TSelf Cos(TSelf x);
+        static abstract TSelf Cosh(TSelf x);
+        static abstract TSelf Exp(TSelf x);
+        static abstract TSelf Floor(TSelf x);
+        static abstract TSelf FusedMultiplyAdd(TSelf x, TSelf y, TSelf z);
+        static abstract TSelf IEEERemainder(TSelf x, TSelf y);
+        static abstract int ILogB(TSelf x);
+        static abstract bool IsFinite(TSelf value);
+        static abstract bool IsInfinity(TSelf value);
+        static abstract bool IsNaN(TSelf value);
+        static abstract bool IsNegative(TSelf value);
+        static abstract bool IsNegativeInfinity(TSelf value);
+        static abstract bool IsNormal(TSelf value);
+        static abstract bool IsPositiveInfinity(TSelf value);
+        static abstract bool IsSubnormal(TSelf value);
+        static abstract TSelf Log(TSelf x);
+        static abstract TSelf Log(TSelf x, TSelf newBase);
+        static abstract TSelf Log2(TSelf x);
+        static abstract TSelf Log10(TSelf x);
+        static abstract TSelf MaxMagnitude(TSelf x, TSelf y);
+        static abstract TSelf MinMagnitude(TSelf x, TSelf y);
+        static abstract TSelf Pow(TSelf x, TSelf y);
+        static abstract TSelf Round(TSelf x);
+        static abstract TSelf Round(TSelf x, int digits);
+        static abstract TSelf Round(TSelf x, MidpointRounding mode);
+        static abstract TSelf Round(TSelf x, int digits, MidpointRounding mode);
+        static abstract TSelf ScaleB(TSelf x, int n);
+        static abstract TSelf Sin(TSelf x);
+        static abstract TSelf Sinh(TSelf x);
+        static abstract TSelf Sqrt(TSelf x);
+        static abstract TSelf Tan(TSelf x);
+        static abstract TSelf Tanh(TSelf x);
+        static abstract TSelf Truncate(TSelf x);
     }
     public partial interface IFormatProvider
     {
@@ -2422,6 +3335,43 @@ namespace System
     public partial interface IFormattable
     {
         string ToString(string? format, System.IFormatProvider? formatProvider);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IIncrementOperators<TSelf>
+        where TSelf : System.IIncrementOperators<TSelf>
+    {
+        static abstract TSelf operator ++(TSelf value);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TSelf op_IncrementChecked(TSelf value);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IMinMaxValue<TSelf>
+        where TSelf : System.IMinMaxValue<TSelf>
+    {
+        static abstract TSelf MinValue { get; }
+        static abstract TSelf MaxValue { get; }
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IModulusOperators<TSelf, TOther, TResult>
+        where TSelf : System.IModulusOperators<TSelf, TOther, TResult>
+    {
+        static abstract TResult operator %(TSelf left, TOther right);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TResult op_ModulusChecked(TSelf left, TOther right);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IMultiplicativeIdentity<TSelf, TResult>
+        where TSelf : System.IMultiplicativeIdentity<TSelf, TResult>
+    {
+        static abstract TResult MultiplicativeIdentity { get; }
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IMultiplyOperators<TSelf, TOther, TResult>
+        where TSelf : System.IMultiplyOperators<TSelf, TOther, TResult>
+    {
+        static abstract TResult operator *(TSelf left, TOther right);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TResult op_MultiplyChecked(TSelf left, TOther right);
     }
     public readonly partial struct Index : System.IEquatable<System.Index>
     {
@@ -2458,7 +3408,7 @@ namespace System
         public InsufficientMemoryException(string? message) { }
         public InsufficientMemoryException(string? message, System.Exception? innerException) { }
     }
-    public readonly partial struct Int16 : System.IComparable, System.IComparable<short>, System.IConvertible, System.IEquatable<short>, System.ISpanFormattable
+    public readonly partial struct Int16 : System.IAdditionOperators<short, short, short>, System.IAdditiveIdentity<short, short>, System.IBinaryInteger<short>, System.IBinaryNumber<short>, System.IBitwiseOperators<short, short, short>, System.IComparable, System.IComparable<short>, System.IComparisonOperators<short, short>, System.IConvertible, System.IDecrementOperators<short>, System.IDivisionOperators<short, short, short>, System.IEqualityOperators<short, short>, System.IEquatable<short>, System.IFormattable, System.IIncrementOperators<short>, System.IMinMaxValue<short>, System.IModulusOperators<short, short, short>, System.IMultiplicativeIdentity<short, short>, System.IMultiplyOperators<short, short, short>, System.INumber<short>, System.IParseable<short>, System.IShiftOperators<short, short, short>, System.ISignedNumber<short>, System.ISpanFormattable, System.ISpanParseable<short>, System.ISubtractionOperators<short, short, short>, System.IUnaryNegationOperators<short, short>, System.IUnaryPlusOperators<short, short>
     {
         private readonly short _dummyPrimitive;
         public const short MaxValue = (short)32767;
@@ -2498,8 +3448,136 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.Int16 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Int16 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.Int16 result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IAdditiveIdentity<short, short>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IMinMaxValue<short>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IMinMaxValue<short>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IMultiplicativeIdentity<short, short>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short INumber<short>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short INumber<short>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IAdditionOperators<short, short, short>.operator +(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IAdditionOperators<short, short, short>.op_AdditionChecked(short left, short right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IBinaryInteger<short>.LeadingZeroCount(short value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IBinaryInteger<short>.PopCount(short value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IBinaryInteger<short>.RotateLeft(short value, short rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IBinaryInteger<short>.RotateRight(short value, short rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IBinaryInteger<short>.TrailingZeroCount(short value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<short>.IsPow2(short value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IBinaryNumber<short>.Log2(short value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IBitwiseOperators<short, short, short>.operator &(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IBitwiseOperators<short, short, short>.operator |(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IBitwiseOperators<short, short, short>.operator ^(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IBitwiseOperators<short, short, short>.operator ~(short value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<short, short>.operator <(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<short, short>.operator <=(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<short, short>.operator >(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<short, short>.operator >=(short left, short right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IDecrementOperators<short>.operator --(short value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IDecrementOperators<short>.op_DecrementChecked(short value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IDivisionOperators<short, short, short>.operator /(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IDivisionOperators<short, short, short>.op_DivisionChecked(short left, short right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<short, short>.operator ==(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<short, short>.operator !=(short left, short right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IIncrementOperators<short>.operator ++(short value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IIncrementOperators<short>.op_IncrementChecked(short value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IModulusOperators<short, short, short>.operator %(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IModulusOperators<short, short, short>.op_ModulusChecked(short left, short right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IMultiplyOperators<short, short, short>.operator *(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IMultiplyOperators<short, short, short>.op_MultiplyChecked(short left, short right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short INumber<short>.Abs(short value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short INumber<short>.Clamp(short value, short min, short max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (short Quotient, short Remainder) INumber<short>.DivRem(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short INumber<short>.Max(short x, short y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short INumber<short>.Min(short x, short y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short INumber<short>.Sign(short value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<short>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out short result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IShiftOperators<short, short, short>.op_LeftShift(short value, short shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IShiftOperators<short, short, short>.op_RightShift(short value, short shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IShiftOperators<short, short, short>.op_UnsignedRightShift(short value, short shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short ISpanParseable<short>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<short>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out short result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short ISubtractionOperators<short, short, short>.operator -(short left, short right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short ISubtractionOperators<short, short, short>.op_SubtractionChecked(short left, short right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IUnaryNegationOperators<short, short>.operator -(short value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IUnaryNegationOperators<short, short>.op_UnaryNegationChecked(short value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static short IUnaryPlusOperators<short, short>.operator +(short value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static short IUnaryPlusOperators<short, short>.op_UnaryPlusChecked(short value) { throw null; }
     }
-    public readonly partial struct Int32 : System.IComparable, System.IComparable<int>, System.IConvertible, System.IEquatable<int>, System.ISpanFormattable
+    public readonly partial struct Int32 : System.IAdditionOperators<int, int, int>, System.IAdditiveIdentity<int, int>, System.IBinaryInteger<int>, System.IBinaryNumber<int>, System.IBitwiseOperators<int, int, int>, System.IComparable, System.IComparable<int>, System.IComparisonOperators<int, int>, System.IConvertible, System.IDecrementOperators<int>, System.IDivisionOperators<int, int, int>, System.IEqualityOperators<int, int>, System.IEquatable<int>, System.IFormattable, System.IIncrementOperators<int>, System.IMinMaxValue<int>, System.IModulusOperators<int, int, int>, System.IMultiplicativeIdentity<int, int>, System.IMultiplyOperators<int, int, int>, System.INumber<int>, System.IParseable<int>, System.IShiftOperators<int, int, int>, System.ISignedNumber<int>, System.ISpanFormattable, System.ISpanParseable<int>, System.ISubtractionOperators<int, int, int>, System.IUnaryNegationOperators<int, int>, System.IUnaryPlusOperators<int, int>
     {
         private readonly int _dummyPrimitive;
         public const int MaxValue = 2147483647;
@@ -2539,8 +3617,136 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.Int32 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Int32 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.Int32 result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IAdditiveIdentity<int, int>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IMinMaxValue<int>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IMinMaxValue<int>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IMultiplicativeIdentity<int, int>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int INumber<int>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int INumber<int>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IAdditionOperators<int, int, int>.operator +(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IAdditionOperators<int, int, int>.op_AdditionChecked(int left, int right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IBinaryInteger<int>.LeadingZeroCount(int value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IBinaryInteger<int>.PopCount(int value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IBinaryInteger<int>.RotateLeft(int value, int rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IBinaryInteger<int>.RotateRight(int value, int rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IBinaryInteger<int>.TrailingZeroCount(int value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<int>.IsPow2(int value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IBinaryNumber<int>.Log2(int value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IBitwiseOperators<int, int, int>.operator &(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IBitwiseOperators<int, int, int>.operator |(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IBitwiseOperators<int, int, int>.operator ^(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IBitwiseOperators<int, int, int>.operator ~(int value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<int, int>.operator <(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<int, int>.operator <=(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<int, int>.operator >(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<int, int>.operator >=(int left, int right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IDecrementOperators<int>.operator --(int value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IDecrementOperators<int>.op_DecrementChecked(int value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IDivisionOperators<int, int, int>.operator /(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IDivisionOperators<int, int, int>.op_DivisionChecked(int left, int right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<int, int>.operator ==(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<int, int>.operator !=(int left, int right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IIncrementOperators<int>.operator ++(int value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IIncrementOperators<int>.op_IncrementChecked(int value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IModulusOperators<int, int, int>.operator %(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IModulusOperators<int, int, int>.op_ModulusChecked(int left, int right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IMultiplyOperators<int, int, int>.operator *(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IMultiplyOperators<int, int, int>.op_MultiplyChecked(int left, int right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int INumber<int>.Abs(int value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int INumber<int>.Clamp(int value, int min, int max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (int Quotient, int Remainder) INumber<int>.DivRem(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int INumber<int>.Max(int x, int y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int INumber<int>.Min(int x, int y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int INumber<int>.Sign(int value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<int>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out int result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IShiftOperators<int, int, int>.op_LeftShift(int value, int shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IShiftOperators<int, int, int>.op_RightShift(int value, int shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IShiftOperators<int, int, int>.op_UnsignedRightShift(int value, int shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int ISpanParseable<int>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<int>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out int result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int ISubtractionOperators<int, int, int>.operator -(int left, int right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int ISubtractionOperators<int, int, int>.op_SubtractionChecked(int left, int right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IUnaryNegationOperators<int, int>.operator -(int value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IUnaryNegationOperators<int, int>.op_UnaryNegationChecked(int value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IUnaryPlusOperators<int, int>.operator +(int value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static int IUnaryPlusOperators<int, int>.op_UnaryPlusChecked(int value) { throw null; }
     }
-    public readonly partial struct Int64 : System.IComparable, System.IComparable<long>, System.IConvertible, System.IEquatable<long>, System.ISpanFormattable
+    public readonly partial struct Int64 : System.IAdditionOperators<long, long, long>, System.IAdditiveIdentity<long, long>, System.IBinaryInteger<long>, System.IBinaryNumber<long>, System.IBitwiseOperators<long, long, long>, System.IComparable, System.IComparable<long>, System.IComparisonOperators<long, long>, System.IConvertible, System.IDecrementOperators<long>, System.IDivisionOperators<long, long, long>, System.IEqualityOperators<long, long>, System.IEquatable<long>, System.IFormattable, System.IIncrementOperators<long>, System.IMinMaxValue<long>, System.IModulusOperators<long, long, long>, System.IMultiplicativeIdentity<long, long>, System.IMultiplyOperators<long, long, long>, System.INumber<long>, System.IParseable<long>, System.IShiftOperators<long, long, long>, System.ISignedNumber<long>, System.ISpanFormattable, System.ISpanParseable<long>, System.ISubtractionOperators<long, long, long>, System.IUnaryNegationOperators<long, long>, System.IUnaryPlusOperators<long, long>
     {
         private readonly long _dummyPrimitive;
         public const long MaxValue = (long)9223372036854775807;
@@ -2580,8 +3786,136 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.Int64 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Int64 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.Int64 result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IAdditiveIdentity<long, long>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IMinMaxValue<long>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IMinMaxValue<long>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IMultiplicativeIdentity<long, long>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long INumber<long>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long INumber<long>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IAdditionOperators<long, long, long>.operator +(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IAdditionOperators<long, long, long>.op_AdditionChecked(long left, long right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IBinaryInteger<long>.LeadingZeroCount(long value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IBinaryInteger<long>.PopCount(long value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IBinaryInteger<long>.RotateLeft(long value, long rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IBinaryInteger<long>.RotateRight(long value, long rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IBinaryInteger<long>.TrailingZeroCount(long value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<long>.IsPow2(long value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IBinaryNumber<long>.Log2(long value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IBitwiseOperators<long, long, long>.operator &(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IBitwiseOperators<long, long, long>.operator |(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IBitwiseOperators<long, long, long>.operator ^(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IBitwiseOperators<long, long, long>.operator ~(long value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<long, long>.operator <(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<long, long>.operator <=(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<long, long>.operator >(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<long, long>.operator >=(long left, long right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IDecrementOperators<long>.operator --(long value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IDecrementOperators<long>.op_DecrementChecked(long value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IDivisionOperators<long, long, long>.operator /(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IDivisionOperators<long, long, long>.op_DivisionChecked(long left, long right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<long, long>.operator ==(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<long, long>.operator !=(long left, long right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IIncrementOperators<long>.operator ++(long value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IIncrementOperators<long>.op_IncrementChecked(long value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IModulusOperators<long, long, long>.operator %(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IModulusOperators<long, long, long>.op_ModulusChecked(long left, long right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IMultiplyOperators<long, long, long>.operator *(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IMultiplyOperators<long, long, long>.op_MultiplyChecked(long left, long right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long INumber<long>.Abs(long value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long INumber<long>.Clamp(long value, long min, long max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (long Quotient, long Remainder) INumber<long>.DivRem(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long INumber<long>.Max(long x, long y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long INumber<long>.Min(long x, long y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long INumber<long>.Sign(long value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<long>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out long result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IShiftOperators<long, long, long>.op_LeftShift(long value, long shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IShiftOperators<long, long, long>.op_RightShift(long value, long shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IShiftOperators<long, long, long>.op_UnsignedRightShift(long value, long shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long ISpanParseable<long>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<long>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out long result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long ISubtractionOperators<long, long, long>.operator -(long left, long right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long ISubtractionOperators<long, long, long>.op_SubtractionChecked(long left, long right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IUnaryNegationOperators<long, long>.operator -(long value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IUnaryNegationOperators<long, long>.op_UnaryNegationChecked(long value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static long IUnaryPlusOperators<long, long>.operator +(long value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static long IUnaryPlusOperators<long, long>.op_UnaryPlusChecked(long value) { throw null; }
     }
-    public readonly partial struct IntPtr : System.IComparable, System.IComparable<System.IntPtr>, System.IEquatable<System.IntPtr>, System.ISpanFormattable, System.Runtime.Serialization.ISerializable
+    public readonly partial struct IntPtr : System.IAdditionOperators<nint, nint, nint>, System.IAdditiveIdentity<nint, nint>, System.IBinaryInteger<nint>, System.IBinaryNumber<nint>, System.IBitwiseOperators<nint, nint, nint>, System.IComparable, System.IComparable<nint>, System.IComparisonOperators<nint, nint>, System.IDecrementOperators<nint>, System.IDivisionOperators<nint, nint, nint>, System.IEqualityOperators<nint, nint>, System.IEquatable<nint>, System.IFormattable, System.IIncrementOperators<nint>, System.IMinMaxValue<nint>, System.IModulusOperators<nint, nint, nint>, System.IMultiplicativeIdentity<nint, nint>, System.IMultiplyOperators<nint, nint, nint>, System.INumber<nint>, System.IParseable<nint>, System.IShiftOperators<nint, nint, nint>, System.ISignedNumber<nint>, System.ISpanFormattable, System.ISpanParseable<nint>, System.ISubtractionOperators<nint, nint, nint>, System.IUnaryNegationOperators<nint, nint>, System.IUnaryPlusOperators<nint, nint>, System.Runtime.Serialization.ISerializable
     {
         private readonly int _dummyPrimitive;
         public static readonly System.IntPtr Zero;
@@ -2630,6 +3964,146 @@ namespace System
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.IntPtr result) { throw null; }
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.IntPtr result) { throw null; }
         public static bool TryParse(System.ReadOnlySpan<char> s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.IntPtr result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IAdditiveIdentity<nint, nint>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IMinMaxValue<nint>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IMinMaxValue<nint>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IMultiplicativeIdentity<nint, nint>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint INumber<nint>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint INumber<nint>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IAdditionOperators<nint, nint, nint>.operator +(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IAdditionOperators<nint, nint, nint>.op_AdditionChecked(nint left, nint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IBinaryInteger<nint>.LeadingZeroCount(nint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IBinaryInteger<nint>.PopCount(nint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IBinaryInteger<nint>.RotateLeft(nint value, nint rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IBinaryInteger<nint>.RotateRight(nint value, nint rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IBinaryInteger<nint>.TrailingZeroCount(nint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<nint>.IsPow2(nint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IBinaryNumber<nint>.Log2(nint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IBitwiseOperators<nint, nint, nint>.operator &(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IBitwiseOperators<nint, nint, nint>.operator |(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IBitwiseOperators<nint, nint, nint>.operator ^(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IBitwiseOperators<nint, nint, nint>.operator ~(nint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<nint, nint>.operator <(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<nint, nint>.operator <=(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<nint, nint>.operator >(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<nint, nint>.operator >=(nint left, nint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IDecrementOperators<nint>.operator --(nint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IDecrementOperators<nint>.op_DecrementChecked(nint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IDivisionOperators<nint, nint, nint>.operator /(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IDivisionOperators<nint, nint, nint>.op_DivisionChecked(nint left, nint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IIncrementOperators<nint>.operator ++(nint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IIncrementOperators<nint>.op_IncrementChecked(nint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IModulusOperators<nint, nint, nint>.operator %(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IModulusOperators<nint, nint, nint>.op_ModulusChecked(nint left, nint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IMultiplyOperators<nint, nint, nint>.operator *(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IMultiplyOperators<nint, nint, nint>.op_MultiplyChecked(nint left, nint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint INumber<nint>.Abs(nint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint INumber<nint>.Clamp(nint value, nint min, nint max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (nint Quotient, nint Remainder) INumber<nint>.DivRem(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint INumber<nint>.Max(nint x, nint y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint INumber<nint>.Min(nint x, nint y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint INumber<nint>.Sign(nint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<nint>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out nint result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IShiftOperators<nint, nint, nint>.op_LeftShift(nint value, nint shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IShiftOperators<nint, nint, nint>.op_RightShift(nint value, nint shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IShiftOperators<nint, nint, nint>.op_UnsignedRightShift(nint value, nint shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint ISpanParseable<nint>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<nint>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out nint result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint ISubtractionOperators<nint, nint, nint>.operator -(nint left, nint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint ISubtractionOperators<nint, nint, nint>.op_SubtractionChecked(nint left, nint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IUnaryNegationOperators<nint, nint>.operator -(nint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IUnaryNegationOperators<nint, nint>.op_UnaryNegationChecked(nint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nint IUnaryPlusOperators<nint, nint>.operator +(nint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nint IUnaryPlusOperators<nint, nint>.op_UnaryPlusChecked(nint value) { throw null; }
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface INumber<TSelf> : System.IAdditionOperators<TSelf, TSelf, TSelf>, System.IAdditiveIdentity<TSelf, TSelf>, System.IComparable, System.IComparable<TSelf>, System.IComparisonOperators<TSelf, TSelf>, System.IDecrementOperators<TSelf>, System.IDivisionOperators<TSelf, TSelf, TSelf>, System.IEquatable<TSelf>, System.IEqualityOperators<TSelf, TSelf>, System.IFormattable, System.IIncrementOperators<TSelf>, System.IModulusOperators<TSelf, TSelf, TSelf>, System.IMultiplicativeIdentity<TSelf, TSelf>, System.IMultiplyOperators<TSelf, TSelf, TSelf>, System.IParseable<TSelf>, System.ISpanFormattable, System.ISpanParseable<TSelf>, System.ISubtractionOperators<TSelf, TSelf, TSelf>, System.IUnaryNegationOperators<TSelf, TSelf>, System.IUnaryPlusOperators<TSelf, TSelf>
+        where TSelf : System.INumber<TSelf>
+    {
+        static abstract TSelf One { get; }
+        static abstract TSelf Zero { get; }
+        static abstract TSelf Abs(TSelf value);
+        static abstract TSelf Clamp(TSelf value, TSelf min, TSelf max);
+        static abstract (TSelf Quotient, TSelf Remainder) DivRem(TSelf left, TSelf right);
+        static abstract TSelf Max(TSelf x, TSelf y);
+        static abstract TSelf Min(TSelf x, TSelf y);
+        static abstract TSelf Parse(string s, System.Globalization.NumberStyles style, System.IFormatProvider? provider);
+        static abstract TSelf Parse(ReadOnlySpan<char> s, System.Globalization.NumberStyles style, System.IFormatProvider? provider);
+        static abstract TSelf Sign(TSelf value);
+        static abstract bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out TSelf result);
+        static abstract bool TryParse(System.ReadOnlySpan<char> s, System.Globalization.NumberStyles style, IFormatProvider? provider, out TSelf result);
     }
     public partial class InvalidCastException : System.SystemException
     {
@@ -2669,13 +4143,72 @@ namespace System
         void OnError(System.Exception error);
         void OnNext(T value);
     }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IParseable<TSelf>
+        where TSelf : System.IParseable<TSelf>
+    {
+        static abstract TSelf Parse(string s, System.IFormatProvider? provider);
+        static abstract bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out TSelf result);
+    }
     public partial interface IProgress<in T>
     {
         void Report(T value);
     }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IShiftOperators<TSelf, TOther, TResult>
+        where TSelf : System.IShiftOperators<TSelf, TOther, TResult>
+    {
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TResult op_LeftShift(TSelf value, TOther shiftAmount);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TResult op_RightShift(TSelf value, TOther shiftAmount);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TResult op_UnsignedRightShift(TSelf value, TOther shiftAmount);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface ISignedNumber<TSelf> : System.INumber<TSelf>, System.IUnaryNegationOperators<TSelf, TSelf>
+        where TSelf : System.ISignedNumber<TSelf>
+    {
+    }
     public partial interface ISpanFormattable : System.IFormattable
     {
         bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface ISpanParseable<TSelf> : System.IParseable<TSelf>
+        where TSelf : System.ISpanParseable<TSelf>
+    {
+        static abstract TSelf Parse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider);
+        static abstract bool TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out TSelf result);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface ISubtractionOperators<TSelf, TOther, TResult>
+        where TSelf : System.ISubtractionOperators<TSelf, TOther, TResult>
+    {
+        static abstract TResult operator -(TSelf left, TOther right);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TResult op_SubtractionChecked(TSelf left, TOther right);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IUnaryNegationOperators<TSelf, TResult>
+        where TSelf : System.IUnaryNegationOperators<TSelf, TResult>
+    {
+        static abstract TResult operator -(TSelf value);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TResult op_UnaryNegationChecked(TSelf value);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IUnaryPlusOperators<TSelf, TResult>
+        where TSelf : System.IUnaryPlusOperators<TSelf, TResult>
+    {
+        static abstract TResult operator +(TSelf value);
+        [System.Runtime.CompilerServices.SpecialNameAttribute]
+        static abstract TResult op_UnaryPlusChecked(TSelf value);
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public partial interface IUnsignedNumber<TSelf> : System.INumber<TSelf>
+        where TSelf : IUnsignedNumber<TSelf>
+    {
     }
     public partial class Lazy<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]T>
     {
@@ -3406,7 +4939,7 @@ namespace System
         public static bool operator !=(System.RuntimeTypeHandle left, object? right) { throw null; }
     }
     [System.CLSCompliantAttribute(false)]
-    public readonly partial struct SByte : System.IComparable, System.IComparable<sbyte>, System.IConvertible, System.IEquatable<sbyte>, System.ISpanFormattable
+    public readonly partial struct SByte : System.IAdditionOperators<sbyte, sbyte, sbyte>, System.IAdditiveIdentity<sbyte, sbyte>, System.IBinaryInteger<sbyte>, System.IBinaryNumber<sbyte>, System.IBitwiseOperators<sbyte, sbyte, sbyte>, System.IComparable, System.IComparable<sbyte>, System.IComparisonOperators<sbyte, sbyte>, System.IConvertible, System.IDecrementOperators<sbyte>, System.IDivisionOperators<sbyte, sbyte, sbyte>, System.IEqualityOperators<sbyte, sbyte>, System.IEquatable<sbyte>, System.IFormattable, System.IIncrementOperators<sbyte>, System.IMinMaxValue<sbyte>, System.IModulusOperators<sbyte, sbyte, sbyte>, System.IMultiplicativeIdentity<sbyte, sbyte>, System.IMultiplyOperators<sbyte, sbyte, sbyte>, System.INumber<sbyte>, System.IParseable<sbyte>, System.IShiftOperators<sbyte, sbyte, sbyte>, System.ISignedNumber<sbyte>, System.ISpanFormattable, System.ISpanParseable<sbyte>, System.ISubtractionOperators<sbyte, sbyte, sbyte>, System.IUnaryNegationOperators<sbyte, sbyte>, System.IUnaryPlusOperators<sbyte, sbyte>
     {
         private readonly sbyte _dummyPrimitive;
         public const sbyte MaxValue = (sbyte)127;
@@ -3446,13 +4979,141 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.SByte result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.SByte result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.SByte result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IAdditiveIdentity<sbyte, sbyte>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IMinMaxValue<sbyte>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IMinMaxValue<sbyte>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IMultiplicativeIdentity<sbyte, sbyte>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte INumber<sbyte>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte INumber<sbyte>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IAdditionOperators<sbyte, sbyte, sbyte>.operator +(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IAdditionOperators<sbyte, sbyte, sbyte>.op_AdditionChecked(sbyte left, sbyte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IBinaryInteger<sbyte>.LeadingZeroCount(sbyte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IBinaryInteger<sbyte>.PopCount(sbyte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IBinaryInteger<sbyte>.RotateLeft(sbyte value, sbyte rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IBinaryInteger<sbyte>.RotateRight(sbyte value, sbyte rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IBinaryInteger<sbyte>.TrailingZeroCount(sbyte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<sbyte>.IsPow2(sbyte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IBinaryNumber<sbyte>.Log2(sbyte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IBitwiseOperators<sbyte, sbyte, sbyte>.operator &(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IBitwiseOperators<sbyte, sbyte, sbyte>.operator |(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IBitwiseOperators<sbyte, sbyte, sbyte>.operator ^(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IBitwiseOperators<sbyte, sbyte, sbyte>.operator ~(sbyte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<sbyte, sbyte>.operator <(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<sbyte, sbyte>.operator <=(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<sbyte, sbyte>.operator >(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<sbyte, sbyte>.operator >=(sbyte left, sbyte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IDecrementOperators<sbyte>.operator --(sbyte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IDecrementOperators<sbyte>.op_DecrementChecked(sbyte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IDivisionOperators<sbyte, sbyte, sbyte>.operator /(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IDivisionOperators<sbyte, sbyte, sbyte>.op_DivisionChecked(sbyte left, sbyte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<sbyte, sbyte>.operator ==(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<sbyte, sbyte>.operator !=(sbyte left, sbyte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IIncrementOperators<sbyte>.operator ++(sbyte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IIncrementOperators<sbyte>.op_IncrementChecked(sbyte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IModulusOperators<sbyte, sbyte, sbyte>.operator %(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IModulusOperators<sbyte, sbyte, sbyte>.op_ModulusChecked(sbyte left, sbyte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IMultiplyOperators<sbyte, sbyte, sbyte>.operator *(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IMultiplyOperators<sbyte, sbyte, sbyte>.op_MultiplyChecked(sbyte left, sbyte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte INumber<sbyte>.Abs(sbyte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte INumber<sbyte>.Clamp(sbyte value, sbyte min, sbyte max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (sbyte Quotient, sbyte Remainder) INumber<sbyte>.DivRem(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte INumber<sbyte>.Max(sbyte x, sbyte y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte INumber<sbyte>.Min(sbyte x, sbyte y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte INumber<sbyte>.Sign(sbyte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<sbyte>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out sbyte result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IShiftOperators<sbyte, sbyte, sbyte>.op_LeftShift(sbyte value, sbyte shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IShiftOperators<sbyte, sbyte, sbyte>.op_RightShift(sbyte value, sbyte shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IShiftOperators<sbyte, sbyte, sbyte>.op_UnsignedRightShift(sbyte value, sbyte shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte ISpanParseable<sbyte>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<sbyte>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out sbyte result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte ISubtractionOperators<sbyte, sbyte, sbyte>.operator -(sbyte left, sbyte right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte ISubtractionOperators<sbyte, sbyte, sbyte>.op_SubtractionChecked(sbyte left, sbyte right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IUnaryNegationOperators<sbyte, sbyte>.operator -(sbyte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IUnaryNegationOperators<sbyte, sbyte>.op_UnaryNegationChecked(sbyte value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static sbyte IUnaryPlusOperators<sbyte, sbyte>.operator +(sbyte value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static sbyte IUnaryPlusOperators<sbyte, sbyte>.op_UnaryPlusChecked(sbyte value) { throw null; }
     }
     [System.AttributeUsageAttribute(System.AttributeTargets.Class | System.AttributeTargets.Delegate | System.AttributeTargets.Enum | System.AttributeTargets.Struct, Inherited=false)]
     public sealed partial class SerializableAttribute : System.Attribute
     {
         public SerializableAttribute() { }
     }
-    public readonly partial struct Single : System.IComparable, System.IComparable<float>, System.IConvertible, System.IEquatable<float>, System.ISpanFormattable
+    public readonly partial struct Single : System.IAdditionOperators<float, float, float>, System.IAdditiveIdentity<float, float>, System.IBinaryFloatingPoint<float>, System.IBinaryNumber<float>, System.IBitwiseOperators<float, float, float>, System.IComparable, System.IComparable<float>, System.IComparisonOperators<float, float>, System.IConvertible, System.IDecrementOperators<float>, System.IDivisionOperators<float, float, float>, System.IEqualityOperators<float, float>, System.IEquatable<float>, System.IFloatingPoint<float>, System.IFormattable, System.IIncrementOperators<float>, System.IMinMaxValue<float>, System.IModulusOperators<float, float, float>, System.IMultiplicativeIdentity<float, float>, System.IMultiplyOperators<float, float, float>, System.INumber<float>, System.IParseable<float>, System.ISignedNumber<float>, System.ISpanFormattable, System.ISpanParseable<float>, System.ISubtractionOperators<float, float, float>, System.IUnaryNegationOperators<float, float>, System.IUnaryPlusOperators<float, float>
     {
         private readonly float _dummyPrimitive;
         public const float Epsilon = 1E-45f;
@@ -3510,6 +5171,192 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.Single result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.Single result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.Single result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IAdditiveIdentity<float, float>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.E { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Epsilon { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.NaN { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.NegativeInfinity { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Pi { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.PositiveInfinity { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Tau { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IMinMaxValue<float>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IMinMaxValue<float>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float INumber<float>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float INumber<float>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IMultiplicativeIdentity<float, float>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IAdditionOperators<float, float, float>.operator +(float left, float right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static float IAdditionOperators<float, float, float>.op_AdditionChecked(float left, float right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<float>.IsPow2(float value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IBinaryNumber<float>.Log2(float value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IBitwiseOperators<float, float, float>.operator &(float left, float right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IBitwiseOperators<float, float, float>.operator |(float left, float right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IBitwiseOperators<float, float, float>.operator ^(float left, float right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IBitwiseOperators<float, float, float>.operator ~(float value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IDecrementOperators<float>.operator --(float value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static float IDecrementOperators<float>.op_DecrementChecked(float value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IDivisionOperators<float, float, float>.operator /(float left, float right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static float IDivisionOperators<float, float, float>.op_DivisionChecked(float left, float right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Acos(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Acosh(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Asin(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Asinh(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Atan(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Atan2(float y, float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Atanh(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.BitIncrement(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.BitDecrement(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Cbrt(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Ceiling(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.CopySign(float x, float y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Cos(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Cosh(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Exp(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Floor(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.FusedMultiplyAdd(float x, float y, float z) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.IEEERemainder(float x, float y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static int IFloatingPoint<float>.ILogB(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Log(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Log(float x, float newBase) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Log2(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Log10(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.MaxMagnitude(float x, float y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.MinMagnitude(float x, float y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Pow(float x, float y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Round(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Round(float x, int digits) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Round(float x, System.MidpointRounding mode) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Round(float x, int digits, System.MidpointRounding mode) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.ScaleB(float x, int n) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Sin(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Sinh(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Sqrt(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Tan(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Tanh(float x) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IFloatingPoint<float>.Truncate(float x) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IIncrementOperators<float>.operator ++(float value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static float IIncrementOperators<float>.op_IncrementChecked(float value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IModulusOperators<float, float, float>.operator %(float left, float right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static float IModulusOperators<float, float, float>.op_ModulusChecked(float left, float right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IMultiplyOperators<float, float, float>.operator *(float left, float right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static float IMultiplyOperators<float, float, float>.op_MultiplyChecked(float left, float right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float INumber<float>.Abs(float value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float INumber<float>.Clamp(float value, float min, float max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (float Quotient, float Remainder) INumber<float>.DivRem(float left, float right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float INumber<float>.Max(float x, float y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float INumber<float>.Min(float x, float y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float INumber<float>.Sign(float value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<float>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out float result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float ISpanParseable<float>.Parse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<float>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out float result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float ISubtractionOperators<float, float, float>.operator -(float left, float right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static float ISubtractionOperators<float, float, float>.op_SubtractionChecked(float left, float right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IUnaryNegationOperators<float, float>.operator -(float value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static float IUnaryNegationOperators<float, float>.op_UnaryNegationChecked(float value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static float IUnaryPlusOperators<float, float>.operator +(float value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static float IUnaryPlusOperators<float, float>.op_UnaryPlusChecked(float value) { throw null; }
     }
     public readonly ref partial struct Span<T>
     {
@@ -3812,7 +5659,7 @@ namespace System
     {
         public ThreadStaticAttribute() { }
     }
-    public readonly struct TimeOnly : System.IComparable, System.IComparable<System.TimeOnly>, System.IEquatable<System.TimeOnly>, System.ISpanFormattable
+    public readonly partial struct TimeOnly : System.IComparable, System.IComparable<System.TimeOnly>, System.IComparisonOperators<System.TimeOnly, System.TimeOnly>, System.IEqualityOperators<System.TimeOnly, System.TimeOnly>, System.IEquatable<System.TimeOnly>, System.IFormattable, System.IMinMaxValue<System.TimeOnly>, System.IParseable<System.TimeOnly>, System.ISpanFormattable, System.ISpanParseable<System.TimeOnly>, System.ISubtractionOperators<System.TimeOnly, System.TimeOnly, System.TimeSpan>
     {
         public static System.TimeOnly MinValue { get { throw null; } }
         public static System.TimeOnly MaxValue { get { throw null; } }
@@ -3876,6 +5723,21 @@ namespace System
         public string ToString(System.IFormatProvider? provider) { throw null; }
         public string ToString(string? format, System.IFormatProvider? provider) { throw null; }
         public bool TryFormat(System.Span<char> destination, out int charsWritten, System.ReadOnlySpan<char> format = default(System.ReadOnlySpan<char>), System.IFormatProvider? provider = null) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.TimeOnly IParseable<System.TimeOnly>.Parse(string s, System.IFormatProvider? provider) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<System.TimeOnly>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out System.TimeOnly result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.TimeOnly ISpanParseable<System.TimeOnly>.Parse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<System.TimeOnly>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out System.TimeOnly result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.TimeSpan ISubtractionOperators<System.TimeOnly, System.TimeOnly, System.TimeSpan>.op_SubtractionChecked(System.TimeOnly left, System.TimeOnly right) { throw null; }
     }
     public partial class TimeoutException : System.SystemException
     {
@@ -3884,7 +5746,7 @@ namespace System
         public TimeoutException(string? message) { }
         public TimeoutException(string? message, System.Exception? innerException) { }
     }
-    public readonly partial struct TimeSpan : System.IComparable, System.IComparable<System.TimeSpan>, System.IEquatable<System.TimeSpan>, System.ISpanFormattable
+    public readonly partial struct TimeSpan : System.IAdditionOperators<System.TimeSpan, System.TimeSpan, System.TimeSpan>, System.IAdditiveIdentity<System.TimeSpan, System.TimeSpan>, System.IComparable, System.IComparable<System.TimeSpan>, System.IComparisonOperators<System.TimeSpan, System.TimeSpan>, System.IDivisionOperators<System.TimeSpan, double, System.TimeSpan>, System.IDivisionOperators<System.TimeSpan, System.TimeSpan, double>, System.IEqualityOperators<System.TimeSpan, System.TimeSpan>, System.IEquatable<System.TimeSpan>, System.IFormattable, System.IMinMaxValue<System.TimeSpan>, System.IMultiplicativeIdentity<System.TimeSpan, double>, System.IMultiplyOperators<System.TimeSpan, double, System.TimeSpan>, System.ISpanFormattable, System.ISubtractionOperators<System.TimeSpan, System.TimeSpan, System.TimeSpan>, System.IUnaryNegationOperators<System.TimeSpan, System.TimeSpan>, System.IUnaryPlusOperators<System.TimeSpan, System.TimeSpan>
     {
         private readonly int _dummyPrimitive;
         public static readonly System.TimeSpan MaxValue;
@@ -3969,6 +5831,37 @@ namespace System
         public static bool TryParseExact([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? input, [System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? format, System.IFormatProvider? formatProvider, out System.TimeSpan result) { throw null; }
         public static bool TryParseExact([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? input, [System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string?[]? formats, System.IFormatProvider? formatProvider, System.Globalization.TimeSpanStyles styles, out System.TimeSpan result) { throw null; }
         public static bool TryParseExact([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? input, [System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string?[]? formats, System.IFormatProvider? formatProvider, out System.TimeSpan result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.TimeSpan IAdditiveIdentity<System.TimeSpan, System.TimeSpan>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.TimeSpan IMinMaxValue<System.TimeSpan>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static System.TimeSpan IMinMaxValue<System.TimeSpan>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static double IMultiplicativeIdentity<System.TimeSpan, double>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.TimeSpan IAdditionOperators<System.TimeSpan, System.TimeSpan, System.TimeSpan>.op_AdditionChecked(System.TimeSpan left, System.TimeSpan right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.TimeSpan IDivisionOperators<System.TimeSpan, double, System.TimeSpan>.op_DivisionChecked(System.TimeSpan left, double right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static double IDivisionOperators<System.TimeSpan, System.TimeSpan, double>.op_DivisionChecked(System.TimeSpan left, System.TimeSpan right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.TimeSpan IMultiplyOperators<System.TimeSpan, double, System.TimeSpan>.op_MultiplyChecked(System.TimeSpan left, double right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.TimeSpan ISubtractionOperators<System.TimeSpan, System.TimeSpan, System.TimeSpan>.op_SubtractionChecked(System.TimeSpan left, System.TimeSpan right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.TimeSpan IUnaryNegationOperators<System.TimeSpan, System.TimeSpan>.op_UnaryNegationChecked(System.TimeSpan value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static System.TimeSpan IUnaryPlusOperators<System.TimeSpan, System.TimeSpan>.op_UnaryPlusChecked(System.TimeSpan value) { throw null; }
     }
     [System.ObsoleteAttribute("System.TimeZone has been deprecated.  Please investigate the use of System.TimeZoneInfo instead.")]
     public abstract partial class TimeZone
@@ -4650,7 +6543,7 @@ namespace System
         public TypeUnloadedException(string? message, System.Exception? innerException) { }
     }
     [System.CLSCompliantAttribute(false)]
-    public readonly partial struct UInt16 : System.IComparable, System.IComparable<ushort>, System.IConvertible, System.IEquatable<ushort>, System.ISpanFormattable
+    public readonly partial struct UInt16 : System.IAdditionOperators<ushort, ushort, ushort>, System.IAdditiveIdentity<ushort, ushort>, System.IBinaryInteger<ushort>, System.IBinaryNumber<ushort>, System.IBitwiseOperators<ushort, ushort, ushort>, System.IComparable, System.IComparable<ushort>, System.IComparisonOperators<ushort, ushort>, System.IConvertible, System.IDecrementOperators<ushort>, System.IDivisionOperators<ushort, ushort, ushort>, System.IEqualityOperators<ushort, ushort>, System.IEquatable<ushort>, System.IFormattable, System.IIncrementOperators<ushort>, System.IMinMaxValue<ushort>, System.IModulusOperators<ushort, ushort, ushort>, System.IMultiplicativeIdentity<ushort, ushort>, System.IMultiplyOperators<ushort, ushort, ushort>, System.INumber<ushort>, System.IParseable<ushort>, System.IShiftOperators<ushort, ushort, ushort>, System.ISpanFormattable, System.ISpanParseable<ushort>, System.ISubtractionOperators<ushort, ushort, ushort>, System.IUnaryNegationOperators<ushort, ushort>, System.IUnaryPlusOperators<ushort, ushort>, System.IUnsignedNumber<ushort>
     {
         private readonly ushort _dummyPrimitive;
         public const ushort MaxValue = (ushort)65535;
@@ -4690,9 +6583,137 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.UInt16 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.UInt16 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.UInt16 result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IAdditiveIdentity<ushort, ushort>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IMinMaxValue<ushort>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IMinMaxValue<ushort>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IMultiplicativeIdentity<ushort, ushort>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort INumber<ushort>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort INumber<ushort>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IAdditionOperators<ushort, ushort, ushort>.operator +(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IAdditionOperators<ushort, ushort, ushort>.op_AdditionChecked(ushort left, ushort right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IBinaryInteger<ushort>.LeadingZeroCount(ushort value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IBinaryInteger<ushort>.PopCount(ushort value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IBinaryInteger<ushort>.RotateLeft(ushort value, ushort rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IBinaryInteger<ushort>.RotateRight(ushort value, ushort rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IBinaryInteger<ushort>.TrailingZeroCount(ushort value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<ushort>.IsPow2(ushort value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IBinaryNumber<ushort>.Log2(ushort value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IBitwiseOperators<ushort, ushort, ushort>.operator &(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IBitwiseOperators<ushort, ushort, ushort>.operator |(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IBitwiseOperators<ushort, ushort, ushort>.operator ^(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IBitwiseOperators<ushort, ushort, ushort>.operator ~(ushort value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<ushort, ushort>.operator <(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<ushort, ushort>.operator <=(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<ushort, ushort>.operator >(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<ushort, ushort>.operator >=(ushort left, ushort right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IDecrementOperators<ushort>.operator --(ushort value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IDecrementOperators<ushort>.op_DecrementChecked(ushort value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IDivisionOperators<ushort, ushort, ushort>.operator /(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IDivisionOperators<ushort, ushort, ushort>.op_DivisionChecked(ushort left, ushort right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<ushort, ushort>.operator ==(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<ushort, ushort>.operator !=(ushort left, ushort right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IIncrementOperators<ushort>.operator ++(ushort value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IIncrementOperators<ushort>.op_IncrementChecked(ushort value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IModulusOperators<ushort, ushort, ushort>.operator %(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IModulusOperators<ushort, ushort, ushort>.op_ModulusChecked(ushort left, ushort right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IMultiplyOperators<ushort, ushort, ushort>.operator *(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IMultiplyOperators<ushort, ushort, ushort>.op_MultiplyChecked(ushort left, ushort right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort INumber<ushort>.Abs(ushort value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort INumber<ushort>.Clamp(ushort value, ushort min, ushort max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (ushort Quotient, ushort Remainder) INumber<ushort>.DivRem(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort INumber<ushort>.Max(ushort x, ushort y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort INumber<ushort>.Min(ushort x, ushort y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort INumber<ushort>.Sign(ushort value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<ushort>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out ushort result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IShiftOperators<ushort, ushort, ushort>.op_LeftShift(ushort value, ushort shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IShiftOperators<ushort, ushort, ushort>.op_RightShift(ushort value, ushort shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IShiftOperators<ushort, ushort, ushort>.op_UnsignedRightShift(ushort value, ushort shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort ISpanParseable<ushort>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<ushort>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out ushort result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort ISubtractionOperators<ushort, ushort, ushort>.operator -(ushort left, ushort right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort ISubtractionOperators<ushort, ushort, ushort>.op_SubtractionChecked(ushort left, ushort right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IUnaryNegationOperators<ushort, ushort>.operator -(ushort value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IUnaryNegationOperators<ushort, ushort>.op_UnaryNegationChecked(ushort value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ushort IUnaryPlusOperators<ushort, ushort>.operator +(ushort value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ushort IUnaryPlusOperators<ushort, ushort>.op_UnaryPlusChecked(ushort value) { throw null; }
     }
     [System.CLSCompliantAttribute(false)]
-    public readonly partial struct UInt32 : System.IComparable, System.IComparable<uint>, System.IConvertible, System.IEquatable<uint>, System.ISpanFormattable
+    public readonly partial struct UInt32 : System.IAdditionOperators<uint, uint, uint>, System.IAdditiveIdentity<uint, uint>, System.IBinaryInteger<uint>, System.IBinaryNumber<uint>, System.IBitwiseOperators<uint, uint, uint>, System.IComparable, System.IComparable<uint>, System.IComparisonOperators<uint, uint>, System.IConvertible, System.IDecrementOperators<uint>, System.IDivisionOperators<uint, uint, uint>, System.IEqualityOperators<uint, uint>, System.IEquatable<uint>, System.IFormattable, System.IIncrementOperators<uint>, System.IMinMaxValue<uint>, System.IModulusOperators<uint, uint, uint>, System.IMultiplicativeIdentity<uint, uint>, System.IMultiplyOperators<uint, uint, uint>, System.INumber<uint>, System.IParseable<uint>, System.IShiftOperators<uint, uint, uint>, System.ISpanFormattable, System.ISpanParseable<uint>, System.ISubtractionOperators<uint, uint, uint>, System.IUnaryNegationOperators<uint, uint>, System.IUnaryPlusOperators<uint, uint>, System.IUnsignedNumber<uint>
     {
         private readonly uint _dummyPrimitive;
         public const uint MaxValue = (uint)4294967295;
@@ -4732,9 +6753,137 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.UInt32 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.UInt32 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.UInt32 result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IAdditiveIdentity<uint, uint>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IMinMaxValue<uint>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IMinMaxValue<uint>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IMultiplicativeIdentity<uint, uint>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint INumber<uint>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint INumber<uint>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IAdditionOperators<uint, uint, uint>.operator +(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IAdditionOperators<uint, uint, uint>.op_AdditionChecked(uint left, uint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IBinaryInteger<uint>.LeadingZeroCount(uint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IBinaryInteger<uint>.PopCount(uint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IBinaryInteger<uint>.RotateLeft(uint value, uint rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IBinaryInteger<uint>.RotateRight(uint value, uint rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IBinaryInteger<uint>.TrailingZeroCount(uint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<uint>.IsPow2(uint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IBinaryNumber<uint>.Log2(uint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IBitwiseOperators<uint, uint, uint>.operator &(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IBitwiseOperators<uint, uint, uint>.operator |(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IBitwiseOperators<uint, uint, uint>.operator ^(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IBitwiseOperators<uint, uint, uint>.operator ~(uint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<uint, uint>.operator <(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<uint, uint>.operator <=(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<uint, uint>.operator >(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<uint, uint>.operator >=(uint left, uint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IDecrementOperators<uint>.operator --(uint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IDecrementOperators<uint>.op_DecrementChecked(uint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IDivisionOperators<uint, uint, uint>.operator /(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IDivisionOperators<uint, uint, uint>.op_DivisionChecked(uint left, uint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<uint, uint>.operator ==(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<uint, uint>.operator !=(uint left, uint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IIncrementOperators<uint>.operator ++(uint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IIncrementOperators<uint>.op_IncrementChecked(uint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IModulusOperators<uint, uint, uint>.operator %(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IModulusOperators<uint, uint, uint>.op_ModulusChecked(uint left, uint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IMultiplyOperators<uint, uint, uint>.operator *(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IMultiplyOperators<uint, uint, uint>.op_MultiplyChecked(uint left, uint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint INumber<uint>.Abs(uint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint INumber<uint>.Clamp(uint value, uint min, uint max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (uint Quotient, uint Remainder) INumber<uint>.DivRem(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint INumber<uint>.Max(uint x, uint y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint INumber<uint>.Min(uint x, uint y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint INumber<uint>.Sign(uint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<uint>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out uint result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IShiftOperators<uint, uint, uint>.op_LeftShift(uint value, uint shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IShiftOperators<uint, uint, uint>.op_RightShift(uint value, uint shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IShiftOperators<uint, uint, uint>.op_UnsignedRightShift(uint value, uint shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint ISpanParseable<uint>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<uint>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out uint result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint ISubtractionOperators<uint, uint, uint>.operator -(uint left, uint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint ISubtractionOperators<uint, uint, uint>.op_SubtractionChecked(uint left, uint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IUnaryNegationOperators<uint, uint>.operator -(uint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IUnaryNegationOperators<uint, uint>.op_UnaryNegationChecked(uint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static uint IUnaryPlusOperators<uint, uint>.operator +(uint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static uint IUnaryPlusOperators<uint, uint>.op_UnaryPlusChecked(uint value) { throw null; }
     }
     [System.CLSCompliantAttribute(false)]
-    public readonly partial struct UInt64 : System.IComparable, System.IComparable<ulong>, System.IConvertible, System.IEquatable<ulong>, System.ISpanFormattable
+    public readonly partial struct UInt64 : System.IAdditionOperators<ulong, ulong, ulong>, System.IAdditiveIdentity<ulong, ulong>, System.IBinaryInteger<ulong>, System.IBinaryNumber<ulong>, System.IBitwiseOperators<ulong, ulong, ulong>, System.IComparable, System.IComparable<ulong>, System.IComparisonOperators<ulong, ulong>, System.IConvertible, System.IDecrementOperators<ulong>, System.IDivisionOperators<ulong, ulong, ulong>, System.IEqualityOperators<ulong, ulong>, System.IEquatable<ulong>, System.IFormattable, System.IIncrementOperators<ulong>, System.IMinMaxValue<ulong>, System.IModulusOperators<ulong, ulong, ulong>, System.IMultiplicativeIdentity<ulong, ulong>, System.IMultiplyOperators<ulong, ulong, ulong>, System.INumber<ulong>, System.IParseable<ulong>, System.IShiftOperators<ulong, ulong, ulong>, System.ISpanFormattable, System.ISpanParseable<ulong>, System.ISubtractionOperators<ulong, ulong, ulong>, System.IUnaryNegationOperators<ulong, ulong>, System.IUnaryPlusOperators<ulong, ulong>, System.IUnsignedNumber<ulong>
     {
         private readonly ulong _dummyPrimitive;
         public const ulong MaxValue = (ulong)18446744073709551615;
@@ -4774,9 +6923,137 @@ namespace System
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.UInt64 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.UInt64 result) { throw null; }
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.UInt64 result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IAdditiveIdentity<ulong, ulong>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IMinMaxValue<ulong>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IMinMaxValue<ulong>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IMultiplicativeIdentity<ulong, ulong>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong INumber<ulong>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong INumber<ulong>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IAdditionOperators<ulong, ulong, ulong>.operator +(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IAdditionOperators<ulong, ulong, ulong>.op_AdditionChecked(ulong left, ulong right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IBinaryInteger<ulong>.LeadingZeroCount(ulong value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IBinaryInteger<ulong>.PopCount(ulong value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IBinaryInteger<ulong>.RotateLeft(ulong value, ulong rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IBinaryInteger<ulong>.RotateRight(ulong value, ulong rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IBinaryInteger<ulong>.TrailingZeroCount(ulong value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<ulong>.IsPow2(ulong value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IBinaryNumber<ulong>.Log2(ulong value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IBitwiseOperators<ulong, ulong, ulong>.operator &(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IBitwiseOperators<ulong, ulong, ulong>.operator |(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IBitwiseOperators<ulong, ulong, ulong>.operator ^(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IBitwiseOperators<ulong, ulong, ulong>.operator ~(ulong value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<ulong, ulong>.operator <(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<ulong, ulong>.operator <=(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<ulong, ulong>.operator >(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<ulong, ulong>.operator >=(ulong left, ulong right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IDecrementOperators<ulong>.operator --(ulong value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IDecrementOperators<ulong>.op_DecrementChecked(ulong value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IDivisionOperators<ulong, ulong, ulong>.operator /(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IDivisionOperators<ulong, ulong, ulong>.op_DivisionChecked(ulong left, ulong right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<ulong, ulong>.operator ==(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IEqualityOperators<ulong, ulong>.operator !=(ulong left, ulong right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IIncrementOperators<ulong>.operator ++(ulong value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IIncrementOperators<ulong>.op_IncrementChecked(ulong value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IModulusOperators<ulong, ulong, ulong>.operator %(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IModulusOperators<ulong, ulong, ulong>.op_ModulusChecked(ulong left, ulong right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IMultiplyOperators<ulong, ulong, ulong>.operator *(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IMultiplyOperators<ulong, ulong, ulong>.op_MultiplyChecked(ulong left, ulong right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong INumber<ulong>.Abs(ulong value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong INumber<ulong>.Clamp(ulong value, ulong min, ulong max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (ulong Quotient, ulong Remainder) INumber<ulong>.DivRem(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong INumber<ulong>.Max(ulong x, ulong y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong INumber<ulong>.Min(ulong x, ulong y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong INumber<ulong>.Sign(ulong value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<ulong>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out ulong result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IShiftOperators<ulong, ulong, ulong>.op_LeftShift(ulong value, ulong shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IShiftOperators<ulong, ulong, ulong>.op_RightShift(ulong value, ulong shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IShiftOperators<ulong, ulong, ulong>.op_UnsignedRightShift(ulong value, ulong shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong ISpanParseable<ulong>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<ulong>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out ulong result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong ISubtractionOperators<ulong, ulong, ulong>.operator -(ulong left, ulong right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong ISubtractionOperators<ulong, ulong, ulong>.op_SubtractionChecked(ulong left, ulong right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IUnaryNegationOperators<ulong, ulong>.operator -(ulong value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IUnaryNegationOperators<ulong, ulong>.op_UnaryNegationChecked(ulong value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static ulong IUnaryPlusOperators<ulong, ulong>.operator +(ulong value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static ulong IUnaryPlusOperators<ulong, ulong>.op_UnaryPlusChecked(ulong value) { throw null; }
     }
     [System.CLSCompliantAttribute(false)]
-    public readonly partial struct UIntPtr : System.IComparable, System.IComparable<System.UIntPtr>, System.IEquatable<System.UIntPtr>, System.ISpanFormattable, System.Runtime.Serialization.ISerializable
+    public readonly partial struct UIntPtr : System.IAdditionOperators<nuint, nuint, nuint>, System.IAdditiveIdentity<nuint, nuint>, System.IBinaryInteger<nuint>, System.IBinaryNumber<nuint>, System.IBitwiseOperators<nuint, nuint, nuint>, System.IComparable, System.IComparable<nuint>, System.IComparisonOperators<nuint, nuint>, System.IDecrementOperators<nuint>, System.IDivisionOperators<nuint, nuint, nuint>, System.IEqualityOperators<nuint, nuint>, System.IEquatable<nuint>, System.IFormattable, System.IIncrementOperators<nuint>, System.IMinMaxValue<nuint>, System.IModulusOperators<nuint, nuint, nuint>, System.IMultiplicativeIdentity<nuint, nuint>, System.IMultiplyOperators<nuint, nuint, nuint>, System.INumber<nuint>, System.IParseable<nuint>, System.IShiftOperators<nuint, nuint, nuint>, System.ISpanFormattable, System.ISpanParseable<nuint>, System.ISubtractionOperators<nuint, nuint, nuint>, System.IUnaryNegationOperators<nuint, nuint>, System.IUnaryPlusOperators<nuint, nuint>, System.IUnsignedNumber<nuint>, System.Runtime.Serialization.ISerializable
     {
         private readonly int _dummyPrimitive;
         public static readonly System.UIntPtr Zero;
@@ -4821,6 +7098,129 @@ namespace System
         public static bool TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, out System.UIntPtr result) { throw null; }
         public static bool TryParse(System.ReadOnlySpan<char> s, out System.UIntPtr result) { throw null; }
         public static bool TryParse(System.ReadOnlySpan<char> s, System.Globalization.NumberStyles style, System.IFormatProvider? provider, out System.UIntPtr result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IAdditiveIdentity<nuint, nuint>.AdditiveIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IMinMaxValue<nuint>.MinValue { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IMinMaxValue<nuint>.MaxValue { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IMultiplicativeIdentity<nuint, nuint>.MultiplicativeIdentity { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint INumber<nuint>.One { get { throw null; } }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint INumber<nuint>.Zero { get { throw null; } }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IAdditionOperators<nuint, nuint, nuint>.operator +(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IAdditionOperators<nuint, nuint, nuint>.op_AdditionChecked(nuint left, nuint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IBinaryInteger<nuint>.LeadingZeroCount(nuint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IBinaryInteger<nuint>.PopCount(nuint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IBinaryInteger<nuint>.RotateLeft(nuint value, nuint rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IBinaryInteger<nuint>.RotateRight(nuint value, nuint rotateAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IBinaryInteger<nuint>.TrailingZeroCount(nuint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IBinaryNumber<nuint>.IsPow2(nuint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IBinaryNumber<nuint>.Log2(nuint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IBitwiseOperators<nuint, nuint, nuint>.operator &(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IBitwiseOperators<nuint, nuint, nuint>.operator |(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IBitwiseOperators<nuint, nuint, nuint>.operator ^(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IBitwiseOperators<nuint, nuint, nuint>.operator ~(nuint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<nuint, nuint>.operator <(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<nuint, nuint>.operator <=(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<nuint, nuint>.operator >(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IComparisonOperators<nuint, nuint>.operator >=(nuint left, nuint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IDecrementOperators<nuint>.operator --(nuint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IDecrementOperators<nuint>.op_DecrementChecked(nuint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IDivisionOperators<nuint, nuint, nuint>.operator /(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IDivisionOperators<nuint, nuint, nuint>.op_DivisionChecked(nuint left, nuint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IIncrementOperators<nuint>.operator ++(nuint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IIncrementOperators<nuint>.op_IncrementChecked(nuint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IModulusOperators<nuint, nuint, nuint>.operator %(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IModulusOperators<nuint, nuint, nuint>.op_ModulusChecked(nuint left, nuint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IMultiplyOperators<nuint, nuint, nuint>.operator *(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IMultiplyOperators<nuint, nuint, nuint>.op_MultiplyChecked(nuint left, nuint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint INumber<nuint>.Abs(nuint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint INumber<nuint>.Clamp(nuint value, nuint min, nuint max) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static (nuint Quotient, nuint Remainder) INumber<nuint>.DivRem(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint INumber<nuint>.Max(nuint x, nuint y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint INumber<nuint>.Min(nuint x, nuint y) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint INumber<nuint>.Sign(nuint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool IParseable<nuint>.TryParse([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, System.IFormatProvider? provider, out nuint result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IShiftOperators<nuint, nuint, nuint>.op_LeftShift(nuint value, nuint shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IShiftOperators<nuint, nuint, nuint>.op_RightShift(nuint value, nuint shiftAmount) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IShiftOperators<nuint, nuint, nuint>.op_UnsignedRightShift(nuint value, nuint shiftAmount) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint ISpanParseable<nuint>.Parse(System.ReadOnlySpan<char> s, IFormatProvider? provider) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static bool ISpanParseable<nuint>.TryParse(System.ReadOnlySpan<char> s, System.IFormatProvider? provider, out nuint result) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint ISubtractionOperators<nuint, nuint, nuint>.operator -(nuint left, nuint right) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint ISubtractionOperators<nuint, nuint, nuint>.op_SubtractionChecked(nuint left, nuint right) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IUnaryNegationOperators<nuint, nuint>.operator -(nuint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IUnaryNegationOperators<nuint, nuint>.op_UnaryNegationChecked(nuint value) { throw null; }
+
+        [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+        static nuint IUnaryPlusOperators<nuint, nuint>.operator +(nuint value) { throw null; }
+        [System.Runtime.Versioning.RequiresPreviewFeatures, System.Runtime.CompilerServices.SpecialNameAttribute]
+        static nuint IUnaryPlusOperators<nuint, nuint>.op_UnaryPlusChecked(nuint value) { throw null; }
     }
     public partial class UnauthorizedAccessException : System.SystemException
     {
