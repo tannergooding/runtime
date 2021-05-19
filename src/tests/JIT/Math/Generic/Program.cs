@@ -22,8 +22,9 @@ namespace System.GenericMath
             {
                 action();
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return -1;
             }
 
