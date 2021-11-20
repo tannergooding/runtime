@@ -494,7 +494,7 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
             double   constValue = tree->AsDblCon()->gtDconVal;
 
             // Make sure we use "xorps reg, reg" only for +ve zero constant (0.0) and not for -ve zero (-0.0)
-            if (*(__int64*)&constValue == 0)
+            if (tree->IsFPZero())
             {
                 // A faster/smaller way to generate 0
                 emit->emitIns_R_R(INS_xorps, size, targetReg, targetReg);

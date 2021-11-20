@@ -566,6 +566,71 @@ void Lowering::LowerRotate(GenTree* tree)
     ContainCheckShiftRotate(tree->AsOp());
 }
 
+//----------------------------------------------------------------------------------------------
+// Lowering::LowerFltOrDblConst
+//    Lowers a float or double constant
+//
+//  Arguments:
+//     node - The float or double constant to lower
+//
+GenTree* Lowering::LowerFltOrDblConst(GenTreeDblCon* node)
+{
+#if defined(TARGET_ARM64)
+    if (node->IsFPZero())
+    {
+        // +0.0 is better handled via the zero register
+        return node->gtNext;
+    }
+
+    if (emitter::emitIns_valid_imm_for_fmov(node->gtDconVal))
+    {
+        // Certain floating-point constants are better handled via fmov
+        return node->gtNext;
+    }
+
+    LIR::Use use;
+
+    if (BlockRange().TryGetUse(node, &use))
+    {
+        GenTree* user = use.User();
+
+        if (user->OperIs(GT_HWINTRINSIC))
+        {
+            NamedIntrinsic intrinId = user->AsHWIntrinsic()->gtHWIntrinsicId;
+
+            if ((intrinId == NI_Vector64_Create) || (intrinId == NI_Vector128_Create))
+            {
+                // It's more efficient for NI_Vector*_Create to get the GT_DBL_CNS as we may build a vector constant
+                return node->gtNext;
+            }
+        }
+        else
+        {
+            // Unlike integer constants, many floating-point constants cannot be consumed directly
+            // and instead are typically loaded from memory. As such, we'll emit a constant and
+            // replace the node with an GT_IND to said constant so that it can be properly contained
+
+            CORINFO_FIELD_HANDLE hnd  = comp->GetEmitter()->emitFltOrDblConst(node->gtDconVal, emitTypeSize(node));
+            GenTree* clsVarAddr = new (comp, GT_CLS_VAR_ADDR) GenTreeClsVar(GT_CLS_VAR_ADDR, TYP_I_IMPL, hnd, nullptr);
+            BlockRange().InsertBefore(node, clsVarAddr);
+
+            node->ChangeOper(GT_IND);
+            node->AsIndir()->gtOp1 = clsVarAddr;
+
+            LowerNode(node);
+        }
+    }
+    else
+    {
+        // We explicitly don't lower constants that don't have a user as it may cause unnecessary
+        // constants to be emitted. We should investigate why these constants are preserved and not
+        // elided as "dead code".
+    }
+#endif // TARGET_ARM64
+
+    return node->gtNext;
+}
+
 #ifdef FEATURE_SIMD
 //----------------------------------------------------------------------------------------------
 // Lowering::LowerSIMD: Perform containment analysis for a SIMD intrinsic node.

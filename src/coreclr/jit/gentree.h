@@ -529,7 +529,7 @@ enum GenTreeFlags : unsigned int
     GTF_RELOP_JMP_USED          = 0x40000000, // GT_<relop> -- result of compare used for jump or ?:
     GTF_RELOP_ZTT               = 0x08000000, // GT_<relop> -- Loop test cloned for converting while-loops into do-while
                                               //               with explicit "loop test" in the header block.
-    GTF_RELOP_SJUMP_OPT         = 0x04000000, // GT_<relop> -- Swap signed jl/jge with js/jns during emitter, reuses flags 
+    GTF_RELOP_SJUMP_OPT         = 0x04000000, // GT_<relop> -- Swap signed jl/jge with js/jns during emitter, reuses flags
                                               //               from previous instruction.
 
     GTF_JCMP_EQ                 = 0x80000000, // GTF_JCMP_EQ  -- Branch on equal rather than not equal
@@ -1757,6 +1757,7 @@ public:
 #endif // DEBUG
 
     inline bool IsFPZero() const;
+    inline bool IsFPNegZero() const;
     inline bool IsIntegralConst(ssize_t constVal) const;
     inline bool IsIntegralConstVector(ssize_t constVal) const;
     inline bool IsSIMDZero() const;
@@ -7337,16 +7338,33 @@ inline bool GenTree::OperIsCopyBlkOp()
 }
 
 //------------------------------------------------------------------------
-// IsFPZero: Checks whether this is a floating point constant with value 0.0
+// IsFPZero: Checks whether this is a floating point constant with value +0.0
 //
 // Return Value:
-//    Returns true iff the tree is an GT_CNS_DBL, with value of 0.0.
+//    Returns true iff the tree is an GT_CNS_DBL, with value of +0.0.
 
 inline bool GenTree::IsFPZero() const
 {
-    if ((gtOper == GT_CNS_DBL) && (AsDblCon()->gtDconVal == 0.0))
+    if (gtOper == GT_CNS_DBL)
     {
-        return true;
+        double constValue = AsDblCon()->gtDconVal;
+        return *(uint64_t*)&constValue == 0;
+    }
+    return false;
+}
+
+//------------------------------------------------------------------------
+// IsFPNegZero: Checks whether this is a floating point constant with value -0.0
+//
+// Return Value:
+//    Returns true iff the tree is an GT_CNS_DBL, with value of -0.0.
+
+inline bool GenTree::IsFPNegZero() const
+{
+    if (gtOper == GT_CNS_DBL)
+    {
+        double constValue = AsDblCon()->gtDconVal;
+        return *(uint64_t*)&constValue == (uint64_t)(0x8000000000000000);
     }
     return false;
 }
@@ -8143,7 +8161,7 @@ inline bool GenTree::IsCnsNonZeroFltOrDbl()
     if (OperGet() == GT_CNS_DBL)
     {
         double constValue = AsDblCon()->gtDconVal;
-        return *(__int64*)&constValue != 0;
+        return *(uint64_t*)&constValue != 0;
     }
 
     return false;

@@ -1048,6 +1048,11 @@ bool Compiler::fgAddrCouldBeNull(GenTree* addr)
             }
         }
     }
+    else if (addr->OperIs(GT_CLS_VAR_ADDR))
+    {
+        // CLS_VAR_ADDR cannot be null for JitDataOffs they are part of the body for the current method
+        return !eeIsJitDataOffs(addr->AsClsVar()->gtClsVarHnd);
+    }
     return true; // default result: addr could be null
 }
 

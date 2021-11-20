@@ -367,6 +367,9 @@ GenTree* Lowering::LowerNode(GenTree* node)
         }
         break;
 
+        case GT_CNS_DBL:
+            return LowerFltOrDblConst(node->AsDblCon());
+
         default:
             break;
     }

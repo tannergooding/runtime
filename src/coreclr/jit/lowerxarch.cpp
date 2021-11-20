@@ -734,6 +734,78 @@ void Lowering::LowerCast(GenTree* tree)
     ContainCheckCast(tree->AsCast());
 }
 
+//----------------------------------------------------------------------------------------------
+// Lowering::LowerFltOrDblConst
+//    Lowers a float or double constant
+//
+//  Arguments:
+//     node - The float or double constant to lower
+//
+GenTree* Lowering::LowerFltOrDblConst(GenTreeDblCon* node)
+{
+    if (node->IsFPZero())
+    {
+        // +0.0 is better handled as xorps tgtReg, tgtReg
+        return node->gtNext;
+    }
+
+    LIR::Use use;
+
+    if (BlockRange().TryGetUse(node, &use))
+    {
+        GenTree* user = use.User();
+
+        if (user->OperIs(GT_STOREIND))
+        {
+            // It's more efficient for GT_STOREIND to get the GT_DBL_CNS as we can move the raw bits directly
+            return node->gtNext;
+        }
+        else if (user->OperIs(GT_SIMD))
+        {
+            SIMDIntrinsicID intrinId = user->AsSIMD()->gtSIMDIntrinsicID;
+
+            if ((intrinId == SIMDIntrinsicInit) || (intrinId == SIMDIntrinsicInitN))
+            {
+                // It's more efficient for SIMDIntrinsicInit to get the GT_DBL_CNS as we may build a vector constant
+                return node->gtNext;
+            }
+        }
+        else if (user->OperIs(GT_HWINTRINSIC))
+        {
+            NamedIntrinsic intrinId = user->AsHWIntrinsic()->gtHWIntrinsicId;
+
+            if ((intrinId == NI_Vector128_Create) || (intrinId == NI_Vector256_Create))
+            {
+                // It's more efficient for NI_Vector*_Create to get the GT_DBL_CNS as we may build a vector constant
+                return node->gtNext;
+            }
+        }
+        else
+        {
+            // Unlike integer constants, many floating-point constants cannot be consumed directly
+            // and instead are typically loaded from memory. As such, we'll emit a constant and
+            // replace the node with an GT_IND to said constant so that it can be properly contained
+
+            CORINFO_FIELD_HANDLE hnd = comp->GetEmitter()->emitFltOrDblConst(node->gtDconVal, emitTypeSize(node));
+            GenTree* clsVarAddr = new (comp, GT_CLS_VAR_ADDR) GenTreeClsVar(GT_CLS_VAR_ADDR, TYP_I_IMPL, hnd, nullptr);
+            BlockRange().InsertBefore(node, clsVarAddr);
+
+            node->ChangeOper(GT_IND);
+            node->AsIndir()->gtOp1 = clsVarAddr;
+
+            LowerNode(node);
+        }
+    }
+    else
+    {
+        // We explicitly don't lower constants that don't have a user as it may cause unnecessary
+        // constants to be emitted. We should investigate why these constants are preserved and not
+        // elided as "dead code".
+    }
+
+    return node->gtNext;
+}
+
 #ifdef FEATURE_SIMD
 //----------------------------------------------------------------------------------------------
 // Lowering::LowerSIMD: Perform containment analysis for a SIMD intrinsic node.
@@ -4947,7 +5019,7 @@ void Lowering::ContainCheckCast(GenTreeCast* node)
         // U8 -> R8 conversion requires that the operand be in a register.
         if (srcType != TYP_ULONG)
         {
-            if (IsContainableMemoryOp(castOp) || castOp->IsCnsNonZeroFltOrDbl())
+            if (IsContainableMemoryOp(castOp))
             {
                 MakeSrcContained(node, castOp);
             }
@@ -5008,11 +5080,7 @@ void Lowering::ContainCheckCompare(GenTreeOp* cmp)
 
         assert(otherOp != nullptr);
         bool isSafeToContainOtherOp = true;
-        if (otherOp->IsCnsNonZeroFltOrDbl())
-        {
-            MakeSrcContained(cmp, otherOp);
-        }
-        else if (IsContainableMemoryOp(otherOp))
+        if (IsContainableMemoryOp(otherOp))
         {
             isSafeToContainOtherOp = IsSafeToContainMem(cmp, otherOp);
             if (isSafeToContainOtherOp)
@@ -5373,7 +5441,7 @@ void Lowering::ContainCheckIntrinsic(GenTreeOp* node)
     {
         GenTree* op1 = node->gtGetOp1();
 
-        if (IsContainableMemoryOp(op1) || op1->IsCnsNonZeroFltOrDbl())
+        if (IsContainableMemoryOp(op1))
         {
             MakeSrcContained(node, op1);
         }
@@ -6511,11 +6579,7 @@ void Lowering::ContainCheckFloatBinary(GenTreeOp* node)
     bool isSafeToContainOp1 = true;
     bool isSafeToContainOp2 = true;
 
-    if (op2->IsCnsNonZeroFltOrDbl())
-    {
-        MakeSrcContained(node, op2);
-    }
-    else if (IsContainableMemoryOp(op2))
+    if (IsContainableMemoryOp(op2))
     {
         isSafeToContainOp2 = IsSafeToContainMem(node, op2);
         if (isSafeToContainOp2)
@@ -6535,11 +6599,7 @@ void Lowering::ContainCheckFloatBinary(GenTreeOp* node)
         //      movss op1Reg, [memOp]; addss/sd targetReg, Op2Reg  (if op1Reg == targetReg) OR
         //      movss op1Reg, [memOp]; movaps targetReg, op1Reg, addss/sd targetReg, Op2Reg
 
-        if (op1->IsCnsNonZeroFltOrDbl())
-        {
-            MakeSrcContained(node, op1);
-        }
-        else if (IsContainableMemoryOp(op1))
+        if (IsContainableMemoryOp(op1))
         {
             isSafeToContainOp1 = IsSafeToContainMem(node, op1);
             if (isSafeToContainOp1)
