@@ -206,6 +206,8 @@ private:
     CorInfoHFAElemType m_hfaType;
 #endif
     bool m_isMarshalable;
+    CorInfoHomogenousElemType m_homogenousType;
+    uint32_t m_homogenousCount;
     uint32_t m_size;
     uint32_t m_numFields;
 
@@ -246,6 +248,40 @@ public:
     {
         LIMITED_METHOD_CONTRACT;
         return &m_nativeFieldDescriptors[0];
+    }
+
+    CorInfoHomogenousElemType GetNativeHomogenousTypeAndCountRaw(uint32_t* count) const;
+
+    bool IsNativeHomogenousType() const
+    {
+        LIMITED_METHOD_CONTRACT;
+        return m_homogenousType != CORINFO_HOMOGENOUS_ELEM_NONE;
+    }
+
+    CorInfoHomogenousElemType GetNativeHomogenousTypeAndCount(uint32_t* count) const
+    {
+        LIMITED_METHOD_CONTRACT;
+
+        _ASSERTE(count != nullptr);
+        *count = m_homogenousCount;
+
+        return m_homogenousType;
+    }
+
+    void SetHomogenousTypeAndCount(CorInfoHomogenousElemType homogenousType, uint32_t homogenousCount)
+    {
+        LIMITED_METHOD_CONTRACT;
+
+        // We should call this at most once.
+        _ASSERTE(m_homogenousType == CORINFO_HOMOGENOUS_ELEM_NONE);
+        _ASSERTE(m_homogenousCount == 0);
+
+        // We should only be called if the values aren't the default
+        _ASSERTE(homogenousType != CORINFO_HOMOGENOUS_ELEM_NONE);
+        _ASSERTE(homogenousCount != 0);
+
+        m_homogenousType  = homogenousType;
+        m_homogenousCount = homogenousCount;
     }
 
     CorInfoHFAElemType GetNativeHFATypeRaw() const;

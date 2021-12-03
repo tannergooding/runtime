@@ -369,6 +369,9 @@ public:
     CHECK CheckFullyLoaded();
 #endif
 
+    bool IsHomogenousType() const;
+    CorInfoHomogenousElemType GetHomogenousTypeAndCount(uint32_t* count) const;
+
     bool IsHFA() const;
     CorInfoHFAElemType GetHFAType() const;
 

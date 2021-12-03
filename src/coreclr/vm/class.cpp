@@ -1488,6 +1488,346 @@ int MethodTable::GetVectorSize()
 }
 
 //*******************************************************************************
+CorInfoHomogenousElemType MethodTable::GetHomogenousTypeAndCount(uint32_t* count)
+{
+    CONTRACTL
+    {
+        WRAPPER(THROWS);        // we end up in the class loader which has the conditional contracts
+        WRAPPER(GC_TRIGGERS);
+    }
+    CONTRACTL_END;
+
+    if (!IsHomogenousType())
+    {
+        _ASSERTE(count != nullptr);
+        *count = 0;
+        return CORINFO_HOMOGENOUS_ELEM_NONE;
+    }
+
+    MethodTable* pMT = this;
+    CorInfoHomogenousElemType homogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+    int vectorSize = 0;
+
+    do
+    {
+        _ASSERTE(pMT->IsValueType());
+        _ASSERTE(pMT->GetNumInstanceFields() > 0);
+
+        int vectorSize = pMT->GetVectorSize();
+
+        if (vectorSize == 8)
+        {
+            homogenousType = CORINFO_HOMOGENOUS_ELEM_VECTOR64;
+        }
+        else if (vectorSize == 16)
+        {
+            homogenousType = CORINFO_HOMOGENOUS_ELEM_VECTOR128;
+        }
+        else if (vectorSize == 32)
+        {
+            homogenousType = CORINFO_HOMOGENOUS_ELEM_VECTOR256;
+        }
+        else
+        {
+            _ASSERTE(vectorSize == 0);
+
+            PTR_FieldDesc pFirstField = pMT->GetApproxFieldDescListRaw();
+            CorElementType fieldType = pFirstField->GetFieldType();
+
+            // All homogenous type fields have to be of the same type, so we can just return the type of the first field
+            // Noting that we need to look through value types so we can detect vectors and other homogenous types
+
+            switch (fieldType)
+            {
+                case ELEMENT_TYPE_VALUETYPE:
+                {
+                    _ASSERTE(homogenousType == CORINFO_HOMOGENOUS_ELEM_NONE);
+                    pMT = pFirstField->LookupApproxFieldTypeHandle().GetMethodTable();
+                    break;
+                }
+
+                case ELEMENT_TYPE_I1:
+                case ELEMENT_TYPE_U1:
+                {
+                    homogenousType = CORINFO_HOMOGENOUS_ELEM_INT8;
+                    break;
+                }
+
+                case ELEMENT_TYPE_I2:
+                case ELEMENT_TYPE_U2:
+                {
+                    homogenousType = CORINFO_HOMOGENOUS_ELEM_INT16;
+                    break;
+                }
+
+                case ELEMENT_TYPE_I4:
+                case ELEMENT_TYPE_U4:
+                {
+                    homogenousType = CORINFO_HOMOGENOUS_ELEM_INT32;
+                    break;
+                }
+
+                case ELEMENT_TYPE_I8:
+                case ELEMENT_TYPE_U8:
+                {
+                    homogenousType = CORINFO_HOMOGENOUS_ELEM_INT64;
+                    break;
+                }
+
+                case ELEMENT_TYPE_R4:
+                {
+                    homogenousType = CORINFO_HOMOGENOUS_ELEM_FLOAT32;
+                    break;
+                }
+
+                case ELEMENT_TYPE_R8:
+                {
+                    homogenousType = CORINFO_HOMOGENOUS_ELEM_FLOAT64;
+                    break;
+                }
+
+                case ELEMENT_TYPE_I:
+                case ELEMENT_TYPE_U:
+                {
+#if defined(TARGET_64BIT)
+                    homogenousType = CORINFO_HOMOGENOUS_ELEM_INT64;
+#else
+                    homogenousType = CORINFO_HOMOGENOUS_ELEM_INT32;
+#endif // TARGET_64BIT
+                    break;
+                }
+
+                default:
+                {
+                    // This should never happen. MethodTable::IsHomogenousType() should be set only on types
+                    // that have a valid homogenous type when the flag is used to track homogenous type status.
+                    _ASSERTE(false);
+
+                    _ASSERTE(count != nullptr);
+                    *count = 0;
+                    return CORINFO_HOMOGENOUS_ELEM_NONE;
+                }
+            }
+        }
+    }
+    while (homogenousType == CORINFO_HOMOGENOUS_ELEM_NONE);
+
+    int elemSize = GetHomogenousTypeSize(homogenousType);
+    _ASSERTE(elemSize != 0);
+
+    // Note that we check the total size, but do not perform any checks on number of fields:
+    // - Type of fields can be homogenous types themselves
+    // - Fixed sized buffers can have one field of a given type and be explicitly sized
+
+    uint32_t totalSize = GetNumInstanceFieldBytes();
+
+    // The total size must be a multiple of the underlying element size
+    _ASSERTE((totalSize % elemSize) == 0);
+
+    // The number of elements is the total size divided by the underlying element size
+    _ASSERTE(count != nullptr);
+    *count = totalSize / elemSize;
+
+    return homogenousType;
+}
+
+bool MethodTable::IsNativeHomogenousType()
+{
+    LIMITED_METHOD_CONTRACT;
+    if (!HasLayout() || IsBlittable())
+    {
+        return IsHomogenousType();
+    }
+
+    return GetNativeLayoutInfo()->IsNativeHomogenousType();
+}
+
+CorInfoHomogenousElemType MethodTable::GetNativeHomogenousTypeAndCount(uint32_t* count)
+{
+    LIMITED_METHOD_CONTRACT;
+    if (!HasLayout() || IsBlittable())
+    {
+        return GetHomogenousTypeAndCount(count);
+    }
+
+    return GetNativeLayoutInfo()->GetNativeHomogenousTypeAndCount(count);
+}
+
+bool EEClass::CheckForHomogenousType(MethodTable** pByValueClassCache)
+{
+    STANDARD_VM_CONTRACT;
+
+    // This method should be called for valuetypes only
+    _ASSERTE(GetMethodTable()->IsValueType());
+
+    // The opaque Vector types appear to have multiple fields, but need to be treated
+    // as an opaque type of a single vector.
+    if (GetMethodTable()->GetVectorSize() != 0)
+    {
+        GetMethodTable()->SetIsHomogenousType();
+    }
+
+    CorInfoHomogenousElemType homogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+    FieldDesc *pFieldDescList = GetFieldDescList();
+
+    bool hasZeroOffsetField = false;
+
+    for (uint32_t i = 0; i < GetNumInstanceFields(); i++)
+    {
+        FieldDesc *pFD = &pFieldDescList[i];
+        hasZeroOffsetField |= (pFD->GetOffset() == 0);
+
+        CorElementType fieldType = pFD->GetFieldType();
+        CorInfoHomogenousElemType fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+
+        switch (fieldType)
+        {
+            case ELEMENT_TYPE_VALUETYPE:
+            {
+                MethodTable* pMT = pByValueClassCache[i];
+                int vectorSize = pMT->GetVectorSize();
+
+                if (vectorSize == 8)
+                {
+                    fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_VECTOR64;
+                }
+                else if (vectorSize == 16)
+                {
+                    fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_VECTOR128;
+                }
+                else if (vectorSize == 32)
+                {
+                    fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_VECTOR256;
+                }
+                else
+                {
+                    _ASSERTE(vectorSize == 0);
+
+                    uint32_t count;
+                    fieldHomogenousType = pByValueClassCache[i]->GetHomogenousTypeAndCount(&count);
+
+                    if (fieldHomogenousType == CORINFO_HOMOGENOUS_ELEM_NONE)
+                    {
+                        return false;
+                    }
+                }
+                break;
+            }
+
+            case ELEMENT_TYPE_I1:
+            case ELEMENT_TYPE_U1:
+            {
+                fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_INT8;
+                break;
+            }
+
+            case ELEMENT_TYPE_I2:
+            case ELEMENT_TYPE_U2:
+            {
+                fieldHomogenousType =  CORINFO_HOMOGENOUS_ELEM_INT16;
+                break;
+            }
+
+            case ELEMENT_TYPE_I4:
+            case ELEMENT_TYPE_U4:
+            {
+                fieldHomogenousType =  CORINFO_HOMOGENOUS_ELEM_INT32;
+                break;
+            }
+
+            case ELEMENT_TYPE_I8:
+            case ELEMENT_TYPE_U8:
+            {
+                fieldHomogenousType =  CORINFO_HOMOGENOUS_ELEM_INT64;
+                break;
+            }
+
+            case ELEMENT_TYPE_R4:
+            {
+                fieldHomogenousType =  CORINFO_HOMOGENOUS_ELEM_FLOAT32;
+                break;
+            }
+
+            case ELEMENT_TYPE_R8:
+            {
+                fieldHomogenousType =  CORINFO_HOMOGENOUS_ELEM_FLOAT64;
+                break;
+            }
+
+            case ELEMENT_TYPE_I:
+            case ELEMENT_TYPE_U:
+            {
+#if defined(TARGET_64BIT)
+                fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_INT64;
+#else
+                fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_INT32;
+#endif // TARGET_64BIT
+                break;
+            }
+
+            default:
+            {
+                // Not a homogenous type
+                return false;
+            }
+        }
+
+        _ASSERTE(fieldHomogenousType != CORINFO_HOMOGENOUS_ELEM_NONE);
+
+        uint32_t expectedAlignment = GetHomogenousTypeAlignment(fieldHomogenousType);
+        _ASSERTE(expectedAlignment != 0);
+
+        if ((pFD->GetOffset() % expectedAlignment) != 0)
+        {
+            // Homogenous types don't have unaligned fields.
+            return false;
+        }
+
+        if (homogenousType == CORINFO_HOMOGENOUS_ELEM_NONE)
+        {
+            // Initialize with a valid homogenous type.
+            homogenousType = fieldHomogenousType;
+        }
+        else if (fieldHomogenousType != homogenousType)
+        {
+            // Homogenous types don't have fields with different types
+            return false;
+        }
+    }
+
+    if (homogenousType == CORINFO_HOMOGENOUS_ELEM_NONE)
+    {
+        _ASSERTE(GetNumInstanceFields() == 0);
+        return false;
+    }
+
+    if (!hasZeroOffsetField)
+    {
+        // If the struct doesn't have a zero-offset field, it's not an HFA.
+        return false;
+    }
+
+    // Note that we check the total size, but do not perform any checks on number of fields:
+    // - Type of fields can be homogenous types themselves
+    // - Fixed sized buffers can have one field of a given type and be explicitly sized
+
+    uint32_t totalSize = GetMethodTable()->GetNumInstanceFieldBytes();
+
+    uint32_t elemSize = GetHomogenousTypeSize(homogenousType);
+    _ASSERTE(elemSize != 0);
+
+    if ((totalSize % elemSize) != 0)
+    {
+        // The total size must be a multiple of the underlying element size
+        return false;
+    }
+
+    // All the above tests passed. It's homogenous!
+    GetMethodTable()->SetIsHomogenousType();
+    return true;
+}
+
+//*******************************************************************************
 CorInfoHFAElemType MethodTable::GetHFAType()
 {
     CONTRACTL

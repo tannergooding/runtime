@@ -470,6 +470,102 @@ class EEClassLayoutInfo
         }
 };
 
+inline uint32_t GetHomogenousTypeSize(CorInfoHomogenousElemType homogenousType)
+{
+    switch (homogenousType)
+    {
+        case CORINFO_HOMOGENOUS_ELEM_INT8:
+        {
+            return 1;
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_INT16:
+        {
+            return 2;
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_FLOAT32:
+        case CORINFO_HOMOGENOUS_ELEM_INT32:
+        {
+            return 4;
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_FLOAT64:
+        case CORINFO_HOMOGENOUS_ELEM_INT64:
+        case CORINFO_HOMOGENOUS_ELEM_VECTOR64:
+        {
+            return 8;
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_VECTOR128:
+        {
+            return 16;
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_VECTOR256:
+        {
+            return 32;
+        }
+
+        default:
+        {
+            return 0;
+        }
+    }
+}
+
+inline uint32_t GetHomogenousTypeAlignment(CorInfoHomogenousElemType homogenousType)
+{
+    switch (homogenousType)
+    {
+        case CORINFO_HOMOGENOUS_ELEM_INT8:
+        {
+            return 1;
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_INT16:
+        {
+            return 2;
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_FLOAT32:
+        case CORINFO_HOMOGENOUS_ELEM_INT32:
+        {
+            return 4;
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_FLOAT64:
+        case CORINFO_HOMOGENOUS_ELEM_INT64:
+        {
+#if defined(TARGET_X86) && defined(UNIX_X86_ABI)
+            return 4;
+#else
+            return 8;
+#endif // TARGET_X86 && UNIX_X86_ABI
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_VECTOR64:
+        {
+            return 8;
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_VECTOR128:
+        {
+            return 16;
+        }
+
+        case CORINFO_HOMOGENOUS_ELEM_VECTOR256:
+        {
+            return 32;
+        }
+
+        default:
+        {
+            return 0;
+        }
+    }
+}
+
 //
 // This structure is used only when the classloader is building the interface map.  Before the class
 // is resolved, the EEClass contains an array of these, which are all interfaces *directly* declared
@@ -1502,6 +1598,8 @@ public:
         }
     }
 #endif // UNIX_AMD64_ABI
+
+    bool CheckForHomogenousType(MethodTable** pByValueClassCache);
 
 #if defined(FEATURE_HFA)
     bool CheckForHFA(MethodTable ** pByValueClassCache);

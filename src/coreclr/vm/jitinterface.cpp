@@ -9346,7 +9346,7 @@ CorInfoHomogenousElemType CEEInfo::getHomogenousTypeAndCount(CORINFO_CLASS_HANDL
     _ASSERTE(count != nullptr);
     *count = 0;
 
-    result = CORINFO_HOMOGENOUS_ELEM_NONE;
+    result = VMClsHnd.GetHomogenousTypeAndCount(count);
 
     EE_TO_JIT_TRANSITION();
 

@@ -394,6 +394,32 @@ BOOL TypeHandle::IsAbstract() const
     return GetMethodTable()->IsAbstract();
 }
 
+bool TypeHandle::IsHomogenousType() const
+{
+    WRAPPER_NO_CONTRACT;
+
+    if (!IsTypeDesc())
+        return AsMethodTable()->IsHomogenousType();
+
+    if (AsTypeDesc()->IsNativeValueType())
+        return AsNativeValueType()->IsHomogenousType();
+
+    return false;
+}
+
+CorInfoHomogenousElemType TypeHandle::GetHomogenousTypeAndCount(uint32_t* count) const
+{
+    WRAPPER_NO_CONTRACT;
+
+    if (!IsTypeDesc())
+        return AsMethodTable()->GetHomogenousTypeAndCount(count);
+
+    if (AsTypeDesc()->IsNativeValueType())
+        return AsNativeValueType()->GetNativeHomogenousTypeAndCount(count);
+
+    return CORINFO_HOMOGENOUS_ELEM_NONE;
+}
+
 bool TypeHandle::IsHFA() const
 {
     WRAPPER_NO_CONTRACT;

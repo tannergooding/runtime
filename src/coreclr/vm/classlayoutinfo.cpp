@@ -545,6 +545,38 @@ namespace
         pFieldInfoArrayOut->m_MD = mdFieldDefNil;
     }
 
+    //
+    // The managed and unmanaged views of the types can differ for non-blitable types. This method
+    // mirrors the homogenous type computation for the unmanaged view.
+    //
+    void CheckForNativeHomogenousType(MethodTable* pMT, EEClassNativeLayoutInfo* pNativeLayoutInfo)
+    {
+        STANDARD_VM_CONTRACT;
+
+        // No homogenous types with inheritance
+        if (!(pMT->IsValueType() || (pMT->GetParentMethodTable() == g_pObjectClass)))
+            return;
+
+        // No homogenous types with explicit layout. There may be cases where explicit layout may be still
+        // eligible for homogenous, but it is hard to tell the real intent. Make it simple and just
+        // unconditionally disable homogenous types for explicit layout.
+        if (pMT->GetClass()->HasExplicitFieldOffsetLayout())
+            return;
+
+        uint32_t count = 0;
+        CorInfoHomogenousElemType homogenousType = pNativeLayoutInfo->GetNativeHomogenousTypeAndCountRaw(&count);
+
+        if (homogenousType == CORINFO_HOMOGENOUS_ELEM_NONE)
+        {
+            _ASSERTE(count == 0);
+            return;
+        }
+
+        // All the above tests passed. It's homogenous!
+        _ASSERTE(count != 0);
+        pNativeLayoutInfo->SetHomogenousTypeAndCount(homogenousType, count);
+    }
+
 #ifdef FEATURE_HFA
     //
     // The managed and unmanaged views of the types can differ for non-blitable types. This method
@@ -1040,6 +1072,144 @@ EEClassNativeLayoutInfo* EEClassNativeLayoutInfo::CollectNativeLayoutFieldMetada
 }
 
 #endif // DACCESS_COMPILE
+
+CorInfoHomogenousElemType EEClassNativeLayoutInfo::GetNativeHomogenousTypeAndCountRaw(uint32_t* count) const
+{
+    LIMITED_METHOD_CONTRACT;
+
+    uint32_t numReferenceFields = GetNumFields();
+
+    CorInfoHomogenousElemType homogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+    uint32_t homogenousCount = 0;
+
+#ifndef DACCESS_COMPILE
+    const NativeFieldDescriptor* pNativeFieldDescriptorsBegin = GetNativeFieldDescriptors();
+    const NativeFieldDescriptor* pNativeFieldDescriptorsEnd = pNativeFieldDescriptorsBegin + numReferenceFields;
+
+    for (const NativeFieldDescriptor* pCurrNFD = pNativeFieldDescriptorsBegin; pCurrNFD < pNativeFieldDescriptorsEnd; ++pCurrNFD)
+    {
+        CorInfoHomogenousElemType fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+
+        NativeFieldCategory category = pCurrNFD->GetCategory();
+
+        if (category == NativeFieldCategory::FLOAT)
+        {
+            if (pCurrNFD->NativeSize() == 4)
+            {
+                fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_FLOAT32;
+            }
+            else if (pCurrNFD->NativeSize() == 8)
+            {
+                fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_FLOAT64;
+            }
+            else
+            {
+                UNREACHABLE_MSG("Invalid NativeFieldCategory.");
+                homogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+                break;
+            }
+        }
+        else if (category == NativeFieldCategory::NESTED)
+        {
+            uint32_t nestedCount = 0;
+            fieldHomogenousType = pCurrNFD->GetNestedNativeMethodTable()->GetNativeHomogenousTypeAndCount(&nestedCount);
+
+            if (fieldHomogenousType == CORINFO_HFA_ELEM_NONE)
+            {
+                // Not a homogenous type
+                homogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+                break;
+            }
+        }
+        else if (category == NativeFieldCategory::INTEGER)
+        {
+            if (pCurrNFD->NativeSize() == 1)
+            {
+                fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_INT8;
+            }
+            else if (pCurrNFD->NativeSize() == 2)
+            {
+                fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_INT16;
+            }
+            else if (pCurrNFD->NativeSize() == 4)
+            {
+                fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_INT32;
+            }
+            else if (pCurrNFD->NativeSize() == 8)
+            {
+                fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_INT64;
+            }
+            else
+            {
+                UNREACHABLE_MSG("Invalid NativeFieldCategory.");
+                fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+            }
+        }
+        else
+        {
+            // Not a homogenous type
+            homogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+            break;
+        }
+
+        if ((pCurrNFD->GetExternalOffset() % pCurrNFD->AlignmentRequirement()) != 0)
+        {
+             // Homogenous types don't have unaligned fields.
+            fieldHomogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+        }
+
+        if (fieldHomogenousType == CORINFO_HOMOGENOUS_ELEM_NONE)
+        {
+            // Not a homogenous type
+            homogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+            break;
+        }
+
+        if (homogenousType == CORINFO_HOMOGENOUS_ELEM_NONE)
+        {
+            // Initialize with a valid homogenous type.
+            homogenousType = fieldHomogenousType;
+        }
+        else if (fieldHomogenousType != homogenousType)
+        {
+            // Not a homogenous type
+            homogenousType = CORINFO_HOMOGENOUS_ELEM_NONE;
+            break;
+        }
+    }
+
+    if (homogenousType == CORINFO_HOMOGENOUS_ELEM_NONE)
+    {
+         _ASSERTE(count != nullptr);
+        *count = 0;
+        return CORINFO_HOMOGENOUS_ELEM_NONE;
+    }
+
+    // Note that we check the total size, but do not perform any checks on number of fields:
+    // - Type of fields can be homogenous types themselves
+    // - Fixed sized buffers can have one field of a given type and be explicitly sized
+
+    uint32_t totalSize = GetSize();
+
+    uint32_t elemSize = GetHomogenousTypeSize(homogenousType);
+    _ASSERTE(elemSize != 0);
+
+    if ((totalSize % elemSize) != 0)
+    {
+        // The total size must be a multiple of the underlying element size
+        _ASSERTE(count != nullptr);
+        *count = 0;
+        return CORINFO_HOMOGENOUS_ELEM_NONE;
+    }
+
+    homogenousCount = totalSize / elemSize;
+#endif // !DACCESS_COMPILE
+
+    _ASSERTE(count != nullptr);
+    *count = homogenousCount;
+
+    return homogenousType;
+}
 
 CorInfoHFAElemType EEClassNativeLayoutInfo::GetNativeHFATypeRaw() const
 {

@@ -1697,6 +1697,25 @@ public:
         SetFlag(enum_flag_HasPreciseInitCctors);
     }
 
+    inline bool IsHomogenousType()
+    {
+        LIMITED_METHOD_CONTRACT;
+        return !!GetFlag(enum_flag_IsHomogenousType);
+    }
+
+    inline void SetIsHomogenousType()
+    {
+        LIMITED_METHOD_CONTRACT;
+        SetFlag(enum_flag_IsHomogenousType);
+    }
+
+    // Get the homogenous type.
+    CorInfoHomogenousElemType GetHomogenousTypeAndCount(uint32_t* count);
+
+    // The managed and unmanaged homogenous type can differ for types with layout. The following two methods return the unmanaged homogenous type.
+    bool IsNativeHomogenousType();
+    CorInfoHomogenousElemType GetNativeHomogenousTypeAndCount(uint32_t* count);
+
 #if defined(FEATURE_HFA)
     inline bool IsHFA()
     {
@@ -3448,7 +3467,7 @@ private:
 
         enum_flag_ICastable                   = 0x00400000, // class implements ICastable interface
 
-        enum_flag_Unused_1                    = 0x00800000,
+        enum_flag_IsHomogenousType            = 0x00800000, // This type is homogenous (all fields are of the same type)
 
         enum_flag_ContainsPointers            = 0x01000000,
 

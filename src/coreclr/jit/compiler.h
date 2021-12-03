@@ -8764,6 +8764,11 @@ private:
 #endif
     }
 
+    CorInfoHomogenousElemType getHomogenousTypeAndCount(CORINFO_CLASS_HANDLE clsHnd, uint32_t* count)
+    {
+        return info.compCompHnd->getHomogenousTypeAndCount(clsHnd, count);
+    }
+
     bool isIntrinsicType(CORINFO_CLASS_HANDLE clsHnd)
     {
         return info.compCompHnd->isIntrinsicType(clsHnd);

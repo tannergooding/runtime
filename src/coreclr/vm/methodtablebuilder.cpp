@@ -1803,6 +1803,9 @@ MethodTableBuilder::BuildMethodTableThrowing(
         if (bmtFP->NumInstanceFieldBytes != totalDeclaredFieldSize || HasOverLayedField())
             GetHalfBakedClass()->SetIsNotTightlyPacked();
 
+        // Check for homogenous types so we can potentially optimize them in the JIT
+        GetHalfBakedClass()->CheckForHomogenousType(pByValueClassCache);
+
 #ifdef FEATURE_HFA
         GetHalfBakedClass()->CheckForHFA(pByValueClassCache);
 #endif
