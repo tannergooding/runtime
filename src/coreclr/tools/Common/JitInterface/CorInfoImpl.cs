@@ -2946,6 +2946,13 @@ namespace Internal.JitInterface
             }
         }
 
+        private CorInfoHomogenousElemType getHomogenousTypeAndCount(CORINFO_CLASS_STRUCT_* hClass, ref uint count)
+        {
+            var type = (DefType)HandleToObject(hClass);
+            count = 0;
+            return CorInfoHomogenousElemType.CORINFO_HOMOGENOUS_ELEM_NONE;
+        }
+
         private CorInfoHFAElemType getHFAType(CORINFO_CLASS_STRUCT_* hClass)
         {
             var type = (DefType)HandleToObject(hClass);

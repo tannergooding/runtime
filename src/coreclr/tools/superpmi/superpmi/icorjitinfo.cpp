@@ -1070,6 +1070,16 @@ CORINFO_CLASS_HANDLE MyICJI::getArgClass(CORINFO_SIG_INFO*       sig, /* IN */
     return value;
 }
 
+// Returns homogenous type and count for valuetype
+CorInfoHomogenousElemType MyICJI::getHomogenousTypeAndCount(CORINFO_CLASS_HANDLE hClass, /* IN */
+                                                            uint32_t*            count   /* OUT */
+                                                            )
+{
+    jitInstance->mc->cr->AddCall("getHomogenousTypeAndCount");
+    CorInfoHomogenousElemType value = jitInstance->mc->repGetHomogenousTypeAndCount(hClass, count);
+    return value;
+}
+
 // Returns type of HFA for valuetype
 CorInfoHFAElemType MyICJI::getHFAType(CORINFO_CLASS_HANDLE hClass)
 {

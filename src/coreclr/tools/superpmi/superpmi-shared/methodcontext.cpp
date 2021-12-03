@@ -2818,6 +2818,37 @@ CORINFO_CLASS_HANDLE MethodContext::repGetArgClass(CORINFO_SIG_INFO*       sig,
     return (CORINFO_CLASS_HANDLE)value.result;
 }
 
+void MethodContext::recGetHomogenousTypeAndCount(CORINFO_CLASS_HANDLE clsHnd, uint32_t* count, CorInfoHomogenousElemType result)
+{
+    if (GetHomogenousTypeAndCount == nullptr)
+        GetHomogenousTypeAndCount = new LightWeightMap<DWORDLONG, Agnostic_GetHomogenousTypeAndCount_Value>();
+
+    DWORDLONG key = CastHandle(clsHnd);
+
+    Agnostic_GetHomogenousTypeAndCount_Value value;
+    value.result = (DWORD)result;
+    value.count  = (DWORD)*count;
+    GetHomogenousTypeAndCount->Add(key, value);
+    DEBUG_REC(dmpGetHomogenousTypeAndCount(key, value));
+}
+void MethodContext::dmpGetHomogenousTypeAndCount(DWORDLONG key, const Agnostic_GetHomogenousTypeAndCount_Value& value)
+{
+    printf("GetHomogenousTypeAndCount key %016llX, result-%u count-%u", key, value.result, value.count);
+}
+CorInfoHomogenousElemType MethodContext::repGetHomogenousTypeAndCount(CORINFO_CLASS_HANDLE clsHnd, uint32_t* count)
+{
+    DWORDLONG key = CastHandle(clsHnd);
+    AssertMapAndKeyExist(GetHomogenousTypeAndCount, key, ": key %016llX", key);
+
+    Agnostic_GetHomogenousTypeAndCount_Value value = GetHomogenousTypeAndCount->Get(key);
+    DEBUG_REP(dmpGetHomogenousTypeAndCount(key, value));
+
+    Assert(count != nullptr);
+    *count = value.count;
+
+    return (CorInfoHomogenousElemType)value.result;
+}
+
 void MethodContext::recGetHFAType(CORINFO_CLASS_HANDLE clsHnd, CorInfoHFAElemType result)
 {
     if (GetHFAType == nullptr)

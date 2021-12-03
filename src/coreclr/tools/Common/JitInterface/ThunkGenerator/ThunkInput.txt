@@ -114,6 +114,7 @@ CorInfoIsAccessAllowedResult
 CorInfoMethodRuntimeFlags
 CorInfoTailCall
 CorInfoType
+CorInfoHomogenousElemType
 CorInfoHFAElemType
 CorInfoTypeWithMod
 CorInfoCallConvExtension
@@ -255,6 +256,7 @@ FUNCTIONS
     CORINFO_ARG_LIST_HANDLE getArgNext(CORINFO_ARG_LIST_HANDLE args);
     CorInfoTypeWithMod getArgType(CORINFO_SIG_INFO* sig, CORINFO_ARG_LIST_HANDLE args, CORINFO_CLASS_HANDLE* vcTypeRet);
     CORINFO_CLASS_HANDLE getArgClass(CORINFO_SIG_INFO* sig, CORINFO_ARG_LIST_HANDLE args);
+    CorInfoHomogenousElemType getHomogenousTypeAndCount(CORINFO_CLASS_HANDLE hClass, uint32_t* count);
     CorInfoHFAElemType getHFAType(CORINFO_CLASS_HANDLE hClass);
     JITINTERFACE_HRESULT GetErrorHRESULT(struct _EXCEPTION_POINTERS *pExceptionPointers);
     uint32_t GetErrorMessage(char16_t * buffer, uint32_t bufferLength);

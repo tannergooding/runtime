@@ -382,6 +382,10 @@ public:
     void dmpGetArgClass(const Agnostic_GetArgClass_Key& key, const Agnostic_GetArgClass_Value& value);
     CORINFO_CLASS_HANDLE repGetArgClass(CORINFO_SIG_INFO* sig, CORINFO_ARG_LIST_HANDLE args, DWORD* exceptionCode);
 
+    void recGetHomogenousTypeAndCount(CORINFO_CLASS_HANDLE clsHnd, uint32_t* count, CorInfoHomogenousElemType result);
+    void dmpGetHomogenousTypeAndCount(DWORDLONG key, const Agnostic_GetHomogenousTypeAndCount_Value& value);
+    CorInfoHomogenousElemType repGetHomogenousTypeAndCount(CORINFO_CLASS_HANDLE clsHnd, uint32_t* count);
+
     void recGetHFAType(CORINFO_CLASS_HANDLE clsHnd, CorInfoHFAElemType result);
     void dmpGetHFAType(DWORDLONG key, DWORD value);
     CorInfoHFAElemType repGetHFAType(CORINFO_CLASS_HANDLE clsHnd);
@@ -1095,6 +1099,7 @@ enum mcPackets
     Packet_GetAssemblyName = 191,
     Packet_IsIntrinsic = 192,
     Packet_UpdateEntryPointForTailCall = 193,
+    Packet_GetHomogenousTypeAndCount = 194,
 };
 
 void SetDebugDumpVariables();

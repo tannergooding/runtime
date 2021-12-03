@@ -9329,6 +9329,30 @@ CORINFO_CLASS_HANDLE CEEInfo::getArgClass (
 
 /*********************************************************************/
 
+CorInfoHomogenousElemType CEEInfo::getHomogenousTypeAndCount(CORINFO_CLASS_HANDLE hClass, uint32_t* count)
+{
+    CONTRACTL {
+        THROWS;
+        GC_TRIGGERS;
+        MODE_PREEMPTIVE;
+    } CONTRACTL_END;
+
+    CorInfoHomogenousElemType result = CORINFO_HOMOGENOUS_ELEM_NONE;
+
+    JIT_TO_EE_TRANSITION();
+
+    TypeHandle VMClsHnd(hClass);
+
+    _ASSERTE(count != nullptr);
+    *count = 0;
+
+    result = CORINFO_HOMOGENOUS_ELEM_NONE;
+
+    EE_TO_JIT_TRANSITION();
+
+    return result;
+}
+
 CorInfoHFAElemType CEEInfo::getHFAType(CORINFO_CLASS_HANDLE hClass)
 {
     CONTRACTL {

@@ -821,6 +821,14 @@ CORINFO_CLASS_HANDLE interceptor_ICJI::getArgClass(
     return original_ICorJitInfo->getArgClass(sig, args);
 }
 
+CorInfoHomogenousElemType interceptor_ICJI::getHomogenousTypeAndCount(
+          CORINFO_CLASS_HANDLE hClass,
+          uint32_t* count)
+{
+    mcs->AddCall("getHomogenousTypeAndCount");
+    return original_ICorJitInfo->getHomogenousTypeAndCount(hClass, count);
+}
+
 CorInfoHFAElemType interceptor_ICJI::getHFAType(
           CORINFO_CLASS_HANDLE hClass)
 {

@@ -113,6 +113,7 @@ struct JitInterfaceCallbacks
     CORINFO_ARG_LIST_HANDLE (* getArgNext)(void * thisHandle, CorInfoExceptionClass** ppException, CORINFO_ARG_LIST_HANDLE args);
     CorInfoTypeWithMod (* getArgType)(void * thisHandle, CorInfoExceptionClass** ppException, CORINFO_SIG_INFO* sig, CORINFO_ARG_LIST_HANDLE args, CORINFO_CLASS_HANDLE* vcTypeRet);
     CORINFO_CLASS_HANDLE (* getArgClass)(void * thisHandle, CorInfoExceptionClass** ppException, CORINFO_SIG_INFO* sig, CORINFO_ARG_LIST_HANDLE args);
+    CorInfoHomogenousElemType (* getHomogenousTypeAndCount)(void * thisHandle, CorInfoExceptionClass** ppException, CORINFO_CLASS_HANDLE hClass, uint32_t* count);
     CorInfoHFAElemType (* getHFAType)(void * thisHandle, CorInfoExceptionClass** ppException, CORINFO_CLASS_HANDLE hClass);
     JITINTERFACE_HRESULT (* GetErrorHRESULT)(void * thisHandle, CorInfoExceptionClass** ppException, struct _EXCEPTION_POINTERS* pExceptionPointers);
     uint32_t (* GetErrorMessage)(void * thisHandle, CorInfoExceptionClass** ppException, char16_t* buffer, uint32_t bufferLength);
@@ -1185,6 +1186,16 @@ public:
 {
     CorInfoExceptionClass* pException = nullptr;
     CORINFO_CLASS_HANDLE temp = _callbacks->getArgClass(_thisHandle, &pException, sig, args);
+    if (pException != nullptr) throw pException;
+    return temp;
+}
+
+    virtual CorInfoHomogenousElemType getHomogenousTypeAndCount(
+          CORINFO_CLASS_HANDLE hClass,
+          uint32_t* count)
+{
+    CorInfoExceptionClass* pException = nullptr;
+    CorInfoHomogenousElemType temp = _callbacks->getHomogenousTypeAndCount(_thisHandle, &pException, hClass, count);
     if (pException != nullptr) throw pException;
     return temp;
 }

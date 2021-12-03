@@ -1747,6 +1747,22 @@ typedef enum NativeTypeArrayFlags
 } NativeTypeArrayFlags;
 
 //
+// Enum used for homogenous type recognition.
+// Supported across architectures, so that it can be used in altjits and cross-compilation.
+typedef enum CorInfoHomogenousElemType : unsigned {
+    CORINFO_HOMOGENOUS_ELEM_NONE,
+    CORINFO_HOMOGENOUS_ELEM_FLOAT32,
+    CORINFO_HOMOGENOUS_ELEM_FLOAT64,
+    CORINFO_HOMOGENOUS_ELEM_INT8,
+    CORINFO_HOMOGENOUS_ELEM_INT16,
+    CORINFO_HOMOGENOUS_ELEM_INT32,
+    CORINFO_HOMOGENOUS_ELEM_INT64,
+    CORINFO_HOMOGENOUS_ELEM_VECTOR64,
+    CORINFO_HOMOGENOUS_ELEM_VECTOR128,
+    CORINFO_HOMOGENOUS_ELEM_VECTOR256,
+} CorInfoHomogenousElemType;
+
+//
 // Enum used for HFA type recognition.
 // Supported across architectures, so that it can be used in altjits and cross-compilation.
 typedef enum CorInfoHFAElemType : unsigned {

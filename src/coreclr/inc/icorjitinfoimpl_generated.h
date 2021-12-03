@@ -422,6 +422,10 @@ CORINFO_CLASS_HANDLE getArgClass(
           CORINFO_SIG_INFO* sig,
           CORINFO_ARG_LIST_HANDLE args) override;
 
+CorInfoHomogenousElemType getHomogenousTypeAndCount(
+          CORINFO_CLASS_HANDLE hClass,
+          uint32_t* count) override;
+
 CorInfoHFAElemType getHFAType(
           CORINFO_CLASS_HANDLE hClass) override;
 

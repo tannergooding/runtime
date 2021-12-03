@@ -2715,6 +2715,11 @@ public:
             CORINFO_ARG_LIST_HANDLE     args            /* IN */
             ) = 0;
 
+    virtual CorInfoHomogenousElemType getHomogenousTypeAndCount (
+            CORINFO_CLASS_HANDLE hClass,                /* IN */
+            uint32_t*            count                  /* OUT */
+            ) = 0;
+
     // Returns type of HFA for valuetype
     virtual CorInfoHFAElemType getHFAType (
             CORINFO_CLASS_HANDLE hClass

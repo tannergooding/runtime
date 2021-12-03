@@ -1003,6 +1003,16 @@ CORINFO_CLASS_HANDLE WrapICorJitInfo::getArgClass(
     return temp;
 }
 
+CorInfoHomogenousElemType WrapICorJitInfo::getHomogenousTypeAndCount(
+          CORINFO_CLASS_HANDLE hClass,
+          uint32_t* count)
+{
+    API_ENTER(getHomogenousTypeAndCount);
+    CorInfoHomogenousElemType temp = wrapHnd->getHomogenousTypeAndCount(hClass, count);
+    API_LEAVE(getHomogenousTypeAndCount);
+    return temp;
+}
+
 CorInfoHFAElemType WrapICorJitInfo::getHFAType(
           CORINFO_CLASS_HANDLE hClass)
 {

@@ -159,6 +159,7 @@ LWM(SatisfiesMethodConstraints, DLDL, DWORD)
 LWM(GetUnmanagedCallConv, MethodOrSigInfoValue, DD)
 LWM(DoesFieldBelongToClass, DLDL, DWORD)
 DENSELWM(SigInstHandleMap, DWORDLONG)
+LWM(GetHomogenousTypeAndCount, DWORDLONG, Agnostic_GetHomogenousTypeAndCount_Value)
 
 #undef LWM
 #undef DENSELWM

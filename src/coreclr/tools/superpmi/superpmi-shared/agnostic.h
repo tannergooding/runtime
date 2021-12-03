@@ -530,6 +530,12 @@ struct Agnostic_GetArgType_Value
     DWORD     exceptionCode;
 };
 
+struct Agnostic_GetHomogenousTypeAndCount_Value
+{
+    DWORD result;
+    DWORD count;
+};
+
 // Agnostic_ConfigIntInfo combines as a single key the name
 // and defaultValue of a integer config query.
 // Note: nameIndex is treated as a DWORD index to the name string.
