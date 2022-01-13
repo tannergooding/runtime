@@ -13,7 +13,6 @@ namespace System.Numerics
     /// <remarks><format type="text/markdown"><![CDATA[
     /// [!INCLUDE[vectors-are-rows-paragraph](~/includes/system-numerics-vectors-are-rows.md)]
     /// ]]></format></remarks>
-    [Intrinsic]
     public struct Matrix3x2 : IEquatable<Matrix3x2>
     {
         private const float RotationEpsilon = 0.001f * MathF.PI / 180f;     // 0.1% of a degree

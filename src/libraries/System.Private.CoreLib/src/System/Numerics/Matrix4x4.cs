@@ -15,7 +15,6 @@ namespace System.Numerics
     /// <remarks><format type="text/markdown"><![CDATA[
     /// [!INCLUDE[vectors-are-rows-paragraph](~/includes/system-numerics-vectors-are-rows.md)]
     /// ]]></format></remarks>
-    [Intrinsic]
     public struct Matrix4x4 : IEquatable<Matrix4x4>
     {
         private const float BillboardEpsilon = 1e-4f;

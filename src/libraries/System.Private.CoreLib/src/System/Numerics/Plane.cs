@@ -11,7 +11,6 @@ namespace System.Numerics
     /// <remarks><format type="text/markdown"><![CDATA[
     /// [!INCLUDE[vectors-are-rows-paragraph](~/includes/system-numerics-vectors-are-rows.md)]
     /// ]]></format></remarks>
-    [Intrinsic]
     public struct Plane : IEquatable<Plane>
     {
         private const float NormalizeEpsilon = 1.192092896e-07f; // smallest such that 1.0+NormalizeEpsilon != 1.0

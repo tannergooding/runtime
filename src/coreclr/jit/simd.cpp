@@ -186,7 +186,7 @@ CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeH
     unsigned    size            = 0;
 
     // TODO - Optimize SIMD type recognition by IntrinsicAttribute
-    if (isSIMDClass(typeHnd))
+    if (isNumericsSimdClass(typeHnd))
     {
         // The most likely to be used type handles are looked up first followed by
         // less likely to be used type handles
@@ -427,7 +427,7 @@ CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeH
         }
     }
 #ifdef FEATURE_HW_INTRINSICS
-    else if (isIntrinsicType(typeHnd))
+    else if (isHWIntrinsicsSimdClass(typeHnd))
     {
         const size_t Vector64SizeBytes  = 64 / 8;
         const size_t Vector128SizeBytes = 128 / 8;
@@ -902,6 +902,99 @@ CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeH
 #endif // TARGET_XARCH
     }
 #endif // FEATURE_HW_INTRINSICS
+    else
+    {
+        uint32_t homogenousCount;
+        CorInfoHomogenousElemType homogenousType = getHomogenousTypeAndCount(typeHnd, &homogenousCount);
+
+        if (homogenousType != CORINFO_HOMOGENOUS_ELEM_NONE)
+        {
+#if DEBUG
+            const char* className = getClassNameFromMetadata(typeHnd, nullptr);
+#endif
+
+            switch (homogenousType)
+            {
+                case CORINFO_HOMOGENOUS_ELEM_FLOAT32:
+                {
+                    JITDUMP("Found Homogenous struct %s; Type: float32; Count: <%d>\n", className, homogenousCount);
+
+                    if (homogenousCount == 2)
+                    {
+                        simdBaseJitType = CORINFO_TYPE_FLOAT;
+                        size            = 8;
+                        JITDUMP("  Coerced to TYP_SIMD8\n");
+                    }
+                    else if (homogenousCount == 3)
+                    {
+                        simdBaseJitType = CORINFO_TYPE_FLOAT;
+                        size            = 12;
+                        JITDUMP("  Coerced to TYP_SIMD12\n");
+                    }
+                    else if (homogenousCount == 4)
+                    {
+                        simdBaseJitType = CORINFO_TYPE_FLOAT;
+                        size            = 16;
+                        JITDUMP("  Coerced to TYP_SIMD16\n");
+                    }
+                    break;
+                }
+
+                case CORINFO_HOMOGENOUS_ELEM_FLOAT64:
+                {
+                    JITDUMP("Found Homogenous struct %s; Type: float64; Count: <%d>\n", className, homogenousCount);
+                    break;
+                }
+
+                case CORINFO_HOMOGENOUS_ELEM_INT8:
+                {
+                    JITDUMP("Found Homogenous struct %s; Type: int8; Count: <%d>\n", className, homogenousCount);
+                    break;
+                }
+
+                case CORINFO_HOMOGENOUS_ELEM_INT16:
+                {
+                    JITDUMP("Found Homogenous struct %s; Type: int16; Count: <%d>\n", className, homogenousCount);
+                    break;
+                }
+
+                case CORINFO_HOMOGENOUS_ELEM_INT32:
+                {
+                    JITDUMP("Found Homogenous struct %s; Type: int32; Count: <%d>\n", className, homogenousCount);
+                    break;
+                }
+
+                case CORINFO_HOMOGENOUS_ELEM_INT64:
+                {
+                    JITDUMP("Found Homogenous struct %s; Type: int64; Count: <%d>\n", className, homogenousCount);
+                    break;
+                }
+
+                case CORINFO_HOMOGENOUS_ELEM_VECTOR64:
+                {
+                    JITDUMP("Found Homogenous struct %s; Type: vector64; Count: <%d>\n", className, homogenousCount);
+                    break;
+                }
+
+                case CORINFO_HOMOGENOUS_ELEM_VECTOR128:
+                {
+                    JITDUMP("Found Homogenous struct %s; Type: vector128; Count: <%d>\n", className, homogenousCount);
+                    break;
+                }
+
+                case CORINFO_HOMOGENOUS_ELEM_VECTOR256:
+                {
+                    JITDUMP("Found Homogenous struct %s; Type: vector256; Count: <%d>\n", className, homogenousCount);
+                    break;
+                }
+
+                default:
+                {
+                    unreached();
+                }
+            }
+        }
+    }
 
     if (sizeBytes != nullptr)
     {
@@ -1894,7 +1987,7 @@ GenTree* Compiler::impSIMDIntrinsic(OPCODE                opcode,
     assert(featureSIMD);
 
     // Exit early if we are not in one of the SIMD types.
-    if (!isSIMDClass(clsHnd))
+    if (!isSimdClass(clsHnd))
     {
         return nullptr;
     }

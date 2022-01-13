@@ -9004,23 +9004,20 @@ private:
         return CORINFO_TYPE_UNDEF;
     }
 
-    bool isSIMDClass(CORINFO_CLASS_HANDLE clsHnd)
+    bool isNumericsSimdClass(CORINFO_CLASS_HANDLE clsHnd)
     {
+#ifdef FEATURE_SIMD
         if (isIntrinsicType(clsHnd))
         {
             const char* namespaceName = nullptr;
             (void)getClassNameFromMetadata(clsHnd, &namespaceName);
             return strcmp(namespaceName, "System.Numerics") == 0;
         }
+#endif // FEATURE_SIMD
         return false;
     }
 
-    bool isSIMDClass(typeInfo* pTypeInfo)
-    {
-        return pTypeInfo->IsStruct() && isSIMDClass(pTypeInfo->GetClassHandleForValueClass());
-    }
-
-    bool isHWSIMDClass(CORINFO_CLASS_HANDLE clsHnd)
+    bool isHWIntrinsicsSimdClass(CORINFO_CLASS_HANDLE clsHnd)
     {
 #ifdef FEATURE_HW_INTRINSICS
         if (isIntrinsicType(clsHnd))
@@ -9033,23 +9030,62 @@ private:
         return false;
     }
 
-    bool isHWSIMDClass(typeInfo* pTypeInfo)
+    bool isUserSimdClass(CORINFO_CLASS_HANDLE clsHnd)
     {
-#ifdef FEATURE_HW_INTRINSICS
-        return pTypeInfo->IsStruct() && isHWSIMDClass(pTypeInfo->GetClassHandleForValueClass());
-#else
+        uint32_t                  homogenousCount;
+        CorInfoHomogenousElemType homogenousType = getHomogenousTypeAndCount(clsHnd, &homogenousCount);
+
+        if (homogenousType != CORINFO_HOMOGENOUS_ELEM_NONE)
+        {
+            switch (homogenousType)
+            {
+                case CORINFO_HOMOGENOUS_ELEM_FLOAT32:
+                {
+                    if (homogenousCount == 2)
+                    {
+                        return true;
+                    }
+                    else if (homogenousCount == 3)
+                    {
+                        return true;
+                    }
+                    else if (homogenousCount == 4)
+                    {
+                        return true;
+                    }
+                    break;
+                }
+
+                case CORINFO_HOMOGENOUS_ELEM_FLOAT64:
+                case CORINFO_HOMOGENOUS_ELEM_INT8:
+                case CORINFO_HOMOGENOUS_ELEM_INT16:
+                case CORINFO_HOMOGENOUS_ELEM_INT32:
+                case CORINFO_HOMOGENOUS_ELEM_INT64:
+                case CORINFO_HOMOGENOUS_ELEM_VECTOR64:
+                case CORINFO_HOMOGENOUS_ELEM_VECTOR128:
+                case CORINFO_HOMOGENOUS_ELEM_VECTOR256:
+                {
+                    break;
+                }
+
+                default:
+                {
+                    unreached();
+                }
+            }
+        }
+
         return false;
-#endif
     }
 
-    bool isSIMDorHWSIMDClass(CORINFO_CLASS_HANDLE clsHnd)
+    bool isSimdClass(CORINFO_CLASS_HANDLE clsHnd)
     {
-        return isSIMDClass(clsHnd) || isHWSIMDClass(clsHnd);
+        return isNumericsSimdClass(clsHnd) || isHWIntrinsicsSimdClass(clsHnd) || isUserSimdClass(clsHnd);
     }
 
-    bool isSIMDorHWSIMDClass(typeInfo* pTypeInfo)
+    bool isSimdClass(typeInfo* pTypeInfo)
     {
-        return isSIMDClass(pTypeInfo) || isHWSIMDClass(pTypeInfo);
+        return pTypeInfo->IsStruct() && isSimdClass(pTypeInfo->GetClassHandleForValueClass());
     }
 
     // Get the base (element) type and size in bytes for a SIMD type. Returns CORINFO_TYPE_UNDEF

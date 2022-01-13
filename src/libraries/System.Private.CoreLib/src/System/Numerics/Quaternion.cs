@@ -12,7 +12,6 @@ namespace System.Numerics
     /// <summary>Represents a vector that is used to encode three-dimensional physical rotations.</summary>
     /// <remarks>The <see cref="System.Numerics.Quaternion" /> structure is used to efficiently rotate an object about the (x,y,z) vector by the angle theta, where:
     /// <c>w = cos(theta/2)</c></remarks>
-    [Intrinsic]
     public struct Quaternion : IEquatable<Quaternion>
     {
         private const float SlerpEpsilon = 1e-6f;

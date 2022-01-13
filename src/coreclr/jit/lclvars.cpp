@@ -2085,7 +2085,7 @@ Compiler::lvaStructFieldInfo Compiler::StructPromotionHelper::GetFieldInfo(CORIN
     // Check to see if this is a SIMD type.
     // We will only check this if we have already found a SIMD type, which will be true if
     // we have encountered any SIMD intrinsics.
-    if (compiler->usesSIMDTypes() && (fieldInfo.fldSize == 0) && compiler->isSIMDorHWSIMDClass(fieldInfo.fldTypeHnd))
+    if (compiler->usesSIMDTypes() && (fieldInfo.fldSize == 0) && compiler->isSimdClass(fieldInfo.fldTypeHnd))
     {
         unsigned    simdSize;
         CorInfoType simdBaseJitType = compiler->getBaseJitTypeAndSizeOfSIMDType(fieldInfo.fldTypeHnd, &simdSize);

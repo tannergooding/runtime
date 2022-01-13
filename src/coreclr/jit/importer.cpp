@@ -19451,11 +19451,11 @@ void Compiler::impInlineInitVars(InlineInfo* pInlineInfo)
         lclVarInfo[0].lclHasLdlocaOp = false;
 
 #ifdef FEATURE_SIMD
-        // We always want to check isSIMDClass, since we want to set foundSIMDType (to increase
+        // We always want to check isSimdClass, since we want to set foundSIMDType (to increase
         // the inlining multiplier) for anything in that assembly.
         // But we only need to normalize it if it is a TYP_STRUCT
         // (which we need to do even if we have already set foundSIMDType).
-        if (!foundSIMDType && isSIMDorHWSIMDClass(&(lclVarInfo[0].lclVerTypeInfo)))
+        if (!foundSIMDType && isSimdClass(&(lclVarInfo[0].lclVerTypeInfo)))
         {
             foundSIMDType = true;
         }
@@ -19502,7 +19502,7 @@ void Compiler::impInlineInitVars(InlineInfo* pInlineInfo)
         lclVarInfo[i].lclVerTypeInfo = verParseArgSigToTypeInfo(&methInfo->args, argLst);
 
 #ifdef FEATURE_SIMD
-        if ((!foundSIMDType || (sigType == TYP_STRUCT)) && isSIMDorHWSIMDClass(&(lclVarInfo[i].lclVerTypeInfo)))
+        if ((!foundSIMDType || (sigType == TYP_STRUCT)) && isSimdClass(&(lclVarInfo[i].lclVerTypeInfo)))
         {
             // If this is a SIMD class (i.e. in the SIMD assembly), then we will consider that we've
             // found a SIMD type, even if this may not be a type we recognize (the assumption is that
@@ -19698,7 +19698,7 @@ void Compiler::impInlineInitVars(InlineInfo* pInlineInfo)
         localsSig = info.compCompHnd->getArgNext(localsSig);
 
 #ifdef FEATURE_SIMD
-        if ((!foundSIMDType || (type == TYP_STRUCT)) && isSIMDorHWSIMDClass(&(lclVarInfo[i + argCnt].lclVerTypeInfo)))
+        if ((!foundSIMDType || (type == TYP_STRUCT)) && isSimdClass(&(lclVarInfo[i + argCnt].lclVerTypeInfo)))
         {
             foundSIMDType = true;
             if (supportSIMDTypes() && type == TYP_STRUCT)
@@ -19711,7 +19711,7 @@ void Compiler::impInlineInitVars(InlineInfo* pInlineInfo)
     }
 
 #ifdef FEATURE_SIMD
-    if (!foundSIMDType && (call->AsCall()->gtRetClsHnd != nullptr) && isSIMDorHWSIMDClass(call->AsCall()->gtRetClsHnd))
+    if (!foundSIMDType && (call->AsCall()->gtRetClsHnd != nullptr) && isSimdClass(call->AsCall()->gtRetClsHnd))
     {
         foundSIMDType = true;
     }
