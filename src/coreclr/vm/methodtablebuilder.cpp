@@ -1147,9 +1147,6 @@ BOOL MethodTableBuilder::CheckIfSIMDAndUpdateSize()
     if (strcmp(className, "Vector`1") != 0 || strcmp(nameSpace, "System.Numerics") != 0)
         return false;
 
-    if (!TargetHasAVXSupport())
-        return false;
-
     EEJitManager *jitMgr = ExecutionManager::GetEEJitManager();
     if (jitMgr->LoadJIT())
     {

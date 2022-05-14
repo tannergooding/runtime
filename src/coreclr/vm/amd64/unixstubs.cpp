@@ -32,7 +32,7 @@ extern "C"
         );
     }
 
-    DWORD xmmYmmStateSupport()
+    DWORD SseAndAvxStateSupport()
     {
         DWORD eax;
         __asm("  xgetbv\n" \
@@ -40,8 +40,20 @@ extern "C"
             : "c"(0) /*inputs - 0 in ecx*/\
             : "edx" /* registers that are clobbered*/
           );
-        // check OS has enabled both XMM and YMM state support
+        // check OS has enabled SSE and AVX state support
         return ((eax & 0x06) == 0x06) ? 1 : 0;
+    }
+
+    DWORD Avx512StateSupport()
+    {
+        DWORD eax;
+        __asm("  xgetbv\n" \
+            : "=a"(eax) /*output in eax*/\
+            : "c"(0) /*inputs - 0 in ecx*/\
+            : "edx" /* registers that are clobbered*/
+          );
+        // check OS has enabled AVX-512 state support
+        return ((eax & 0xE0) == 0xE0) ? 1 : 0;
     }
 
     void STDMETHODCALLTYPE JIT_ProfilerEnterLeaveTailcallStub(UINT_PTR ProfilerHandle)

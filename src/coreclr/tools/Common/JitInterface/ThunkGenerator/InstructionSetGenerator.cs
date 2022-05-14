@@ -13,6 +13,9 @@ namespace Thunkerator
 {
     public class InstructionSetGenerator
     {
+        // This represents the number of flags fields we currently track
+        const int FlagsFieldCount = 2;
+
         class InstructionSetInfo
         {
             public string Architecture { get; }
@@ -113,7 +116,6 @@ namespace Thunkerator
                 return "AMD64";
             return arch;
         }
-
 
         private string ArchToInstructionSetSuffixArch(string arch)
         {
@@ -245,9 +247,9 @@ namespace Thunkerator
 
             foreach (var architectureInfo in _architectureJitNames)
             {
-                if (architectureInfo.Value.Count > 62)
+                if (architectureInfo.Value.Count > ((FlagsFieldCount * sizeof(ulong) * 8) - 2))
                 {
-                    throw new Exception("Too many instruction sets added. Scheme of using uint64_t as instruction mask will need updating");
+                    throw new Exception("Too many instruction sets added. Update FlagsFieldCount");
                 }
             }
 
@@ -377,7 +379,11 @@ namespace Internal.JitInterface
     public enum InstructionSet
     {
         ILLEGAL = 0,
-        NONE = 63,
+        NONE = ");
+
+        tr.Write((FlagsFieldCount * sizeof(ulong) * 8) - 1);
+
+        tr.Write(@",
 ");
 
             foreach (string architecture in _architectures)
@@ -411,10 +417,27 @@ namespace Internal.JitInterface
 ");
             }
 
-            tr.Write(@"    public struct InstructionSetFlags : IEnumerable<InstructionSet>
+            tr.Write(@"    public unsafe struct InstructionSetFlags : IEnumerable<InstructionSet>
     {
-        private ulong _flags;
+        private const int FlagsFieldCount = ");
 
+        tr.Write(FlagsFieldCount);
+
+        tr.Write(@";
+        private const int BitsPerFlagsField = sizeof(ulong) * 8;
+
+        private fixed ulong _flags[FlagsFieldCount];
+
+        private static int GetFlagsFieldIndex(InstructionSet instructionSet)
+        {
+            int bitIndex = (int)instructionSet;
+            return bitIndex / BitsPerFlagsField;
+        }
+
+        private static ulong GetRelativeBitIndex(InstructionSet instructionSet)
+        {
+            return ((ulong)1) << ((int)instructionSet & 0x3F);
+        }
 ");
 
             foreach (string architecture in _architectures)
@@ -425,42 +448,68 @@ namespace Internal.JitInterface
 
             tr.Write(@"        public void AddInstructionSet(InstructionSet instructionSet)
         {
-            _flags = _flags | (((ulong)1) << (int)instructionSet);
+            int index = GetFlagsFieldIndex(instructionSet);
+            _flags[index] |= GetRelativeBitIndex(instructionSet);
         }
 
         public void RemoveInstructionSet(InstructionSet instructionSet)
         {
-            _flags = _flags & ~(((ulong)1) << (int)instructionSet);
+            int index = GetFlagsFieldIndex(instructionSet);
+            _flags[index] &= ~GetRelativeBitIndex(instructionSet);
         }
 
         public bool HasInstructionSet(InstructionSet instructionSet)
         {
-            return (_flags & (((ulong)1) << (int)instructionSet)) != 0;
+            int index = GetFlagsFieldIndex(instructionSet);
+            return (_flags[index] & GetRelativeBitIndex(instructionSet)) != 0;
         }
 
         public bool Equals(InstructionSetFlags other)
         {
-            return _flags == other._flags;
+            for (int index = 0; index < FlagsFieldCount; index++)
+            {
+                if (_flags[index] != other._flags[index])
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public void Add(InstructionSetFlags other)
         {
-            _flags |= other._flags;
+            for (int index = 0; index < FlagsFieldCount; index++)
+            {
+                _flags[index] |= other._flags[index];
+            }
         }
 
         public void IntersectionWith(InstructionSetFlags other)
         {
-            _flags &= other._flags;
+            for (int index = 0; index < FlagsFieldCount; index++)
+            {
+                _flags[index] &= other._flags[index];
+            }
         }
 
         public void Remove(InstructionSetFlags other)
         {
-            _flags &= ~other._flags;
+            for (int index = 0; index < FlagsFieldCount; index++)
+            {
+                _flags[index] &= ~other._flags[index];
+            }
         }
 
         public bool IsEmpty()
         {
-            return _flags == 0;
+            for (int index = 0; index < FlagsFieldCount; index++)
+            {
+                if (_flags[index] != 0)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -470,7 +519,7 @@ namespace Internal.JitInterface
 
         public IEnumerator<InstructionSet> GetEnumerator()
         {
-            for (int i = 1; i < (int)InstructionSet.NONE; i ++)
+            for (int i = 1; i < (int)InstructionSet.NONE; i++)
             {
                 InstructionSet instructionSet = (InstructionSet)i;
                 if (HasInstructionSet(instructionSet))
@@ -731,7 +780,11 @@ namespace Internal.JitInterface
 enum CORINFO_InstructionSet
 {
     InstructionSet_ILLEGAL = 0,
-    InstructionSet_NONE = 63,
+    InstructionSet_NONE = ");
+
+    tr.Write((FlagsFieldCount * sizeof(ulong) * 8) - 1);
+
+    tr.Write(@",
 ");
             foreach (string architecture in _architectures)
             {
@@ -749,41 +802,83 @@ enum CORINFO_InstructionSet
 struct CORINFO_InstructionSetFlags
 {
 private:
-    uint64_t _flags = 0;
+    static const int32_t FlagsFieldCount = ");
+
+    tr.Write(FlagsFieldCount);
+
+    tr.Write(@";
+    static const int32_t BitsPerFlagsField = sizeof(uint64_t) * 8;
+
+    uint64_t _flags[FlagsFieldCount] = { };
+
+    static int32_t GetFlagsFieldIndex(CORINFO_InstructionSet instructionSet)
+    {
+        int32_t bitIndex = (int32_t)instructionSet;
+        return bitIndex / BitsPerFlagsField;
+    }
+
+    static uint64_t GetRelativeBitIndex(CORINFO_InstructionSet instructionSet)
+    {
+        return ((uint64_t)1) << (instructionSet & 0x3F);
+    }
+
 public:
     void AddInstructionSet(CORINFO_InstructionSet instructionSet)
     {
-        _flags = _flags | (((uint64_t)1) << instructionSet);
+        int32_t index = GetFlagsFieldIndex(instructionSet);
+        _flags[index] |= GetRelativeBitIndex(instructionSet);
     }
 
     void RemoveInstructionSet(CORINFO_InstructionSet instructionSet)
     {
-        _flags = _flags & ~(((uint64_t)1) << instructionSet);
+        int32_t index = GetFlagsFieldIndex(instructionSet);
+        _flags[index] &= ~GetRelativeBitIndex(instructionSet);
     }
 
     bool HasInstructionSet(CORINFO_InstructionSet instructionSet) const
     {
-        return _flags & (((uint64_t)1) << instructionSet);
+        int32_t index = GetFlagsFieldIndex(instructionSet);
+        return _flags[index] & GetRelativeBitIndex(instructionSet);
     }
 
     bool Equals(CORINFO_InstructionSetFlags other) const
     {
-        return _flags == other._flags;
+        for (int32_t index = 0; index < FlagsFieldCount; index++)
+        {
+            if (_flags[index] != other._flags[index])
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     void Add(CORINFO_InstructionSetFlags other)
     {
-        _flags |= other._flags;
+        for (int32_t index = 0; index < FlagsFieldCount; index++)
+        {
+            _flags[index] |= other._flags[index];
+        }
     }
 
     bool IsEmpty() const
     {
-        return _flags == 0;
+        for (int32_t index = 0; index < FlagsFieldCount; index++)
+        {
+            if (_flags[index] != 0)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     void Reset()
     {
-        _flags = 0;
+        for (int32_t index = 0; index < FlagsFieldCount; index++)
+        {
+            _flags[index] = 0;
+        }
     }
 
     void Set64BitInstructionSetVariants()
@@ -806,16 +901,6 @@ public:
                 tr.WriteLine($"#endif // TARGET_{ArchToIfDefArch(architecture)}");
             }
             tr.Write(@"
-    }
-
-    uint64_t GetFlagsRaw()
-    {
-        return _flags;
-    }
-
-    void SetFromFlagsRaw(uint64_t flags)
-    {
-        _flags = flags;
     }
 };
 
@@ -905,7 +990,7 @@ inline CORINFO_InstructionSet InstructionSetFromR2RInstructionSet(ReadyToRunInst
                     string r2rEnumerationValue;
                     if (String.IsNullOrEmpty(instructionSet.R2rName))
                         continue;
-                    
+
                     r2rEnumerationValue = $"READYTORUN_INSTRUCTION_{instructionSet.R2rName}";
 
                     tr.WriteLine($"        case {r2rEnumerationValue}: return InstructionSet_{instructionSet.JitName};");

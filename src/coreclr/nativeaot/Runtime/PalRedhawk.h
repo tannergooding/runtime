@@ -740,8 +740,10 @@ REDHAWK_PALIMPORT void __cpuidex(int cpuInfo[4], int function_id, int subFunctio
 #include <intrin.h>
 #endif
 
-REDHAWK_PALIMPORT uint32_t REDHAWK_PALAPI xmmYmmStateSupport();
+REDHAWK_PALIMPORT uint32_t REDHAWK_PALAPI SseAndAvxStateSupport();
+REDHAWK_PALIMPORT uint32_t REDHAWK_PALAPI Avx512StateSupport();
 REDHAWK_PALIMPORT bool REDHAWK_PALAPI PalIsAvxEnabled();
+REDHAWK_PALIMPORT bool REDHAWK_PALAPI PalIsAvx512Enabled();
 
 #endif // defined(HOST_X86) || defined(HOST_AMD64)
 

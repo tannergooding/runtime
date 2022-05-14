@@ -202,9 +202,9 @@ public:
     }
 
     // DO NOT USE THIS FUNCTION! (except in very restricted special cases)
-    uint64_t GetInstructionSetFlagsRaw()
+    CORINFO_InstructionSetFlags GetInstructionSetFlagsRaw()
     {
-        return instructionSetFlags.GetFlagsRaw();
+        return instructionSetFlags;
     }
 
 private:

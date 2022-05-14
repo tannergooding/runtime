@@ -190,7 +190,7 @@ bool DetectCPUFeatures()
 
                             if (((cpuidInfo[ECX] & (1 << 27)) != 0) && ((cpuidInfo[ECX] & (1 << 28)) != 0)) // OSXSAVE & AVX
                             {
-                                if (PalIsAvxEnabled() && (xmmYmmStateSupport() == 1))
+                                if (PalIsAvxEnabled() && (SseAndAvxStateSupport() == 1))                    // XGETBV[1:2] == 11
                                 {
                                     g_cpuFeatures |= XArchIntrinsicConstants_Avx;
 
@@ -207,7 +207,78 @@ bool DetectCPUFeatures()
                                         {
                                             g_cpuFeatures |= XArchIntrinsicConstants_Avx2;
 
+                                            if ((cpuidInfo[EBX] & (1 << 16)) != 0)                          // AVX512F
+                                            {
+                                                if (PalIsAvx512Enabled() && (Avx512StateSupport() == 1))    // XGETBV[5:7] == 111
+                                                {
+                                                    g_cpuFeatures |= XArchIntrinsicConstants_AVX512F;
+
+                                                    if ((cpuidInfo[EBX] & (1 << 17)) != 0)                  // AVX512DQ
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512DQ;
+                                                    }
+
+                                                    if ((cpuidInfo[EBX] & (1 << 21)) != 0)                  // AVX512_IFMA
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512_IFMA;
+                                                    }
+
+                                                    if ((cpuidInfo[EBX] & (1 << 28)) != 0)                  // AVX512CD
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512CD;
+                                                    }
+
+                                                    if ((cpuidInfo[EBX] & (1 << 30)) != 0)                  // AVX512BW
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512BW;
+                                                    }
+
+                                                    if ((cpuidInfo[EBX] & (1 << 31)) != 0)                  // AVX512VL
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512VL;
+                                                    }
+
+                                                    if ((cpuidInfo[ECX] & (1 << 1)) != 0)                   // AVX512_VBMI
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512_VBMI;
+                                                    }
+
+                                                    if ((cpuidInfo[ECX] & (1 << 6)) != 0)                   // AVX512_VBMI2
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512_VBMI2;
+                                                    }
+
+                                                    if ((cpuidInfo[ECX] & (1 << 11)) != 0)                  // AVX512_VNNI
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512_VNNI;
+                                                    }
+
+                                                    if ((cpuidInfo[ECX] & (1 << 12)) != 0)                  // AVX512_BITALG
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512_BITALG;
+                                                    }
+
+                                                    if ((cpuidInfo[ECX] & (1 << 14)) != 0)                   // AVX512_VPOPCNTDQ
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512_VPOPCNTDQ;
+                                                    }
+
+                                                    if ((cpuidInfo[EDX] & (1 << 8)) != 0)                   // AVX512_VP2INTERSECT
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512_VP2INTERSECT;
+                                                    }
+
+                                                    __cpuidex(cpuidInfo, 0x00000007, 0x00000001);
+
+                                                    if ((cpuidInfo[EAX] & (1 << 5)) != 0)                   // AVX512_BF16
+                                                    {
+                                                        g_cpuFeatures |= XArchIntrinsicConstants_AVX512_BF16;
+                                                    }
+                                                }
+                                            }
+
                                             __cpuidex(cpuidInfo, 0x00000007, 0x00000001);
+
                                             if ((cpuidInfo[EAX] & (1 << 4)) != 0)                           // AVX-VNNI
                                             {
                                                 g_cpuFeatures |= XArchIntrinsicConstants_AvxVnni;
@@ -234,6 +305,11 @@ bool DetectCPUFeatures()
             if ((cpuidInfo[EBX] & (1 << 8)) != 0)                                                           // BMI2
             {
                 g_cpuFeatures |= XArchIntrinsicConstants_Bmi2;
+            }
+
+            if ((cpuidInfo[EDX] & (1 << 14)) != 0)
+            {
+                g_cpuFeatures |= XArchIntrinsicConstants_X86Serialize;                                      // SERIALIZE
             }
         }
     }

@@ -709,6 +709,11 @@ REDHAWK_PALEXPORT bool REDHAWK_PALAPI PalIsAvxEnabled()
     return true;
 }
 
+REDHAWK_PALEXPORT bool REDHAWK_PALAPI PalIsAvx512Enabled()
+{
+    return true;
+}
+
 REDHAWK_PALEXPORT void PalPrintFatalError(const char* message)
 {
     // Write the message using lowest-level OS API available. This is used to print the stack overflow
@@ -1145,7 +1150,7 @@ REDHAWK_PALEXPORT void __cpuidex(int cpuInfo[4], int function_id, int subFunctio
         );
 }
 
-REDHAWK_PALEXPORT uint32_t REDHAWK_PALAPI xmmYmmStateSupport()
+REDHAWK_PALEXPORT uint32_t REDHAWK_PALAPI SseAndAvxStateSupport()
 {
     DWORD eax;
     __asm("  xgetbv\n" \
@@ -1153,8 +1158,20 @@ REDHAWK_PALEXPORT uint32_t REDHAWK_PALAPI xmmYmmStateSupport()
         : "c"(0) /*inputs - 0 in ecx*/\
         : "edx" /* registers that are clobbered*/
       );
-    // check OS has enabled both XMM and YMM state support
+    // check OS has enabled both SSE and AVX state support
     return ((eax & 0x06) == 0x06) ? 1 : 0;
+}
+
+REDHAWK_PALEXPORT uint32_t REDHAWK_PALAPI Avx512StateSupport()
+{
+    DWORD eax;
+    __asm("  xgetbv\n" \
+        : "=a"(eax) /*output in eax*/\
+        : "c"(0) /*inputs - 0 in ecx*/\
+        : "edx" /* registers that are clobbered*/
+      );
+    // check OS has enabled AVX-512 state support
+    return ((eax & 0xE0) == 0xE0) ? 1 : 0;
 }
 #endif // defined(HOST_X86) || defined(HOST_AMD64)
 

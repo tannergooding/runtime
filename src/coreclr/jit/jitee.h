@@ -162,7 +162,7 @@ public:
         // We don't want to have to check every one, so we assume it is exactly the same values as the JitFlag
         // values defined in this type.
         m_jitFlags = flags.GetFlagsRaw();
-        m_instructionSetFlags.SetFromFlagsRaw(flags.GetInstructionSetFlagsRaw());
+        m_instructionSetFlags = flags.GetInstructionSetFlagsRaw();
 
         C_ASSERT(sizeof(JitFlags) == sizeof(CORJIT_FLAGS));
 

@@ -24,6 +24,21 @@ enum XArchIntrinsicConstants
     XArchIntrinsicConstants_Lzcnt = 0x1000,
     XArchIntrinsicConstants_AvxVnni = 0x2000,
     XArchIntrinsicConstants_Movbe = 0x4000,
+    XArchIntrinsicConstants_X86Serialize = 0x8000,
+    XArchIntrinsicConstants_AVX512BW = 0x00010000,
+    XArchIntrinsicConstants_AVX512CD = 0x00020000,
+    XArchIntrinsicConstants_AVX512DQ = 0x00040000,
+    XArchIntrinsicConstants_AVX512F = 0x00080000,
+    XArchIntrinsicConstants_AVX512VL = 0x00100000,
+    XArchIntrinsicConstants_AVX512_BF16 = 0x00200000,
+    XArchIntrinsicConstants_AVX512_BITALG = 0x00400000,
+    XArchIntrinsicConstants_AVX512_IFMA = 0x00800000,
+    XArchIntrinsicConstants_AVX512_VBMI = 0x01000000,
+    XArchIntrinsicConstants_AVX512_VBMI2 = 0x02000000,
+    XArchIntrinsicConstants_AVX512_VNNI = 0x04000000,
+    XArchIntrinsicConstants_AVX512_VPOPCNTDQ = 0x08000000,
+    XArchIntrinsicConstants_AVX512_VP2INTERSECT = 0x10000000,
+
 };
 #endif //HOST_X86 || HOST_AMD64
 

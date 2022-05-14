@@ -40,6 +40,19 @@ namespace Internal.ReadyToRunConstants
         Rcpc=26,
         Movbe=27,
         X86Serialize=28,
+        Avx512F=29,
+        Avx512Dq=30,
+        Avx512Ifma=31,
+        Avx512Cd=32,
+        Avx512Bw=33,
+        Avx512Vl=34,
+        Avx512Vbmi=35,
+        Avx512Vbmi2=36,
+        Avx512Vnni=37,
+        Avx512Bitalg=38,
+        Avx512Vpopcntdq=39,
+        Avx512Vp2Intersect=40,
+        Avx512Bf16=41,
 
     }
 }

@@ -1084,7 +1084,7 @@ void ResumeAtJit(PCONTEXT pContext, LPVOID oldESP)
 #ifndef TARGET_UNIX
 #pragma warning(push)
 #pragma warning(disable: 4035)
-extern "C" DWORD __stdcall xmmYmmStateSupport()
+extern "C" DWORD __stdcall SseAndAvxStateSupport()
 {
     // No CONTRACT
     STATIC_CONTRACT_NOTHROW;
@@ -1095,7 +1095,28 @@ extern "C" DWORD __stdcall xmmYmmStateSupport()
         mov     ecx, 0                  ; Specify xcr0
         xgetbv                          ; result in EDX:EAX
         and eax, 06H
-        cmp eax, 06H                    ; check OS has enabled both XMM and YMM state support
+        cmp eax, 06H                    ; check OS has enabled SSE and AVX state support
+        jne     not_supported
+        mov     eax, 1
+        jmp     done
+    not_supported:
+        mov     eax, 0
+    done:
+    }
+}
+
+extern "C" DWORD __stdcall Avx512StateSupport()
+{
+    // No CONTRACT
+    STATIC_CONTRACT_NOTHROW;
+    STATIC_CONTRACT_GC_NOTRIGGER;
+
+    __asm
+    {
+        mov     ecx, 0                  ; Specify xcr0
+        xgetbv                          ; result in EDX:EAX
+        and eax, E0H
+        cmp eax, E0H                    ; check OS has enabled AVX-512 state support
         jne     not_supported
         mov     eax, 1
         jmp     done
@@ -1130,7 +1151,7 @@ void __cpuidex(int cpuInfo[4], int function_id, int subFunction_id)
     );
 }
 
-extern "C" DWORD __stdcall xmmYmmStateSupport()
+extern "C" DWORD __stdcall SseAndAvxStateSupport()
 {
     DWORD eax;
     __asm("  xgetbv\n" \
@@ -1138,8 +1159,20 @@ extern "C" DWORD __stdcall xmmYmmStateSupport()
         : "c"(0) /*inputs - 0 in ecx*/\
         : "edx" /* registers that are clobbered*/
         );
-    // check OS has enabled both XMM and YMM state support
+    // check OS has enabled SSE and AVX state support
     return ((eax & 0x06) == 0x06) ? 1 : 0;
+}
+
+extern "C" DWORD __stdcall Avx512StateSupport()
+{
+    DWORD eax;
+    __asm("  xgetbv\n" \
+        : "=a"(eax) /*output in eax*/\
+        : "c"(0) /*inputs - 0 in ecx*/\
+        : "edx" /* registers that are clobbered*/
+        );
+    // check OS has enabled AVX-512 state support
+    return ((eax & 0xE0) == 0xE0) ? 1 : 0;
 }
 
 #endif // !TARGET_UNIX
