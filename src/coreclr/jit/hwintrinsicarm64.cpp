@@ -545,8 +545,16 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             break;
         }
 
-        case NI_Vector64_Create:
         case NI_Vector64_CreateScalarUnsafe:
+        {
+            if (genTypeSize(simdBaseType) == 8)
+            {
+                intrinsic = NI_Vector64_Create;
+            }
+            FALLTHROUGH;
+        }
+
+        case NI_Vector64_Create:
         case NI_Vector128_Create:
         case NI_Vector128_CreateScalarUnsafe:
         {
@@ -1041,6 +1049,14 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             break;
         }
 
+        case NI_Vector64_get_One:
+        case NI_Vector128_get_One:
+        {
+            assert(sig->numArgs == 0);
+            retNode = gtNewOneConNode(retType, simdBaseType);
+            break;
+        }
+
         case NI_Vector64_get_Zero:
         case NI_Vector128_get_Zero:
         {
@@ -1439,11 +1455,12 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
         case NI_Vector128_ShiftRightArithmetic:
         {
             assert(sig->numArgs == 2);
+            genTreeOps op = varTypeIsUnsigned(simdBaseType) ? GT_RSZ : GT_RSH;
 
             op2 = impPopStack().val;
             op1 = impSIMDPopStack(retType);
 
-            retNode = gtNewSimdBinOpNode(GT_RSH, retType, op1, op2, simdBaseJitType, simdSize,
+            retNode = gtNewSimdBinOpNode(op, retType, op1, op2, simdBaseJitType, simdSize,
                                          /* isSimdAsHWIntrinsic */ false);
             break;
         }
@@ -1592,9 +1609,10 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
         {
             assert(numArgs == 3);
             GenTree* indexOp = impStackTop(1).val;
+
             if (!indexOp->OperIsConst())
             {
-                // TODO-XARCH-CQ: We should always import these like we do with GetElement
+                // TODO-ARM64-CQ: We should always import these like we do with GetElement
                 // If index is not constant use software fallback.
                 return nullptr;
             }
@@ -1602,7 +1620,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             ssize_t imm8  = indexOp->AsIntCon()->IconValue();
             ssize_t count = simdSize / genTypeSize(simdBaseType);
 
-            if (imm8 >= count || imm8 < 0)
+            if ((imm8 >= count) || (imm8 < 0))
             {
                 // Using software fallback if index is out of range (throw exception)
                 return nullptr;

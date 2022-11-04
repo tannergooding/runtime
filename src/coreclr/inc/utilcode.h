@@ -25,7 +25,6 @@
 #include "clrhost.h"
 #include "debugmacros.h"
 #include "corhlprpriv.h"
-#include "winnls.h"
 #include "check.h"
 #include "safemath.h"
 #include "new.hpp"
@@ -37,7 +36,6 @@
 #endif
 
 #include "contract.h"
-#include "entrypoints.h"
 
 #include<minipal/utils.h>
 
