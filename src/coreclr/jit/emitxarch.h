@@ -202,6 +202,16 @@ bool IsWEvexOpcodeExtension(const instrDesc* id)
 
     instruction ins = id->idIns();
 
+    if (IsRexW1Instruction(ins))
+    {
+        return true;
+    }
+    else if (IsRexWIGInstruction(ins) || IsRexW0Instruction(ins))
+    {
+        // TODO: Make this a simple assert once all instructions are annotated
+        return false;
+    }
+
     switch (ins)
     {
         case INS_movq:
@@ -648,6 +658,9 @@ static bool DoesWriteZeroFlag(instruction ins);
 bool DoesWriteSignFlag(instruction ins);
 bool DoesResetOverflowAndCarryFlags(instruction ins);
 bool IsFlagsAlwaysModified(instrDesc* id);
+bool IsRexWIGInstruction(instruction ins);
+bool IsRexW0Instruction(instruction ins);
+bool IsRexW1Instruction(instruction ins);
 
 bool IsThreeOperandAVXInstruction(instruction ins)
 {

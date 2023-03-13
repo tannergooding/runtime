@@ -154,6 +154,11 @@ enum insFlags : uint64_t
     Input_64Bit = 1ULL << 32,
     Input_Mask = (0xFULL) << 29,
 
+    // encoding of the REX.W-bit
+    REX_WIG = 1ULL << 33,
+    REX_W0  = 1ULL << 34,
+    REX_W1  = 1ULL << 35,
+
     //  TODO-Cleanup:  Remove this flag and its usage from TARGET_XARCH
     INS_FLAGS_DONT_CARE = 0x00ULL,
 };

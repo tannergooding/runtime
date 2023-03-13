@@ -492,6 +492,45 @@ bool emitter::IsFlagsAlwaysModified(instrDesc* id)
     return true;
 }
 
+bool emitter::IsRexWIGInstruction(instruction ins)
+{
+    insFlags flags = CodeGenInterface::instInfo[ins];
+
+    if ((flags & REX_WIG) != 0)
+    {
+        assert((flags & (REX_W0 | REX_W1)) == 0);
+        return true;
+    }
+
+    return false;
+}
+
+bool emitter::IsRexW0Instruction(instruction ins)
+{
+    insFlags flags = CodeGenInterface::instInfo[ins];
+
+    if ((flags & REX_W0) != 0)
+    {
+        assert((flags & (REX_WIG | REX_W1)) == 0);
+        return true;
+    }
+
+    return false;
+}
+
+bool emitter::IsRexW1Instruction(instruction ins)
+{
+    insFlags flags = CodeGenInterface::instInfo[ins];
+
+    if ((flags & REX_W1) != 0)
+    {
+        assert((flags & (REX_WIG | REX_W0)) == 0);
+        return true;
+    }
+
+    return false;
+}
+
 #ifdef TARGET_64BIT
 //------------------------------------------------------------------------
 // AreUpper32BitsZero: check if some previously emitted
