@@ -17730,9 +17730,17 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         case INS_paddusw:
         case INS_psubusw:
         case INS_pand:
+        case INS_pandd:
+        case INS_pandq:
         case INS_pandn:
+        case INS_pandnd:
+        case INS_pandnq:
         case INS_por:
+        case INS_pord:
+        case INS_porq:
         case INS_pxor:
+        case INS_pxord:
+        case INS_pxorq:
         case INS_andpd:
         case INS_andps:
         case INS_andnpd:
