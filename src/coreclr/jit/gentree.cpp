@@ -4864,7 +4864,12 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
             {
                 level = 0;
 
+#if defined(TARGET_XARCH)
+                // TODO-XARCH-AVX512: Remove the TYP_SIMD64 check once AllBitsSet for TYP_SIMD64 gets codegen support
+                if ((tree->AsVecCon()->IsAllBitsSet() && !tree->TypeIs(TYP_SIMD64)) || tree->AsVecCon()->IsZero())
+#else
                 if (tree->AsVecCon()->IsAllBitsSet() || tree->AsVecCon()->IsZero())
+#endif // TARGET_*
                 {
                     // We generate `cmpeq* tgtReg, tgtReg`, which is 4-5 bytes, for AllBitsSet
                     // and generate `xorp* tgtReg, tgtReg`, which is 3-5 bytes, for Zero

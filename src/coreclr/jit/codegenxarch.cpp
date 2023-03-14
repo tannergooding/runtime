@@ -489,7 +489,8 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
             emitter* emit = GetEmitter();
             emitAttr attr = emitTypeSize(targetType);
 
-            if (vecCon->IsAllBitsSet())
+            // TODO-XARCH-AVX512: Remove the TYP_SIMD64 check once AllBitsSet for TYP_SIMD64 gets codegen support
+            if (vecCon->IsAllBitsSet() && !vecCon->TypeIs(TYP_SIMD64))
             {
                 if ((attr != EA_32BYTE) || compiler->compOpportunisticallyDependsOn(InstructionSet_AVX2))
                 {

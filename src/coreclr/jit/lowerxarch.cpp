@@ -6817,8 +6817,9 @@ bool Lowering::IsContainableHWIntrinsicOp(GenTreeHWIntrinsic* parentNode, GenTre
             }
             else if (childNode->IsCnsVec())
             {
+                // TODO-XARCH-AVX512: Remove the TYP_SIMD64 check once AllBitsSet for TYP_SIMD64 gets codegen support
                 GenTreeVecCon* vecCon = childNode->AsVecCon();
-                canBeContained        = !vecCon->IsAllBitsSet() && !vecCon->IsZero();
+                canBeContained        = (!vecCon->IsAllBitsSet() || vecCon->TypeIs(TYP_SIMD64)) && !vecCon->IsZero();
             }
         }
 
