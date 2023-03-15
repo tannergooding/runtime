@@ -3743,6 +3743,9 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
             case NI_Vector256_Create:
             case NI_Vector256_CreateScalar:
             case NI_Vector256_CreateScalarUnsafe:
+            case NI_Vector512_Create:
+            case NI_Vector512_CreateScalar:
+            case NI_Vector512_CreateScalarUnsafe:
 #elif defined(TARGET_ARM64)
             case NI_Vector64_Create:
             case NI_Vector64_CreateScalar:
@@ -4864,12 +4867,7 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
             {
                 level = 0;
 
-#if defined(TARGET_XARCH)
-                // TODO-XARCH-AVX512: Remove the TYP_SIMD64 check once AllBitsSet for TYP_SIMD64 gets codegen support
-                if ((tree->AsVecCon()->IsAllBitsSet() && !tree->TypeIs(TYP_SIMD64)) || tree->AsVecCon()->IsZero())
-#else
                 if (tree->AsVecCon()->IsAllBitsSet() || tree->AsVecCon()->IsZero())
-#endif // TARGET_*
                 {
                     // We generate `cmpeq* tgtReg, tgtReg`, which is 4-5 bytes, for AllBitsSet
                     // and generate `xorp* tgtReg, tgtReg`, which is 3-5 bytes, for Zero
@@ -19233,6 +19231,7 @@ bool GenTree::isContainableHWIntrinsic() const
 
         case NI_Vector128_CreateScalarUnsafe:
         case NI_Vector256_CreateScalarUnsafe:
+        case NI_Vector512_CreateScalarUnsafe:
         {
             // These HWIntrinsic operations are contained as part of scalar ops
             return true;
@@ -21485,6 +21484,10 @@ GenTree* Compiler::gtNewSimdCreateScalarNode(
     {
         hwIntrinsicID = NI_Vector256_CreateScalar;
     }
+    else if (simdSize == 64)
+    {
+        hwIntrinsicID = NI_Vector512_CreateScalar;
+    }
 #elif defined(TARGET_ARM64)
     if (simdSize == 8)
     {
@@ -21624,6 +21627,10 @@ GenTree* Compiler::gtNewSimdCreateScalarUnsafeNode(
     if (simdSize == 32)
     {
         hwIntrinsicID = NI_Vector256_CreateScalarUnsafe;
+    }
+    else if (simdSize == 64)
+    {
+        hwIntrinsicID = NI_Vector512_CreateScalarUnsafe;
     }
 #elif defined(TARGET_ARM64)
     if (simdSize == 8)
@@ -21918,15 +21925,7 @@ GenTree* Compiler::gtNewSimdLoadNonTemporalNode(
     // We don't guarantee a non-temporal load will actually occur, so fallback
     // to regular aligned loads if the required ISA isn't supported.
 
-    if (simdSize == 64)
-    {
-        if (compOpportunisticallyDependsOn(InstructionSet_AVX512F))
-        {
-            intrinsic     = NI_AVX512F_LoadAlignedVector512NonTemporal;
-            isNonTemporal = true;
-        }
-    }
-    else if (simdSize == 32)
+    if (simdSize == 32)
     {
         if (compOpportunisticallyDependsOn(InstructionSet_AVX2))
         {
@@ -21937,6 +21936,14 @@ GenTree* Compiler::gtNewSimdLoadNonTemporalNode(
         {
             assert(compIsaSupportedDebugOnly(InstructionSet_AVX));
             intrinsic = NI_AVX_LoadAlignedVector256;
+        }
+    }
+    else if (simdSize == 64)
+    {
+        if (compOpportunisticallyDependsOn(InstructionSet_AVX512F))
+        {
+            intrinsic     = NI_AVX512F_LoadAlignedVector512NonTemporal;
+            isNonTemporal = true;
         }
     }
     else if (compOpportunisticallyDependsOn(InstructionSet_SSE41))
@@ -23180,15 +23187,15 @@ GenTree* Compiler::gtNewSimdStoreAlignedNode(
 
     NamedIntrinsic intrinsic = NI_Illegal;
 
-    if (simdSize == 64)
-    {
-        assert(compIsaSupportedDebugOnly(InstructionSet_AVX512F));
-        intrinsic = NI_AVX512F_StoreAligned;
-    }
-    else if (simdSize == 32)
+    if (simdSize == 32)
     {
         assert(compIsaSupportedDebugOnly(InstructionSet_AVX));
         intrinsic = NI_AVX_StoreAligned;
+    }
+    else if (simdSize == 64)
+    {
+        assert(compIsaSupportedDebugOnly(InstructionSet_AVX512F));
+        intrinsic = NI_AVX512F_StoreAligned;
     }
     else if (simdBaseType != TYP_FLOAT)
     {
