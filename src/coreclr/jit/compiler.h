@@ -5623,6 +5623,7 @@ protected:
     bool fgMayExplicitTailCall();
 
     void fgFindJumpTargets(const BYTE* codeAddr, IL_OFFSET codeSize, FixedBitVect* jumpTarget);
+    bool fgFindJumpTargets_CallIntrinsic(CORINFO_METHOD_HANDLE methodHnd, FgStack& pushedStack, OPCODE opcode, bool preciseScan, bool isInlining);
 
     void fgMarkBackwardJump(BasicBlock* startBlock, BasicBlock* endBlock);
 
