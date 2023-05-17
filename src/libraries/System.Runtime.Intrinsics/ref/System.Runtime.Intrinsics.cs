@@ -337,6 +337,69 @@ namespace System.Runtime.Intrinsics
         public static System.Runtime.Intrinsics.Vector128<T> operator >>>(System.Runtime.Intrinsics.Vector128<T> value, int shiftCount) { throw null; }
         public override string ToString() { throw null; }
     }
+    public static class Vector128Mask
+    {
+        public static bool IsHardwareAccelerated { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> AndNot<T>(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> BitwiseAnd<T>(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> BitwiseOr<T>(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector128Mask<T> Create<T>(ushort value) where T : struct { throw null; }
+        public static bool Equals<T>(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) where T : struct { throw null; }
+        public static bool GetElement<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask, int index) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static ushort LeadingZeroCount<T>(System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> OnesComplement<T>(System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static ushort PopCount<T>(System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> ShiftLeft<T>(System.Runtime.Intrinsics.Vector128Mask<T> mask, int shiftAmount) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> ShiftRightLogical<T>(System.Runtime.Intrinsics.Vector128Mask<T> mask, int shiftAmount) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<TTo> To<TFrom, TTo>(this System.Runtime.Intrinsics.Vector128Mask<TFrom> mask) where TFrom : struct where TTo : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<byte> ToByte<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<double> ToDouble<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<short> ToInt16<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<int> ToInt32<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<long> ToInt64<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<nint> ToNInt<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector128Mask<nuint> ToNUInt<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector128Mask<sbyte> ToSByte<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<float> ToSingle<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector128Mask<ushort> ToUInt16<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector128Mask<uint> ToUInt32<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector128Mask<ulong> ToUInt64<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static ushort TrailingZeroCount<T>(System.Runtime.Intrinsics.Vector128Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> WithElement<T>(this System.Runtime.Intrinsics.Vector128Mask<T> mask, int index, bool value) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> Xor<T>(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> Xnor<T>(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) where T : struct { throw null; }
+    }
+    public readonly struct Vector128Mask<T> : System.IEquatable<System.Runtime.Intrinsics.Vector128Mask<T>> where T : struct
+    {
+        private readonly int _dummyPrimitive;
+        public static System.Runtime.Intrinsics.Vector128Mask<T> AllBitsSet { get { throw null; } }
+        public static int Count { get { throw null; } }
+        public static bool IsSupported { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> Zero { get { throw null; } }
+        public bool this[int index] { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> operator &(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> operator |(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) { throw null; }
+        public static bool operator ==(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> operator ^(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) { throw null; }
+        public static bool operator !=(System.Runtime.Intrinsics.Vector128Mask<T> left, System.Runtime.Intrinsics.Vector128Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> operator <<(System.Runtime.Intrinsics.Vector128Mask<T> mask, int shiftAmount) { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> operator ~(System.Runtime.Intrinsics.Vector128Mask<T> mask) { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> operator >>(System.Runtime.Intrinsics.Vector128Mask<T> mask, int shiftAmount) { throw null; }
+        public static System.Runtime.Intrinsics.Vector128Mask<T> operator >>>(System.Runtime.Intrinsics.Vector128Mask<T> mask, int shiftAmount) { throw null; }
+        public override bool Equals([NotNullWhen(true)] object? obj) { throw null; }
+        public bool Equals(System.Runtime.Intrinsics.Vector128Mask<T> other) { throw null; }
+        public override int GetHashCode() { throw null; }
+        public override string ToString() { throw null; }
+    }
     public static partial class Vector256
     {
         public static bool IsHardwareAccelerated { get { throw null; } }
@@ -660,6 +723,69 @@ namespace System.Runtime.Intrinsics
         public static System.Runtime.Intrinsics.Vector256<T> operator >>>(System.Runtime.Intrinsics.Vector256<T> value, int shiftCount) { throw null; }
         public override string ToString() { throw null; }
     }
+    public static class Vector256Mask
+    {
+        public static bool IsHardwareAccelerated { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> AndNot<T>(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> BitwiseAnd<T>(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> BitwiseOr<T>(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector256Mask<T> Create<T>(uint value) where T : struct { throw null; }
+        public static bool Equals<T>(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) where T : struct { throw null; }
+        public static bool GetElement<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask, int index) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static uint LeadingZeroCount<T>(System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> OnesComplement<T>(System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static uint PopCount<T>(System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> ShiftLeft<T>(System.Runtime.Intrinsics.Vector256Mask<T> mask, int shiftAmount) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> ShiftRightLogical<T>(System.Runtime.Intrinsics.Vector256Mask<T> mask, int shiftAmount) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<TTo> To<TFrom, TTo>(this System.Runtime.Intrinsics.Vector256Mask<TFrom> mask) where TFrom : struct where TTo : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<byte> ToByte<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<double> ToDouble<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<short> ToInt16<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<int> ToInt32<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<long> ToInt64<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<nint> ToNInt<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector256Mask<nuint> ToNUInt<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector256Mask<sbyte> ToSByte<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<float> ToSingle<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector256Mask<ushort> ToUInt16<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector256Mask<uint> ToUInt32<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector256Mask<ulong> ToUInt64<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static uint TrailingZeroCount<T>(System.Runtime.Intrinsics.Vector256Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> WithElement<T>(this System.Runtime.Intrinsics.Vector256Mask<T> mask, int index, bool value) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> Xor<T>(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> Xnor<T>(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) where T : struct { throw null; }
+    }
+    public readonly struct Vector256Mask<T> : System.IEquatable<System.Runtime.Intrinsics.Vector256Mask<T>> where T : struct
+    {
+        private readonly int _dummyPrimitive;
+        public static System.Runtime.Intrinsics.Vector256Mask<T> AllBitsSet { get { throw null; } }
+        public static int Count { get { throw null; } }
+        public static bool IsSupported { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> Zero { get { throw null; } }
+        public bool this[int index] { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> operator &(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> operator |(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) { throw null; }
+        public static bool operator ==(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> operator ^(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) { throw null; }
+        public static bool operator !=(System.Runtime.Intrinsics.Vector256Mask<T> left, System.Runtime.Intrinsics.Vector256Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> operator <<(System.Runtime.Intrinsics.Vector256Mask<T> mask, int shiftAmount) { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> operator ~(System.Runtime.Intrinsics.Vector256Mask<T> mask) { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> operator >>(System.Runtime.Intrinsics.Vector256Mask<T> mask, int shiftAmount) { throw null; }
+        public static System.Runtime.Intrinsics.Vector256Mask<T> operator >>>(System.Runtime.Intrinsics.Vector256Mask<T> mask, int shiftAmount) { throw null; }
+        public override bool Equals([NotNullWhen(true)] object? obj) { throw null; }
+        public bool Equals(System.Runtime.Intrinsics.Vector256Mask<T> other) { throw null; }
+        public override int GetHashCode() { throw null; }
+        public override string ToString() { throw null; }
+    }
     public static partial class Vector512
     {
         public static bool IsHardwareAccelerated { get { throw null; } }
@@ -981,6 +1107,69 @@ namespace System.Runtime.Intrinsics
         public static System.Runtime.Intrinsics.Vector512<T> operator >>>(System.Runtime.Intrinsics.Vector512<T> value, int shiftCount) { throw null; }
         public override string ToString() { throw null; }
     }
+    public static class Vector512Mask
+    {
+        public static bool IsHardwareAccelerated { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> AndNot<T>(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> BitwiseAnd<T>(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> BitwiseOr<T>(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector512Mask<T> Create<T>(ulong value) where T : struct { throw null; }
+        public static bool Equals<T>(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) where T : struct { throw null; }
+        public static bool GetElement<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask, int index) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static ulong LeadingZeroCount<T>(System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> OnesComplement<T>(System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static ulong PopCount<T>(System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> ShiftLeft<T>(System.Runtime.Intrinsics.Vector512Mask<T> mask, int shiftAmount) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> ShiftRightLogical<T>(System.Runtime.Intrinsics.Vector512Mask<T> mask, int shiftAmount) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<TTo> To<TFrom, TTo>(this System.Runtime.Intrinsics.Vector512Mask<TFrom> mask) where TFrom : struct where TTo : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<byte> ToByte<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<double> ToDouble<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<short> ToInt16<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<int> ToInt32<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<long> ToInt64<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<nint> ToNInt<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector512Mask<nuint> ToNUInt<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector512Mask<sbyte> ToSByte<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<float> ToSingle<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector512Mask<ushort> ToUInt16<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector512Mask<uint> ToUInt32<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector512Mask<ulong> ToUInt64<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static ulong TrailingZeroCount<T>(System.Runtime.Intrinsics.Vector512Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> WithElement<T>(this System.Runtime.Intrinsics.Vector512Mask<T> mask, int index, bool value) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> Xor<T>(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> Xnor<T>(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) where T : struct { throw null; }
+    }
+    public readonly struct Vector512Mask<T> : System.IEquatable<System.Runtime.Intrinsics.Vector512Mask<T>> where T : struct
+    {
+        private readonly int _dummyPrimitive;
+        public static System.Runtime.Intrinsics.Vector512Mask<T> AllBitsSet { get { throw null; } }
+        public static int Count { get { throw null; } }
+        public static bool IsSupported { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> Zero { get { throw null; } }
+        public bool this[int index] { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> operator &(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> operator |(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) { throw null; }
+        public static bool operator ==(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> operator ^(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) { throw null; }
+        public static bool operator !=(System.Runtime.Intrinsics.Vector512Mask<T> left, System.Runtime.Intrinsics.Vector512Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> operator <<(System.Runtime.Intrinsics.Vector512Mask<T> mask, int shiftAmount) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> operator ~(System.Runtime.Intrinsics.Vector512Mask<T> mask) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> operator >>(System.Runtime.Intrinsics.Vector512Mask<T> mask, int shiftAmount) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512Mask<T> operator >>>(System.Runtime.Intrinsics.Vector512Mask<T> mask, int shiftAmount) { throw null; }
+        public override bool Equals([NotNullWhen(true)] object? obj) { throw null; }
+        public bool Equals(System.Runtime.Intrinsics.Vector512Mask<T> other) { throw null; }
+        public override int GetHashCode() { throw null; }
+        public override string ToString() { throw null; }
+    }
     public static partial class Vector64
     {
         public static bool IsHardwareAccelerated { get { throw null; } }
@@ -1270,6 +1459,65 @@ namespace System.Runtime.Intrinsics
         public static System.Runtime.Intrinsics.Vector64<T> operator -(System.Runtime.Intrinsics.Vector64<T> vector) { throw null; }
         public static System.Runtime.Intrinsics.Vector64<T> operator +(System.Runtime.Intrinsics.Vector64<T> value) { throw null; }
         public static System.Runtime.Intrinsics.Vector64<T> operator >>>(System.Runtime.Intrinsics.Vector64<T> value, int shiftCount) { throw null; }
+        public override string ToString() { throw null; }
+    }
+    public static class Vector64Mask
+    {
+        public static bool IsHardwareAccelerated { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> AndNot<T>(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> BitwiseAnd<T>(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> BitwiseOr<T>(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> Create<T>(byte value) where T : struct { throw null; }
+        public static bool Equals<T>(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) where T : struct { throw null; }
+        public static bool GetElement<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask, int index) where T : struct { throw null; }
+        public static byte LeadingZeroCount<T>(System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> OnesComplement<T>(System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static byte PopCount<T>(System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> ShiftLeft<T>(System.Runtime.Intrinsics.Vector64Mask<T> mask, int shiftAmount) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> ShiftRightLogical<T>(System.Runtime.Intrinsics.Vector64Mask<T> mask, int shiftAmount) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<TTo> To<TFrom, TTo>(this System.Runtime.Intrinsics.Vector64Mask<TFrom> mask) where TFrom : struct where TTo : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<byte> ToByte<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<double> ToDouble<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<short> ToInt16<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<int> ToInt32<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<long> ToInt64<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<nint> ToNInt<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector64Mask<nuint> ToNUInt<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector64Mask<sbyte> ToSByte<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<float> ToSingle<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector64Mask<ushort> ToUInt16<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector64Mask<uint> ToUInt32<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector64Mask<ulong> ToUInt64<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static byte TrailingZeroCount<T>(System.Runtime.Intrinsics.Vector64Mask<T> mask) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> WithElement<T>(this System.Runtime.Intrinsics.Vector64Mask<T> mask, int index, bool value) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> Xor<T>(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) where T : struct { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> Xnor<T>(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) where T : struct { throw null; }
+    }
+    public readonly struct Vector64Mask<T> : System.IEquatable<System.Runtime.Intrinsics.Vector64Mask<T>> where T : struct
+    {
+        private readonly int _dummyPrimitive;
+        public static System.Runtime.Intrinsics.Vector64Mask<T> AllBitsSet { get { throw null; } }
+        public static int Count { get { throw null; } }
+        public static bool IsSupported { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> Zero { get { throw null; } }
+        public bool this[int index] { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> operator &(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> operator |(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) { throw null; }
+        public static bool operator ==(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> operator ^(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) { throw null; }
+        public static bool operator !=(System.Runtime.Intrinsics.Vector64Mask<T> left, System.Runtime.Intrinsics.Vector64Mask<T> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> operator <<(System.Runtime.Intrinsics.Vector64Mask<T> mask, int shiftAmount) { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> operator ~(System.Runtime.Intrinsics.Vector64Mask<T> mask) { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> operator >>(System.Runtime.Intrinsics.Vector64Mask<T> mask, int shiftAmount) { throw null; }
+        public static System.Runtime.Intrinsics.Vector64Mask<T> operator >>>(System.Runtime.Intrinsics.Vector64Mask<T> mask, int shiftAmount) { throw null; }
+        public override bool Equals([NotNullWhen(true)] object? obj) { throw null; }
+        public bool Equals(System.Runtime.Intrinsics.Vector64Mask<T> other) { throw null; }
+        public override int GetHashCode() { throw null; }
         public override string ToString() { throw null; }
     }
 }

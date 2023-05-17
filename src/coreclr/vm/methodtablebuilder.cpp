@@ -9998,6 +9998,10 @@ void MethodTableBuilder::CheckForSystemTypes()
 
                     pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 8; // sizeof(__m64)
                 }
+                else if (strcmp(name, g_Vector64MaskName) == 0)
+                {
+                    pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 1;
+                }
                 else if (strcmp(name, g_Vector128Name) == 0)
                 {
     #ifdef TARGET_ARM
@@ -10007,6 +10011,10 @@ void MethodTableBuilder::CheckForSystemTypes()
     #else
                     pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 16; // sizeof(__m128)
     #endif // TARGET_ARM
+                }
+                else if (strcmp(name, g_Vector128MaskName) == 0)
+                {
+                    pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 2;
                 }
                 else if (strcmp(name, g_Vector256Name) == 0)
                 {
@@ -10024,6 +10032,10 @@ void MethodTableBuilder::CheckForSystemTypes()
                     pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 32; // sizeof(__m256)
     #endif // TARGET_ARM elif TARGET_ARM64
                 }
+                else if (strcmp(name, g_Vector256MaskName) == 0)
+                {
+                    pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 4;
+                }
                 else if (strcmp(name, g_Vector512Name) == 0)
                 {
     #ifdef TARGET_ARM
@@ -10039,6 +10051,10 @@ void MethodTableBuilder::CheckForSystemTypes()
     #else
                     pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 64; // sizeof(__m512)
     #endif // TARGET_ARM elif TARGET_ARM64
+                }
+                else if (strcmp(name, g_Vector512MaskName) == 0)
+                {
+                    pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 8;
                 }
                 else
                 {

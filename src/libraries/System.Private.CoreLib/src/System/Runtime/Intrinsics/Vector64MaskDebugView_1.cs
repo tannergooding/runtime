@@ -5,12 +5,12 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.Intrinsics;
 
-internal readonly struct Vector64DebugView<T>
+internal readonly struct Vector64MaskDebugView<T>
     where T : struct
 {
-    private readonly Vector64<T> _value;
+    private readonly Vector64Mask<T> _value;
 
-    public Vector64DebugView(Vector64<T> value)
+    public Vector64MaskDebugView(Vector64Mask<T> value)
     {
         _value = value;
     }
@@ -19,7 +19,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new byte[Vector64<byte>.Count];
+            var items = new byte[Vector64Mask<byte>.Count];
             Unsafe.WriteUnaligned(ref items[0], _value);
             return items;
         }
@@ -29,7 +29,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new double[Vector64<double>.Count];
+            var items = new double[Vector64Mask<double>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<double, byte>(ref items[0]), _value);
             return items;
         }
@@ -39,7 +39,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new short[Vector64<short>.Count];
+            var items = new short[Vector64Mask<short>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<short, byte>(ref items[0]), _value);
             return items;
         }
@@ -49,7 +49,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new int[Vector64<int>.Count];
+            var items = new int[Vector64Mask<int>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<int, byte>(ref items[0]), _value);
             return items;
         }
@@ -59,7 +59,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new long[Vector64<long>.Count];
+            var items = new long[Vector64Mask<long>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<long, byte>(ref items[0]), _value);
             return items;
         }
@@ -69,7 +69,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new nint[Vector64<nint>.Count];
+            var items = new nint[Vector64Mask<nint>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<nint, byte>(ref items[0]), _value);
             return items;
         }
@@ -79,7 +79,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new nuint[Vector64<nuint>.Count];
+            var items = new nuint[Vector64Mask<nuint>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<nuint, byte>(ref items[0]), _value);
             return items;
         }
@@ -89,7 +89,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new sbyte[Vector64<sbyte>.Count];
+            var items = new sbyte[Vector64Mask<sbyte>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<sbyte, byte>(ref items[0]), _value);
             return items;
         }
@@ -99,7 +99,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new float[Vector64<float>.Count];
+            var items = new float[Vector64Mask<float>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<float, byte>(ref items[0]), _value);
             return items;
         }
@@ -109,7 +109,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new ushort[Vector64<ushort>.Count];
+            var items = new ushort[Vector64Mask<ushort>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<ushort, byte>(ref items[0]), _value);
             return items;
         }
@@ -119,7 +119,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new uint[Vector64<uint>.Count];
+            var items = new uint[Vector64Mask<uint>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<uint, byte>(ref items[0]), _value);
             return items;
         }
@@ -129,7 +129,7 @@ internal readonly struct Vector64DebugView<T>
     {
         get
         {
-            var items = new ulong[Vector64<ulong>.Count];
+            var items = new ulong[Vector64Mask<ulong>.Count];
             Unsafe.WriteUnaligned(ref Unsafe.As<ulong, byte>(ref items[0]), _value);
             return items;
         }

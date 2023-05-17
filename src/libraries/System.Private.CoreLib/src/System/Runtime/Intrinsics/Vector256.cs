@@ -2768,7 +2768,7 @@ namespace System.Runtime.Intrinsics
         /// <returns>A new <see cref="Vector512{T}" /> with the lower 256-bits set to the value of <paramref name="vector" /> and the upper 256-bits left uninitialized.</returns>
         /// <exception cref="NotSupportedException">The type of <paramref name="vector" /> (<typeparamref name="T" />) is not supported.</exception>
         [Intrinsic]
-        public static unsafe Vector512<T> ToVector512Unsafe<T>(this Vector256<T> vector)
+        public static Vector512<T> ToVector512Unsafe<T>(this Vector256<T> vector)
             where T : struct
         {
             ThrowHelper.ThrowForUnsupportedIntrinsicsVector256BaseType<T>();
