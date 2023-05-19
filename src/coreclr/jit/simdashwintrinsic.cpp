@@ -277,7 +277,7 @@ GenTree* Compiler::impSimdAsHWIntrinsic(NamedIntrinsic        intrinsic,
 
     // We want to resolve and populate the handle cache for this type even
     // if it isn't the basis for anything carried on the node.
-    simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(clsHnd, &simdSize);
+    simdBaseJitType = getBaseJitTypeAndSizeOfSimdType(clsHnd, &simdSize);
 
     if ((clsHnd != m_simdHandleCache->VectorHandle) &&
         ((simdBaseJitType == CORINFO_TYPE_UNDEF) || !varTypeIsArithmetic(JitType2PreciseVarType(simdBaseJitType))))
@@ -289,7 +289,7 @@ GenTree* Compiler::impSimdAsHWIntrinsic(NamedIntrinsic        intrinsic,
 
     if (retType == TYP_STRUCT)
     {
-        simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(sig->retTypeSigClass, &simdSize);
+        simdBaseJitType = getBaseJitTypeAndSizeOfSimdType(sig->retTypeSigClass, &simdSize);
         if ((simdBaseJitType == CORINFO_TYPE_UNDEF) || !varTypeIsArithmetic(JitType2PreciseVarType(simdBaseJitType)) ||
             (simdSize == 0))
         {
@@ -307,7 +307,7 @@ GenTree* Compiler::impSimdAsHWIntrinsic(NamedIntrinsic        intrinsic,
         else
         {
             argClass        = info.compCompHnd->getArgClass(sig, sig->args);
-            simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(argClass, &simdSize);
+            simdBaseJitType = getBaseJitTypeAndSizeOfSimdType(argClass, &simdSize);
         }
     }
 
@@ -322,7 +322,7 @@ GenTree* Compiler::impSimdAsHWIntrinsic(NamedIntrinsic        intrinsic,
         if (SimdAsHWIntrinsicInfo::BaseTypeFromThisArg(intrinsic))
         {
             assert((simdBaseJitType == CORINFO_TYPE_UNDEF) || (simdBaseJitType == CORINFO_TYPE_VALUECLASS));
-            simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(clsHnd, &simdSize);
+            simdBaseJitType = getBaseJitTypeAndSizeOfSimdType(clsHnd, &simdSize);
         }
     }
     else if ((clsHnd == m_simdHandleCache->VectorHandle) && (numArgs != 0) &&
@@ -336,7 +336,7 @@ GenTree* Compiler::impSimdAsHWIntrinsic(NamedIntrinsic        intrinsic,
         // a type different than the operation we need to perform. An example
         // is LessThan or Equals which takes double but returns long. This is
         // unlike the counterparts on Vector<T> which take a return the same type.
-        simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(clsHnd, &simdSize);
+        simdBaseJitType = getBaseJitTypeAndSizeOfSimdType(clsHnd, &simdSize);
     }
 
     if ((simdBaseJitType == CORINFO_TYPE_UNDEF) || !varTypeIsArithmetic(JitType2PreciseVarType(simdBaseJitType)) ||
@@ -595,7 +595,7 @@ GenTree* Compiler::impSimdAsHWIntrinsicSpecial(NamedIntrinsic       intrinsic,
         case NI_VectorT128_AsVectorUInt64:
         {
             unsigned    retSimdSize;
-            CorInfoType retBaseJitType = getBaseJitTypeAndSizeOfSIMDType(sig->retTypeSigClass, &retSimdSize);
+            CorInfoType retBaseJitType = getBaseJitTypeAndSizeOfSimdType(sig->retTypeSigClass, &retSimdSize);
 
             if ((retBaseJitType == CORINFO_TYPE_UNDEF) ||
                 !varTypeIsArithmetic(JitType2PreciseVarType(retBaseJitType)) || (retSimdSize == 0))

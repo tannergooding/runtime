@@ -53,7 +53,7 @@ int Compiler::getSIMDVectorLength(unsigned simdSize, var_types baseType)
 int Compiler::getSIMDVectorLength(CORINFO_CLASS_HANDLE typeHnd)
 {
     unsigned    sizeBytes   = 0;
-    CorInfoType baseJitType = getBaseJitTypeAndSizeOfSIMDType(typeHnd, &sizeBytes);
+    CorInfoType baseJitType = getBaseJitTypeAndSizeOfSimdType(typeHnd, &sizeBytes);
     var_types   baseType    = JitType2PreciseVarType(baseJitType);
     return getSIMDVectorLength(sizeBytes, baseType);
 }
@@ -142,19 +142,16 @@ unsigned Compiler::getSIMDInitTempVarNum(var_types simdType)
 //    sizeBytes if non-null is set to size in bytes.
 //
 // Notes:
-//    If the size of the struct is already known call structSizeMightRepresentSIMDType
+//    If the size of the struct is already known call structSizeMightRepresentMaskType
 //    to determine if this api needs to be called.
 //
-// TODO-Throughput: current implementation parses class name to find base type. Change
-//         this when we implement  SIMD intrinsic identification for the final
-//         product.
-CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeHnd, unsigned* sizeBytes /*= nullptr */)
+CorInfoType Compiler::getBaseJitTypeAndSizeOfSimdType(CORINFO_CLASS_HANDLE typeHnd, unsigned* sizeBytes /*= nullptr */)
 {
     if (m_simdHandleCache == nullptr)
     {
         if (impInlineInfo == nullptr)
         {
-            m_simdHandleCache = new (this, CMK_Generic) SIMDHandlesCache();
+            m_simdHandleCache = new (this, CMK_Generic) SimdHandlesCache();
         }
         else
         {
@@ -162,7 +159,7 @@ CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeH
 
             if (impInlineInfo->InlineRoot->m_simdHandleCache == nullptr)
             {
-                impInlineInfo->InlineRoot->m_simdHandleCache = new (this, CMK_Generic) SIMDHandlesCache();
+                impInlineInfo->InlineRoot->m_simdHandleCache = new (this, CMK_Generic) SimdHandlesCache();
             }
 
             m_simdHandleCache = impInlineInfo->InlineRoot->m_simdHandleCache;
@@ -437,6 +434,146 @@ CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeH
 
     return simdBaseJitType;
 }
+
+#if defined(TARGET_XARCH)
+//----------------------------------------------------------------------------------
+// Return the base type and size of MASK vector type given its type handle.
+//
+// Arguments:
+//    typeHnd   - The handle of the type we're interested in.
+//    sizeBytes - out param
+//
+// Return Value:
+//    base type of MASK vector.
+//    sizeBytes if non-null is set to size in bytes.
+//
+// Notes:
+//    If the size of the struct is already known call structSizeMightRepresentMaskType
+//    to determine if this api needs to be called.
+//
+CorInfoType Compiler::getBaseJitTypeAndSizeOfMaskType(CORINFO_CLASS_HANDLE typeHnd, unsigned* sizeBytes /*= nullptr */)
+{
+    if (sizeBytes != nullptr)
+    {
+        *sizeBytes = 0;
+    }
+
+    if ((typeHnd == nullptr) || !isIntrinsicType(typeHnd))
+    {
+        return CORINFO_TYPE_UNDEF;
+    }
+
+    const char* namespaceName;
+    const char* className = getClassNameFromMetadata(typeHnd, &namespaceName);
+
+    // fast path search using cached type handles of important types
+    CorInfoType maskBaseJitType = CORINFO_TYPE_UNDEF;
+    unsigned    size            = 0;
+
+    if (isNumericsNamespace(namespaceName))
+    {
+        // VectorMask<T> is not currently supported
+        return CORINFO_TYPE_UNDEF;
+    }
+#ifdef FEATURE_HW_INTRINSICS
+    else
+    {
+        size = info.compCompHnd->getClassSize(typeHnd);
+
+        switch (size)
+        {
+            case 2:
+            {
+                if (strcmp(className, "Vector128Mask`1") != 0)
+                {
+                    return CORINFO_TYPE_UNDEF;
+                }
+
+                CORINFO_CLASS_HANDLE typeArgHnd = info.compCompHnd->getTypeInstantiationArgument(typeHnd, 0);
+                maskBaseJitType                 = info.compCompHnd->getTypeForPrimitiveNumericClass(typeArgHnd);
+
+                if ((maskBaseJitType < CORINFO_TYPE_BYTE) || (maskBaseJitType > CORINFO_TYPE_DOUBLE))
+                {
+                    return CORINFO_TYPE_UNDEF;
+                }
+
+                JITDUMP(" Found Vector128Mask<%s>\n", varTypeName(JitType2PreciseVarType(maskBaseJitType)));
+                break;
+            }
+
+#if defined(TARGET_XARCH)
+            case 32:
+            {
+                if (strcmp(className, "Vector256Mask`1") != 0)
+                {
+                    return CORINFO_TYPE_UNDEF;
+                }
+
+                CORINFO_CLASS_HANDLE typeArgHnd = info.compCompHnd->getTypeInstantiationArgument(typeHnd, 0);
+                maskBaseJitType                 = info.compCompHnd->getTypeForPrimitiveNumericClass(typeArgHnd);
+
+                if ((maskBaseJitType < CORINFO_TYPE_BYTE) || (maskBaseJitType > CORINFO_TYPE_DOUBLE))
+                {
+                    return CORINFO_TYPE_UNDEF;
+                }
+
+                if (!compExactlyDependsOn(InstructionSet_AVX))
+                {
+                    // We must treat as a regular struct if AVX isn't supported
+                    return CORINFO_TYPE_UNDEF;
+                }
+
+                JITDUMP(" Found Vector256Mask<%s>\n", varTypeName(JitType2PreciseVarType(maskBaseJitType)));
+                break;
+            }
+
+            case 64:
+            {
+                if (strcmp(className, "Vector512Mask`1") != 0)
+                {
+                    return CORINFO_TYPE_UNDEF;
+                }
+
+                CORINFO_CLASS_HANDLE typeArgHnd = info.compCompHnd->getTypeInstantiationArgument(typeHnd, 0);
+                maskBaseJitType                 = info.compCompHnd->getTypeForPrimitiveNumericClass(typeArgHnd);
+
+                if ((maskBaseJitType < CORINFO_TYPE_BYTE) || (maskBaseJitType > CORINFO_TYPE_DOUBLE))
+                {
+                    return CORINFO_TYPE_UNDEF;
+                }
+
+                if (!compExactlyDependsOn(InstructionSet_AVX512F))
+                {
+                    // We must treat as a regular struct if AVX512F isn't supported
+                    return CORINFO_TYPE_UNDEF;
+                }
+
+                JITDUMP(" Found Vector512Mask<%s>\n", varTypeName(JitType2PreciseVarType(maskBaseJitType)));
+                break;
+            }
+#endif // TARGET_XARCH
+
+            default:
+            {
+                return CORINFO_TYPE_UNDEF;
+            }
+        }
+    }
+#endif // FEATURE_HW_INTRINSICS
+
+    if (sizeBytes != nullptr)
+    {
+        *sizeBytes = size;
+    }
+
+    if (maskBaseJitType != CORINFO_TYPE_UNDEF)
+    {
+        assert(size == info.compCompHnd->getClassSize(typeHnd));
+    }
+
+    return maskBaseJitType;
+}
+#endif // TARGET_XARCH
 
 //------------------------------------------------------------------------
 // impSIMDPopStack: Pop a SIMD value from the importer's stack.

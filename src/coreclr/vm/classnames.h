@@ -46,14 +46,26 @@
 #define g_Vector64ClassName "System.Runtime.Intrinsics.Vector64`1"
 #define g_Vector64Name "Vector64`1"
 
+#define g_Vector64MaskClassName "System.Runtime.Intrinsics.Vector64Mask`1"
+#define g_Vector64MaskName "Vector64Mask`1"
+
 #define g_Vector128ClassName "System.Runtime.Intrinsics.Vector128`1"
 #define g_Vector128Name "Vector128`1"
+
+#define g_Vector128MaskClassName "System.Runtime.Intrinsics.Vector128Mask`1"
+#define g_Vector128MaskName "Vector128Mask`1"
 
 #define g_Vector256ClassName "System.Runtime.Intrinsics.Vector256`1"
 #define g_Vector256Name "Vector256`1"
 
+#define g_Vector256MaskClassName "System.Runtime.Intrinsics.Vector256Mask`1"
+#define g_Vector256MaskName "Vector256Mask`1"
+
 #define g_Vector512ClassName "System.Runtime.Intrinsics.Vector512`1"
 #define g_Vector512Name "Vector512`1"
+
+#define g_Vector512MaskClassName "System.Runtime.Intrinsics.Vector512Mask`1"
+#define g_Vector512MaskName "Vector512Mask`1"
 
 #define g_EnumeratorToEnumClassName "System.Runtime.InteropServices.CustomMarshalers.EnumeratorToEnumVariantMarshaler"
 #define g_ExceptionClassName "System.Exception"

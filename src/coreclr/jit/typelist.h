@@ -61,7 +61,11 @@ DEF_TP(SIMD16   ,"simd16" , TYP_SIMD16,  16,16, 16,   4,16, VTR_FLOAT, available
 #if defined(TARGET_XARCH)
 DEF_TP(SIMD32   ,"simd32" , TYP_SIMD32,  32,32, 32,   8,16, VTR_FLOAT, availableDoubleRegs, VTF_S|VTF_VEC)
 DEF_TP(SIMD64   ,"simd64" , TYP_SIMD64,  64,64, 64,  16,16, VTR_FLOAT, availableDoubleRegs, VTF_S|VTF_VEC)
-DEF_TP(MASK     ,"mask"   , TYP_MASK,     8, 8,  8,   2, 8, VTR_MASK,  availableMaskRegs,   VTF_ANY)
+
+DEF_TP(MASK1    ,"mask1"  , TYP_MASK1,    1, 1,  8,   1, 1, VTR_MASK,  availableMaskRegs,   VTF_S|VTF_MSK)
+DEF_TP(MASK2    ,"mask2"  , TYP_MASK2,    2, 2,  8,   1, 2, VTR_MASK,  availableMaskRegs,   VTF_S|VTF_MSK)
+DEF_TP(MASK4    ,"mask4"  , TYP_MASK4,    4, 4,  8,   1, 4, VTR_MASK,  availableMaskRegs,   VTF_S|VTF_MSK)
+DEF_TP(MASK8    ,"mask8"  , TYP_MASK8,    8, 8,  8,   2, 8, VTR_MASK,  availableMaskRegs,   VTF_S|VTF_MSK)
 #endif // TARGET_XARCH
 #endif // FEATURE_SIMD
 

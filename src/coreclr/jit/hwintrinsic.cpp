@@ -382,7 +382,7 @@ CorInfoType Compiler::getBaseJitTypeFromArgIfNeeded(NamedIntrinsic       intrins
         }
 
         CORINFO_CLASS_HANDLE argClass = info.compCompHnd->getArgClass(sig, arg);
-        simdBaseJitType               = getBaseJitTypeAndSizeOfSIMDType(argClass);
+        simdBaseJitType               = getBaseJitTypeAndSizeOfSimdType(argClass);
 
         if (simdBaseJitType == CORINFO_TYPE_UNDEF) // the argument is not a vector
         {
@@ -693,7 +693,7 @@ unsigned HWIntrinsicInfo::lookupSimdSize(Compiler* comp, NamedIntrinsic id, CORI
         typeHnd = sig->retTypeSigClass;
     }
 
-    CorInfoType simdBaseJitType = comp->getBaseJitTypeAndSizeOfSIMDType(typeHnd, &simdSize);
+    CorInfoType simdBaseJitType = comp->getBaseJitTypeAndSizeOfSimdType(typeHnd, &simdSize);
     assert((simdSize > 0) && (simdBaseJitType != CORINFO_TYPE_UNDEF));
     return simdSize;
 }
@@ -760,7 +760,7 @@ GenTree* Compiler::getArgForHWIntrinsic(var_types            argType,
         if (!varTypeIsSIMD(argType))
         {
             unsigned int argSizeBytes;
-            (void)getBaseJitTypeAndSizeOfSIMDType(argClass, &argSizeBytes);
+            (void)getBaseJitTypeAndSizeOfSimdType(argClass, &argSizeBytes);
             argType = getSIMDTypeForSize(argSizeBytes);
         }
         assert(varTypeIsSIMD(argType));
@@ -1065,7 +1065,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
     if (retType == TYP_STRUCT)
     {
         unsigned int sizeBytes;
-        simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(sig->retTypeSigClass, &sizeBytes);
+        simdBaseJitType = getBaseJitTypeAndSizeOfSimdType(sig->retTypeSigClass, &sizeBytes);
 
         if (HWIntrinsicInfo::IsMultiReg(intrinsic))
         {
@@ -1103,7 +1103,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
         {
             unsigned int sizeBytes;
 
-            simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(clsHnd, &sizeBytes);
+            simdBaseJitType = getBaseJitTypeAndSizeOfSimdType(clsHnd, &sizeBytes);
             assert((category == HW_Category_Special) || (category == HW_Category_Helper) || (sizeBytes != 0));
         }
     }
@@ -1163,7 +1163,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
         }
 
         unsigned int otherSimdSize    = 0;
-        CorInfoType  otherBaseJitType = getBaseJitTypeAndSizeOfSIMDType(sigReader.op3ClsHnd, &otherSimdSize);
+        CorInfoType  otherBaseJitType = getBaseJitTypeAndSizeOfSimdType(sigReader.op3ClsHnd, &otherSimdSize);
         var_types    otherBaseType    = JitType2PreciseVarType(otherBaseJitType);
 
         assert(otherBaseJitType == simdBaseJitType);
@@ -1211,14 +1211,14 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
             if (numArgs == 3)
             {
                 indexedElementBaseJitType =
-                    getBaseJitTypeAndSizeOfSIMDType(sigReader.op2ClsHnd, &indexedElementSimdSize);
+                    getBaseJitTypeAndSizeOfSimdType(sigReader.op2ClsHnd, &indexedElementSimdSize);
                 indexedElementBaseType = JitType2PreciseVarType(indexedElementBaseJitType);
             }
             else
             {
                 assert(numArgs == 4);
                 indexedElementBaseJitType =
-                    getBaseJitTypeAndSizeOfSIMDType(sigReader.op3ClsHnd, &indexedElementSimdSize);
+                    getBaseJitTypeAndSizeOfSimdType(sigReader.op3ClsHnd, &indexedElementSimdSize);
                 indexedElementBaseType = JitType2PreciseVarType(indexedElementBaseJitType);
 
                 if (intrinsic == NI_Dp_DotProductBySelectedQuadruplet)
@@ -1434,12 +1434,12 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
                     case NI_AdvSimd_AddWideningUpper:
                     case NI_AdvSimd_SubtractWideningUpper:
                         assert(varTypeIsSIMD(op1->TypeGet()));
-                        retNode->AsHWIntrinsic()->SetAuxiliaryJitType(getBaseJitTypeOfSIMDType(sigReader.op1ClsHnd));
+                        retNode->AsHWIntrinsic()->SetAuxiliaryJitType(getBaseJitTypeOfSimdType(sigReader.op1ClsHnd));
                         break;
 
                     case NI_AdvSimd_Arm64_AddSaturateScalar:
                         assert(varTypeIsSIMD(op2->TypeGet()));
-                        retNode->AsHWIntrinsic()->SetAuxiliaryJitType(getBaseJitTypeOfSIMDType(sigReader.op2ClsHnd));
+                        retNode->AsHWIntrinsic()->SetAuxiliaryJitType(getBaseJitTypeOfSimdType(sigReader.op2ClsHnd));
                         break;
 
                     case NI_ArmBase_Arm64_MultiplyHigh:
@@ -1500,7 +1500,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
                 if ((intrinsic == NI_AVX2_GatherVector128) || (intrinsic == NI_AVX2_GatherVector256))
                 {
                     assert(varTypeIsSIMD(op2->TypeGet()));
-                    retNode->AsHWIntrinsic()->SetAuxiliaryJitType(getBaseJitTypeOfSIMDType(sigReader.op2ClsHnd));
+                    retNode->AsHWIntrinsic()->SetAuxiliaryJitType(getBaseJitTypeOfSimdType(sigReader.op2ClsHnd));
                 }
 #endif
                 break;

@@ -78,13 +78,13 @@ const signed char       opcodeSizes[] =
 };
 // clang-format on
 
-const BYTE varTypeClassification[] = {
+const uint16_t varTypeClassification[] = {
 #define DEF_TP(tn, nm, jitType, sz, sze, asze, st, al, regTyp, regFld, tf) tf,
 #include "typelist.h"
 #undef DEF_TP
 };
 
-const BYTE varTypeRegister[] = {
+const uint8_t varTypeRegister[] = {
 #define DEF_TP(tn, nm, jitType, sz, sze, asze, st, al, regTyp, regFld, tf) regTyp,
 #include "typelist.h"
 #undef DEF_TP

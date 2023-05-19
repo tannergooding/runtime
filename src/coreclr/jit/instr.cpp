@@ -2056,18 +2056,36 @@ instruction CodeGenInterface::ins_StoreFromSrc(regNumber srcReg, var_types dstTy
             return ins_Store(dstType, aligned);
         }
 
+        unsigned dstSize = genTypeSize(dstType);
+
 #if defined(TARGET_XARCH) && defined(FEATURE_SIMD)
         if (genIsValidMaskReg(srcReg))
         {
+            if (dstSize == 1)
+            {
+                dstType = TYP_MASK1;
+            }
+            else if (dstSize == 2)
+            {
+                dstType = TYP_MASK2;
+            }
+            else if (dstSize == 4)
+            {
+                dstType = TYP_MASK4;
+            }
+            else
+            {
+                assert(dstSize == 8);
+                dstType = TYP_MASK8;
+            }
+
             // mask to int, treat as mask so it works on 32-bit
-            return ins_Store(TYP_MASK, aligned);
+            return ins_Store(dstType, aligned);
         }
 #endif // TARGET_XARCH && FEATURE_SIMD
 
         // float to int, treat as float to float
         assert(genIsValidFloatReg(srcReg));
-
-        unsigned dstSize = genTypeSize(dstType);
 
         if (dstSize == 4)
         {

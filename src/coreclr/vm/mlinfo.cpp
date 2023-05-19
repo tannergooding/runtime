@@ -1097,9 +1097,13 @@ namespace
         return !pMT->HasSameTypeDefAs(g_pNullableClass)
             && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__SPAN))
             && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__READONLY_SPAN))
+            && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR64MASKT))
             && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR64T))
+            && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR128MASKT))
             && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR128T))
+            && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR256MASKT))
             && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR256T))
+            && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR512MASKT))
             && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR512T))
             && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTORT));
     }

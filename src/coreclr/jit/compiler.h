@@ -8498,7 +8498,7 @@ private:
     // by the hardware.  It is allocated when/if such situations are encountered during Lowering.
     unsigned lvaSIMDInitTempVarNum;
 
-    struct SIMDHandlesCache
+    struct SimdHandlesCache
     {
         CORINFO_CLASS_HANDLE PlaneHandle;
         CORINFO_CLASS_HANDLE QuaternionHandle;
@@ -8507,13 +8507,13 @@ private:
         CORINFO_CLASS_HANDLE Vector4Handle;
         CORINFO_CLASS_HANDLE VectorHandle;
 
-        SIMDHandlesCache()
+        SimdHandlesCache()
         {
             memset(this, 0, sizeof(*this));
         }
     };
 
-    SIMDHandlesCache* m_simdHandleCache;
+    SimdHandlesCache* m_simdHandleCache;
 
     // Returns true if this is a SIMD type that should be considered an opaque
     // vector type (i.e. do not analyze or promote its fields).
@@ -8618,12 +8618,23 @@ private:
 
     // Get the base (element) type and size in bytes for a SIMD type. Returns CORINFO_TYPE_UNDEF
     // if it is not a SIMD type or is an unsupported base JIT type.
-    CorInfoType getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeHnd, unsigned* sizeBytes = nullptr);
+    CorInfoType getBaseJitTypeAndSizeOfSimdType(CORINFO_CLASS_HANDLE typeHnd, unsigned* sizeBytes = nullptr);
 
-    CorInfoType getBaseJitTypeOfSIMDType(CORINFO_CLASS_HANDLE typeHnd)
+    CorInfoType getBaseJitTypeOfSimdType(CORINFO_CLASS_HANDLE typeHnd)
     {
-        return getBaseJitTypeAndSizeOfSIMDType(typeHnd, nullptr);
+        return getBaseJitTypeAndSizeOfSimdType(typeHnd, nullptr);
     }
+
+#if defined(TARGET_XARCH)
+    // Get the base (element) type and size in bytes for a MASK type. Returns CORINFO_TYPE_UNDEF
+    // if it is not a MASK type or is an unsupported base JIT type.
+    CorInfoType getBaseJitTypeAndSizeOfMaskType(CORINFO_CLASS_HANDLE typeHnd, unsigned* sizeBytes = nullptr);
+
+    CorInfoType getBaseJitTypeOfMaskType(CORINFO_CLASS_HANDLE typeHnd)
+    {
+        return getBaseJitTypeAndSizeOfMaskType(typeHnd, nullptr);
+    }
+#endif // TARGET_XARCH
 
     GenTree* impSIMDPopStack();
 
@@ -8638,7 +8649,7 @@ private:
     int getSIMDTypeSizeInBytes(CORINFO_CLASS_HANDLE typeHnd)
     {
         unsigned sizeBytes = 0;
-        (void)getBaseJitTypeAndSizeOfSIMDType(typeHnd, &sizeBytes);
+        (void)getBaseJitTypeAndSizeOfSimdType(typeHnd, &sizeBytes);
         return sizeBytes;
     }
 
@@ -8653,7 +8664,7 @@ private:
 
     // Get the number of bytes in a System.Numeric.Vector<T> for the current compilation.
     // Note - cannot be used for System.Runtime.Intrinsic
-    unsigned getVectorTByteLength()
+    uint32_t getVectorTByteLength()
     {
         // We need to report the ISA dependency to the VM so that scenarios
         // such as R2R work correctly for larger vector sizes, so we always

@@ -36,7 +36,7 @@ typedef var_types RegisterType;
 
 #define IntRegisterType TYP_INT
 #define FloatRegisterType TYP_FLOAT
-#define MaskRegisterType TYP_MASK
+#define MaskRegisterType TYP_MASK8
 
 //------------------------------------------------------------------------
 // regType: Return the RegisterType to use for a given type

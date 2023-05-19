@@ -21040,7 +21040,8 @@ GenTree* Compiler::gtNewSimdCmpOpNode(
     }
     else
     {
-        GenTree* cmp = gtNewSimdHWIntrinsicNode(TYP_MASK, op1, op2, intrinsic, simdBaseJitType, simdSize);
+        // TODO: Pick right mask type for element count
+        GenTree* cmp = gtNewSimdHWIntrinsicNode(TYP_MASK8, op1, op2, intrinsic, simdBaseJitType, simdSize);
         return gtNewSimdHWIntrinsicNode(type, cmp, NI_AVX512F_MoveMaskToVectorSpecial, simdBaseJitType, simdSize);
     }
 #else

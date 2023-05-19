@@ -817,7 +817,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             assert(HWIntrinsicInfo::BaseTypeFromFirstArg(intrinsic));
 
             CorInfoType op1SimdBaseJitType =
-                getBaseJitTypeAndSizeOfSIMDType(info.compCompHnd->getArgClass(sig, sig->args), &simdSize);
+                getBaseJitTypeAndSizeOfSimdType(info.compCompHnd->getArgClass(sig, sig->args), &simdSize);
 
             assert(simdBaseJitType == op1SimdBaseJitType);
 
@@ -2857,7 +2857,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
 
             op2             = impSIMDPopStack();
             op1             = impSIMDPopStack();
-            simdBaseJitType = getBaseJitTypeOfSIMDType(sig->retTypeSigClass);
+            simdBaseJitType = getBaseJitTypeOfSimdType(sig->retTypeSigClass);
             assert(JitType2PreciseVarType(simdBaseJitType) == TYP_FLOAT);
 
             if (supportsAvx)
@@ -2980,7 +2980,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
         case NI_AVX512VBMI_VL_PermuteVar16x8:
         case NI_AVX512VBMI_VL_PermuteVar32x8:
         {
-            simdBaseJitType = getBaseJitTypeOfSIMDType(sig->retTypeSigClass);
+            simdBaseJitType = getBaseJitTypeOfSimdType(sig->retTypeSigClass);
 
             impSpillSideEffect(true,
                                verCurrentState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
@@ -3566,7 +3566,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             CORINFO_CLASS_HANDLE    argClass;
             var_types               argType = TYP_UNKNOWN;
             unsigned int            sizeBytes;
-            simdBaseJitType   = getBaseJitTypeAndSizeOfSIMDType(sig->retTypeSigClass, &sizeBytes);
+            simdBaseJitType   = getBaseJitTypeAndSizeOfSimdType(sig->retTypeSigClass, &sizeBytes);
             var_types retType = getSIMDTypeForSize(sizeBytes);
 
             assert(sig->numArgs == 5);
@@ -3584,7 +3584,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             SetOpLclRelatedToSIMDIntrinsic(op4);
 
             argType                      = JITtype2varType(strip(info.compCompHnd->getArgType(sig, arg3, &argClass)));
-            CorInfoType indexBaseJitType = getBaseJitTypeOfSIMDType(argClass);
+            CorInfoType indexBaseJitType = getBaseJitTypeOfSimdType(argClass);
             GenTree*    op3              = getArgForHWIntrinsic(argType, argClass);
             SetOpLclRelatedToSIMDIntrinsic(op3);
 

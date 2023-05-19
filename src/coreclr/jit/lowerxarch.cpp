@@ -1918,7 +1918,8 @@ GenTree* Lowering::LowerHWIntrinsicCmpOpWithKReg(GenTreeHWIntrinsic* node)
     GenTree* op1 = node->Op(1);
     GenTree* op2 = node->Op(2);
 
-    GenTree* cmp = comp->gtNewSimdHWIntrinsicNode(TYP_MASK, op1, op2, newIntrinsicId, simdBaseJitType, simdSize);
+    // TODO: Pick right mask type for element count
+    GenTree* cmp = comp->gtNewSimdHWIntrinsicNode(TYP_MASK8, op1, op2, newIntrinsicId, simdBaseJitType, simdSize);
     BlockRange().InsertBefore(node, cmp);
     LowerNode(cmp);
 

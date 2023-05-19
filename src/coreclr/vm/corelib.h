@@ -484,9 +484,13 @@ DEFINE_CLASS(NATIVELIBRARY, Interop, NativeLibrary)
 DEFINE_METHOD(NATIVELIBRARY,        LOADLIBRARYCALLBACKSTUB, LoadLibraryCallbackStub, SM_Str_AssemblyBase_Bool_UInt_RetIntPtr)
 
 DEFINE_CLASS(VECTOR64T,             Intrinsics,             Vector64`1)
+DEFINE_CLASS(VECTOR64MASKT,         Intrinsics,             Vector64Mask`1)
 DEFINE_CLASS(VECTOR128T,            Intrinsics,             Vector128`1)
+DEFINE_CLASS(VECTOR128MASKT,        Intrinsics,             Vector128Mask`1)
 DEFINE_CLASS(VECTOR256T,            Intrinsics,             Vector256`1)
+DEFINE_CLASS(VECTOR256MASKT,        Intrinsics,             Vector256Mask`1)
 DEFINE_CLASS(VECTOR512T,            Intrinsics,             Vector512`1)
+DEFINE_CLASS(VECTOR512MASKT,        Intrinsics,             Vector512Mask`1)
 
 DEFINE_CLASS(VECTORT,               Numerics,               Vector`1)
 

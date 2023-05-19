@@ -18,6 +18,7 @@ enum var_types_classification
     VTF_I   = 0x0020, // is machine sized
     VTF_S   = 0x0040, // is a struct type
     VTF_VEC = 0x0080, // is a vector type
+    VTF_MSK = 0x0100, // is a mask type
 };
 
 enum var_types_register
@@ -52,8 +53,8 @@ enum var_types_register
 
 /*****************************************************************************/
 
-const extern BYTE varTypeClassification[TYP_COUNT];
-const extern BYTE varTypeRegister[TYP_COUNT];
+const extern uint16_t varTypeClassification[TYP_COUNT];
+const extern uint8_t varTypeRegister[TYP_COUNT];
 
 // make any class with a TypeGet member also have a function TypeGet() that does the same thing
 template <class T>
@@ -86,7 +87,7 @@ template <class T>
 inline bool varTypeIsMask(T vt)
 {
 #if defined(TARGET_XARCH) && defined(FEATURE_SIMD)
-    return (TypeGet(vt) == TYP_MASK);
+    return ((varTypeClassification[TypeGet(vt)] & VTF_MSK) != 0);
 #else // FEATURE_SIMD
     return false;
 #endif
