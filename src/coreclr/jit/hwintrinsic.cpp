@@ -505,6 +505,7 @@ NamedIntrinsic HWIntrinsicInfo::lookupId(Compiler*         comp,
         // but we want IsHardwareAccelerated to return true only when all of them are (there are
         // still can be cases where e.g. Sse41 might give an additional boost for Vector128, but it's
         // not important enough to bump the minimal Sse version here)
+
         if (strcmp(className, "Vector128") == 0)
         {
             isa = InstructionSet_SSE2;
@@ -513,9 +514,13 @@ NamedIntrinsic HWIntrinsicInfo::lookupId(Compiler*         comp,
         {
             isa = InstructionSet_AVX2;
         }
-        else if (strcmp(className, "Vector512") == 0)
+        else
         {
-            isa = InstructionSet_Vector512;
+            // The others are already checking the right ISA
+            assert((strcmp(className, "Vector512") == 0) ||
+                   (strcmp(className, "Vector128Mask") == 0) ||
+                   (strcmp(className, "Vector256Mask") == 0) ||
+                   (strcmp(className, "Vector512Mask") == 0));
         }
     }
 #endif

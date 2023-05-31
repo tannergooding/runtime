@@ -209,15 +209,48 @@ static CORINFO_InstructionSet lookupInstructionSet(const char* className)
     {
         if (strncmp(className, "Vector128", 9) == 0)
         {
-            return InstructionSet_Vector128;
+            className += 9;
+
+            if (className[0] != 'M')
+            {
+                assert((className[0] == '\0') || (strcmp(className, "`1") == 0));
+                return InstructionSet_Vector128;
+            }
+            else
+            {
+                assert((strcmp(className, "Mask") == 0) || (strcmp(className, "Mask`1") == 0));
+                return InstructionSet_Vector128Mask;
+            }
         }
         else if (strncmp(className, "Vector256", 9) == 0)
         {
-            return InstructionSet_Vector256;
+            className += 9;
+
+            if (className[0] != 'M')
+            {
+                assert((className[0] == '\0') || (strcmp(className, "`1") == 0));
+                return InstructionSet_Vector256;
+            }
+            else
+            {
+                assert((strcmp(className, "Mask") == 0) || (strcmp(className, "Mask`1") == 0));
+                return InstructionSet_Vector256Mask;
+            }
         }
         else if (strncmp(className, "Vector512", 9) == 0)
         {
-            return InstructionSet_Vector512;
+            className += 9;
+
+            if (className[0] != 'M')
+            {
+                assert((className[0] == '\0') || (strcmp(className, "`1") == 0));
+                return InstructionSet_Vector512;
+            }
+            else
+            {
+                assert((strcmp(className, "Mask") == 0) || (strcmp(className, "Mask`1") == 0));
+                return InstructionSet_Vector512Mask;
+            }
         }
         else if (strcmp(className, "VL") == 0)
         {
