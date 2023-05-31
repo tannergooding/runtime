@@ -57,6 +57,9 @@ instructionset     ,X86   ,Avx512DQ             ,        ,35 ,AVX512DQ          
 instructionset     ,X86   ,Avx512DQ_VL          ,        ,36 ,AVX512DQ_VL           ,avx512dq_vl
 instructionset     ,X86   ,Avx512Vbmi           ,        ,37 ,AVX512VBMI            ,avx512vbmi
 instructionset     ,X86   ,Avx512Vbmi_VL        ,        ,38 ,AVX512VBMI_VL         ,avx512vbmi_vl
+instructionset     ,X86   ,                     ,        ,   ,Vector128Mask         ,
+instructionset     ,X86   ,                     ,        ,   ,Vector256Mask         ,
+instructionset     ,X86   ,                     ,        ,   ,Vector512Mask         ,
 
 
 instructionset64bit,X86   ,X86Base
@@ -92,6 +95,9 @@ instructionset64bit,X86   ,AVX512VBMI_VL
 vectorinstructionset,X86  ,Vector128
 vectorinstructionset,X86  ,Vector256
 vectorinstructionset,X86  ,Vector512
+vectorinstructionset,X86  ,Vector128Mask
+vectorinstructionset,X86  ,Vector256Mask
+vectorinstructionset,X86  ,Vector512Mask
 
 implication        ,X86   ,SSE                  ,X86Base
 implication        ,X86   ,SSE2                 ,SSE
@@ -124,6 +130,9 @@ implication        ,X86   ,AVX512DQ             ,AVX512F
 implication        ,X86   ,AVX512DQ_VL          ,AVX512F_VL
 implication        ,X86   ,AVX512VBMI           ,AVX512BW
 implication        ,X86   ,AVX512VBMI_VL        ,AVX512BW_VL
+implication        ,X86   ,Vector128Mask        ,AVX512F_VL
+implication        ,X86   ,Vector256Mask        ,AVX512F_VL
+implication        ,X86   ,Vector512Mask        ,AVX512F
 
 ; Definition of X64 instruction sets
 definearch         ,X64   ,64Bit     ,X64, X64

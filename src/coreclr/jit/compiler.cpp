@@ -2297,6 +2297,10 @@ void Compiler::compSetProcessor()
 
         instructionSetFlags.AddInstructionSet(InstructionSet_Vector512);
 
+        instructionSetFlags.AddInstructionSet(InstructionSet_Vector128Mask);
+        instructionSetFlags.AddInstructionSet(InstructionSet_Vector256Mask);
+        instructionSetFlags.AddInstructionSet(InstructionSet_Vector512Mask);
+
         if ((preferredVectorByteLength == 0) && jitFlags.IsSet(JitFlags::JIT_FLAG_VECTOR512_THROTTLING))
         {
             // Some architectures can experience frequency throttling when
