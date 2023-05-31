@@ -584,7 +584,7 @@ GenTree* Compiler::impSIMDPopStack()
 {
     StackEntry se   = impPopStack();
     GenTree*   tree = se.val;
-    assert(varTypeIsSIMD(tree));
+    assert(varTypeIsSimdOrMask(tree));
 
     // Handle calls that may return the struct via a return buffer.
     if (tree->OperIs(GT_CALL, GT_RET_EXPR))

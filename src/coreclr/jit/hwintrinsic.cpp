@@ -382,7 +382,7 @@ CorInfoType Compiler::getBaseJitTypeFromArgIfNeeded(NamedIntrinsic       intrins
         }
 
         CORINFO_CLASS_HANDLE argClass = info.compCompHnd->getArgClass(sig, arg);
-        simdBaseJitType               = getBaseJitTypeAndSizeOfSimdType(argClass);
+        simdBaseJitType               = getBaseJitTypeOfSimdType(argClass);
 
         if (simdBaseJitType == CORINFO_TYPE_UNDEF) // the argument is not a vector
         {
@@ -393,6 +393,12 @@ CorInfoType Compiler::getBaseJitTypeFromArgIfNeeded(NamedIntrinsic       intrins
             {
                 simdBaseJitType = info.compCompHnd->getChildType(argClass, &tmpClass);
             }
+#if defined(TARGET_XARCH)
+            else
+            {
+                simdBaseJitType = getBaseJitTypeOfMaskType(argClass);
+            }
+#endif // TARGET_XARCH
         }
         assert(simdBaseJitType != CORINFO_TYPE_UNDEF);
     }
@@ -764,9 +770,21 @@ GenTree* Compiler::getArgForHWIntrinsic(var_types            argType,
     {
         if (!varTypeIsSIMD(argType))
         {
-            unsigned int argSizeBytes;
+            uint32_t argSizeBytes;
             (void)getBaseJitTypeAndSizeOfSimdType(argClass, &argSizeBytes);
-            argType = getSIMDTypeForSize(argSizeBytes);
+
+            if (argSizeBytes != 0)
+            {
+                argType = getSIMDTypeForSize(argSizeBytes);
+            }
+#if defined(TARGET_XARCH)
+            else
+            {
+                CorInfoType simdBaseJitType = getBaseJitTypeAndSizeOfMaskType(argClass, &argSizeBytes);
+                var_types   maskBaseType    = JitType2PreciseVarType(simdBaseJitType);
+                argType                     = getMaskTypeForCount((argSizeBytes * 8) / genTypeSize(maskBaseType));
+            }
+#endif // TARGET_XARCH
         }
         assert(varTypeIsSIMD(argType));
 
@@ -1083,11 +1101,28 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
             // rather than deferring the decision after getting the simdBaseJitType of arg.
             if (!isSupportedBaseType(intrinsic, simdBaseJitType))
             {
-                return nullptr;
-            }
+#if defined(TARGET_XARCH)
+                simdBaseJitType = getBaseJitTypeAndSizeOfMaskType(sig->retTypeSigClass, &sizeBytes);
 
-            assert(sizeBytes != 0);
-            retType = getSIMDTypeForSize(sizeBytes);
+                if (isSupportedBaseType(intrinsic, simdBaseJitType))
+                {
+                    var_types maskBaseType = JitType2PreciseVarType(simdBaseJitType);
+                    retType                = getMaskTypeForCount((sizeBytes * 8) / genTypeSize(maskBaseType));
+                }
+                else
+#endif // TARGET_XARCH
+                {
+                    return nullptr;
+                }
+            }
+            else
+            {
+                assert(sizeBytes != 0);
+                if (retType == TYP_STRUCT)
+                {
+                    retType = getSIMDTypeForSize(sizeBytes);
+                }
+            }
         }
     }
 

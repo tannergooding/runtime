@@ -8862,6 +8862,37 @@ public:
         return simdType;
     }
 
+    // Returns the codegen type for a given mask count.
+    static var_types getMaskTypeForCount(unsigned count)
+    {
+        var_types maskType = TYP_UNDEF;
+
+#if defined(TARGET_XARCH)
+        if (count <= 8)
+        {
+            maskType = TYP_MASK1;
+        }
+        else if (count <= 16)
+        {
+            maskType = TYP_MASK2;
+        }
+        else if (count <= 32)
+        {
+            maskType = TYP_MASK4;
+        }
+        else if (count <= 64)
+        {
+            maskType = TYP_MASK8;
+        }
+        else
+#endif // TARGET_XARCH
+        {
+            noway_assert(!"Unexpected count for mask type");
+        }
+
+        return maskType;
+    }
+
 private:
     unsigned getSIMDInitTempVarNum(var_types simdType);
 
