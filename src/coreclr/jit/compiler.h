@@ -8825,7 +8825,11 @@ private:
 
     uint32_t getMinVectorByteLength()
     {
+#if defined(TARGET_XARCH)
+        return emitTypeSize(TYP_MASK1);
+#else
         return emitTypeSize(TYP_SIMD8);
+#endif
     }
 
 public:

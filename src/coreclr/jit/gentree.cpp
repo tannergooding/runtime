@@ -19413,12 +19413,23 @@ GenTree* Compiler::gtNewSimdBinOpNode(
     genTreeOps op, var_types type, GenTree* op1, GenTree* op2, CorInfoType simdBaseJitType, unsigned simdSize)
 {
     assert(IsBaselineSimdIsaSupportedDebugOnly());
-
-    assert(varTypeIsSIMD(type));
-    assert(getSIMDTypeForSize(simdSize) == type);
+    assert(varTypeIsSimdOrMask(type));
 
     var_types simdBaseType = JitType2PreciseVarType(simdBaseJitType);
     assert(varTypeIsArithmetic(simdBaseType));
+
+    bool isMask = varTypeIsMask(type);
+
+    if (isMask)
+    {
+        assert(IsBaselineVector512IsaSupportedDebugOnly());
+        uint32_t count = simdSize / genTypeSize(simdBaseType);
+        assert(getMaskTypeForCount(count) == type);
+    }
+    else
+    {
+        assert(getSIMDTypeForSize(simdSize) == type);
+    }
 
     assert(op1 != nullptr);
     assert(op1->TypeIs(type, simdBaseType, genActualType(simdBaseType)) ||
@@ -19539,7 +19550,23 @@ GenTree* Compiler::gtNewSimdBinOpNode(
 
         case GT_AND_NOT:
         {
-            if (simdSize == 64)
+            if (isMask)
+            {
+                if (type == TYP_MASK1)
+                {
+                    intrinsic = NI_AVX512DQ_AndNotMask;
+                }
+                else if (type == TYP_MASK2)
+                {
+                    intrinsic = NI_AVX512F_AndNotMask;
+                }
+                else
+                {
+                    assert((type == TYP_MASK4) || (type == TYP_MASK8));
+                    intrinsic = NI_AVX512BW_AndNotMask;
+                }
+            }
+            else if (simdSize == 64)
             {
                 assert(compIsaSupportedDebugOnly(InstructionSet_AVX512F));
                 intrinsic = NI_AVX512F_AndNot;

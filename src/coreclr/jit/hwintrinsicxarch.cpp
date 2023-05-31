@@ -537,6 +537,9 @@ bool HWIntrinsicInfo::isFullyImplementedIsa(CORINFO_InstructionSet isa)
         case InstructionSet_Vector128:
         case InstructionSet_Vector256:
         case InstructionSet_Vector512:
+        case InstructionSet_Vector128Mask:
+        case InstructionSet_Vector256Mask:
+        case InstructionSet_Vector512Mask:
         case InstructionSet_X86Base:
         case InstructionSet_X86Base_X64:
         case InstructionSet_X86Serialize:
@@ -739,6 +742,9 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
         case NI_Vector128_AndNot:
         case NI_Vector256_AndNot:
         case NI_Vector512_AndNot:
+        case NI_Vector128Mask_AndNot:
+        case NI_Vector256Mask_AndNot:
+        case NI_Vector512Mask_AndNot:
         {
             assert(sig->numArgs == 2);
 

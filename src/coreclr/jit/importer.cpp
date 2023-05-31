@@ -1117,6 +1117,9 @@ var_types Compiler::impNormStructType(CORINFO_CLASS_HANDLE structHnd, CorInfoTyp
                 // Also indicate that we use floating point registers.
                 compFloatingPointUsed = true;
             }
+#if defined(TARGET_XARCH)
+
+#endif // TARGET_XARCH
         }
     }
 #endif // FEATURE_SIMD
