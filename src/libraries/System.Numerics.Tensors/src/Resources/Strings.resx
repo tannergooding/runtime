@@ -120,6 +120,9 @@
   <data name="Argument_DestinationTooShort" xml:space="preserve">
     <value>Destination is too short.</value>
   </data>
+  <data name="Argument_SpanMustNotBeEmpty" xml:space="preserve">
+    <value>Input span argument must not be empty.</value>
+  </data>
   <data name="Argument_SpansMustHaveSameLength" xml:space="preserve">
     <value>Input span arguments must all have the same length.</value>
   </data>

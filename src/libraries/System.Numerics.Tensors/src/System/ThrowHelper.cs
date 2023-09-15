@@ -14,5 +14,9 @@ namespace System
         [DoesNotReturn]
         public static void ThrowArgument_SpansMustHaveSameLength() =>
             throw new ArgumentException(SR.Argument_SpansMustHaveSameLength);
+
+        [DoesNotReturn]
+        public static void ThrowArgument_SpansMustNotBeEmpty() =>
+            throw new ArgumentException(SR.Argument_SpanMustNotBeEmpty);
     }
 }
