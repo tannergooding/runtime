@@ -502,7 +502,7 @@ namespace System.Runtime.InteropServices
             return (NFloat)(UInt128)(value);
         }
 
-        /// <summary>Implicitly converts a <see cref="System.IntPtr" /> value to its nearest representable native-sized floating-point value.</summary>
+        /// <summary>Implicitly converts a <see cref="nint" /> value to its nearest representable native-sized floating-point value.</summary>
         /// <param name="value">The value to convert.</param>
         /// <returns><paramref name="value" /> converted to its nearest representable native-sized floating-point value.</returns>
         [NonVersionable]
@@ -549,7 +549,7 @@ namespace System.Runtime.InteropServices
         [CLSCompliant(false)]
         public static explicit operator NFloat(UInt128 value) => (NFloat)(double)(value);
 
-        /// <summary>Implicitly converts a <see cref="System.UIntPtr" /> value to its nearest representable native-sized floating-point value.</summary>
+        /// <summary>Implicitly converts a <see cref="nuint" /> value to its nearest representable native-sized floating-point value.</summary>
         /// <param name="value">The value to convert.</param>
         /// <returns><paramref name="value" /> converted to its nearest representable native-sized floating-point value.</returns>
         [NonVersionable]
@@ -1380,6 +1380,9 @@ namespace System.Runtime.InteropServices
 
         /// <inheritdoc cref="INumberBase{TSelf}.MinMagnitudeNumber(TSelf, TSelf)" />
         public static NFloat MinMagnitudeNumber(NFloat x, NFloat y) => new NFloat(NativeType.MinMagnitudeNumber(x._value, y._value));
+
+        /// <inheritdoc cref="INumberBase{TSelf}.MultiplyAddEstimate(TSelf, TSelf, TSelf)" />
+        public static NFloat MultiplyAddEstimate(NFloat x, NFloat y, NFloat addend) => new NFloat(NativeType.MultiplyAddEstimate(x._value, y._value, addend._value));
 
         /// <inheritdoc cref="INumberBase{TSelf}.TryConvertFromChecked{TOther}(TOther, out TSelf)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -258,6 +258,17 @@ namespace System.Numerics
         /// <remarks>For <see cref="IFloatingPointIeee754{TSelf}" /> this method matches the IEEE 754:2019 <c>minimumMagnitudeNumber</c> function. This requires NaN inputs to not be propagated back to the caller and for <c>-0.0</c> to be treated as less than <c>+0.0</c>.</remarks>
         static abstract TSelf MinMagnitudeNumber(TSelf x, TSelf y);
 
+        /// <summary>Computes an estimate of the multiply-add for three values.</summary>
+        /// <param name="x">The value which <paramref name="y" /> multiplies.</param>
+        /// <param name="y">The value which multiplies <paramref name="x" />.</param>
+        /// <param name="addend">The value that is added to the product of <paramref name="x" /> and <paramref name="y" />.</param>
+        /// <returns>The result of <paramref name="x" /> times <paramref name="y" /> plus <paramref name="addend" />.</returns>
+        /// <remarks>
+        ///     <para>On hardware with specialized support, this may operate as <see cref="IFloatingPointIeee754{TSelf}.FusedMultiplyAdd(TSelf, TSelf, TSelf)" />.</para>
+        ///     <para>On hardware without specialized support, this may operate as <c>(x * y) + addend</c>.</para>
+        /// </remarks>
+        static virtual TSelf MultiplyAddEstimate(TSelf x, TSelf y, TSelf addend) => (x * y) + addend;
+
         /// <summary>Parses a string into a value.</summary>
         /// <param name="s">The string to parse.</param>
         /// <param name="style">A bitwise combination of number styles that can be present in <paramref name="s" />.</param>

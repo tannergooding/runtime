@@ -1912,6 +1912,9 @@ namespace System
             return y;
         }
 
+        /// <inheritdoc cref="INumberBase{TSelf}.MultiplyAddEstimate(TSelf, TSelf, TSelf)" />
+        public static Half MultiplyAddEstimate(Half x, Half y, Half addend) => (Half)float.MultiplyAddEstimate((float)x, (float)y, (float)addend);
+
         /// <inheritdoc cref="INumberBase{TSelf}.TryConvertFromChecked{TOther}(TOther, out TSelf)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool INumberBase<Half>.TryConvertFromChecked<TOther>(TOther value, out Half result)

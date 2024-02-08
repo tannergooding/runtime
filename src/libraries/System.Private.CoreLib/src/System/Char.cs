@@ -1509,6 +1509,9 @@ namespace System
         /// <inheritdoc cref="INumberBase{TSelf}.MinMagnitudeNumber(TSelf, TSelf)" />
         static char INumberBase<char>.MinMagnitudeNumber(char x, char y) => (char)Math.Min(x, y);
 
+        /// <inheritdoc cref="INumberBase{TSelf}.MultiplyAddEstimate(TSelf, TSelf, TSelf)" />
+        static char INumberBase<char>.MultiplyAddEstimate(char x, char y, char addend) => (char)((x * y) + addend);
+
         static char INumberBase<char>.Parse(string s, NumberStyles style, IFormatProvider? provider) => Parse(s);
 
         static char INumberBase<char>.Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider) => Parse(s);

@@ -876,6 +876,9 @@ namespace System
         /// <inheritdoc cref="INumberBase{TSelf}.MinMagnitudeNumber(TSelf, TSelf)" />
         static short INumberBase<short>.MinMagnitudeNumber(short x, short y) => MinMagnitude(x, y);
 
+        /// <inheritdoc cref="INumberBase{TSelf}.MultiplyAddEstimate(TSelf, TSelf, TSelf)" />
+        static short INumberBase<short>.MultiplyAddEstimate(short x, short y, short addend) => (short)((x * y) + addend);
+
         /// <inheritdoc cref="INumberBase{TSelf}.TryConvertFromChecked{TOther}(TOther, out TSelf)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool INumberBase<short>.TryConvertFromChecked<TOther>(TOther value, out short result) => TryConvertFromChecked(value, out result);

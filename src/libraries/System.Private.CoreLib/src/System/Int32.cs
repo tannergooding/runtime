@@ -911,6 +911,9 @@ namespace System
         /// <inheritdoc cref="INumberBase{TSelf}.MinMagnitudeNumber(TSelf, TSelf)" />
         static int INumberBase<int>.MinMagnitudeNumber(int x, int y) => MinMagnitude(x, y);
 
+        /// <inheritdoc cref="INumberBase{TSelf}.MultiplyAddEstimate(TSelf, TSelf, TSelf)" />
+        static int INumberBase<int>.MultiplyAddEstimate(int x, int y, int addend) => (x * y) + addend;
+
         /// <inheritdoc cref="INumberBase{TSelf}.TryConvertFromChecked{TOther}(TOther, out TSelf)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool INumberBase<int>.TryConvertFromChecked<TOther>(TOther value, out int result) => TryConvertFromChecked(value, out result);

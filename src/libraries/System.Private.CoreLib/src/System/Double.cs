@@ -8,6 +8,8 @@ using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.Arm;
+using System.Runtime.Intrinsics.X86;
 using System.Runtime.Versioning;
 
 namespace System
@@ -1190,6 +1192,16 @@ namespace System
             }
 
             return y;
+        }
+
+        /// <inheritdoc cref="INumberBase{TSelf}.MultiplyAddEstimate(TSelf, TSelf, TSelf)" />
+        public static double MultiplyAddEstimate(double x, double y, double addend)
+        {
+            if (Fma.IsSupported || AdvSimd.IsSupported)
+            {
+                return FusedMultiplyAdd(x, y, addend);
+            }
+            return (x * y) + addend;
         }
 
         /// <inheritdoc cref="INumberBase{TSelf}.TryConvertFromChecked{TOther}(TOther, out TSelf)" />

@@ -1466,6 +1466,19 @@ namespace System.Numerics
             return y;
         }
 
+        /// <inheritdoc cref="INumberBase{TSelf}.MultiplyAddEstimate(TSelf, TSelf, TSelf)" />
+        static Complex INumberBase<Complex>.MultiplyAddEstimate(Complex x, Complex y, Complex addend)
+        {
+            // Multiplication:  (a + bi)(c + di) = (ac - bd) + (bc + ad)i
+            double real = double.MultiplyAddEstimate(x.m_real, y.m_real, -(x.m_imaginary * y.m_imaginary));
+            double imaginary = double.MultiplyAddEstimate(x.m_imaginary, y.m_real, x.m_real * y.m_imaginary);
+
+            return new Complex(
+                real + addend.m_real,
+                imaginary + addend.m_imaginary
+            );
+        }
+
         /// <inheritdoc cref="INumberBase{TSelf}.Parse(ReadOnlySpan{char}, NumberStyles, IFormatProvider?)" />
         public static Complex Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
         {

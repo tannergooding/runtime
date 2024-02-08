@@ -1564,6 +1564,9 @@ namespace System
         /// <inheritdoc cref="INumberBase{TSelf}.MinMagnitudeNumber(TSelf, TSelf)" />
         static Int128 INumberBase<Int128>.MinMagnitudeNumber(Int128 x, Int128 y) => MinMagnitude(x, y);
 
+        /// <inheritdoc cref="INumberBase{TSelf}.MultiplyAddEstimate(TSelf, TSelf, TSelf)" />
+        static Int128 INumberBase<Int128>.MultiplyAddEstimate(Int128 x, Int128 y, Int128 addend) => (x * y) + addend;
+
         /// <inheritdoc cref="INumberBase{TSelf}.TryConvertFromChecked{TOther}(TOther, out TSelf)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool INumberBase<Int128>.TryConvertFromChecked<TOther>(TOther value, out Int128 result) => TryConvertFromChecked(value, out result);
