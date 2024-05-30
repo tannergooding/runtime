@@ -10,17 +10,18 @@ namespace System.Numerics
 {
     internal static partial class BigIntegerCalculator
     {
-#if DEBUG
-        // Mutable for unit testing...
         internal static
-#else
-        internal const
+#if !DEBUG
+        // Mutable for unit testing...
+        readonly
 #endif
-        int SquareThreshold = 32;
+        int SquareThreshold = BigInteger.BitsPerElement;
 
-        public static void Square(ReadOnlySpan<uint> value, Span<uint> bits)
+        public static void Square<TOverflow>(ReadOnlySpan<nuint> value, Span<nuint> bits)
+            where TOverflow : unmanaged, IBinaryInteger<TOverflow>, IUnsignedNumber<TOverflow>
         {
-            Debug.Assert(bits.Length == value.Length + value.Length);
+            Debug.Assert(Unsafe.SizeOf<TOverflow>() == (Unsafe.SizeOf<nuint>() * 2));
+            Debug.Assert(bits.Length == (value.Length + value.Length));
 
             // Executes different algorithms for computing z = a * a
             // based on the actual length of a. If a is "small" enough
@@ -35,7 +36,7 @@ namespace System.Numerics
             {
                 // Switching to managed references helps eliminating
                 // index bounds check...
-                ref uint resultPtr = ref MemoryMarshal.GetReference(bits);
+                ref nuint resultPtr = ref MemoryMarshal.GetReference(bits);
 
                 // Squares the bits using the "grammar-school" method.
                 // Envisioning the "rhombus" of a pen-and-paper calculation
@@ -44,24 +45,31 @@ namespace System.Numerics
                 // Thus, we directly get z_i+j += 2 * a_j * a_i + c.
 
                 // ATTENTION: an ordinary multiplication is safe, because
-                // z_i+j + a_j * a_i + c <= 2(2^32 - 1) + (2^32 - 1)^2 =
-                // = 2^64 - 1 (which perfectly matches with ulong!). But
-                // here we would need an UInt65... Hence, we split these
+                // z_i+j + a_j * a_i + c <= 2(2^BitsPerElement - 1) + (2^BitsPerElement - 1)^2 =
+                // = 2^BitsPerOverflow - 1 (which perfectly matches with TOverflow!). But
+                // here we would need an BitsPerOverflow + 1... Hence, we split these
                 // operation and do some extra shifts.
+
                 for (int i = 0; i < value.Length; i++)
                 {
-                    ulong carry = 0UL;
-                    uint v = value[i];
+                    TOverflow carry = TOverflow.Zero;
+                    nuint v = value[i];
+
                     for (int j = 0; j < i; j++)
                     {
-                        ulong digit1 = Unsafe.Add(ref resultPtr, i + j) + carry;
-                        ulong digit2 = (ulong)value[j] * v;
-                        Unsafe.Add(ref resultPtr, i + j) = unchecked((uint)(digit1 + (digit2 << 1)));
-                        carry = (digit2 + (digit1 >> 1)) >> 31;
+                        TOverflow digit1 = Widen<TOverflow>(Unsafe.Add(ref resultPtr, i + j)) + carry;
+                        TOverflow digit2 = Widen<TOverflow>(value[j]) * Widen<TOverflow>(v);
+                        Unsafe.Add(ref resultPtr, i + j) = Narrow(digit1 + (digit2 << 1));
+                        carry = (digit2 + (digit1 >> 1)) >> (BigInteger.BitsPerElement - 1);
                     }
-                    ulong digits = (ulong)v * v + carry;
-                    Unsafe.Add(ref resultPtr, i + i) = unchecked((uint)digits);
-                    Unsafe.Add(ref resultPtr, i + i + 1) = (uint)(digits >> 32);
+
+                    TOverflow digits = Widen<TOverflow>(v);
+
+                    digits *= digits;
+                    digits += carry;
+
+                    Unsafe.Add(ref resultPtr, i + i) = Narrow(digits);
+                    Unsafe.Add(ref resultPtr, i + i + 1) = Narrow(digits >> BigInteger.BitsPerElement);
                 }
             }
             else
@@ -82,84 +90,107 @@ namespace System.Numerics
                 int n2 = n << 1;
 
                 // ... split value like a = (a_1 << n) + a_0
-                ReadOnlySpan<uint> valueLow = value.Slice(0, n);
-                ReadOnlySpan<uint> valueHigh = value.Slice(n);
+                ReadOnlySpan<nuint> valueLow = value[..n];
+                ReadOnlySpan<nuint> valueHigh = value[n..];
 
                 // ... prepare our result array (to reuse its memory)
-                Span<uint> bitsLow = bits.Slice(0, n2);
-                Span<uint> bitsHigh = bits.Slice(n2);
+                Span<nuint> bitsLow = bits[..n2];
+                Span<nuint> bitsHigh = bits[n2..];
 
                 // ... compute z_0 = a_0 * a_0 (squaring again!)
-                Square(valueLow, bitsLow);
+                Square<TOverflow>(valueLow, bitsLow);
 
                 // ... compute z_2 = a_1 * a_1 (squaring again!)
-                Square(valueHigh, bitsHigh);
+                Square<TOverflow>(valueHigh, bitsHigh);
 
                 int foldLength = valueHigh.Length + 1;
-                uint[]? foldFromPool = null;
-                Span<uint> fold = ((uint)foldLength <= StackAllocThreshold ?
-                                  stackalloc uint[StackAllocThreshold]
-                                  : foldFromPool = ArrayPool<uint>.Shared.Rent(foldLength)).Slice(0, foldLength);
+                nuint[]? foldFromPool = null;
+                Span<nuint> fold = ((uint)foldLength <= StackAllocThreshold
+                                 ? stackalloc nuint[StackAllocThreshold]
+                                 : foldFromPool = ArrayPool<nuint>.Shared.Rent(foldLength))[..foldLength];
                 fold.Clear();
 
                 int coreLength = foldLength + foldLength;
-                uint[]? coreFromPool = null;
-                Span<uint> core = ((uint)coreLength <= StackAllocThreshold ?
-                                  stackalloc uint[StackAllocThreshold]
-                                  : coreFromPool = ArrayPool<uint>.Shared.Rent(coreLength)).Slice(0, coreLength);
+                nuint[]? coreFromPool = null;
+                Span<nuint> core = ((uint)coreLength <= StackAllocThreshold
+                                 ? stackalloc nuint[StackAllocThreshold]
+                                 : coreFromPool = ArrayPool<nuint>.Shared.Rent(coreLength))[..coreLength];
                 core.Clear();
 
                 // ... compute z_a = a_1 + a_0 (call it fold...)
-                Add(valueHigh, valueLow, fold);
+                if (Environment.Is64BitProcess)
+                {
+                    Add<Int128>(valueHigh, valueLow, fold);
+                }
+                else
+                {
+                    Add<long>(valueHigh, valueLow, fold);
+                }
 
                 // ... compute z_1 = z_a * z_a - z_0 - z_2
-                Square(fold, core);
+                Square<TOverflow>(fold, core);
 
                 if (foldFromPool != null)
-                    ArrayPool<uint>.Shared.Return(foldFromPool);
+                {
+                    ArrayPool<nuint>.Shared.Return(foldFromPool);
+                }
 
-                SubtractCore(bitsHigh, bitsLow, core);
+                if (Environment.Is64BitProcess)
+                {
+                    SubtractCore<Int128>(bitsHigh, bitsLow, core);
 
-                // ... and finally merge the result! :-)
-                AddSelf(bits.Slice(n), core);
+                    // ... and finally merge the result! :-)
+                    AddSelf<Int128>(bits[n..], core);
+                }
+                else
+                {
+                    SubtractCore<long>(bitsHigh, bitsLow, core);
+
+                    // ... and finally merge the result! :-)
+                    AddSelf<long>(bits[n..], core);
+                }
 
                 if (coreFromPool != null)
-                    ArrayPool<uint>.Shared.Return(coreFromPool);
+                {
+                    ArrayPool<nuint>.Shared.Return(coreFromPool);
+                }
             }
         }
 
-        public static void Multiply(ReadOnlySpan<uint> left, uint right, Span<uint> bits)
+        public static void Multiply<TOverflow>(ReadOnlySpan<nuint> left, nuint right, Span<nuint> bits)
+                where TOverflow : unmanaged, IBinaryInteger<TOverflow>, IUnsignedNumber<TOverflow>
         {
+            Debug.Assert(Unsafe.SizeOf<TOverflow>() == (Unsafe.SizeOf<nuint>() * 2));
             Debug.Assert(bits.Length == left.Length + 1);
 
-            // Executes the multiplication for one big and one 32-bit integer.
+            // Executes the multiplication for one big and one BitsPerElement-bit integer.
             // Since every step holds the already slightly familiar equation
-            // a_i * b + c <= 2^32 - 1 + (2^32 - 1)^2 < 2^64 - 1,
+            // a_i * b + c <= 2^BitsPerElement - 1 + (2^BitsPerElement - 1)^2 < 2^BitsPerOverflow - 1,
             // we are safe regarding to overflows.
 
             int i = 0;
-            ulong carry = 0UL;
+            TOverflow carry = TOverflow.Zero;
 
             for (; i < left.Length; i++)
             {
-                ulong digits = (ulong)left[i] * right + carry;
-                bits[i] = unchecked((uint)digits);
-                carry = digits >> 32;
+                TOverflow digits = (Widen<TOverflow>(left[i]) * Widen<TOverflow>(right)) + carry;
+                bits[i] = Narrow(digits);
+                carry = digits >> BigInteger.BitsPerElement;
             }
-            bits[i] = (uint)carry;
+            bits[i] = Narrow(carry);
         }
 
-#if DEBUG
-        // Mutable for unit testing...
         internal static
-#else
-        internal const
+#if !DEBUG
+        // Mutable for unit testing...
+        readonly
 #endif
-            int MultiplyKaratsubaThreshold = 32;
-        public static void Multiply(ReadOnlySpan<uint> left, ReadOnlySpan<uint> right, Span<uint> bits)
+        int MultiplyKaratsubaThreshold = BigInteger.BitsPerElement;
+
+        public static void Multiply(ReadOnlySpan<nuint> left, ReadOnlySpan<nuint> right, Span<nuint> bits)
         {
             Debug.Assert(left.Length >= right.Length);
-            Debug.Assert(bits.Length >= left.Length + right.Length);
+            Debug.Assert(bits.Length >= (left.Length + right.Length));
             Debug.Assert(bits.Trim(0u).IsEmpty);
             Debug.Assert(MultiplyKaratsubaThreshold >= 2);
 
@@ -174,7 +205,15 @@ namespace System.Numerics
 
             if (right.Length < MultiplyKaratsubaThreshold)
             {
-                Naive(left, right, bits);
+                if (Environment.Is64BitProcess)
+                {
+                    Naive<UInt128>(left, right, bits);
+                }
+                else
+                {
+
+                    Naive<ulong>(left, right, bits);
+                }
                 return;
             }
 
@@ -209,65 +248,88 @@ namespace System.Numerics
             if (right.Length <= n)
             {
                 // ... split left like a = (a_1 << n) + a_0
-                ReadOnlySpan<uint> leftLow = left.Slice(0, n);
-                ReadOnlySpan<uint> leftHigh = left.Slice(n);
+                ReadOnlySpan<nuint> leftLow = left[..n];
+                ReadOnlySpan<nuint> leftHigh = left[n..];
                 Debug.Assert(leftLow.Length >= leftHigh.Length);
 
                 // ... prepare our result array (to reuse its memory)
-                Span<uint> bitsLow = bits.Slice(0, n + right.Length);
-                Span<uint> bitsHigh = bits.Slice(n);
+                Span<nuint> bitsLow = bits[..(n + right.Length)];
+                Span<nuint> bitsHigh = bits[n..];
 
                 // ... compute low
                 Multiply(leftLow, right, bitsLow);
 
                 int carryLength = right.Length;
-                uint[]? carryFromPool = null;
-                Span<uint> carry = ((uint)carryLength <= StackAllocThreshold ?
-                                  stackalloc uint[StackAllocThreshold]
-                                  : carryFromPool = ArrayPool<uint>.Shared.Rent(carryLength)).Slice(0, carryLength);
+                nuint[]? carryFromPool = null;
+                Span<nuint> carry = ((uint)carryLength <= StackAllocThreshold
+                                  ? stackalloc nuint[StackAllocThreshold]
+                                  : carryFromPool = ArrayPool<nuint>.Shared.Rent(carryLength))[..carryLength];
 
-                Span<uint> carryOrig = bits.Slice(n, right.Length);
+                Span<nuint> carryOrig = bits.Slice(n, right.Length);
                 carryOrig.CopyTo(carry);
                 carryOrig.Clear();
 
                 // ... compute high
                 if (leftHigh.Length < right.Length)
-                    MultiplyKaratsuba(right, leftHigh, bitsHigh.Slice(0, leftHigh.Length + right.Length), (right.Length + 1) >> 1);
+                {
+                    MultiplyKaratsuba(right, leftHigh, bitsHigh[..(leftHigh.Length + right.Length)], (right.Length + 1) >> 1);
+                }
                 else
-                    Multiply(leftHigh, right, bitsHigh.Slice(0, leftHigh.Length + right.Length));
+                {
+                    Multiply(leftHigh, right, bitsHigh[..(leftHigh.Length + right.Length)]);
+                }
 
-                AddSelf(bitsHigh, carry);
+                if (Environment.Is64BitProcess)
+                {
+                    AddSelf<Int128>(bitsHigh, carry);
+                }
+                else
+                {
+                    AddSelf<long>(bitsHigh, carry);
+                }
 
                 if (carryFromPool != null)
-                    ArrayPool<uint>.Shared.Return(carryFromPool);
+                {
+                    ArrayPool<nuint>.Shared.Return(carryFromPool);
+                }
             }
             else
+            {
                 MultiplyKaratsuba(left, right, bits, n);
+            }
 
-            static void MultiplyKaratsuba(ReadOnlySpan<uint> left, ReadOnlySpan<uint> right, Span<uint> bits, int n)
+            static void MultiplyKaratsuba(ReadOnlySpan<nuint> left, ReadOnlySpan<nuint> right, Span<nuint> bits, int n)
             {
                 Debug.Assert(left.Length >= right.Length);
-                Debug.Assert(2 * n - left.Length is 0 or 1);
+                Debug.Assert(((2 * n) - left.Length) is 0 or 1);
                 Debug.Assert(right.Length > n);
                 Debug.Assert(bits.Length >= left.Length + right.Length);
 
                 if (right.Length < MultiplyKaratsubaThreshold)
                 {
-                    Naive(left, right, bits);
+                    if (Environment.Is64BitProcess)
+                    {
+                        Naive<UInt128>(left, right, bits);
+                    }
+                    else
+                    {
+
+                        Naive<ulong>(left, right, bits);
+                    }
                 }
                 else
                 {
                     // ... split left like a = (a_1 << n) + a_0
-                    ReadOnlySpan<uint> leftLow = left.Slice(0, n);
-                    ReadOnlySpan<uint> leftHigh = left.Slice(n);
+                    ReadOnlySpan<nuint> leftLow = left[..n];
+                    ReadOnlySpan<nuint> leftHigh = left[n..];
 
                     // ... split right like b = (b_1 << n) + b_0
-                    ReadOnlySpan<uint> rightLow = right.Slice(0, n);
-                    ReadOnlySpan<uint> rightHigh = right.Slice(n);
+                    ReadOnlySpan<nuint> rightLow = right[..n];
+                    ReadOnlySpan<nuint> rightHigh = right[n..];
 
                     // ... prepare our result array (to reuse its memory)
-                    Span<uint> bitsLow = bits.Slice(0, n + n);
-                    Span<uint> bitsHigh = bits.Slice(n + n);
+                    Span<nuint> bitsLow = bits[..(n + n)];
+                    Span<nuint> bitsHigh = bits[(n + n)..];
 
                     Debug.Assert(leftLow.Length >= leftHigh.Length);
                     Debug.Assert(rightLow.Length >= rightHigh.Length);
@@ -280,87 +342,122 @@ namespace System.Numerics
                     Multiply(leftHigh, rightHigh, bitsHigh);
 
                     int foldLength = n + 1;
-                    uint[]? leftFoldFromPool = null;
-                    Span<uint> leftFold = ((uint)foldLength <= StackAllocThreshold ?
-                                          stackalloc uint[StackAllocThreshold]
-                                          : leftFoldFromPool = ArrayPool<uint>.Shared.Rent(foldLength)).Slice(0, foldLength);
+                    nuint[]? leftFoldFromPool = null;
+                    Span<nuint> leftFold = ((uint)foldLength <= StackAllocThreshold
+                                         ? stackalloc nuint[StackAllocThreshold]
+                                         : leftFoldFromPool = ArrayPool<nuint>.Shared.Rent(foldLength))[..foldLength];
                     leftFold.Clear();
 
-                    uint[]? rightFoldFromPool = null;
-                    Span<uint> rightFold = ((uint)foldLength <= StackAllocThreshold ?
-                                           stackalloc uint[StackAllocThreshold]
-                                           : rightFoldFromPool = ArrayPool<uint>.Shared.Rent(foldLength)).Slice(0, foldLength);
+                    nuint[]? rightFoldFromPool = null;
+                    Span<nuint> rightFold = ((uint)foldLength <= StackAllocThreshold
+                                          ? stackalloc nuint[StackAllocThreshold]
+                                          : rightFoldFromPool = ArrayPool<nuint>.Shared.Rent(foldLength))[..foldLength];
                     rightFold.Clear();
 
-                    // ... compute z_a = a_1 + a_0 (call it fold...)
-                    Add(leftLow, leftHigh, leftFold);
+                    if (Environment.Is64BitProcess)
+                    {
+                        // ... compute z_a = a_1 + a_0 (call it fold...)
+                        Add<Int128>(leftLow, leftHigh, leftFold);
 
-                    // ... compute z_b = b_1 + b_0 (call it fold...)
-                    Add(rightLow, rightHigh, rightFold);
+                        // ... compute z_b = b_1 + b_0 (call it fold...)
+                        Add<Int128>(rightLow, rightHigh, rightFold);
+                    }
+                    else
+                    {
+                        // ... compute z_a = a_1 + a_0 (call it fold...)
+                        Add<long>(leftLow, leftHigh, leftFold);
+
+                        // ... compute z_b = b_1 + b_0 (call it fold...)
+                        Add<long>(rightLow, rightHigh, rightFold);
+                    }
 
                     int coreLength = foldLength + foldLength;
-                    uint[]? coreFromPool = null;
-                    Span<uint> core = ((uint)coreLength <= StackAllocThreshold ?
-                                      stackalloc uint[StackAllocThreshold]
-                                      : coreFromPool = ArrayPool<uint>.Shared.Rent(coreLength)).Slice(0, coreLength);
+                    nuint[]? coreFromPool = null;
+                    Span<nuint> core = ((uint)coreLength <= StackAllocThreshold
+                                     ? stackalloc nuint[StackAllocThreshold]
+                                     : coreFromPool = ArrayPool<nuint>.Shared.Rent(coreLength))[..coreLength];
                     core.Clear();
 
                     // ... compute z_ab = z_a * z_b
                     MultiplyKaratsuba(leftFold, rightFold, core, (leftFold.Length + 1) >> 1);
 
                     if (leftFoldFromPool != null)
-                        ArrayPool<uint>.Shared.Return(leftFoldFromPool);
+                    {
+                        ArrayPool<nuint>.Shared.Return(leftFoldFromPool);
+                    }
 
                     if (rightFoldFromPool != null)
-                        ArrayPool<uint>.Shared.Return(rightFoldFromPool);
+                    {
+                        ArrayPool<nuint>.Shared.Return(rightFoldFromPool);
+                    }
 
                     // ... compute z_1 = z_a * z_b - z_0 - z_2 = a_0 * b_1 + a_1 * b_0
-                    SubtractCore(bitsLow, bitsHigh, core);
+                    if (Environment.Is64BitProcess)
+                    {
+                        SubtractCore<Int128>(bitsLow, bitsHigh, core);
 
-                    Debug.Assert(ActualLength(core) <= left.Length + 1);
+                        Debug.Assert(ActualLength(core) <= left.Length + 1);
 
-                    // ... and finally merge the result! :-)
-                    AddSelf(bits.Slice(n), core.Slice(0, ActualLength(core)));
+                        // ... and finally merge the result! :-)
+                        AddSelf<Int128>(bits[n..], core[..ActualLength(core)]);
+                    }
+                    else
+                    {
+                        SubtractCore<long>(bitsLow, bitsHigh, core);
+
+                        Debug.Assert(ActualLength(core) <= left.Length + 1);
+
+                        // ... and finally merge the result! :-)
+                        AddSelf<long>(bits[n..], core[..ActualLength(core)]);
+                    }
 
                     if (coreFromPool != null)
-                        ArrayPool<uint>.Shared.Return(coreFromPool);
+                    {
+                        ArrayPool<nuint>.Shared.Return(coreFromPool);
+                    }
                 }
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            static void Naive(ReadOnlySpan<uint> left, ReadOnlySpan<uint> right, Span<uint> bits)
+            static void Naive<TOverflow>(ReadOnlySpan<nuint> left, ReadOnlySpan<nuint> right, Span<nuint> bits)
+                where TOverflow : unmanaged, IBinaryInteger<TOverflow>, IUnsignedNumber<TOverflow>
             {
+                Debug.Assert(Unsafe.SizeOf<TOverflow>() == (Unsafe.SizeOf<nuint>() * 2));
                 Debug.Assert(right.Length < MultiplyKaratsubaThreshold);
 
                 // Switching to managed references helps eliminating
                 // index bounds check...
-                ref uint resultPtr = ref MemoryMarshal.GetReference(bits);
+                ref nuint resultPtr = ref MemoryMarshal.GetReference(bits);
 
                 // Multiplies the bits using the "grammar-school" method.
                 // Envisioning the "rhombus" of a pen-and-paper calculation
                 // should help getting the idea of these two loops...
                 // The inner multiplication operations are safe, because
-                // z_i+j + a_j * b_i + c <= 2(2^32 - 1) + (2^32 - 1)^2 =
-                // = 2^64 - 1 (which perfectly matches with ulong!).
+                // z_i+j + a_j * b_i + c <= 2(2^BitsPerElement - 1) + (2^BitsPerElement - 1)^2 =
+                // = 2^BitsPerOverflow - 1 (which perfectly matches with TOverflow!).
 
                 for (int i = 0; i < right.Length; i++)
                 {
-                    uint rv = right[i];
-                    ulong carry = 0UL;
+                    nuint rv = right[i];
+                    TOverflow carry = TOverflow.Zero;
+
                     for (int j = 0; j < left.Length; j++)
                     {
-                        ref uint elementPtr = ref Unsafe.Add(ref resultPtr, i + j);
-                        ulong digits = elementPtr + carry + (ulong)left[j] * rv;
-                        elementPtr = unchecked((uint)digits);
-                        carry = digits >> 32;
+                        ref nuint elementPtr = ref Unsafe.Add(ref resultPtr, i + j);
+                        TOverflow digits = Widen<TOverflow>(elementPtr) + carry + (Widen<TOverflow>(left[j]) * Widen<TOverflow>(rv));
+                        elementPtr = Narrow(digits);
+                        carry = digits >> BigInteger.BitsPerElement;
                     }
-                    Unsafe.Add(ref resultPtr, i + left.Length) = (uint)carry;
+
+                    Unsafe.Add(ref resultPtr, i + left.Length) = Narrow(carry);
                 }
             }
         }
 
-        private static void SubtractCore(ReadOnlySpan<uint> left, ReadOnlySpan<uint> right, Span<uint> core)
+        private static void SubtractCore<TOverflow>(ReadOnlySpan<nuint> left, ReadOnlySpan<nuint> right, Span<nuint> core)
+            where TOverflow : unmanaged, IBinaryInteger<TOverflow>, ISignedNumber<TOverflow>
         {
+            Debug.Assert(Unsafe.SizeOf<TOverflow>() == (Unsafe.SizeOf<nuint>() * 2));
             Debug.Assert(left.Length >= right.Length);
             Debug.Assert(core.Length >= left.Length);
 
@@ -372,32 +469,32 @@ namespace System.Numerics
             // one "run", if we do this computation within a single one...
 
             int i = 0;
-            long carry = 0L;
+            TOverflow carry = TOverflow.Zero;
 
             // Switching to managed references helps eliminating
             // index bounds check...
-            ref uint leftPtr = ref MemoryMarshal.GetReference(left);
-            ref uint corePtr = ref MemoryMarshal.GetReference(core);
+            ref nuint leftPtr = ref MemoryMarshal.GetReference(left);
+            ref nuint corePtr = ref MemoryMarshal.GetReference(core);
 
             for (; i < right.Length; i++)
             {
-                long digit = (Unsafe.Add(ref corePtr, i) + carry) - Unsafe.Add(ref leftPtr, i) - right[i];
-                Unsafe.Add(ref corePtr, i) = unchecked((uint)digit);
-                carry = digit >> 32;
+                TOverflow digit = Widen<TOverflow>(Unsafe.Add(ref corePtr, i)) + carry - Widen<TOverflow>(Unsafe.Add(ref leftPtr, i)) - Widen<TOverflow>(right[i]);
+                Unsafe.Add(ref corePtr, i) = Narrow(digit);
+                carry = digit >> BigInteger.BitsPerElement;
             }
 
             for (; i < left.Length; i++)
             {
-                long digit = (Unsafe.Add(ref corePtr, i) + carry) - left[i];
-                Unsafe.Add(ref corePtr, i) = unchecked((uint)digit);
-                carry = digit >> 32;
+                TOverflow digit = Widen<TOverflow>(Unsafe.Add(ref corePtr, i)) + carry - Widen<TOverflow>(left[i]);
+                Unsafe.Add(ref corePtr, i) = Narrow(digit);
+                carry = digit >> BigInteger.BitsPerElement;
             }
 
-            for (; carry != 0 && i < core.Length; i++)
+            for (; (carry != TOverflow.Zero) && (i < core.Length); i++)
             {
-                long digit = core[i] + carry;
-                core[i] = (uint)digit;
-                carry = digit >> 32;
+                TOverflow digit = Widen<TOverflow>(core[i]) + carry;
+                core[i] = Narrow(digit);
+                carry = digit >> BigInteger.BitsPerElement;
             }
         }
     }

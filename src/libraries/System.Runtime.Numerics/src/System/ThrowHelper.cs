@@ -16,6 +16,12 @@ namespace System
         }
 
         [DoesNotReturn]
+        internal static void ThrowOverflowException(string message)
+        {
+            throw new OverflowException(message);
+        }
+
+        [DoesNotReturn]
         internal static void ThrowNotSupportedException()
         {
             throw new NotSupportedException();

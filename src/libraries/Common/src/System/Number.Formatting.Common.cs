@@ -124,7 +124,8 @@ namespace System
 
 #if !SYSTEM_PRIVATE_CORELIB
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static unsafe TChar* UInt32ToDecChars<TChar>(TChar* bufferEnd, uint value, int digits) where TChar : unmanaged, IUtfChar<TChar>
+        internal static unsafe TChar* UInt32ToDecChars<TChar>(TChar* bufferEnd, uint value, int digits)
+            where TChar : unmanaged, IUtfChar<TChar>
         {
             // TODO: Consider to bring optimized implementation from CoreLib
 
@@ -136,6 +137,36 @@ namespace System
             }
 
             return bufferEnd;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static unsafe TChar* UInt64ToDecChars<TChar>(TChar* bufferEnd, ulong value, int digits)
+            where TChar : unmanaged, IUtfChar<TChar>
+        {
+            // TODO: Consider to bring optimized implementation from CoreLib
+
+            while (value != 0 || digits > 0)
+            {
+                digits--;
+                (value, ulong remainder) = Math.DivRem(value, 10);
+                *(--bufferEnd) = TChar.CastFrom(remainder + '0');
+            }
+
+            return bufferEnd;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static unsafe TChar* NUIntToDecChars<TChar>(TChar* bufferEnd, nuint value, int digits)
+            where TChar : unmanaged, IUtfChar<TChar>
+        {
+            if (Environment.Is64BitProcess)
+            {
+                return UInt64ToDecChars(bufferEnd, value, digits);
+            }
+            else
+            {
+                return UInt32ToDecChars(bufferEnd, (uint)value, digits);
+            }
         }
 #endif
 
@@ -950,7 +981,9 @@ namespace System
             }
 
             TChar* digits = stackalloc TChar[MaxUInt32DecDigits];
-            TChar* p = UInt32ToDecChars(digits + MaxUInt32DecDigits, (uint)value, minDigits);
+            TChar* p;
+
+            p = UInt32ToDecChars(digits + MaxUInt32DecDigits, (uint)value, minDigits);
             vlb.Append(new ReadOnlySpan<TChar>(p, (int)(digits + MaxUInt32DecDigits - p)));
         }
 
