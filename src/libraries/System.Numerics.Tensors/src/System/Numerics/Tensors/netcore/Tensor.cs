@@ -4,12 +4,15 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
+using static System.Numerics.Tensors.TensorOperation;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace System.Numerics.Tensors
 {
@@ -1363,7 +1366,7 @@ namespace System.Numerics.Tensors
                         lengths[i] = tensor.Lengths[dimensions[i]];
                     permutation = dimensions.ToArray();
                 }
-                outTensor = new Tensor<T>(values, tensor._start, lengths, strides: []); // TODO: Propagate tensor._isPinned
+                outTensor = new Tensor<T>(values, tensor._start, lengths, strides: [], tensor._isPinned);
 
                 ospan = outTensor.AsTensorSpan();
                 ispan = tensor.AsTensorSpan();
@@ -1852,7 +1855,8 @@ namespace System.Numerics.Tensors
         /// <param name="ranges">The ranges you want to set.</param>
         public static Tensor<T> SetSlice<T>(this Tensor<T> tensor, in ReadOnlyTensorSpan<T> values, params ReadOnlySpan<NRange> ranges)
         {
-            tensor.AsTensorSpan().SetSlice(values, ranges);
+            SetSlice((TensorSpan<T>)tensor, values, ranges);
+
             return tensor;
         }
 
@@ -1864,7 +1868,24 @@ namespace System.Numerics.Tensors
         /// <param name="ranges">The ranges you want to set.</param>
         public static ref readonly TensorSpan<T> SetSlice<T>(this in TensorSpan<T> tensor, scoped in ReadOnlyTensorSpan<T> values, params scoped ReadOnlySpan<NRange> ranges)
         {
-            values.CopyTo(tensor.Slice(ranges));
+            TensorSpan<T> srcSpan;
+            if (ranges == ReadOnlySpan<NRange>.Empty)
+            {
+                if (!TensorHelpers.IsBroadcastableTo(values.Lengths, tensor.Lengths))
+                    ThrowHelper.ThrowArgument_SetSliceNoRange(nameof(values));
+                srcSpan = tensor;
+            }
+            else
+                srcSpan = tensor.Slice(ranges);
+
+            if (!TensorHelpers.IsContiguousAndDense<T>(srcSpan))
+                ThrowHelper.ThrowArgument_SetSliceInvalidShapes(nameof(values));
+
+            if (!TensorHelpers.IsBroadcastableTo(values.Lengths, srcSpan.Lengths))
+                ThrowHelper.ThrowArgument_SetSliceInvalidShapes(nameof(values));
+
+            values.CopyTo(srcSpan);
+
             return ref tensor;
         }
         #endregion
@@ -2200,8 +2221,8 @@ namespace System.Numerics.Tensors
         /// <param name="tensor">The <see cref="TensorSpan{T}"/> you want to represent as a string.</param>
         /// <param name="maximumLengths">Maximum Length of each dimension</param>
         /// <returns>A <see cref="string"/> representation of the <paramref name="tensor"/></returns>
-        public static string ToString<T>(this in TensorSpan<T> tensor, params ReadOnlySpan<nint> maximumLengths)
-            => tensor.AsReadOnlyTensorSpan().ToString(maximumLengths);
+        public static string ToString<T>(this in TensorSpan<T> tensor, params ReadOnlySpan<nint> maximumLengths) =>
+            ((ReadOnlyTensorSpan<T>)tensor).ToString(maximumLengths);
 
         /// <summary>
         /// Creates a <see cref="string"/> representation of the <see cref="ReadOnlyTensorSpan{T}"/>."/>
@@ -2211,70 +2232,47 @@ namespace System.Numerics.Tensors
         /// <param name="maximumLengths">Maximum Length of each dimension</param>
         public static string ToString<T>(this in ReadOnlyTensorSpan<T> tensor, params ReadOnlySpan<nint> maximumLengths)
         {
-            if (maximumLengths.Length != tensor.Rank)
-            {
-                ThrowHelper.ThrowArgument_DimensionsNotSame(nameof(tensor));
-            }
-
             StringBuilder sb = new();
-            ToString(in tensor, maximumLengths, sb);
+            ToString(in tensor, sb, maximumLengths);
             return sb.ToString();
         }
 
-        internal static void ToString<T>(in ReadOnlyTensorSpan<T> tensor, ReadOnlySpan<nint> maximumLengths, StringBuilder sb, int indentLevel = 0)
+        internal static void ToString<T>(this in ReadOnlyTensorSpan<T> tensor, StringBuilder sb, params ReadOnlySpan<nint> maximumLengths)
         {
-            Debug.Assert(maximumLengths.Length != tensor.Rank);
+            if (maximumLengths.Length != tensor.Rank)
+                ThrowHelper.ThrowArgument_DimensionsNotSame(nameof(tensor));
 
-            sb.Append(' ', indentLevel * 2);
-            sb.Append('[');
-
-            if (tensor.Rank != 0)
+            scoped Span<nint> curIndexes;
+            nint[]? curIndexesArray;
+            if (tensor.Rank > 6)
             {
-                nint length = nint.Max(tensor.Lengths[0], maximumLengths[0]);
-
-                if (tensor.Rank != 1)
-                {
-                    string separator = string.Empty;
-
-                    for (nint i = 0; i < length; i++)
-                    {
-                        sb.AppendLine(separator);
-
-                        TensorShape tmpShape = TensorShape.Create(tensor.Lengths[1..], tensor.Strides[1..]);
-                        ReadOnlyTensorSpan<T> tmpTensor = new ReadOnlyTensorSpan<T>(ref Unsafe.Add(ref tensor._reference, i * tensor.Strides[0]), tmpShape);
-                        ToString(tmpTensor, maximumLengths[1..], sb, indentLevel + 1);
-
-                        separator = ",";
-                    }
-
-                    if (length != tensor.Lengths[0])
-                    {
-                        sb.AppendLine(separator);
-                        sb.Append(' ', indentLevel * 2);
-                        sb.AppendLine("...");
-                    }
-                }
-                else
-                {
-                    string separator = " ";
-
-                    for (nint i = 0; i < length; i++)
-                    {
-                        sb.Append(separator);
-                        sb.Append(Unsafe.Add(ref tensor._reference, i));
-                        separator = ", ";
-                    }
-
-                    if (length != tensor.Lengths[0])
-                    {
-                        sb.Append(separator);
-                        sb.Append("...");
-                    }
-
-                    sb.Append(separator);
-                }
+                curIndexesArray = ArrayPool<nint>.Shared.Rent(tensor.Rank);
+                curIndexes = curIndexesArray.AsSpan(0, tensor.Rank);
+                curIndexes.Clear();
             }
-            sb.Append(']');
+            else
+            {
+                curIndexesArray = null;
+                curIndexes = stackalloc nint[tensor.Rank];
+            }
+
+            nint copiedValues = 0;
+
+            T[] values = new T[tensor.Lengths[tensor.Rank - 1]];
+            while (copiedValues < tensor.FlattenedLength)
+            {
+                var sp = new ReadOnlyTensorSpan<T>(ref Unsafe.Add(ref tensor._reference, TensorSpanHelpers.ComputeLinearIndex(curIndexes, tensor.Strides, tensor.Lengths)), [tensor.Lengths[tensor.Rank - 1]], [1], tensor.Lengths[tensor.Rank - 1]);
+                sb.Append('{');
+                sp.FlattenTo(values);
+                sb.Append(string.Join(",", values));
+                sb.AppendLine("}");
+
+                TensorSpanHelpers.AdjustIndexes(tensor.Rank - 2, 1, curIndexes, tensor.Lengths);
+                copiedValues += tensor.Lengths[tensor.Rank - 1];
+            }
+
+            if (curIndexesArray != null)
+                ArrayPool<nint>.Shared.Return(curIndexesArray);
         }
 
         /// <summary>
@@ -2283,7 +2281,7 @@ namespace System.Numerics.Tensors
         /// <param name="tensor">The <see cref="Span{T}"/> you want to represent as a string.</param>
         /// <param name="maximumLengths">Maximum Length of each dimension</param>
         /// <returns>A <see cref="string"/> representation of the <paramref name="tensor"/></returns>
-        public static string ToString<T>(this Tensor<T> tensor, params ReadOnlySpan<nint> maximumLengths) => tensor.AsReadOnlyTensorSpan().ToString(maximumLengths);
+        public static string ToString<T>(this Tensor<T> tensor, params ReadOnlySpan<nint> maximumLengths) => ((ReadOnlyTensorSpan<T>)tensor).ToString(maximumLengths);
 
         #endregion
 
@@ -2296,6 +2294,15 @@ namespace System.Numerics.Tensors
         {
             if (tensor.Lengths.Length < 2)
                 ThrowHelper.ThrowArgument_TransposeTooFewDimensions();
+
+            scoped Span<nint> lengths = RentedBuffer.Create(tensor.Rank, out nint _, out RentedBuffer lengthsRentedBuffer);
+            scoped Span<nint> strides = RentedBuffer.Create(tensor.Rank, out nint _, out RentedBuffer stridesRentedBuffer);
+            scoped Span<int> strideOrder = RentedBuffer.Create(tensor.Rank, out nint _, out RentedBuffer stridesOrderRentedBuffer);
+
+            tensor.Lengths.CopyTo(lengths);
+            tensor.Strides.CopyTo(strides);
+            tensor._shape.LinearRankOrder.CopyTo(strideOrder);
+
 
             Span<int> dimension = tensor.Rank <= TensorShape.MaxInlineRank ? stackalloc int[tensor.Rank] : new int[tensor.Rank];
             TensorSpanHelpers.FillRange(dimension);
@@ -2317,7 +2324,7 @@ namespace System.Numerics.Tensors
         /// <param name="destination">Destination <see cref="TensorSpan{T}"/>.</param>
         public static bool TryBroadcastTo<T>(this Tensor<T> tensor, in TensorSpan<T> destination)
         {
-            return tensor.AsReadOnlyTensorSpan().TryBroadcastTo(destination);
+            return TryBroadcastTo((ReadOnlyTensorSpan<T>)tensor, destination);
         }
 
         /// <summary>
@@ -2328,7 +2335,7 @@ namespace System.Numerics.Tensors
         /// <param name="destination">Destination <see cref="TensorSpan{T}"/>.</param>
         public static bool TryBroadcastTo<T>(in this TensorSpan<T> tensor, in TensorSpan<T> destination)
         {
-            return tensor.AsReadOnlyTensorSpan().TryBroadcastTo(destination);
+            return TryBroadcastTo((ReadOnlyTensorSpan<T>)tensor, destination);
         }
 
         /// <summary>
@@ -4203,7 +4210,7 @@ namespace System.Numerics.Tensors
         public static Tensor<T> MaxMagnitude<T>(in ReadOnlyTensorSpan<T> x, in ReadOnlyTensorSpan<T> y)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, out Tensor<T> destination);
+            ValidateCompatibility(in x, in y, out Tensor<T> destination);
             TensorOperation.Invoke<TensorOperation.MaxMagnitude<T>, T, T>(x, y, destination);
             return destination;
         }
@@ -4215,7 +4222,7 @@ namespace System.Numerics.Tensors
         public static ref readonly TensorSpan<T> MaxMagnitude<T>(scoped in ReadOnlyTensorSpan<T> x, scoped in ReadOnlyTensorSpan<T> y, in TensorSpan<T> destination)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, in destination);
+            ValidateCompatibility(in x, in y, in destination);
             TensorOperation.Invoke<TensorOperation.MaxMagnitude<T>, T, T>(x, y, destination);
             return ref destination;
         }
@@ -4238,7 +4245,7 @@ namespace System.Numerics.Tensors
         public static ref readonly TensorSpan<T> MaxMagnitude<T>(scoped in ReadOnlyTensorSpan<T> x, T y, in TensorSpan<T> destination)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in destination);
+            ValidateCompatibility(in x, in destination);
             TensorOperation.Invoke<TensorOperation.MaxMagnitude<T>, T, T>(x, y, destination);
             return ref destination;
         }
@@ -4261,7 +4268,7 @@ namespace System.Numerics.Tensors
         public static Tensor<T> MaxMagnitudeNumber<T>(in ReadOnlyTensorSpan<T> x, in ReadOnlyTensorSpan<T> y)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, out Tensor<T> destination);
+            ValidateCompatibility(in x, in y, out Tensor<T> destination);
             TensorOperation.Invoke<TensorOperation.MaxMagnitudeNumber<T>, T, T>(x, y, destination);
             return destination;
         }
@@ -4273,7 +4280,7 @@ namespace System.Numerics.Tensors
         public static ref readonly TensorSpan<T> MaxMagnitudeNumber<T>(scoped in ReadOnlyTensorSpan<T> x, scoped in ReadOnlyTensorSpan<T> y, in TensorSpan<T> destination)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, in destination);
+            ValidateCompatibility(in x, in y, in destination);
             TensorOperation.Invoke<TensorOperation.MaxMagnitudeNumber<T>, T, T>(x, y, destination);
             return ref destination;
         }
@@ -4319,7 +4326,7 @@ namespace System.Numerics.Tensors
         public static Tensor<T> MaxNumber<T>(in ReadOnlyTensorSpan<T> x, in ReadOnlyTensorSpan<T> y)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, out Tensor<T> destination);
+            ValidateCompatibility(in x, in y, out Tensor<T> destination);
             TensorOperation.Invoke<TensorOperation.MaxNumber<T>, T, T>(x, y, destination);
             return destination;
         }
@@ -4331,7 +4338,7 @@ namespace System.Numerics.Tensors
         public static ref readonly TensorSpan<T> MaxNumber<T>(scoped in ReadOnlyTensorSpan<T> x, scoped in ReadOnlyTensorSpan<T> y, in TensorSpan<T> destination)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, in destination);
+            ValidateCompatibility(in x, in y, in destination);
             TensorOperation.Invoke<TensorOperation.MaxNumber<T>, T, T>(x, y, destination);
             return ref destination;
         }
@@ -4435,7 +4442,7 @@ namespace System.Numerics.Tensors
         public static Tensor<T> MinMagnitude<T>(in ReadOnlyTensorSpan<T> x, in ReadOnlyTensorSpan<T> y)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, out Tensor<T> destination);
+            ValidateCompatibility(in x, in y, out Tensor<T> destination);
             TensorOperation.Invoke<TensorOperation.MinMagnitude<T>, T, T>(x, y, destination);
             return destination;
         }
@@ -4447,7 +4454,7 @@ namespace System.Numerics.Tensors
         public static ref readonly TensorSpan<T> MinMagnitude<T>(scoped in ReadOnlyTensorSpan<T> x, scoped in ReadOnlyTensorSpan<T> y, in TensorSpan<T> destination)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, in destination);
+            ValidateCompatibility(in x, in y, in destination);
             TensorOperation.Invoke<TensorOperation.MinMagnitude<T>, T, T>(x, y, destination);
             return ref destination;
         }
@@ -4470,7 +4477,7 @@ namespace System.Numerics.Tensors
         public static ref readonly TensorSpan<T> MinMagnitude<T>(scoped in ReadOnlyTensorSpan<T> x, T y, in TensorSpan<T> destination)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in destination);
+            ValidateCompatibility(in x, in destination);
             TensorOperation.Invoke<TensorOperation.MinMagnitude<T>, T, T>(x, y, destination);
             return ref destination;
         }
@@ -4493,7 +4500,7 @@ namespace System.Numerics.Tensors
         public static Tensor<T> MinMagnitudeNumber<T>(in ReadOnlyTensorSpan<T> x, in ReadOnlyTensorSpan<T> y)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, out Tensor<T> destination);
+            ValidateCompatibility(in x, in y, out Tensor<T> destination);
             TensorOperation.Invoke<TensorOperation.MinMagnitudeNumber<T>, T, T>(x, y, destination);
             return destination;
         }
@@ -4505,7 +4512,7 @@ namespace System.Numerics.Tensors
         public static ref readonly TensorSpan<T> MinMagnitudeNumber<T>(scoped in ReadOnlyTensorSpan<T> x, scoped in ReadOnlyTensorSpan<T> y, in TensorSpan<T> destination)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, in destination);
+            ValidateCompatibility(in x, in y, in destination);
             TensorOperation.Invoke<TensorOperation.MinMagnitudeNumber<T>, T, T>(x, y, destination);
             return ref destination;
         }
@@ -4551,7 +4558,7 @@ namespace System.Numerics.Tensors
         public static Tensor<T> MinNumber<T>(in ReadOnlyTensorSpan<T> x, in ReadOnlyTensorSpan<T> y)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, out Tensor<T> destination);
+            ValidateCompatibility(in x, in y, out Tensor<T> destination);
             TensorOperation.Invoke<TensorOperation.MinNumber<T>, T, T>(x, y, destination);
             return destination;
         }
@@ -4563,7 +4570,7 @@ namespace System.Numerics.Tensors
         public static ref readonly TensorSpan<T> MinNumber<T>(scoped in ReadOnlyTensorSpan<T> x, scoped in ReadOnlyTensorSpan<T> y, in TensorSpan<T> destination)
             where T : INumber<T>
         {
-            TensorOperation.ValidateCompatibility(in x, in y, in destination);
+            ValidateCompatibility(in x, in y, in destination);
             TensorOperation.Invoke<TensorOperation.MinNumber<T>, T, T>(x, y, destination);
             return ref destination;
         }
