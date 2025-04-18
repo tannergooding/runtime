@@ -2534,7 +2534,7 @@ namespace System.Numerics.Tensors
             static abstract void Invoke(ReadOnlySpan<T> x, ref TResult destination);
         }
 
-        private ref struct RentedBuffer : IDisposable
+        internal ref struct RentedBuffer : IDisposable
         {
             private nint[]? _array;
             private TensorShape.InlineBuffer<nint> _inline;
