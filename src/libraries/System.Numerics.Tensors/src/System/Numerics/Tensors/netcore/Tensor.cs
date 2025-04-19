@@ -4,6 +4,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -1340,71 +1341,38 @@ namespace System.Numerics.Tensors
             }
             else
             {
-                T[] values = tensor.IsPinned ? GC.AllocateArray<T>((int)tensor._flattenedLength) : (new T[tensor._flattenedLength]);
-                nint[] lengths = new nint[tensor.Rank];
+                scoped Span<nint> newLengths = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
+                scoped Span<nint> newStrides = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
+                scoped Span<int> newLinearOrder = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<int> linearOrderRentedBuffer);
+
                 Tensor<T> outTensor;
-                TensorSpan<T> ospan;
-                TensorSpan<T> ispan;
-                ReadOnlySpan<int> permutation;
 
                 if (dimensions.IsEmpty)
                 {
-                    int[] tempPermutation = new int[tensor.Rank];
                     for (int i = 0; i < tensor.Rank; i++)
                     {
-                        lengths[i] = tensor._lengths[tensor.Rank - 1 - i];
-                        tempPermutation[i] = tensor.Rank - 1 - i;
+                        newLengths[i] = tensor.Lengths[tensor.Rank - 1 - i];
+                        newStrides[i] = tensor.Strides[tensor.Rank - 1 - i];
+                        newLinearOrder[i] = tensor._shape.LinearRankOrder[tensor.Rank - 1 - i];
                     }
-
-                    permutation = tempPermutation;
                 }
                 else
                 {
                     if (dimensions.Length != tensor.Lengths.Length)
                         ThrowHelper.ThrowArgument_PermuteAxisOrder();
-                    for (int i = 0; i < lengths.Length; i++)
-                        lengths[i] = tensor.Lengths[dimensions[i]];
-                    permutation = dimensions.ToArray();
-                }
-                outTensor = new Tensor<T>(values, tensor._start, lengths, strides: [], tensor._isPinned);
 
-                ospan = outTensor.AsTensorSpan();
-                ispan = tensor.AsTensorSpan();
-
-                scoped Span<nint> indexes;
-                nint[]? indicesArray;
-                scoped Span<nint> permutedIndices;
-                nint[]? permutedIndicesArray;
-                if (outTensor.Rank > 6)
-                {
-                    indicesArray = ArrayPool<nint>.Shared.Rent(outTensor.Rank);
-                    indexes = indicesArray.AsSpan(0, outTensor.Rank);
-                    indexes.Clear();
-
-                    permutedIndicesArray = ArrayPool<nint>.Shared.Rent(outTensor.Rank);
-                    permutedIndices = permutedIndicesArray.AsSpan(0, outTensor.Rank);
-                    permutedIndices.Clear();
+                    for (int i = 0; i < dimensions.Length; i++)
+                    {
+                        newLengths[i] = tensor.Lengths[dimensions[i]];
+                        newStrides[i] = tensor.Strides[dimensions[i]];
+                        newLinearOrder[i] = tensor._shape.LinearRankOrder[dimensions[i]];
+                    }
                 }
-                else
-                {
-                    indicesArray = null;
-                    indexes = stackalloc nint[outTensor.Rank];
-                    permutedIndicesArray = null;
-                    permutedIndices = stackalloc nint[outTensor.Rank];
-                }
+                outTensor = new Tensor<T>(tensor._values, tensor._start, newLengths, newStrides, newLinearOrder);
 
-                for (int i = 0; i < tensor._flattenedLength; i++)
-                {
-                    TensorHelpers.PermuteIndices(indexes, permutedIndices, permutation);
-                    ospan[permutedIndices] = ispan[indexes];
-                    TensorShape.AdjustToNextIndex(indexes, tensor.Lengths);
-                }
-
-                if (indicesArray != null && permutedIndicesArray != null)
-                {
-                    ArrayPool<nint>.Shared.Return(indicesArray);
-                    ArrayPool<nint>.Shared.Return(permutedIndicesArray);
-                }
+                lengthsRentedBuffer.Dispose();
+                stridesRentedBuffer.Dispose();
+                linearOrderRentedBuffer.Dispose();
 
                 return outTensor;
             }
@@ -1421,8 +1389,6 @@ namespace System.Numerics.Tensors
         /// <param name="lengths"><see cref="ReadOnlySpan{T}"/> with the new dimensions.</param>
         public static Tensor<T> Reshape<T>(this Tensor<T> tensor, params ReadOnlySpan<nint> lengths)
         {
-
-
             if (tensor.Lengths.SequenceEqual(lengths))
                 return tensor;
 
@@ -1446,7 +1412,6 @@ namespace System.Numerics.Tensors
                     }
                 }
                 newLengths[lengths.IndexOf(-1)] = tempTotal;
-
             }
 
             nint tempLinear = TensorPrimitives.Product(newLengths);
@@ -1757,6 +1722,7 @@ namespace System.Numerics.Tensors
         {
             if (dimension == -1)
             {
+                Debug.Assert(tensor._shape.LinearLength == destination._shape.LinearLength);
                 nint index = tensor._shape.LinearLength - 1;
                 Span<T> inputSpan = MemoryMarshal.CreateSpan(ref tensor._reference, (int)tensor._shape.LinearLength);
                 Span<T> outputSpan = MemoryMarshal.CreateSpan(ref destination._reference, (int)destination._shape.LinearLength);
