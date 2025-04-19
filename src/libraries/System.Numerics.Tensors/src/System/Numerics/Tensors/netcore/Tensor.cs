@@ -1868,24 +1868,7 @@ namespace System.Numerics.Tensors
         /// <param name="ranges">The ranges you want to set.</param>
         public static ref readonly TensorSpan<T> SetSlice<T>(this in TensorSpan<T> tensor, scoped in ReadOnlyTensorSpan<T> values, params scoped ReadOnlySpan<NRange> ranges)
         {
-            TensorSpan<T> srcSpan;
-            if (ranges == ReadOnlySpan<NRange>.Empty)
-            {
-                if (!TensorHelpers.IsBroadcastableTo(values.Lengths, tensor.Lengths))
-                    ThrowHelper.ThrowArgument_SetSliceNoRange(nameof(values));
-                srcSpan = tensor;
-            }
-            else
-                srcSpan = tensor.Slice(ranges);
-
-            if (!TensorHelpers.IsContiguousAndDense<T>(srcSpan))
-                ThrowHelper.ThrowArgument_SetSliceInvalidShapes(nameof(values));
-
-            if (!TensorHelpers.IsBroadcastableTo(values.Lengths, srcSpan.Lengths))
-                ThrowHelper.ThrowArgument_SetSliceInvalidShapes(nameof(values));
-
-            values.CopyTo(srcSpan);
-
+            values.CopyTo(tensor.Slice(ranges));
             return ref tensor;
         }
         #endregion
@@ -1906,64 +1889,28 @@ namespace System.Numerics.Tensors
             Tensor<T>[] outputs = new Tensor<T>[splitCount];
 
             nint totalToCopy = tensor.FlattenedLength / splitCount;
-            nint copyLength = 1;
-            for (nint i = dimension; i < tensor.Lengths.Length; i++)
-            {
-                copyLength *= tensor.Lengths[(int)i];
-            }
-            copyLength /= splitCount;
+
             nint[] newShape = tensor.Lengths.ToArray();
-            newShape[(int)dimension] = newShape[(int)dimension] / splitCount;
+            nint splitLength = newShape[dimension] / splitCount;
+            newShape[dimension] = splitLength;
 
-            scoped Span<nint> oIndices;
-            nint[]? oIndicesArray;
-            scoped Span<nint> iIndices;
-            nint[]? iIndicesArray;
-            if (tensor.Rank > 6)
+            scoped Span<NRange> sliceDims = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<NRange> lengthsRentedBuffer);
+            for (int i = 0; i < sliceDims.Length; i++)
             {
-                oIndicesArray = ArrayPool<nint>.Shared.Rent(tensor.Rank);
-                oIndices = oIndicesArray.AsSpan(0, tensor.Rank);
-                oIndices.Clear();
-
-                iIndicesArray = ArrayPool<nint>.Shared.Rent(tensor.Rank);
-                iIndices = iIndicesArray.AsSpan(0, tensor.Rank);
-                iIndices.Clear();
+                sliceDims[i] = NRange.All;
             }
-            else
-            {
-                oIndicesArray = null;
-                oIndices = stackalloc nint[tensor.Rank];
-                iIndicesArray = null;
-                iIndices = stackalloc nint[tensor.Rank];
-            }
-
+            nint start = 0;
             for (int i = 0; i < outputs.Length; i++)
             {
+                sliceDims[(int)dimension] = new NRange(start, start + splitLength);
                 T[] values = new T[(int)totalToCopy];
-                outputs[i] = new Tensor<T>(values, newShape, memoryOffset: 0);
-                oIndices.Clear();
-                iIndices.Clear();
+                outputs[i] = new Tensor<T>(values, 0, newShape, [], tensor._shape.LinearRankOrder);
 
-                iIndices[(int)dimension] = i;
-                ReadOnlyTensorSpan<T> islice = tensor.Slice(tensor.Lengths);
-                TensorSpan<T> oslice = outputs[i].AsTensorSpan().Slice(outputs[i]._lengths);
-
-                nint copiedValues = 0;
-                while (copiedValues < totalToCopy)
-                {
-                    TensorSpanHelpers.Memmove(ref Unsafe.Add(ref oslice._reference, TensorSpanHelpers.ComputeLinearIndex(oIndices, outputs[0].Strides, outputs[0].Lengths)), ref Unsafe.Add(ref islice._reference, TensorSpanHelpers.ComputeLinearIndex(iIndices, islice.Strides, islice.Lengths)), copyLength);
-                    TensorSpanHelpers.AdjustIndexes((int)dimension, 1, oIndices, outputs[i]._lengths);
-                    TensorSpanHelpers.AdjustIndexes((int)dimension - 1, 1, iIndices, tensor.Lengths);
-                    copiedValues += copyLength;
-                }
+                tensor.Slice(sliceDims).CopyTo(outputs[i]);
+                start += splitLength;
             }
 
-            if (oIndicesArray != null && iIndicesArray != null)
-            {
-                ArrayPool<nint>.Shared.Return(oIndicesArray);
-                ArrayPool<nint>.Shared.Return(iIndicesArray);
-            }
-
+            lengthsRentedBuffer.Dispose();
             return outputs;
         }
         #endregion
@@ -1989,9 +1936,9 @@ namespace System.Numerics.Tensors
             if (dimension >= tensor.Rank || dimension < -1)
                 ThrowHelper.ThrowArgument_AxisLargerThanRank();
 
-            scoped Span<nint> lengths = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
-            scoped Span<nint> strides = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
-            scoped Span<int> strideOrder = RentedBuffer<int>.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
+            scoped Span<nint> lengths = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
+            scoped Span<nint> strides = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
+            scoped Span<int> strideOrder = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
             int newRank = 0;
             int index = 0;
 
@@ -2055,9 +2002,9 @@ namespace System.Numerics.Tensors
             if (dimension >= tensor.Rank || dimension < -1)
                 ThrowHelper.ThrowArgument_AxisLargerThanRank();
 
-            scoped Span<nint> lengths = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
-            scoped Span<nint> strides = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
-            scoped Span<int> strideOrder = RentedBuffer<int>.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
+            scoped Span<nint> lengths = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
+            scoped Span<nint> strides = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
+            scoped Span<int> strideOrder = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
             int newRank = 0;
             int index = 0;
 
@@ -2121,9 +2068,9 @@ namespace System.Numerics.Tensors
             if (dimension >= tensor.Rank || dimension < -1)
                 ThrowHelper.ThrowArgument_AxisLargerThanRank();
 
-            scoped Span<nint> lengths = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
-            scoped Span<nint> strides = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
-            scoped Span<int> strideOrder = RentedBuffer<int>.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
+            scoped Span<nint> lengths = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
+            scoped Span<nint> strides = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
+            scoped Span<int> strideOrder = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
             int newRank = 0;
             int index = 0;
 
@@ -2325,9 +2272,9 @@ namespace System.Numerics.Tensors
             if (tensor.Lengths.Length < 2)
                 ThrowHelper.ThrowArgument_TransposeTooFewDimensions();
 
-            scoped Span<nint> lengths = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
-            scoped Span<nint> strides = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
-            scoped Span<int> strideOrder = RentedBuffer<int>.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
+            scoped Span<nint> lengths = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
+            scoped Span<nint> strides = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
+            scoped Span<int> strideOrder = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
 
             tensor.Lengths.CopyTo(lengths);
             tensor.Strides.CopyTo(strides);
@@ -2408,7 +2355,7 @@ namespace System.Numerics.Tensors
             if (dimension < 0)
                 dimension = tensor.Rank - dimension;
 
-            scoped Span<nint> lengths = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> xRentedBuffer);
+            scoped Span<nint> lengths = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> xRentedBuffer);
 
             tensor.Lengths.Slice(0, dimension).CopyTo(lengths);
             tensor.Lengths.Slice(dimension).CopyTo(lengths.Slice(dimension + 1));
@@ -2446,7 +2393,7 @@ namespace System.Numerics.Tensors
             if (dimension < 0)
                 dimension = tensor.Rank - dimension;
 
-            scoped Span<nint> lengths = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> xRentedBuffer);
+            scoped Span<nint> lengths = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> xRentedBuffer);
 
             tensor.Lengths.Slice(0, dimension).CopyTo(lengths);
             tensor.Lengths.Slice(dimension).CopyTo(lengths.Slice(dimension + 1));
@@ -2484,7 +2431,7 @@ namespace System.Numerics.Tensors
             if (dimension < 0)
                 dimension = tensor.Rank - dimension;
 
-            scoped Span<nint> lengths = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> xRentedBuffer);
+            scoped Span<nint> lengths = RentedBuffer.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> xRentedBuffer);
 
             tensor.Lengths.Slice(0, dimension).CopyTo(lengths);
             tensor.Lengths.Slice(dimension).CopyTo(lengths.Slice(dimension + 1));
