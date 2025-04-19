@@ -782,6 +782,36 @@ namespace System.Numerics.Tensors
             return default;
         }
 
+        public static TensorShape Create<T>(T[]? array, int start, scoped ReadOnlySpan<nint> lengths, scoped ReadOnlySpan<nint> strides, scoped ReadOnlySpan<int> linearRankOrder)
+        {
+            if (array is not null)
+            {
+                int linearLength = array.Length;
+
+                if ((start < 0) || (start > linearLength))
+                {
+                    ThrowHelper.ThrowArgument_StartIndexOutOfBounds();
+                }
+
+                linearLength -= start;
+
+                if (linearLength != 0)
+                {
+                    return new TensorShape(linearLength, lengths, strides, linearRankOrder);
+                }
+            }
+            else if (start != 0)
+            {
+                ThrowHelper.ThrowArgument_StartIndexOutOfBounds();
+            }
+
+            if ((lengths.Length != 0) || (strides.Length != 0))
+            {
+                ThrowHelper.ThrowArgument_InvalidTensorShape();
+            }
+            return default;
+        }
+
         public static TensorShape Create<T>(ref T reference, nint linearLength)
         {
             if (!Unsafe.IsNullRef(ref reference))
