@@ -1986,24 +1986,27 @@ namespace System.Numerics.Tensors
         /// <param name="dimension">The dimension to remove.</param>
         public static Tensor<T> SqueezeDimension<T>(this Tensor<T> tensor, int dimension)
         {
-            if (dimension >= tensor.Rank)
+            if (dimension >= tensor.Rank || dimension < -1)
                 ThrowHelper.ThrowArgument_AxisLargerThanRank();
 
-            nint[] lengths;
-            nint[] strides;
+            scoped Span<nint> lengths = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
+            scoped Span<nint> strides = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
+            scoped Span<int> strideOrder = RentedBuffer<int>.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
+            int newRank = 0;
+            int index = 0;
 
-            List<nint> tempLengths = new List<nint>();
             if (dimension == -1)
             {
                 for (int i = 0; i < tensor.Lengths.Length; i++)
                 {
                     if (tensor.Lengths[i] != 1)
                     {
-                        tempLengths.Add(tensor.Lengths[i]);
+                        lengths[index] = tensor.Lengths[i];
+                        strides[index] = tensor.Strides[i];
+                        strideOrder[index++] = tensor._shape.LinearRankOrder[i];
+                        newRank++;
                     }
                 }
-                lengths = tempLengths.ToArray();
-                strides = TensorSpanHelpers.CalculateStrides(lengths);
             }
             else
             {
@@ -2015,14 +2018,21 @@ namespace System.Numerics.Tensors
                 {
                     if (i != dimension)
                     {
-                        tempLengths.Add(tensor.Lengths[i]);
+                        lengths[index] = tensor.Lengths[i];
+                        strides[index] = tensor.Strides[i];
+                        strideOrder[index++] = tensor._shape.LinearRankOrder[i];
+                        newRank++;
                     }
                 }
-                lengths = tempLengths.ToArray();
-                strides = TensorSpanHelpers.CalculateStrides(lengths);
             }
 
-            return new Tensor<T>(tensor._values, lengths, strides, tensor._start);
+            Tensor<T> output = new Tensor<T>(tensor._values, tensor._start, lengths, strides, strideOrder);
+
+            lengthsRentedBuffer.Dispose();
+            stridesRentedBuffer.Dispose();
+            stridesOrderRentedBuffer.Dispose();
+
+            return output;
         }
 
         /// <summary>
@@ -2042,24 +2052,27 @@ namespace System.Numerics.Tensors
         /// <param name="dimension">The dimension to remove.</param>
         public static TensorSpan<T> SqueezeDimension<T>(in this TensorSpan<T> tensor, int dimension)
         {
-            if (dimension >= tensor.Rank)
+            if (dimension >= tensor.Rank || dimension < -1)
                 ThrowHelper.ThrowArgument_AxisLargerThanRank();
 
-            nint[] lengths;
-            nint[] strides;
+            scoped Span<nint> lengths = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
+            scoped Span<nint> strides = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
+            scoped Span<int> strideOrder = RentedBuffer<int>.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
+            int newRank = 0;
+            int index = 0;
 
-            List<nint> tempLengths = new List<nint>();
             if (dimension == -1)
             {
                 for (int i = 0; i < tensor.Lengths.Length; i++)
                 {
                     if (tensor.Lengths[i] != 1)
                     {
-                        tempLengths.Add(tensor.Lengths[i]);
+                        lengths[index] = tensor.Lengths[i];
+                        strides[index] = tensor.Strides[i];
+                        strideOrder[index++] = tensor._shape.LinearRankOrder[i];
+                        newRank++;
                     }
                 }
-                lengths = tempLengths.ToArray();
-                strides = TensorSpanHelpers.CalculateStrides(lengths);
             }
             else
             {
@@ -2071,14 +2084,21 @@ namespace System.Numerics.Tensors
                 {
                     if (i != dimension)
                     {
-                        tempLengths.Add(tensor.Lengths[i]);
+                        lengths[index] = tensor.Lengths[i];
+                        strides[index] = tensor.Strides[i];
+                        strideOrder[index++] = tensor._shape.LinearRankOrder[i];
+                        newRank++;
                     }
                 }
-                lengths = tempLengths.ToArray();
-                strides = TensorSpanHelpers.CalculateStrides(lengths);
             }
 
-            return new TensorSpan<T>(ref tensor._reference, lengths, strides, tensor._shape.LinearLength);
+            TensorSpan<T> output = new TensorSpan<T>(ref tensor._reference, tensor._shape.LinearLength, lengths, strides, strideOrder);
+
+            lengthsRentedBuffer.Dispose();
+            stridesRentedBuffer.Dispose();
+            stridesOrderRentedBuffer.Dispose();
+
+            return output;
         }
 
         /// <summary>
@@ -2098,24 +2118,27 @@ namespace System.Numerics.Tensors
         /// <param name="dimension">The dimension to remove.</param>
         public static ReadOnlyTensorSpan<T> SqueezeDimension<T>(in this ReadOnlyTensorSpan<T> tensor, int dimension)
         {
-            if (dimension >= tensor.Rank)
+            if (dimension >= tensor.Rank || dimension < -1)
                 ThrowHelper.ThrowArgument_AxisLargerThanRank();
 
-            nint[] lengths;
-            nint[] strides;
+            scoped Span<nint> lengths = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> lengthsRentedBuffer);
+            scoped Span<nint> strides = RentedBuffer<nint>.CreateUninitialized(tensor.Rank, out RentedBuffer<nint> stridesRentedBuffer);
+            scoped Span<int> strideOrder = RentedBuffer<int>.CreateUninitialized(tensor.Rank, out RentedBuffer<int> stridesOrderRentedBuffer);
+            int newRank = 0;
+            int index = 0;
 
-            List<nint> tempLengths = new List<nint>();
             if (dimension == -1)
             {
                 for (int i = 0; i < tensor.Lengths.Length; i++)
                 {
                     if (tensor.Lengths[i] != 1)
                     {
-                        tempLengths.Add(tensor.Lengths[i]);
+                        lengths[index] = tensor.Lengths[i];
+                        strides[index] = tensor.Strides[i];
+                        strideOrder[index++] = tensor._shape.LinearRankOrder[i];
+                        newRank++;
                     }
                 }
-                lengths = tempLengths.ToArray();
-                strides = TensorSpanHelpers.CalculateStrides(lengths);
             }
             else
             {
@@ -2127,14 +2150,21 @@ namespace System.Numerics.Tensors
                 {
                     if (i != dimension)
                     {
-                        tempLengths.Add(tensor.Lengths[i]);
+                        lengths[index] = tensor.Lengths[i];
+                        strides[index] = tensor.Strides[i];
+                        strideOrder[index++] = tensor._shape.LinearRankOrder[i];
+                        newRank++;
                     }
                 }
-                lengths = tempLengths.ToArray();
-                strides = TensorSpanHelpers.CalculateStrides(lengths);
             }
 
-            return new ReadOnlyTensorSpan<T>(ref tensor._reference, lengths, strides, tensor._shape.LinearLength);
+            ReadOnlyTensorSpan<T> output =  new ReadOnlyTensorSpan<T>(ref tensor._reference, tensor._shape.LinearLength, lengths, strides, strideOrder);
+
+            lengthsRentedBuffer.Dispose();
+            stridesRentedBuffer.Dispose();
+            stridesOrderRentedBuffer.Dispose();
+
+            return output;
         }
         #endregion
 
@@ -2160,7 +2190,7 @@ namespace System.Numerics.Tensors
 
             for (int i = 1; i < tensors.Length; i++)
             {
-                if (!TensorShape.AreLengthsTheSame<T>(tensors[0], tensors[i]))
+                if (!tensors[0].Lengths.SequenceEqual(tensors[i].Lengths))
                     ThrowHelper.ThrowArgument_StackShapesNotSame();
             }
 
@@ -2198,7 +2228,7 @@ namespace System.Numerics.Tensors
 
             for (int i = 1; i < tensors.Length; i++)
             {
-                if (!TensorShape.AreLengthsTheSame<T>(tensors[0], tensors[i]))
+                if (!tensors[0].Lengths.SequenceEqual(tensors[i].Lengths))
                     ThrowHelper.ThrowArgument_StackShapesNotSame();
             }
 

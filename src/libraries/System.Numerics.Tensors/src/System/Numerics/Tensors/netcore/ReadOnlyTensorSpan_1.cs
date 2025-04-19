@@ -185,6 +185,12 @@ namespace System.Numerics.Tensors
             _reference = ref data;
         }
 
+        internal ReadOnlyTensorSpan(ref T data, nint dataLength, scoped ReadOnlySpan<nint> lengths, scoped ReadOnlySpan<nint> strides, scoped ReadOnlySpan<int> linearRankOrder)
+        {
+            _shape = TensorShape.Create(ref data, dataLength, lengths, strides, linearRankOrder);
+            _reference = ref data;
+        }
+
         internal ReadOnlyTensorSpan(ref T reference, scoped in TensorShape shape)
         {
             _reference = ref reference;
@@ -395,7 +401,7 @@ namespace System.Numerics.Tensors
                     return false;
                 }
 
-                _linearOffset = _span._shape.AdjustToNextIndex(_span._shape, _linearOffset, _indexes);
+                _linearOffset = _span._shape.AdjustToNextIndex(_linearOffset, _indexes);
 
                 _itemsEnumerated++;
                 return true;

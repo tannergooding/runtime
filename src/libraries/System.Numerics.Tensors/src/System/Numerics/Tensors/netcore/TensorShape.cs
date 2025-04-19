@@ -836,12 +836,15 @@ namespace System.Numerics.Tensors
         }
 
         public static TensorShape Create<T>(ref T reference, nint linearLength, scoped ReadOnlySpan<nint> lengths, scoped ReadOnlySpan<nint> strides)
+            => Create(ref reference, linearLength, lengths, strides, linearRankOrder: []);
+
+        public static TensorShape Create<T>(ref T reference, nint linearLength, scoped ReadOnlySpan<nint> lengths, scoped ReadOnlySpan<nint> strides, scoped ReadOnlySpan<int> linearRankOrder)
         {
             if (!Unsafe.IsNullRef(ref reference))
             {
                 if (linearLength != 0)
                 {
-                    return new TensorShape(linearLength, lengths, strides, linearRankOrder: []);
+                    return new TensorShape(linearLength, lengths, strides, linearRankOrder);
                 }
             }
             else if (linearLength != 0)
