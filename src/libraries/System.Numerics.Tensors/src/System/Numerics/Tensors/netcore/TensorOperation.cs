@@ -1972,7 +1972,7 @@ namespace System.Numerics.Tensors
         {
             public static void Invoke(ref readonly T x, T y, ref T destination)
             {
-                destination = (x - y) * (x - y);
+                destination += (x - y) * (x - y);
             }
             public static void Invoke(ReadOnlySpan<T> x, T y, Span<T> destination)
             {
@@ -1984,7 +1984,7 @@ namespace System.Numerics.Tensors
 
             public static void Invoke(ref readonly T x, ref readonly T y, ref T destination)
             {
-                destination = (x - y) * (x - y);
+                destination += (x - y) * (x - y);
             }
 
             public static void Invoke(ReadOnlySpan<T> x, ReadOnlySpan<T> y, Span<T> destination)

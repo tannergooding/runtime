@@ -443,6 +443,7 @@ namespace System.Numerics.Tensors
         public nint AdjustToNextIndex(in TensorShape destinationShape, nint linearOffset, Span<nint> indexes)
         {
             Debug.Assert(indexes.Length >= Rank);
+            Debug.Assert(indexes.Length == destinationShape.Rank);
 
             ReadOnlySpan<nint> lengths = Lengths;
             ReadOnlySpan<nint> strides = Strides;
@@ -450,11 +451,12 @@ namespace System.Numerics.Tensors
             for (int i = 0; i < strides.Length; i++)
             {
                 int rankIndex = lengths.Length - (i + 1);
+                int destinationRankIndex = destinationShape.Lengths.Length - (i + 1);
 
                 nint length = lengths[rankIndex];
                 nint stride = strides[rankIndex];
 
-                nint index = ++indexes[destinationShape.Lengths.Length - (i + 1)];
+                nint index = ++indexes[destinationRankIndex];
                 linearOffset += stride;
 
                 if (index < length)
@@ -462,7 +464,7 @@ namespace System.Numerics.Tensors
                     return linearOffset;
                 }
 
-                indexes[destinationShape.Lengths.Length - (i + 1)] = 0;
+                indexes[destinationRankIndex] = 0;
                 linearOffset -= (stride * length);
             }
 
@@ -480,6 +482,10 @@ namespace System.Numerics.Tensors
 
                     if (index < length)
                     {
+                        // If we just break here we end up returning -strides[^1] as the linear offset.
+                        // If strides[^1] is 1, then we return -1 which is not correct and it ends the outer loop early.
+                        // By returning the linear offset here we ensure that the outer loop continues and handles the
+                        // broadcast case correctly.
                         return linearOffset;
                     }
 

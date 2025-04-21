@@ -1168,11 +1168,11 @@ namespace System.Numerics.Tensors.Tests
             sum = Tensor.Sum<float>(t1);
             Assert.Equal(9, sum);
 
-            Assert.Throws<IndexOutOfRangeException>(()=> Tensor.Create<float>(new float[] { 1, 2, 3, 4, 5, 6 }, start: -1, lengths: [2, 3], strides: []));
-            Assert.Throws<IndexOutOfRangeException>(()=> Tensor.Create<float>(new float[] { 1, 2, 3, 4, 5, 6 }, start: 100, lengths: [2, 3], strides: []));
-            Assert.Throws<IndexOutOfRangeException>(()=> Tensor.Create<float>(new float[] { 1, 2, 3, 4, 5, 6 }, start: int.MinValue, lengths: [2, 3], strides: []));
-            Assert.Throws<IndexOutOfRangeException>(()=> Tensor.Create<float>(new float[] { 1, 2, 3, 4, 5, 6 }, start: int.MaxValue, lengths: [2, 3], strides: []));
-            Assert.Throws<ArgumentException>(()=> Tensor.Create<float>(new float[] { 1, 2, 3, 4, 5, 6 }, start: 2, lengths: [2, 3], strides: []));
+            Assert.Throws<ArgumentOutOfRangeException>(()=> Tensor.Create<float>(new float[] { 1, 2, 3, 4, 5, 6 }, start: -1, lengths: [2, 3], strides: []));
+            Assert.Throws<ArgumentOutOfRangeException>(()=> Tensor.Create<float>(new float[] { 1, 2, 3, 4, 5, 6 }, start: 100, lengths: [2, 3], strides: []));
+            Assert.Throws<ArgumentOutOfRangeException>(()=> Tensor.Create<float>(new float[] { 1, 2, 3, 4, 5, 6 }, start: int.MinValue, lengths: [2, 3], strides: []));
+            Assert.Throws<ArgumentOutOfRangeException>(()=> Tensor.Create<float>(new float[] { 1, 2, 3, 4, 5, 6 }, start: int.MaxValue, lengths: [2, 3], strides: []));
+            Assert.Throws<ArgumentOutOfRangeException>(()=> Tensor.Create<float>(new float[] { 1, 2, 3, 4, 5, 6 }, start: 2, lengths: [2, 3], strides: []));
         }
 
         public static float StdDev(float[] values)
