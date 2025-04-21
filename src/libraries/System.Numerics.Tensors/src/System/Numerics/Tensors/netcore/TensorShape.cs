@@ -281,7 +281,7 @@ namespace System.Numerics.Tensors
 
         private TensorShape(nint flattenedLength, nint linearLength, scoped ReadOnlySpan<nint> lengths, scoped ReadOnlySpan<nint> strides, scoped ReadOnlySpan<int> linearRankOrder, int rank)
         {
-            Debug.Assert((linearLength == 0) || ((flattenedLength % linearLength) == 0));
+            Debug.Assert((linearLength == 0) || (linearLength >= flattenedLength));
 
             Debug.Assert(lengths.Length == rank);
             Debug.Assert(strides.Length == rank);
@@ -443,7 +443,6 @@ namespace System.Numerics.Tensors
         public nint AdjustToNextIndex(in TensorShape destinationShape, nint linearOffset, Span<nint> indexes)
         {
             Debug.Assert(indexes.Length >= Rank);
-            Debug.Assert(indexes.Length == destinationShape.Rank);
 
             ReadOnlySpan<nint> lengths = Lengths;
             ReadOnlySpan<nint> strides = Strides;
@@ -455,7 +454,7 @@ namespace System.Numerics.Tensors
                 nint length = lengths[rankIndex];
                 nint stride = strides[rankIndex];
 
-                nint index = ++indexes[rankIndex];
+                nint index = ++indexes[destinationShape.Lengths.Length - (i + 1)];
                 linearOffset += stride;
 
                 if (index < length)
@@ -463,7 +462,7 @@ namespace System.Numerics.Tensors
                     return linearOffset;
                 }
 
-                indexes[rankIndex] = 0;
+                indexes[destinationShape.Lengths.Length - (i + 1)] = 0;
                 linearOffset -= (stride * length);
             }
 
@@ -481,7 +480,7 @@ namespace System.Numerics.Tensors
 
                     if (index < length)
                     {
-                        break;
+                        return linearOffset;
                     }
 
                     indexes[rankIndex] = 0;
@@ -974,8 +973,7 @@ namespace System.Numerics.Tensors
             // assume that the previousShape is already valid and the new shape
             // will strictly be the same size or smaller.
 
-            nint flattenedLength = 0;
-            nint linearLength = 0;
+            nint flattenedLength = 1;
             nint computedOffset = 0;
 
             for (int i = 0; i < state.Length; i++)
@@ -995,7 +993,7 @@ namespace System.Numerics.Tensors
 
             TensorShape result = new TensorShape(
                 flattenedLength,
-                linearLength,
+                LinearLength - computedOffset,
                 intermediateLengths,
                 strides,
                 linearRankOrder,

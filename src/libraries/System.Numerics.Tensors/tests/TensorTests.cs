@@ -1890,7 +1890,7 @@ namespace System.Numerics.Tensors.Tests
                 }
             );
 
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var l = leftData.AsTensorSpan([3, 3, 3]);
                 var r = new TensorSpan<int>();
