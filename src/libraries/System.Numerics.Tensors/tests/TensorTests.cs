@@ -945,7 +945,7 @@ namespace System.Numerics.Tensors.Tests
         {
             Tensor<int> t0 = Tensor.Create(Enumerable.Range(0, 10), lengths: [2, 5]);
             Tensor<int> t1 = Tensor.Create(Enumerable.Range(10, 10), lengths: [2, 5]);
-            Tensor.SetSlice(t0, t1);
+            Tensor.SetSlice(t0, t1, .., ..);
 
             Assert.Equal(10, t0[0, 0]);
             Assert.Equal(11, t0[0, 1]);
