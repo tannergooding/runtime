@@ -251,11 +251,11 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(1, tensor.Lengths[4]);
             Assert.Equal(6, tensor.Lengths[5]);
             Assert.Equal(6, tensor.Strides.Length);
-            Assert.Equal(6, tensor.Strides[0]);
-            Assert.Equal(6, tensor.Strides[1]);
-            Assert.Equal(6, tensor.Strides[2]);
-            Assert.Equal(6, tensor.Strides[3]);
-            Assert.Equal(6, tensor.Strides[4]);
+            Assert.Equal(0, tensor.Strides[0]);
+            Assert.Equal(0, tensor.Strides[1]);
+            Assert.Equal(0, tensor.Strides[2]);
+            Assert.Equal(0, tensor.Strides[3]);
+            Assert.Equal(0, tensor.Strides[4]);
             Assert.Equal(1, tensor.Strides[5]);
             Assert.Equal(91, tensor[0, 0, 0, 0, 0, 0]);
             Assert.Equal(92, tensor[0, 0, 0, 0, 0, 1]);
@@ -277,11 +277,11 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(1, tensor.Lengths[4]);
             Assert.Equal(3, tensor.Lengths[5]);
             Assert.Equal(6, tensor.Strides.Length);
-            Assert.Equal(12, tensor.Strides[0]);
+            Assert.Equal(0, tensor.Strides[0]);
             Assert.Equal(6, tensor.Strides[1]);
             Assert.Equal(3, tensor.Strides[2]);
-            Assert.Equal(3, tensor.Strides[3]);
-            Assert.Equal(3, tensor.Strides[4]);
+            Assert.Equal(0, tensor.Strides[3]);
+            Assert.Equal(0, tensor.Strides[4]);
             Assert.Equal(1, tensor.Strides[5]);
             Assert.Equal(91, tensor[0, 0, 0, 0, 0, 0]);
             Assert.Equal(92, tensor[0, 0, 0, 0, 0, 1]);
@@ -308,11 +308,11 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(1, t1.Lengths.Length);
             Assert.Equal(1, t1.Lengths[0]);
             Assert.Equal(1, t1.Strides.Length);
-            Assert.Equal(1, t1.Strides[0]);
+            Assert.Equal(0, t1.Strides[0]);
             Assert.False(t1.IsPinned);
 
             // Make sure can't index too many dimensions
-            Assert.Throws<IndexOutOfRangeException>(() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var x = t1[1, 1];
             });
@@ -366,7 +366,7 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(1, t1.Lengths.Length);
             Assert.Equal(1, t1.Lengths[0]);
             Assert.Equal(1, t1.Strides.Length);
-            Assert.Equal(1, t1.Strides[0]);
+            Assert.Equal(0, t1.Strides[0]);
             Assert.True(t1.IsPinned);
 
             // Make sure 2D array works with basic strides
@@ -427,7 +427,7 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(t1[1, 0], t1[1, 1]);
 
             // Make sure you can't overlap elements using strides
-            Assert.Throws<ArgumentOutOfRangeException>(() => {
+            Assert.Throws<ArgumentException>(() => {
                 var t1 = Tensor.CreateUninitialized<int>([2, 2], [1, 1], false);
             });
         }
@@ -441,12 +441,12 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(1, t1.Lengths.Length);
             Assert.Equal(1, t1.Lengths[0]);
             Assert.Equal(1, t1.Strides.Length);
-            Assert.Equal(1, t1.Strides[0]);
+            Assert.Equal(0, t1.Strides[0]);
             Assert.False(t1.IsPinned);
             Assert.Equal(0, t1[0]);
 
             // Make sure can't index too many dimensions
-            Assert.Throws<IndexOutOfRangeException>(() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var x = t1[1, 1];
             });
@@ -487,11 +487,9 @@ namespace System.Numerics.Tensors.Tests
 
             // Null should behave like empty array since there is no "null" span.
             t1 = Tensor.Create<int>(null);
-            Assert.Equal(1, t1.Rank);
-            Assert.Equal(1, t1.Lengths.Length);
-            Assert.Equal(0, t1.Lengths[0]);
-            Assert.Equal(1, t1.Strides.Length);
-            Assert.Equal(0, t1.Strides[0]);
+            Assert.Equal(0, t1.Rank);
+            Assert.Equal(0, t1.Lengths.Length);
+            Assert.Equal(0, t1.Strides.Length);
             Assert.False(t1.IsPinned);
 
             // Make sure pinned works
@@ -500,7 +498,7 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(1, t1.Lengths.Length);
             Assert.Equal(1, t1.Lengths[0]);
             Assert.Equal(1, t1.Strides.Length);
-            Assert.Equal(1, t1.Strides[0]);
+            Assert.Equal(0, t1.Strides[0]);
             Assert.True(t1.IsPinned);
             Assert.Equal(0, t1[0]);
 
@@ -592,14 +590,14 @@ namespace System.Numerics.Tensors.Tests
 
             Tensor<float> result = Tensor.Create<float>(a, lengths: [2, 1]);
 
-            result[0, 0] = Tensor.CosineSimilarity(left.AsReadOnlyTensorSpan([0..1, 0..]), right[0..1, 0..]);
-            result[1, 0] = Tensor.CosineSimilarity(left.AsReadOnlyTensorSpan([0..1, 0..]), right[0..1, 0..]);
+            result[0, 0] = Tensor.CosineSimilarity(left.AsReadOnlyTensorSpan([0..1, 0.. ]), right[0..1, 0..]);
+            result[1, 0] = Tensor.CosineSimilarity(left.AsReadOnlyTensorSpan([1.., 0..]), right[1.., 0..]);
 
             Assert.Equal(2, result.Rank);
             Assert.Equal(2, result.Lengths[0]);
             Assert.Equal(1, result.Lengths[1]);
 
-            Assert.Equal(0.57735, result[0, 0], .00001);
+            Assert.Equal(float.NaN, result[0, 0]);
             Assert.Equal(0.81649, result[1, 0], .00001);
         }
 

@@ -71,7 +71,7 @@ namespace System.Numerics.Tensors
 
             if (rank == 0)
             {
-                lengths = [linearLength];
+                lengths = [0];
                 rank = 1;
             }
             Debug.Assert(rank >= 1);
