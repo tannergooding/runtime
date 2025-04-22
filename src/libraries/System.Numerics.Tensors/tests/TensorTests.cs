@@ -532,7 +532,7 @@ namespace System.Numerics.Tensors.Tests
             Assert.False(t1.IsPinned);
 
             // Make sure pinned works
-            t1 = Tensor.Create<int>([1], true);
+            t1 = Tensor.Create<int>([(nint)1], true);
             Assert.Equal(1, t1.Rank);
             Assert.Equal(1, t1.Lengths.Length);
             Assert.Equal(1, t1.Lengths[0]);
@@ -594,12 +594,10 @@ namespace System.Numerics.Tensors.Tests
 
             // Make sure lengths can't be negative
             Assert.Throws<ArgumentOutOfRangeException>(() => {
-                Span<int> a = [91, 92, -93, 94];
-                var t1 = Tensor.Create<int>([-1, 2], false);
+                var t1 = Tensor.Create<int>([-1, (nint)2], false);
             });
             Assert.Throws<ArgumentOutOfRangeException>(() => {
-                Span<int> a = [91, 92, -93, 94];
-                var t1 = Tensor.Create<int>([1, -2], false);
+                var t1 = Tensor.Create<int>([(nint)1, -2], false);
             });
 
             // Make sure 2D array works with strides to hit element 0,0,2,2
@@ -613,7 +611,7 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(-93, t1[1, 1]);
 
             // Make sure you can't overlap elements using strides
-            Assert.Throws<ArgumentOutOfRangeException>(() => {
+            Assert.Throws<ArgumentException>(() => {
                 var t1 = Tensor.Create<int>((Span<nint>)[2, 2], [1, 1], false);
             });
         }
