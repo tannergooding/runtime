@@ -4842,9 +4842,8 @@ namespace System.Numerics.Tensors
         public static T Norm<T>(scoped in ReadOnlyTensorSpan<T> x)
             where T : IRootFunctions<T>
         {
-            // TODO: TANNER ADVICE
             T result = T.AdditiveIdentity;
-            TensorOperation.Invoke<TensorOperation.SumOfSquaredDifferences<T>, T, T>(x, T.AdditiveIdentity, ref result);
+            TensorOperation.Invoke<TensorOperation.SumOfSquares<T>, T, T>(x, ref result);
             return T.Sqrt(result);
         }
         #endregion
