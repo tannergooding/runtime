@@ -2440,29 +2440,28 @@ namespace System.Numerics.Tensors
             if (dimension < 0)
                 dimension = tensor.Rank - dimension;
 
-            scoped Span<nint> lengths = TensorOperation.RentedBuffer.CreateUninitialized(tensor.Rank, out TensorOperation.RentedBuffer<nint> xRentedBuffer);
+            scoped Span<nint> newLengths = TensorOperation.RentedBuffer.CreateUninitialized(tensor.Rank + 1, out TensorOperation.RentedBuffer<nint> lengthsRentedBuffer);
 
-            tensor.Lengths.Slice(0, dimension).CopyTo(lengths);
-            tensor.Lengths.Slice(dimension).CopyTo(lengths.Slice(dimension + 1));
-            lengths[dimension] = 1;
+            tensor.Lengths.Slice(0, dimension).CopyTo(newLengths);
+            tensor.Lengths.Slice(dimension).CopyTo(newLengths.Slice(dimension + 1));
+            newLengths[dimension] = 1;
 
-            Span<nint> strides = tensor.Strides.Length + 1 <= TensorShape.MaxInlineRank ?
-                stackalloc nint[tensor.Strides.Length + 1] :
-                new nint[tensor.Strides.Length + 1];
+            Span<nint> newStrides = TensorOperation.RentedBuffer.CreateUninitialized(tensor.Rank + 1, out TensorOperation.RentedBuffer<nint> stridesRentedBuffer);
             if (dimension == tensor.Rank)
             {
-                tensor.Strides.CopyTo(strides);
-                strides[dimension] = tensor.Strides[dimension - 1];
+                tensor.Strides.CopyTo(newStrides);
+                newStrides[dimension] = 0;
             }
             else
             {
-                tensor.Strides.Slice(0, dimension).CopyTo(strides);
-                tensor.Strides.Slice(dimension).CopyTo(strides.Slice(dimension + 1));
-                strides[dimension] = tensor.Strides[dimension] * tensor.Lengths[dimension];
+                tensor.Strides.Slice(0, dimension).CopyTo(newStrides);
+                tensor.Strides.Slice(dimension).CopyTo(newStrides.Slice(dimension + 1));
+                newStrides[dimension] = 0;
             }
 
-            Tensor<T> output = new Tensor<T>(tensor._values, tensor._start, lengths, strides);
-            xRentedBuffer.Dispose();
+            Tensor<T> output = new Tensor<T>(tensor._values, tensor._start, newLengths, newStrides);
+            lengthsRentedBuffer.Dispose();
+            stridesRentedBuffer.Dispose();
             return output;
         }
 
@@ -2478,29 +2477,28 @@ namespace System.Numerics.Tensors
             if (dimension < 0)
                 dimension = tensor.Rank - dimension;
 
-            scoped Span<nint> lengths = TensorOperation.RentedBuffer.CreateUninitialized(tensor.Rank, out TensorOperation.RentedBuffer<nint> xRentedBuffer);
+            scoped Span<nint> newLengths = TensorOperation.RentedBuffer.CreateUninitialized(tensor.Rank + 1, out TensorOperation.RentedBuffer<nint> lengthsRentedBuffer);
 
-            tensor.Lengths.Slice(0, dimension).CopyTo(lengths);
-            tensor.Lengths.Slice(dimension).CopyTo(lengths.Slice(dimension + 1));
-            lengths[dimension] = 1;
+            tensor.Lengths.Slice(0, dimension).CopyTo(newLengths);
+            tensor.Lengths.Slice(dimension).CopyTo(newLengths.Slice(dimension + 1));
+            newLengths[dimension] = 1;
 
-            Span<nint> strides = tensor.Strides.Length + 1 <= TensorShape.MaxInlineRank ?
-                stackalloc nint[tensor.Strides.Length + 1] :
-                new nint[tensor.Strides.Length + 1];
+            Span<nint> newStrides = TensorOperation.RentedBuffer.CreateUninitialized(tensor.Rank + 1, out TensorOperation.RentedBuffer<nint> stridesRentedBuffer);
             if (dimension == tensor.Rank)
             {
-                tensor.Strides.CopyTo(strides);
-                strides[dimension] = tensor.Strides[dimension - 1];
+                tensor.Strides.CopyTo(newStrides);
+                newStrides[dimension] = 0;
             }
             else
             {
-                tensor.Strides.Slice(0, dimension).CopyTo(strides);
-                tensor.Strides.Slice(dimension).CopyTo(strides.Slice(dimension + 1));
-                strides[dimension] = tensor.Strides[dimension] * tensor.Lengths[dimension];
+                tensor.Strides.Slice(0, dimension).CopyTo(newStrides);
+                tensor.Strides.Slice(dimension).CopyTo(newStrides.Slice(dimension + 1));
+                newStrides[dimension] = 0;
             }
 
-            TensorSpan<T> output = new TensorSpan<T>(ref tensor._reference, tensor._shape.LinearLength, lengths, strides);
-            xRentedBuffer.Dispose();
+            TensorSpan<T> output = new TensorSpan<T>(ref tensor._reference, tensor._shape.LinearLength, newLengths, newStrides);
+            lengthsRentedBuffer.Dispose();
+            stridesRentedBuffer.Dispose();
             return output;
         }
 
@@ -2516,29 +2514,28 @@ namespace System.Numerics.Tensors
             if (dimension < 0)
                 dimension = tensor.Rank - dimension;
 
-            scoped Span<nint> lengths = TensorOperation.RentedBuffer.CreateUninitialized(tensor.Rank, out TensorOperation.RentedBuffer<nint> xRentedBuffer);
+            scoped Span<nint> newLengths = TensorOperation.RentedBuffer.CreateUninitialized(tensor.Rank + 1, out TensorOperation.RentedBuffer<nint> lengthsRentedBuffer);
 
-            tensor.Lengths.Slice(0, dimension).CopyTo(lengths);
-            tensor.Lengths.Slice(dimension).CopyTo(lengths.Slice(dimension + 1));
-            lengths[dimension] = 1;
+            tensor.Lengths.Slice(0, dimension).CopyTo(newLengths);
+            tensor.Lengths.Slice(dimension).CopyTo(newLengths.Slice(dimension + 1));
+            newLengths[dimension] = 1;
 
-            Span<nint> strides = tensor.Strides.Length + 1 <= TensorShape.MaxInlineRank ?
-                stackalloc nint[tensor.Strides.Length + 1] :
-                new nint[tensor.Strides.Length + 1];
+            Span<nint> newStrides = TensorOperation.RentedBuffer.CreateUninitialized(tensor.Rank + 1, out TensorOperation.RentedBuffer<nint> stridesRentedBuffer);
             if (dimension == tensor.Rank)
             {
-                tensor.Strides.CopyTo(strides);
-                strides[dimension] = tensor.Strides[dimension - 1];
+                tensor.Strides.CopyTo(newStrides);
+                newStrides[dimension] = 0;
             }
             else
             {
-                tensor.Strides.Slice(0, dimension).CopyTo(strides);
-                tensor.Strides.Slice(dimension).CopyTo(strides.Slice(dimension + 1));
-                strides[dimension] = tensor.Strides[dimension] * tensor.Lengths[dimension];
+                tensor.Strides.Slice(0, dimension).CopyTo(newStrides);
+                tensor.Strides.Slice(dimension).CopyTo(newStrides.Slice(dimension + 1));
+                newStrides[dimension] = 0;
             }
 
-            ReadOnlyTensorSpan<T> output = new ReadOnlyTensorSpan<T>(ref tensor._reference, tensor._shape.LinearLength, lengths, strides);
-            xRentedBuffer.Dispose();
+            ReadOnlyTensorSpan<T> output = new ReadOnlyTensorSpan<T>(ref tensor._reference, tensor._shape.LinearLength, newLengths, newStrides);
+            lengthsRentedBuffer.Dispose();
+            stridesRentedBuffer.Dispose();
             return output;
         }
         #endregion

@@ -2207,7 +2207,7 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(0, tensor.Strides[0]);
             Assert.Equal(0, tensor.Strides[1]);
 
-            tensor = Tensor.Create<int>([2], false);
+            tensor = Tensor.Create<int>((ReadOnlySpan<nint>)[2], false);
             Assert.Equal(1, tensor.Rank);
             Assert.Equal(2, tensor.Lengths[0]);
             Assert.Equal(1, tensor.Strides[0]);
@@ -2216,7 +2216,7 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(2, tensor.Rank);
             Assert.Equal(1, tensor.Lengths[0]);
             Assert.Equal(2, tensor.Lengths[1]);
-            Assert.Equal(2, tensor.Strides[0]);
+            Assert.Equal(0, tensor.Strides[0]);
             Assert.Equal(1, tensor.Strides[1]);
 
             tensor = Tensor.Unsqueeze(tensor, 0);
@@ -2224,8 +2224,8 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(1, tensor.Lengths[0]);
             Assert.Equal(1, tensor.Lengths[1]);
             Assert.Equal(2, tensor.Lengths[2]);
-            Assert.Equal(2, tensor.Strides[0]);
-            Assert.Equal(2, tensor.Strides[1]);
+            Assert.Equal(0, tensor.Strides[0]);
+            Assert.Equal(0, tensor.Strides[1]);
             Assert.Equal(1, tensor.Strides[2]);
 
             tensor = Tensor.Unsqueeze(tensor, 0);
@@ -2234,12 +2234,12 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(1, tensor.Lengths[1]);
             Assert.Equal(1, tensor.Lengths[2]);
             Assert.Equal(2, tensor.Lengths[3]);
-            Assert.Equal(2, tensor.Strides[0]);
-            Assert.Equal(2, tensor.Strides[1]);
-            Assert.Equal(2, tensor.Strides[2]);
+            Assert.Equal(0, tensor.Strides[0]);
+            Assert.Equal(0, tensor.Strides[1]);
+            Assert.Equal(0, tensor.Strides[2]);
             Assert.Equal(1, tensor.Strides[3]);
 
-            tensor = Tensor.Create<int>([2], false);
+            tensor = Tensor.Create<int>((ReadOnlySpan<nint>)[2], false);
             Assert.Equal(1, tensor.Rank);
             Assert.Equal(2, tensor.Lengths[0]);
 
@@ -2248,7 +2248,7 @@ namespace System.Numerics.Tensors.Tests
             Assert.Equal(2, tensor.Lengths[0]);
             Assert.Equal(1, tensor.Lengths[1]);
 
-            tensor = Tensor.Create<int>([2], false);
+            tensor = Tensor.Create<int>((ReadOnlySpan<nint>)[2], false);
             Assert.Equal(1, tensor.Rank);
             Assert.Equal(2, tensor.Lengths[0]);
 
