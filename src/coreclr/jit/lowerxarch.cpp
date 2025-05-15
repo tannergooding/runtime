@@ -1735,11 +1735,6 @@ GenTree* Lowering::LowerHWIntrinsic(GenTreeHWIntrinsic* node)
                         BlockRange().InsertBefore(userIntrin, op4);
 
                         userIntrin->ResetHWIntrinsicId(ternaryLogicId, comp, op1, op2, op3, op4);
-                        if (varTypeIsSmall(simdBaseType))
-                        {
-                            assert(HWIntrinsicInfo::NeedsNormalizeSmallTypeToInt(ternaryLogicId));
-                            userIntrin->NormalizeJitBaseTypeToInt(ternaryLogicId, simdBaseType);
-                        }
                         return nextNode;
                     }
                 }
@@ -1805,11 +1800,6 @@ GenTree* Lowering::LowerHWIntrinsic(GenTreeHWIntrinsic* node)
             BlockRange().InsertBefore(node, control);
 
             node->ResetHWIntrinsicId(ternaryLogicId, comp, op1, op2, op3, control);
-            if (varTypeIsSmall(simdBaseType))
-            {
-                assert(HWIntrinsicInfo::NeedsNormalizeSmallTypeToInt(ternaryLogicId));
-                node->NormalizeJitBaseTypeToInt(ternaryLogicId, simdBaseType);
-            }
             return LowerNode(node);
         }
     }
@@ -1896,10 +1886,6 @@ GenTree* Lowering::LowerHWIntrinsic(GenTreeHWIntrinsic* node)
             LowerNode(op2);
 
             node->ResetHWIntrinsicId(intrinsicId, comp, op1, op2);
-            if (HWIntrinsicInfo::NeedsNormalizeSmallTypeToInt(intrinsicId) && varTypeIsSmall(simdBaseType))
-            {
-                node->NormalizeJitBaseTypeToInt(intrinsicId, simdBaseType);
-            }
             break;
         }
 
@@ -1959,10 +1945,6 @@ GenTree* Lowering::LowerHWIntrinsic(GenTreeHWIntrinsic* node)
             LowerNode(op3);
 
             node->ResetHWIntrinsicId(intrinsicId, comp, op1, op2, op3);
-            if (HWIntrinsicInfo::NeedsNormalizeSmallTypeToInt(intrinsicId) && varTypeIsSmall(simdBaseType))
-            {
-                node->NormalizeJitBaseTypeToInt(intrinsicId, simdBaseType);
-            }
             break;
         }
 
@@ -3195,10 +3177,17 @@ GenTree* Lowering::LowerHWIntrinsicCmpOp(GenTreeHWIntrinsic* node, genTreeOps cm
                         if (varTypeIsSmall(simdBaseType))
                         {
                             // Fixup the base type so embedded broadcast and the mask size checks still work
-                            node->NormalizeJitBaseTypeToInt(testIntrinsicId, simdBaseType);
 
-                            simdBaseJitType = node->GetSimdBaseJitType();
-                            simdBaseType    = node->GetSimdBaseType();
+                            if (varTypeIsUnsigned(simdBaseType))
+                            {
+                                simdBaseJitType = CORINFO_TYPE_UINT;
+                                simdBaseType    = TYP_UINT;
+                            }
+                            else
+                            {
+                                simdBaseJitType = CORINFO_TYPE_INT;
+                                simdBaseType    = TYP_INT;
+                            }
 
                             maskBaseJitType = simdBaseJitType;
                             maskBaseType    = simdBaseType;
@@ -3611,11 +3600,6 @@ GenTree* Lowering::LowerHWIntrinsicCndSel(GenTreeHWIntrinsic* node)
         BlockRange().InsertBefore(node, control);
 
         node->ResetHWIntrinsicId(ternaryLogicId, comp, op1, op2, op3, control);
-        if (varTypeIsSmall(simdBaseType))
-        {
-            assert(HWIntrinsicInfo::NeedsNormalizeSmallTypeToInt(ternaryLogicId));
-            node->NormalizeJitBaseTypeToInt(ternaryLogicId, simdBaseType);
-        }
         return LowerNode(node);
     }
 
@@ -3944,7 +3928,6 @@ GenTree* Lowering::LowerHWIntrinsicTernaryLogic(GenTreeHWIntrinsic* node)
                 // to BlendVariableMask, we need to "un-normalize". We no longer have the original
                 // base type, so we use the mask base type instead.
                 NamedIntrinsic intrinsicId = node->GetHWIntrinsicId();
-                assert(HWIntrinsicInfo::NeedsNormalizeSmallTypeToInt(intrinsicId));
 
                 if (!condition->OperIsHWIntrinsic())
                 {

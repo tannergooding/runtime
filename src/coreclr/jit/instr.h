@@ -187,8 +187,9 @@ enum insFlags : uint64_t
     INS_FLAGS_Has_Wbit = 1ULL << 29,
     INS_FLAGS_Has_Sbit = 1ULL << 30,
 
-    // instruction input size for the SIMD base type
-    // if not input size is set, instruction defaults to using
+    // instruction input size which is used to determine
+    // the scalar or broadcast load amount for SIMD instructions
+    // if this flag is not present, we default to using
     // the emitAttr for size
     Input_8Bit  = 1ULL << 31,
     Input_16Bit = 1ULL << 32,
@@ -215,8 +216,7 @@ enum insFlags : uint64_t
     KInstruction = 1ULL << 41,
     KInstructionWithLBit = 1ULL << 42,
 
-    // EVEX feature: embedded broadcast
-    INS_Flags_EmbeddedBroadcastSupported = 1ULL << 43,
+    // UNUSED = 1ULL << 43,
 
     // APX: REX2 prefix:
     Encoding_REX2  = 1ULL << 44,
@@ -227,14 +227,14 @@ enum insFlags : uint64_t
     // APX: EVEX.NF:
     INS_Flags_Has_NF  = 1ULL << 46,
 
-    // instruction output size for the SIMD base type
-    // if not output size is set, instruction defaults to using
-    // the emitAttr for size
-    Output_8Bit  = 1ULL << 47,
-    Output_16Bit = 1ULL << 48,
-    Output_32Bit = 1ULL << 49,
-    Output_64Bit = 1ULL << 50,
-    Output_Mask = (0xFULL) << 47,
+    // base kmask size used for a 128-bit vector
+    // used to determine if we can use embedded masking
+    KMask_Base1    = 1ULL << 47,
+    KMask_Base2    = 1ULL << 48,
+    KMask_Base4    = 1ULL << 49,
+    KMask_Base8    = 1ULL << 50,
+    KMask_Base16   = 1ULL << 51,
+    KMask_BaseMask = (0x1FULL) << 47,
 
     //  TODO-Cleanup:  Remove this flag and its usage from TARGET_XARCH
     INS_FLAGS_DONT_CARE = 0x00ULL,

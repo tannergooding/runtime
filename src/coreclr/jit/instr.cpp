@@ -128,32 +128,32 @@ const char* CodeGen::genInsDisplayName(emitter::instrDesc* id)
             {
                 switch (ins)
                 {
-                    case INS_movdqa:
+                    case INS_movdqa32:
                     {
                         return "vmovdqa32";
                     }
 
-                    case INS_movdqu:
+                    case INS_movdqu32:
                     {
                         return "vmovdqu32";
                     }
 
-                    case INS_pand:
+                    case INS_pandd:
                     {
                         return "vpandd";
                     }
 
-                    case INS_pandn:
+                    case INS_pandnd:
                     {
                         return "vpandnd";
                     }
 
-                    case INS_por:
+                    case INS_pord:
                     {
                         return "vpord";
                     }
 
-                    case INS_pxor:
+                    case INS_pxord:
                     {
                         return "vpxord";
                     }
@@ -178,32 +178,32 @@ const char* CodeGen::genInsDisplayName(emitter::instrDesc* id)
                         return "vrndscaless";
                     }
 
-                    case INS_vbroadcastf128:
+                    case INS_vbroadcastf32x4:
                     {
                         return "vbroadcastf32x4";
                     }
 
-                    case INS_vextractf128:
+                    case INS_vextractf32x4:
                     {
                         return "vextractf32x4";
                     }
 
-                    case INS_vinsertf128:
+                    case INS_vinsertf32x4:
                     {
                         return "vinsertf32x4";
                     }
 
-                    case INS_vbroadcasti128:
+                    case INS_vbroadcasti32x4:
                     {
                         return "vbroadcasti32x4";
                     }
 
-                    case INS_vextracti128:
+                    case INS_vextracti32x4:
                     {
                         return "vextracti32x4";
                     }
 
-                    case INS_vinserti128:
+                    case INS_vinserti32x4:
                     {
                         return "vinserti32x4";
                     }
@@ -355,12 +355,10 @@ bool CodeGenInterface::instIsFP(instruction ins)
  *  compatible instruction.
  */
 
-// static inline
 bool CodeGenInterface::instIsEmbeddedBroadcastCompatible(instruction ins)
 {
-    assert((unsigned)ins < ArrLen(instInfo));
-
-    return (instInfo[ins] & INS_Flags_EmbeddedBroadcastSupported) != 0;
+    insTupleType tupleType = GetEmitter()->insTupleTypeInfo(ins);
+    return (tupleType & INS_TT_IS_BROADCAST) != 0;
 }
 
 /*****************************************************************************
@@ -371,8 +369,8 @@ bool CodeGenInterface::instIsEmbeddedBroadcastCompatible(instruction ins)
 unsigned CodeGenInterface::instInputSize(instruction ins)
 {
     assert((unsigned)ins < ArrLen(instInfo));
-
     insFlags inputSize = static_cast<insFlags>((instInfo[ins] & Input_Mask));
+
     switch (inputSize)
     {
         case Input_8Bit:
@@ -390,26 +388,28 @@ unsigned CodeGenInterface::instInputSize(instruction ins)
 
 /*****************************************************************************
  *
- *  Returns the value of the given instruction's output size attribute, in bytes.
+ *  Returns the value of the given instruction's KMask base size attribute, in bits.
  */
 
-unsigned CodeGenInterface::instOutputSize(instruction ins)
+unsigned CodeGenInterface::instKMaskBaseSize(instruction ins)
 {
     assert((unsigned)ins < ArrLen(instInfo));
+    insFlags kmaskBaseSize = static_cast<insFlags>((instInfo[ins] & KMask_BaseMask));
 
-    insFlags outputSize = static_cast<insFlags>((instInfo[ins] & Output_Mask));
-    switch (outputSize)
+    switch (kmaskBaseSize)
     {
-        case Output_8Bit:
+        case KMask_Base1:
             return 1;
-        case Output_16Bit:
+        case KMask_Base2:
             return 2;
-        case Output_32Bit:
+        case KMask_Base4:
             return 4;
-        case Output_64Bit:
+        case KMask_Base8:
             return 8;
+        case KMask_Base16:
+            return 16;
         default:
-            unreached();
+            return 0;
     }
 }
 #endif // TARGET_XARCH
@@ -1240,14 +1240,17 @@ bool CodeGenInterface::IsEmbeddedBroadcastEnabled(instruction ins, GenTree* op)
     // 1. EVEX enabled.
     // 2. Embedded broadcast compatible intrinsics
     // 3. A contained broadcast scalar node
+
     if (!GetEmitter()->UseEvexEncoding())
     {
         return false;
     }
+
     if (!instIsEmbeddedBroadcastCompatible(ins))
     {
         return false;
     }
+
     if (!op->isContained() || !op->OperIsHWIntrinsic())
     {
         return false;
@@ -1309,19 +1312,19 @@ void CodeGen::inst_RV_RV_TT(instruction ins,
         {
             switch (ins)
             {
-                case INS_pand:
+                case INS_pandd:
                     ins = INS_vpandq;
                     break;
 
-                case INS_pandn:
+                case INS_pandnd:
                     ins = INS_vpandnq;
                     break;
 
-                case INS_por:
+                case INS_pord:
                     ins = INS_vporq;
                     break;
 
-                case INS_pxor:
+                case INS_pxord:
                     ins = INS_vpxorq;
                     break;
 
@@ -2079,7 +2082,7 @@ instruction CodeGen::ins_Copy(regNumber srcReg, var_types dstType)
         assert(genIsValidFloatReg(srcReg));
 
 #if defined(TARGET_XARCH)
-        return INS_movd;
+        return EA_SIZE(emitActualTypeSize(dstType)) == EA_4BYTE ? INS_movd32 : INS_movd64;
 #elif defined(TARGET_ARM64)
         return INS_mov;
 #elif defined(TARGET_ARM)
@@ -2130,7 +2133,7 @@ instruction CodeGen::ins_Copy(regNumber srcReg, var_types dstType)
     assert(genIsValidIntOrFakeReg(srcReg));
 
 #if defined(TARGET_XARCH)
-    return INS_movd;
+    return EA_SIZE(emitActualTypeSize(dstType)) == EA_4BYTE ? INS_movd32 : INS_movd64;
 #elif defined(TARGET_ARM64)
     return INS_fmov;
 #elif defined(TARGET_ARM)

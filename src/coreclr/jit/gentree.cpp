@@ -20662,25 +20662,14 @@ bool GenTree::isEmbeddedMaskingCompatibleHWIntrinsic() const
     {
         NamedIntrinsic intrinsicId = AsHWIntrinsic()->GetHWIntrinsicId();
 #if defined(TARGET_XARCH)
-        var_types simdBaseType = AsHWIntrinsic()->GetSimdBaseType();
+        var_types    simdBaseType = AsHWIntrinsic()->GetSimdBaseType();
+        instruction  ins          = HWIntrinsicInfo::lookupIns(intrinsicId, simdBaseType);
 
-        switch (intrinsicId)
-        {
-            case NI_AVX512F_ConvertToVector256Int32:
-            case NI_AVX512F_ConvertToVector256UInt32:
-            case NI_AVX512F_ConvertToVector512Int32:
-            case NI_AVX512F_ConvertToVector512UInt32:
-            case NI_AVX512F_VL_ConvertToVector128UInt32:
-            case NI_AVX10v1_ConvertToVector128UInt32:
-            {
-                return varTypeIsFloating(simdBaseType);
-            }
+        assert(ins != INS_invalid);
+        assert((unsigned)ins < ArrLen(instInfo));
 
-            default:
-            {
-                return HWIntrinsicInfo::IsEmbMaskingCompatible(intrinsicId);
-            }
-        }
+        insFlags kmaskBaseSize = static_cast<insFlags>((instInfo[ins] & KMask_BaseMask));
+        return kmaskBaseSize != 0;
 #elif defined(TARGET_ARM64)
         return HWIntrinsicInfo::IsEmbeddedMaskedOperation(intrinsicId) ||
                HWIntrinsicInfo::IsOptionalEmbeddedMaskedOperation(intrinsicId);
@@ -21113,13 +21102,6 @@ GenTree* Compiler::gtNewSimdBinOpNode(
             std::swap(op1, op2);
 #endif // TARGET_XARCH
         }
-#ifdef TARGET_XARCH
-        if (HWIntrinsicInfo::NeedsNormalizeSmallTypeToInt(intrinsic) && varTypeIsSmall(simdBaseType))
-        {
-            simdBaseJitType = varTypeIsUnsigned(simdBaseType) ? CORINFO_TYPE_UINT : CORINFO_TYPE_INT;
-            simdBaseType    = JitType2PreciseVarType(simdBaseJitType);
-        }
-#endif // TARGET_XARCH
         return gtNewSimdHWIntrinsicNode(type, op1, op2, intrinsic, simdBaseJitType, simdSize);
     }
 
@@ -27187,15 +27169,6 @@ GenTree* Compiler::gtNewSimdTernaryLogicNode(var_types   type,
         intrinsic = NI_AVX512F_VL_TernaryLogic;
     }
 
-#ifdef TARGET_XARCH
-    assert(HWIntrinsicInfo::NeedsNormalizeSmallTypeToInt(intrinsic));
-    if (varTypeIsSmall(simdBaseType))
-    {
-        simdBaseJitType = varTypeIsUnsigned(simdBaseType) ? CORINFO_TYPE_UINT : CORINFO_TYPE_INT;
-        simdBaseType    = JitType2PreciseVarType(simdBaseJitType);
-    }
-#endif // TARGET_XARCH
-
     return gtNewSimdHWIntrinsicNode(type, op1, op2, op3, op4, intrinsic, simdBaseJitType, simdSize);
 }
 #endif // TARGET_XARCH
@@ -28525,45 +28498,6 @@ bool GenTreeHWIntrinsic::OperIsMemoryStoreOrBarrier() const
 }
 
 //------------------------------------------------------------------------
-// OperIsEmbBroadcastCompatible: Checks if the intrinsic is a embedded broadcast compatible intrinsic.
-//
-// Return Value:
-//     true if the intrinsic node lowering instruction is embedded broadcast compatible.
-//
-bool GenTreeHWIntrinsic::OperIsEmbBroadcastCompatible() const
-{
-#if defined(TARGET_XARCH)
-    NamedIntrinsic intrinsicId  = GetHWIntrinsicId();
-    var_types      simdBaseType = GetSimdBaseType();
-
-    // MaybeImm intrinsics support embedded broadcasts only for their IMM variants (e.g. PSLLQ)
-    if (HWIntrinsicInfo::MaybeImm(intrinsicId) &&
-        !HWIntrinsicInfo::isImmOp(intrinsicId, GetOperandArray()[GetOperandCount() - 1]))
-    {
-        return false;
-    }
-
-    switch (intrinsicId)
-    {
-        case NI_AVX512F_ConvertToVector256Int32:
-        case NI_AVX512F_ConvertToVector256UInt32:
-        case NI_AVX512F_VL_ConvertToVector128UInt32:
-        case NI_AVX10v1_ConvertToVector128UInt32:
-        {
-            return varTypeIsFloating(simdBaseType);
-        }
-
-        default:
-        {
-            return !varTypeIsSmall(simdBaseType) && HWIntrinsicInfo::IsEmbBroadcastCompatible(intrinsicId);
-        }
-    }
-#else
-    return false;
-#endif // TARGET_XARCH
-}
-
-//------------------------------------------------------------------------
 // OperIsBroadcastScalar: Is this HWIntrinsic a broadcast node from scalar.
 //
 // Return Value:
@@ -28915,6 +28849,15 @@ void GenTreeHWIntrinsic::SetHWIntrinsicId(NamedIntrinsic intrinsicId)
 #endif // DEBUG
 
     gtHWIntrinsicId = intrinsicId;
+
+#ifdef TARGET_XARCH
+    var_types simdBaseType = GetSimdBaseType();
+
+    if (HWIntrinsicInfo::NeedsNormalizeSmallTypeToInt(intrinsicId) && varTypeIsSmall(simdBaseType))
+    {
+        SetSimdBaseJitType(varTypeIsUnsigned(simdBaseType) ? CORINFO_TYPE_UINT : CORINFO_TYPE_INT);
+    }
+#endif // TARGET_XARCH
 }
 
 /* static */ bool GenTreeHWIntrinsic::Equals(GenTreeHWIntrinsic* op1, GenTreeHWIntrinsic* op2)

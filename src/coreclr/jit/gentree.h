@@ -1522,11 +1522,6 @@ public:
     {
         return false;
     }
-
-    bool isEmbeddedMaskingCompatibleHWIntrinsic() const
-    {
-        return false;
-    }
 #endif // FEATURE_HW_INTRINSICS
 
     static bool OperIsCommutative(genTreeOps gtOper)
@@ -6442,7 +6437,6 @@ struct GenTreeHWIntrinsic : public GenTreeJitIntrinsic
     bool OperIsMemoryStore(GenTree** pAddr = nullptr) const;
     bool OperIsMemoryLoadOrStore() const;
     bool OperIsMemoryStoreOrBarrier() const;
-    bool OperIsEmbBroadcastCompatible() const;
     bool OperIsBroadcastScalar() const;
     bool OperIsBitwiseHWIntrinsic() const;
     bool OperIsEmbRoundingEnabled() const;
@@ -6611,20 +6605,6 @@ struct GenTreeHWIntrinsic : public GenTreeJitIntrinsic
     }
 
     bool ShouldConstantProp(GenTree* operand, GenTreeVecCon* vecCon);
-
-    void NormalizeJitBaseTypeToInt(NamedIntrinsic id, var_types simdBaseType)
-    {
-        assert(varTypeIsSmall(simdBaseType));
-
-        if (varTypeIsUnsigned(simdBaseType))
-        {
-            SetSimdBaseJitType(CORINFO_TYPE_UINT);
-        }
-        else
-        {
-            SetSimdBaseJitType(CORINFO_TYPE_UINT);
-        }
-    }
 
 private:
     void SetHWIntrinsicId(NamedIntrinsic intrinsicId);
