@@ -181,6 +181,7 @@ public:
 #if defined(TARGET_XARCH)
     static bool     instIsEmbeddedBroadcastCompatible(instruction ins);
     static unsigned instInputSize(instruction ins);
+    static unsigned instOutputSize(instruction ins);
 #endif // TARGET_XARCH
     //-------------------------------------------------------------------------
     // Liveness-related fields & methods

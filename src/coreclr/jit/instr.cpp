@@ -387,6 +387,31 @@ unsigned CodeGenInterface::instInputSize(instruction ins)
             unreached();
     }
 }
+
+/*****************************************************************************
+ *
+ *  Returns the value of the given instruction's output size attribute, in bytes.
+ */
+
+unsigned CodeGenInterface::instOutputSize(instruction ins)
+{
+    assert((unsigned)ins < ArrLen(instInfo));
+
+    insFlags outputSize = static_cast<insFlags>((instInfo[ins] & Output_Mask));
+    switch (outputSize)
+    {
+        case Output_8Bit:
+            return 1;
+        case Output_16Bit:
+            return 2;
+        case Output_32Bit:
+            return 4;
+        case Output_64Bit:
+            return 8;
+        default:
+            unreached();
+    }
+}
 #endif // TARGET_XARCH
 
 /*****************************************************************************

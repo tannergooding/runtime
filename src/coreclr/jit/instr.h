@@ -187,7 +187,7 @@ enum insFlags : uint64_t
     INS_FLAGS_Has_Wbit = 1ULL << 29,
     INS_FLAGS_Has_Sbit = 1ULL << 30,
 
-    // instruction input size
+    // instruction input size for the SIMD base type
     // if not input size is set, instruction defaults to using
     // the emitAttr for size
     Input_8Bit  = 1ULL << 31,
@@ -226,6 +226,15 @@ enum insFlags : uint64_t
 
     // APX: EVEX.NF:
     INS_Flags_Has_NF  = 1ULL << 46,
+
+    // instruction output size for the SIMD base type
+    // if not output size is set, instruction defaults to using
+    // the emitAttr for size
+    Output_8Bit  = 1ULL << 47,
+    Output_16Bit = 1ULL << 48,
+    Output_32Bit = 1ULL << 49,
+    Output_64Bit = 1ULL << 50,
+    Output_Mask = (0xFULL) << 47,
 
     //  TODO-Cleanup:  Remove this flag and its usage from TARGET_XARCH
     INS_FLAGS_DONT_CARE = 0x00ULL,
