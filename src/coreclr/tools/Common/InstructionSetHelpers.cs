@@ -24,7 +24,7 @@ namespace System.CommandLine
             // Ready to run images are built with certain instruction set baselines
             if ((targetArchitecture == TargetArchitecture.X86) || (targetArchitecture == TargetArchitecture.X64))
             {
-                instructionSetSupportBuilder.AddSupportedInstructionSet("base");
+                instructionSetSupportBuilder.AddSupportedInstructionSet("x86-64-v2");
             }
             else if (targetArchitecture == TargetArchitecture.ARM64)
             {
@@ -35,7 +35,7 @@ namespace System.CommandLine
                 }
                 else
                 {
-                    instructionSetSupportBuilder.AddSupportedInstructionSet("neon");
+                    instructionSetSupportBuilder.AddSupportedInstructionSet("armv8.1-a");
                 }
             }
 
@@ -187,7 +187,6 @@ namespace System.CommandLine
                 // Note that we do not indicate support for AVX, or any other instruction set which uses the VEX encodings as
                 // the presence of those makes otherwise acceptable code be unusable on hardware which does not support VEX encodings.
                 //
-                optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("sse42");
                 optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("aes");
                 optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("gfni");
                 optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("sha");
@@ -231,12 +230,10 @@ namespace System.CommandLine
             else if (allowOptimistic && targetArchitecture is TargetArchitecture.ARM64)
             {
                 optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("aes");
-                optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("crc");
+                optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("dotprod");
+                optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("rcpc2");
                 optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("sha1");
                 optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("sha2");
-                optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("lse");
-                optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("dotprod");
-                optimisticInstructionSetSupportBuilder.AddSupportedInstructionSet("rdma");
             }
 
             // Vector<T> can always be part of the optimistic set, we only want to optionally exclude it from the supported set
