@@ -20,8 +20,6 @@ static CORINFO_InstructionSet X64VersionOfIsa(CORINFO_InstructionSet isa)
     {
         case InstructionSet_X86Base:
             return InstructionSet_X86Base_X64;
-        case InstructionSet_SSE42:
-            return InstructionSet_SSE42_X64;
         case InstructionSet_AVX:
             return InstructionSet_AVX_X64;
         case InstructionSet_AVX2:
@@ -306,7 +304,7 @@ static CORINFO_InstructionSet lookupInstructionSet(const char* className)
         }
         else if (strcmp(className + 1, "opcnt") == 0)
         {
-            return InstructionSet_SSE42;
+            return InstructionSet_X86Base;
         }
     }
     else if (className[0] == 'S')
@@ -323,20 +321,20 @@ static CORINFO_InstructionSet lookupInstructionSet(const char* className)
             }
             else if (strcmp(className + 3, "3") == 0)
             {
-                return InstructionSet_SSE42;
+                return InstructionSet_X86Base;
             }
             else if (strcmp(className + 3, "41") == 0)
             {
-                return InstructionSet_SSE42;
+                return InstructionSet_X86Base;
             }
             else if (strcmp(className + 3, "42") == 0)
             {
-                return InstructionSet_SSE42;
+                return InstructionSet_X86Base;
             }
         }
         else if (strcmp(className + 1, "sse3") == 0)
         {
-            return InstructionSet_SSE42;
+            return InstructionSet_X86Base;
         }
     }
     else if (className[0] == 'V')
@@ -1101,54 +1099,54 @@ int HWIntrinsicInfo::lookupIval(Compiler* comp, NamedIntrinsic id, var_types sim
             return static_cast<int>(FloatComparisonMode::UnorderedNonSignaling);
         }
 
-        case NI_SSE42_Ceiling:
-        case NI_SSE42_CeilingScalar:
+        case NI_X86Base_Ceiling:
+        case NI_X86Base_CeilingScalar:
         case NI_AVX_Ceiling:
         {
             FALLTHROUGH;
         }
 
-        case NI_SSE42_RoundToPositiveInfinity:
-        case NI_SSE42_RoundToPositiveInfinityScalar:
+        case NI_X86Base_RoundToPositiveInfinity:
+        case NI_X86Base_RoundToPositiveInfinityScalar:
         case NI_AVX_RoundToPositiveInfinity:
         {
             assert(varTypeIsFloating(simdBaseType));
             return static_cast<int>(FloatRoundingMode::ToPositiveInfinity);
         }
 
-        case NI_SSE42_Floor:
-        case NI_SSE42_FloorScalar:
+        case NI_X86Base_Floor:
+        case NI_X86Base_FloorScalar:
         case NI_AVX_Floor:
         {
             FALLTHROUGH;
         }
 
-        case NI_SSE42_RoundToNegativeInfinity:
-        case NI_SSE42_RoundToNegativeInfinityScalar:
+        case NI_X86Base_RoundToNegativeInfinity:
+        case NI_X86Base_RoundToNegativeInfinityScalar:
         case NI_AVX_RoundToNegativeInfinity:
         {
             assert(varTypeIsFloating(simdBaseType));
             return static_cast<int>(FloatRoundingMode::ToNegativeInfinity);
         }
 
-        case NI_SSE42_RoundCurrentDirection:
-        case NI_SSE42_RoundCurrentDirectionScalar:
+        case NI_X86Base_RoundCurrentDirection:
+        case NI_X86Base_RoundCurrentDirectionScalar:
         case NI_AVX_RoundCurrentDirection:
         {
             assert(varTypeIsFloating(simdBaseType));
             return static_cast<int>(FloatRoundingMode::CurrentDirection);
         }
 
-        case NI_SSE42_RoundToNearestInteger:
-        case NI_SSE42_RoundToNearestIntegerScalar:
+        case NI_X86Base_RoundToNearestInteger:
+        case NI_X86Base_RoundToNearestIntegerScalar:
         case NI_AVX_RoundToNearestInteger:
         {
             assert(varTypeIsFloating(simdBaseType));
             return static_cast<int>(FloatRoundingMode::ToNearestInteger);
         }
 
-        case NI_SSE42_RoundToZero:
-        case NI_SSE42_RoundToZeroScalar:
+        case NI_X86Base_RoundToZero:
+        case NI_X86Base_RoundToZeroScalar:
         case NI_AVX_RoundToZero:
         {
             assert(varTypeIsFloating(simdBaseType));
@@ -1844,11 +1842,6 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
                 break;
             }
 
-            if ((simdSize < 32) && !compOpportunisticallyDependsOn(InstructionSet_SSE42))
-            {
-                break;
-            }
-
             op1     = impSIMDPopStack();
             retNode = gtNewSimdCeilNode(retType, op1, simdBaseJitType, simdSize);
             break;
@@ -1903,11 +1896,8 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             assert(sig->numArgs == 1);
             assert(simdBaseType == TYP_FLOAT);
 
-            if (compOpportunisticallyDependsOn(InstructionSet_SSE42))
-            {
-                op1     = impSIMDPopStack();
-                retNode = gtNewSimdCvtNode(retType, op1, CORINFO_TYPE_INT, simdBaseJitType, simdSize);
-            }
+            op1     = impSIMDPopStack();
+            retNode = gtNewSimdCvtNode(retType, op1, CORINFO_TYPE_INT, simdBaseJitType, simdSize);
             break;
         }
 
@@ -2367,8 +2357,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             op2 = impSIMDPopStack();
             op1 = impSIMDPopStack();
 
-            if ((simdSize == 64) || varTypeIsByte(simdBaseType) || varTypeIsLong(simdBaseType) ||
-                (varTypeIsInt(simdBaseType) && !compOpportunisticallyDependsOn(InstructionSet_SSE42)))
+            if ((simdSize == 64) || varTypeIsByte(simdBaseType) || varTypeIsLong(simdBaseType))
             {
                 // The lowering for Dot doesn't handle these cases, so import as Sum(left * right)
                 retNode = gtNewSimdBinOpNode(GT_MUL, simdType, op1, op2, simdBaseJitType, simdSize);
@@ -2494,17 +2483,12 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
                             simdVal.u64[3] = 0x8080808080808080;
 
                             shuffleIntrinsic  = NI_AVX2_Shuffle;
-                            moveMaskIntrinsic = NI_X86Base_MoveMask;
-                        }
-                        else if (compOpportunisticallyDependsOn(InstructionSet_SSE42))
-                        {
-                            shuffleIntrinsic  = NI_SSE42_Shuffle;
-                            moveMaskIntrinsic = NI_X86Base_MoveMask;
                         }
                         else
                         {
-                            return nullptr;
+                            shuffleIntrinsic  = NI_X86Base_Shuffle;
                         }
+                        moveMaskIntrinsic = NI_X86Base_MoveMask;
 
                         op2 = gtNewVconNode(simdType);
                         memcpy(&op2->AsVecCon()->gtSimdVal, &simdVal, simdSize);
@@ -2580,11 +2564,6 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
                 break;
             }
 
-            if ((simdSize < 32) && !compOpportunisticallyDependsOn(InstructionSet_SSE42))
-            {
-                break;
-            }
-
             op1     = impSIMDPopStack();
             retNode = gtNewSimdFloorNode(retType, op1, simdBaseJitType, simdSize);
             break;
@@ -2650,41 +2629,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
         {
             assert(sig->numArgs == 2);
 
-            op2 = impStackTop(0).val;
-
-            switch (simdBaseType)
-            {
-                case TYP_BYTE:
-                case TYP_UBYTE:
-                case TYP_INT:
-                case TYP_UINT:
-                case TYP_LONG:
-                case TYP_ULONG:
-                {
-                    if (!op2->IsIntegralConst(0) && !compOpportunisticallyDependsOn(InstructionSet_SSE42))
-                    {
-                        // Using software fallback if simdBaseType is not supported by hardware
-                        return nullptr;
-                    }
-                    break;
-                }
-
-                case TYP_DOUBLE:
-                case TYP_FLOAT:
-                case TYP_SHORT:
-                case TYP_USHORT:
-                {
-                    // short/ushort/float/double is supported by SSE2
-                    break;
-                }
-
-                default:
-                {
-                    unreached();
-                }
-            }
-
-            impPopStack();
+            op2 = impPopStack().val;
             op1 = impSIMDPopStack();
 
             retNode = gtNewSimdGetElementNode(retType, op1, op2, simdBaseJitType, simdSize);
@@ -2841,10 +2786,6 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
         {
             assert(sig->numArgs == 1);
 
-            if ((simdSize == 16) && !compOpportunisticallyDependsOn(InstructionSet_SSE42))
-            {
-                break;
-            }
             if ((simdSize == 32) && !compOpportunisticallyDependsOn(InstructionSet_AVX2))
             {
                 break;
@@ -3649,11 +3590,6 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
                 break;
             }
 
-            if ((simdSize < 32) && !compOpportunisticallyDependsOn(InstructionSet_SSE42))
-            {
-                break;
-            }
-
             op1     = impSIMDPopStack();
             retNode = gtNewSimdRoundNode(retType, op1, simdBaseJitType, simdSize);
             break;
@@ -4044,11 +3980,6 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
                 break;
             }
 
-            if ((simdSize < 32) && !compOpportunisticallyDependsOn(InstructionSet_SSE42))
-            {
-                break;
-            }
-
             op1     = impSIMDPopStack();
             retNode = gtNewSimdTruncNode(retType, op1, simdBaseJitType, simdSize);
             break;
@@ -4103,42 +4034,9 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
         case NI_Vector512_WithElement:
         {
             assert(sig->numArgs == 3);
-            GenTree* indexOp = impStackTop(1).val;
 
-            switch (simdBaseType)
-            {
-                // Using software fallback if simdBaseType is not supported by hardware
-                case TYP_BYTE:
-                case TYP_UBYTE:
-                case TYP_INT:
-                case TYP_UINT:
-                    if (!compOpportunisticallyDependsOn(InstructionSet_SSE42))
-                    {
-                        return nullptr;
-                    }
-                    break;
-
-                case TYP_LONG:
-                case TYP_ULONG:
-                    if (!compOpportunisticallyDependsOn(InstructionSet_SSE42_X64))
-                    {
-                        return nullptr;
-                    }
-                    break;
-
-                case TYP_DOUBLE:
-                case TYP_FLOAT:
-                case TYP_SHORT:
-                case TYP_USHORT:
-                    // short/ushort/float/double is supported by SSE2
-                    break;
-
-                default:
-                    unreached();
-            }
-
-            GenTree* valueOp = impPopStack().val;
-            impPopStack(); // Pop the indexOp now that we know its valid
+            GenTree* valueOp  = impPopStack().val;
+            GenTree* indexOp  = impPopStack().val;
             GenTree* vectorOp = impSIMDPopStack();
 
             retNode = gtNewSimdWithElementNode(retType, vectorOp, indexOp, valueOp, simdBaseJitType, simdSize);
