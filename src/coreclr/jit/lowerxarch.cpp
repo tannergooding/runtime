@@ -29,7 +29,6 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 // xarch supports both ROL and ROR instructions so no lowering is required.
 void Lowering::LowerRotate(GenTree* tree)
 {
-    ContainCheckShiftRotate(tree->AsOp());
 }
 
 //------------------------------------------------------------------------
@@ -66,7 +65,6 @@ GenTree* Lowering::LowerStoreLoc(GenTreeLclVarCommon* storeLoc)
         verifyLclFldDoNotEnregister(storeLoc->GetLclNum());
     }
 
-    ContainCheckStoreLoc(storeLoc);
     return storeLoc->gtNext;
 }
 
@@ -105,7 +103,6 @@ GenTree* Lowering::LowerStoreIndir(GenTreeStoreInd* node)
     {
         node->Data()->ChangeType(TYP_BYTE);
     }
-    ContainCheckStoreIndir(node);
 
     return node->gtNext;
 }
@@ -166,8 +163,6 @@ GenTree* Lowering::TryLowerMulWithConstant(GenTreeOp* node)
         cns->SetIconValue(shiftAmount);
         node->ChangeOper(GT_LSH);
 
-        ContainCheckShiftRotate(node);
-
         return node;
     }
 
@@ -211,9 +206,6 @@ GenTree* Lowering::TryLowerMulWithConstant(GenTreeOp* node)
     BlockRange().InsertBefore(node, op1);
     BlockRange().InsertBefore(node, node->gtGetOp1());
 
-    ContainCheckBinary(node);
-    ContainCheckShiftRotate(node->gtGetOp1()->AsOp());
-
     return node;
 }
 
@@ -240,8 +232,6 @@ GenTree* Lowering::LowerMul(GenTreeOp* mul)
             return replacementNode->gtNext;
         }
     }
-
-    ContainCheckMul(mul);
 
     return mul->gtNext;
 }
@@ -293,8 +283,6 @@ GenTree* Lowering::LowerBinaryArithmetic(GenTreeOp* binOp)
         }
     }
 #endif
-
-    ContainCheckBinary(binOp);
 
 #ifdef TARGET_AMD64
     if (JitConfig.EnableApxConditionalChaining())
@@ -1267,9 +1255,6 @@ void Lowering::LowerCast(GenTree* tree)
         LowerRange(lowerRange);
     }
 #endif // FEATURE_HW_INTRINSICS
-
-    // Now determine if we have operands that should be contained.
-    ContainCheckCast(tree->AsCast());
 }
 
 #ifdef FEATURE_HW_INTRINSICS
@@ -1488,7 +1473,6 @@ void Lowering::LowerFusedMultiplyOp(GenTreeHWIntrinsic* node)
 
                     argOp = argOp->gtGetOp1();
                     argOp->ClearContained();
-                    ContainCheckHWIntrinsic(arg->AsHWIntrinsic());
 
                     negatedArgs[i - 1] ^= true;
                 }
@@ -2676,7 +2660,6 @@ GenTree* Lowering::LowerHWIntrinsic(GenTreeHWIntrinsic* node)
             break;
     }
 
-    ContainCheckHWIntrinsic(node);
     return node->gtNext;
 }
 
@@ -4181,7 +4164,6 @@ GenTree* Lowering::LowerHWIntrinsicTernaryLogic(GenTreeHWIntrinsic* node)
     // TODO-XARCH-AVX512: We should look for nested TernaryLogic and BitwiseOper
     // nodes so that we can fully take advantage of the instruction where possible
 
-    ContainCheckHWIntrinsic(node);
     return node->gtNext;
 }
 
@@ -4315,7 +4297,6 @@ GenTree* Lowering::LowerHWIntrinsicCreate(GenTreeHWIntrinsic* node)
                 }
             }
 
-            ContainCheckHWIntrinsic(node);
             return node->gtNext;
         }
 
@@ -5343,7 +5324,6 @@ GenTree* Lowering::LowerHWIntrinsicGetElement(GenTreeHWIntrinsic* node)
     if (!op2->OperIsConst())
     {
         // We will specially handle GetElement in codegen when op2 isn't a constant
-        ContainCheckHWIntrinsic(node);
         return node->gtNext;
     }
 
@@ -5398,7 +5378,6 @@ GenTree* Lowering::LowerHWIntrinsicGetElement(GenTreeHWIntrinsic* node)
             // Handle other cases in codegen
 
             op2->AsIntCon()->SetIconValue(imm8);
-            ContainCheckHWIntrinsic(node);
 
             return node->gtNext;
         }
@@ -5568,10 +5547,6 @@ GenTree* Lowering::LowerHWIntrinsicGetElement(GenTreeHWIntrinsic* node)
     {
         next = LowerNode(node);
     }
-    else
-    {
-        ContainCheckHWIntrinsic(node);
-    }
 
     if ((simdBaseType == TYP_BYTE) || (simdBaseType == TYP_SHORT))
     {
@@ -5626,7 +5601,6 @@ GenTree* Lowering::LowerHWIntrinsicWithElement(GenTreeHWIntrinsic* node)
     if (!op2->OperIsConst())
     {
         // We will specially handle WithElement in codegen when op2 isn't a constant
-        ContainCheckHWIntrinsic(node);
         return node->gtNext;
     }
 
@@ -6778,7 +6752,6 @@ GenTree* Lowering::LowerHWIntrinsicToScalar(GenTreeHWIntrinsic* node)
         }
     }
 
-    ContainCheckHWIntrinsic(node);
     return node->gtNext;
 }
 
@@ -6863,8 +6836,6 @@ GenTree* Lowering::TryLowerAndOpToResetLowestSetBit(GenTreeOp* andNode)
     BlockRange().Remove(addOp1);
     BlockRange().Remove(addOp2);
 
-    ContainCheckHWIntrinsic(blsrNode);
-
     return blsrNode;
 }
 
@@ -6946,8 +6917,6 @@ GenTree* Lowering::TryLowerAndOpToExtractLowestSetBit(GenTreeOp* andNode)
     BlockRange().Remove(andNode);
     BlockRange().Remove(negNode);
     BlockRange().Remove(negOp);
-
-    ContainCheckHWIntrinsic(blsiNode);
 
     return blsiNode;
 }
@@ -7033,8 +7002,6 @@ GenTree* Lowering::TryLowerAndOpToAndNot(GenTreeOp* andNode)
     BlockRange().Remove(andNode);
     BlockRange().Remove(notNode);
 
-    ContainCheckHWIntrinsic(andnNode);
-
     return andnNode;
 }
 
@@ -7119,8 +7086,6 @@ GenTree* Lowering::TryLowerXorOpToGetMaskUpToLowestSetBit(GenTreeOp* xorNode)
     BlockRange().Remove(op2);
     BlockRange().Remove(addOp1);
     BlockRange().Remove(addOp2);
-
-    ContainCheckHWIntrinsic(blsmskNode);
 
     return blsmskNode;
 }

@@ -116,9 +116,6 @@ bool Lowering::IsContainableImmed(GenTree* parentNode, GenTree* childNode) const
 GenTree* Lowering::LowerMul(GenTreeOp* mul)
 {
     assert(mul->OperIsMul());
-
-    ContainCheckMul(mul);
-
     return mul->gtNext;
 }
 
@@ -263,9 +260,6 @@ GenTree* Lowering::LowerBinaryArithmetic(GenTreeOp* binOp)
             }
         }
     }
-
-    ContainCheckBinary(binOp);
-
     return binOp->gtNext;
 }
 
@@ -289,7 +283,6 @@ GenTree* Lowering::LowerStoreLoc(GenTreeLclVarCommon* storeLoc)
         // We should only encounter this for lclVars that are lvDoNotEnregister.
         verifyLclFldDoNotEnregister(storeLoc->GetLclNum());
     }
-    ContainCheckStoreLoc(storeLoc);
     return storeLoc->gtNext;
 }
 
@@ -304,7 +297,6 @@ GenTree* Lowering::LowerStoreLoc(GenTreeLclVarCommon* storeLoc)
 //
 GenTree* Lowering::LowerStoreIndir(GenTreeStoreInd* node)
 {
-    ContainCheckStoreIndir(node);
     return node->gtNext;
 }
 
@@ -535,9 +527,6 @@ void Lowering::LowerCast(GenTree* tree)
     }
 
     assert(!varTypeIsSmall(srcType));
-
-    // Now determine if we have operands that should be contained.
-    ContainCheckCast(tree->AsCast());
 }
 
 //------------------------------------------------------------------------
@@ -551,7 +540,6 @@ void Lowering::LowerCast(GenTree* tree)
 //
 void Lowering::LowerRotate(GenTree* tree)
 {
-    ContainCheckShiftRotate(tree->AsOp());
 }
 
 // Determine if cast type is 32-bit zero extension

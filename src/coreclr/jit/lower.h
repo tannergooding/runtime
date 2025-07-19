@@ -55,28 +55,13 @@ private:
     }
     void LowerRange(GenTree* firstNode, GenTree* lastNode);
 
-    // ContainCheckRange handles new code that is introduced by or after Lowering,
-    // and that is known to be already in Lowered form.
-    void ContainCheckRange(LIR::ReadOnlyRange& range)
-    {
-        for (GenTree* newNode : range)
-        {
-            ContainCheckNode(newNode);
-        }
-    }
-    void ContainCheckRange(GenTree* firstNode, GenTree* lastNode)
-    {
-        LIR::ReadOnlyRange range(firstNode, lastNode);
-        ContainCheckRange(range);
-    }
-
-    void InsertTreeBeforeAndContainCheck(GenTree* insertionPoint, GenTree* tree)
+    void InsertTreeBefore(GenTree* insertionPoint, GenTree* tree)
     {
         LIR::Range range = LIR::SeqTree(comp, tree);
-        ContainCheckRange(range);
         BlockRange().InsertBefore(insertionPoint, std::move(range));
     }
 
+    void ContainCheckBlock(BasicBlock* block);
     void ContainCheckNode(GenTree* node);
 
     void ContainCheckDivOrMod(GenTreeOp* node);
@@ -270,7 +255,6 @@ private:
             use.ReplaceWithLclVar(comp, tempNum, &store);
 
             GenTree* newUseNode = use.Def();
-            ContainCheckRange(oldUseNode->gtNext, newUseNode);
 
             // We need to lower the LclVar and store since there may be certain
             // types or scenarios, such as TYP_SIMD12, that need special handling

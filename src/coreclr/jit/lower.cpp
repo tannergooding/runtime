@@ -415,10 +415,7 @@ GenTree* Lowering::LowerNode(GenTree* node)
 
         case GT_UDIV:
         case GT_UMOD:
-            if (!LowerUnsignedDivOrMod(node->AsOp()))
-            {
-                ContainCheckDivOrMod(node->AsOp());
-            }
+            LowerUnsignedDivOrMod(node->AsOp());
             break;
 
         case GT_DIV:
@@ -455,29 +452,20 @@ GenTree* Lowering::LowerNode(GenTree* node)
         case GT_JTRUE:
             return LowerJTrue(node->AsOp());
 
-        case GT_NEG:
 #ifdef TARGET_ARM64
+        case GT_NEG:
         {
             GenTree* next;
             if (TryLowerNegToMulLongOp(node->AsOp(), &next))
             {
                 return next;
             }
-            ContainCheckNeg(node->AsOp());
-        }
-#endif
-        break;
-        case GT_NOT:
-#ifdef TARGET_ARM64
-            ContainCheckNot(node->AsOp());
-#endif
             break;
+        }
+#endif // TARGET_ARM64
+
         case GT_SELECT:
             return LowerSelect(node->AsConditional());
-
-        case GT_SELECTCC:
-            ContainCheckSelect(node->AsOp());
-            break;
 
         case GT_JMP:
             LowerJmpMethod(node);
@@ -486,10 +474,6 @@ GenTree* Lowering::LowerNode(GenTree* node)
         case GT_SWIFT_ERROR_RET:
         case GT_RETURN:
             LowerRet(node->AsOp());
-            break;
-
-        case GT_RETURNTRAP:
-            ContainCheckReturnTrap(node->AsOp());
             break;
 
         case GT_CAST:
@@ -507,18 +491,9 @@ GenTree* Lowering::LowerNode(GenTree* node)
         case GT_BITCAST:
         {
             GenTree* next = node->gtNext;
-            if (!TryRemoveBitCast(node->AsUnOp()))
-            {
-                ContainCheckBitCast(node->AsUnOp());
-            }
+            TryRemoveBitCast(node->AsUnOp());
             return next;
         }
-
-#if defined(TARGET_XARCH) || defined(TARGET_ARM64) || defined(TARGET_LOONGARCH64) || defined(TARGET_RISCV64)
-        case GT_BOUNDS_CHECK:
-            ContainCheckBoundsChk(node->AsBoundsChk());
-            break;
-#endif // defined(TARGET_XARCH) || defined(TARGET_ARM64) || defined(TARGET_LOONGARCH64) || defined(TARGET_RISCV64)
 
         case GT_ROL:
         case GT_ROR:
@@ -533,13 +508,6 @@ GenTree* Lowering::LowerNode(GenTree* node)
             break;
         }
 
-#ifndef TARGET_64BIT
-        case GT_LSH_HI:
-        case GT_RSH_LO:
-            ContainCheckShiftRotate(node->AsOp());
-            break;
-#endif // !TARGET_64BIT
-
         case GT_LSH:
         case GT_RSH:
         case GT_RSZ:
@@ -552,8 +520,6 @@ GenTree* Lowering::LowerNode(GenTree* node)
 
 #if defined(TARGET_XARCH) || defined(TARGET_ARM64) || defined(TARGET_LOONGARCH64) || defined(TARGET_RISCV64)
             LowerShift(node->AsOp());
-#else
-            ContainCheckShiftRotate(node->AsOp());
 #endif
             break;
         }
@@ -570,12 +536,6 @@ GenTree* Lowering::LowerNode(GenTree* node)
         case GT_LCLHEAP:
             LowerLclHeap(node);
             break;
-
-#ifdef TARGET_XARCH
-        case GT_INTRINSIC:
-            ContainCheckIntrinsic(node->AsOp());
-            break;
-#endif // TARGET_XARCH
 
 #ifdef FEATURE_HW_INTRINSICS
         case GT_HWINTRINSIC:
@@ -1946,10 +1906,7 @@ void Lowering::InsertBitCastIfNecessary(GenTree** argNode, const ABIPassingSegme
     BlockRange().InsertAfter(*argNode, bitCast);
 
     *argNode = bitCast;
-    if (!TryRemoveBitCast(bitCast))
-    {
-        ContainCheckBitCast(bitCast);
-    }
+    TryRemoveBitCast(bitCast);
 }
 
 //------------------------------------------------------------------------
@@ -2918,8 +2875,6 @@ GenTree* Lowering::LowerCall(GenTree* node)
         JITDUMP("results of lowering call:\n");
         DISPRANGE(controlExprRange);
 
-        ContainCheckRange(controlExprRange);
-
         BlockRange().InsertBefore(call, std::move(controlExprRange));
         call->gtControlExpr = controlExpr;
 
@@ -2962,7 +2917,6 @@ GenTree* Lowering::LowerCall(GenTree* node)
         LowerCallStruct(call);
     }
 
-    ContainCheckCallOperands(call);
     JITDUMP("lowering call (after):\n");
     DISPTREERANGE(BlockRange(), call);
     JITDUMP("\n");
@@ -3417,7 +3371,6 @@ void Lowering::RehomeArgForFastTailCall(unsigned int lclNum,
             }
             GenTreeLclVar* storeLclVar = comp->gtNewStoreLclVarNode(tmpLclNum, value);
             BlockRange().InsertBefore(insertTempBefore, LIR::SeqTree(comp, storeLclVar));
-            ContainCheckRange(value, storeLclVar);
             LowerNode(storeLclVar);
         }
 
@@ -3504,7 +3457,6 @@ GenTree* Lowering::LowerTailCallViaJitHelper(GenTreeCall* call, GenTree* callTar
     assert(argEntry != nullptr);
     GenTree* arg0 = argEntry->GetEarlyNode()->AsPutArgStk()->gtGetOp1();
 
-    ContainCheckRange(callTargetRange);
     BlockRange().InsertAfter(arg0, std::move(callTargetRange));
 
     bool               isClosed;
@@ -3621,7 +3573,6 @@ void Lowering::LowerCFGCall(GenTreeCall* call)
 
         callTarget                  = Ind(indirCellClone);
         LIR::Range controlExprRange = LIR::SeqTree(comp, callTarget);
-        ContainCheckRange(controlExprRange);
 
         BlockRange().InsertBefore(call, std::move(controlExprRange));
         call->gtControlExpr = callTarget;
@@ -3748,7 +3699,6 @@ void Lowering::LowerCFGCall(GenTreeCall* call)
             {
                 LIR::Range dispatchControlExprRange = LIR::SeqTree(comp, call->gtControlExpr);
 
-                ContainCheckRange(dispatchControlExprRange);
                 BlockRange().InsertBefore(call, std::move(dispatchControlExprRange));
             }
 #else
@@ -3944,7 +3894,6 @@ GenTree* Lowering::DecomposeLongCompare(GenTree* cmp)
         {
             loCmp = comp->gtNewOperNode(GT_XOR, TYP_INT, loSrc1, loSrc2);
             BlockRange().InsertBefore(cmp, loCmp);
-            ContainCheckBinary(loCmp->AsOp());
         }
 
         if (hiSrc1->OperIs(GT_CNS_INT))
@@ -3961,12 +3910,10 @@ GenTree* Lowering::DecomposeLongCompare(GenTree* cmp)
         {
             hiCmp = comp->gtNewOperNode(GT_XOR, TYP_INT, hiSrc1, hiSrc2);
             BlockRange().InsertBefore(cmp, hiCmp);
-            ContainCheckBinary(hiCmp->AsOp());
         }
 
         hiCmp = comp->gtNewOperNode(GT_OR, TYP_INT, loCmp, hiCmp);
         BlockRange().InsertBefore(cmp, hiCmp);
-        ContainCheckBinary(hiCmp->AsOp());
     }
     else
     {
@@ -4046,7 +3993,6 @@ GenTree* Lowering::DecomposeLongCompare(GenTree* cmp)
 
             hiCmp = comp->gtNewOperNode(GT_CMP, TYP_VOID, hiSrc1, hiSrc2);
             BlockRange().InsertBefore(cmp, hiCmp);
-            ContainCheckCompare(hiCmp->AsOp());
         }
         else
         {
@@ -4054,8 +4000,6 @@ GenTree* Lowering::DecomposeLongCompare(GenTree* cmp)
             loCmp->gtFlags |= GTF_SET_FLAGS;
             hiCmp = comp->gtNewOperNode(GT_SUB_HI, TYP_INT, hiSrc1, hiSrc2);
             BlockRange().InsertBefore(cmp, loCmp, hiCmp);
-            ContainCheckCompare(loCmp->AsOp());
-            ContainCheckBinary(hiCmp->AsOp());
 
             //
             // Try to move the first SUB_HI operands right in front of it, this allows using
@@ -4194,7 +4138,6 @@ GenTree* Lowering::OptimizeConstCompare(GenTree* cmp)
                 {
                     castOp->gtGetOp1()->ClearContained();
                     castOp->gtGetOp2()->ClearContained();
-                    ContainCheckBinary(castOp->AsOp());
                 }
 
                 cmp->AsOp()->gtOp1 = castOp;
@@ -4447,7 +4390,7 @@ GenTree* Lowering::LowerCompare(GenTree* cmp)
         }
     }
 #endif // TARGET_XARCH
-    ContainCheckCompare(cmp->AsOp());
+
     return cmp->gtNext;
 }
 
@@ -4593,14 +4536,9 @@ GenTree* Lowering::LowerSelect(GenTreeConditional* select)
         select->SetOper(GT_SELECTCC);
         newSelect              = select->AsOpCC();
         newSelect->gtCondition = selectCond;
-        ContainCheckSelect(newSelect);
         JITDUMP("Converted to SELECTCC:\n");
         DISPTREERANGE(BlockRange(), newSelect);
         JITDUMP("\n");
-    }
-    else
-    {
-        ContainCheckSelect(select);
     }
 
 #ifdef TARGET_ARM64
@@ -4905,7 +4843,6 @@ void Lowering::LowerRet(GenTreeOp* ret)
         GenTreeUnOp* bitcast = comp->gtNewBitCastNode(ret->TypeGet(), retVal);
         ret->SetReturnValue(bitcast);
         BlockRange().InsertBefore(ret, bitcast);
-        ContainCheckBitCast(bitcast);
     }
     else if (!ret->TypeIs(TYP_VOID))
     {
@@ -4956,7 +4893,6 @@ void Lowering::LowerRet(GenTreeOp* ret)
     {
         InsertPInvokeMethodEpilog(comp->compCurBB DEBUGARG(ret));
     }
-    ContainCheckRet(ret);
 }
 
 struct LowerFieldListRegisterInfo
@@ -5525,7 +5461,6 @@ GenTree* Lowering::LowerStoreLocCommon(GenTreeLclVarCommon* lclStore)
         lclStore->gtOp1      = bitcast;
         src                  = lclStore->gtGetOp1();
         BlockRange().InsertBefore(lclStore, bitcast);
-        ContainCheckBitCast(bitcast);
     }
 
     GenTree* next = LowerStoreLoc(lclStore);
@@ -5641,7 +5576,6 @@ void Lowering::LowerRetStruct(GenTreeUnOp* ret)
                 GenTreeUnOp* bitcast = comp->gtNewBitCastNode(ret->TypeGet(), retVal);
                 ret->gtOp1           = bitcast;
                 BlockRange().InsertBefore(ret, bitcast);
-                ContainCheckBitCast(bitcast);
             }
             break;
     }
@@ -5713,7 +5647,6 @@ void Lowering::LowerRetSingleRegStructLclVar(GenTreeUnOp* ret)
             GenTreeUnOp* bitcast = comp->gtNewBitCastNode(ret->TypeGet(), ret->gtOp1);
             ret->AsOp()->SetReturnValue(bitcast);
             BlockRange().InsertBefore(ret, bitcast);
-            ContainCheckBitCast(bitcast);
         }
     }
 }
@@ -5889,7 +5822,6 @@ void Lowering::LowerCallStruct(GenTreeCall* call)
                     GenTreeUnOp* bitCast = comp->gtNewBitCastNode(origType, call);
                     BlockRange().InsertAfter(call, bitCast);
                     callUse.ReplaceWith(bitCast);
-                    ContainCheckBitCast(bitCast);
                 }
                 break;
             }
@@ -5969,7 +5901,6 @@ GenTreeLclVar* Lowering::SpillStructCallResult(GenTreeCall* call) const
     GenTreeLclFld* spill  = comp->gtNewStoreLclFldNode(spillNum, call->TypeGet(), offset, call);
 
     BlockRange().InsertAfter(call, spill);
-    ContainCheckStoreLoc(spill);
     GenTreeLclVar* loadCallResult = comp->gtNewLclvNode(spillNum, TYP_STRUCT)->AsLclVar();
     BlockRange().InsertAfter(spill, loadCallResult);
     return loadCallResult;
@@ -6163,8 +6094,6 @@ GenTree* Lowering::LowerDelegateInvoke(GenTreeCall* call)
     thisArgNode->AsOp()->gtOp1 = newThis;
     BlockRange().Remove(thisArgNode);
     BlockRange().InsertBefore(call, newThisAddr, newThis, thisArgNode);
-
-    ContainCheckIndir(newThis->AsIndir());
 
     // the control target is
     // [originalThis + firstTgtOffs]
@@ -6441,7 +6370,6 @@ void Lowering::InsertPInvokeMethodProlog()
         // Push a frame. The init routine sets InlinedCallFrame's m_pNext, so we just set the thread's top-of-stack
         GenTree* frameUpd = CreateFrameLinkUpdate(PushFrame);
         firstBlockRange.InsertBefore(insertionPoint, LIR::SeqTree(comp, frameUpd));
-        ContainCheckStoreIndir(frameUpd->AsStoreInd());
         DISPTREERANGE(firstBlockRange, frameUpd);
     }
 #endif // TARGET_64BIT
@@ -6503,7 +6431,6 @@ void Lowering::InsertPInvokeMethodEpilog(BasicBlock* returnBB DEBUGARG(GenTree* 
     {
         GenTree* frameUpd = CreateFrameLinkUpdate(PopFrame);
         returnBlockRange.InsertBefore(insertionPoint, LIR::SeqTree(comp, frameUpd));
-        ContainCheckStoreIndir(frameUpd->AsStoreInd());
     }
 }
 
@@ -6617,7 +6544,7 @@ void Lowering::InsertPInvokeCallProlog(GenTreeCall* call)
         GenTreeLclFld* store = comp->gtNewStoreLclFldNode(comp->lvaInlinedPInvokeFrameVar, TYP_I_IMPL,
                                                           callFrameInfo.offsetOfCallTarget, src);
 
-        InsertTreeBeforeAndContainCheck(insertBefore, store);
+        InsertTreeBefore(insertBefore, store);
     }
 
 #ifdef TARGET_X86
@@ -6629,7 +6556,7 @@ void Lowering::InsertPInvokeCallProlog(GenTreeCall* call)
     GenTreeLclFld* storeCallSiteSP = comp->gtNewStoreLclFldNode(comp->lvaInlinedPInvokeFrameVar, TYP_I_IMPL,
                                                                 callFrameInfo.offsetOfCallSiteSP, callSiteSP);
 
-    InsertTreeBeforeAndContainCheck(insertBefore, storeCallSiteSP);
+    InsertTreeBefore(insertBefore, storeCallSiteSP);
 
 #endif
 
@@ -6640,7 +6567,7 @@ void Lowering::InsertPInvokeCallProlog(GenTreeCall* call)
     GenTreeLclFld* storeLab = comp->gtNewStoreLclFldNode(comp->lvaInlinedPInvokeFrameVar, TYP_I_IMPL,
                                                          callFrameInfo.offsetOfReturnAddress, label);
 
-    InsertTreeBeforeAndContainCheck(insertBefore, storeLab);
+    InsertTreeBefore(insertBefore, storeLab);
 
     // Push the PInvoke frame if necessary. On 32-bit targets this only happens in the method prolog if a method
     // contains PInvokes; on 64-bit targets this is necessary in non-stubs.
@@ -6655,7 +6582,6 @@ void Lowering::InsertPInvokeCallProlog(GenTreeCall* call)
         // Stubs do this once per stub, not once per call.
         GenTree* frameUpd = CreateFrameLinkUpdate(PushFrame);
         BlockRange().InsertBefore(insertBefore, LIR::SeqTree(comp, frameUpd));
-        ContainCheckStoreIndir(frameUpd->AsStoreInd());
     }
 #endif // USE_PER_FRAME_PINVOKE_INIT
 
@@ -6665,7 +6591,6 @@ void Lowering::InsertPInvokeCallProlog(GenTreeCall* call)
     //  [tcb + offsetOfGcState] = 0
     GenTree* storeGCState = SetGCState(0);
     BlockRange().InsertBefore(insertBefore, LIR::SeqTree(comp, storeGCState));
-    ContainCheckStoreIndir(storeGCState->AsStoreInd());
 
     // Indicate that codegen has switched this thread to preemptive GC.
     // This tree node doesn't generate any code, but impacts LSRA and gc reporting.
@@ -6704,7 +6629,6 @@ void Lowering::InsertPInvokeCallEpilog(GenTreeCall* call)
 
         comp->fgMorphTree(helperCall);
         BlockRange().InsertAfter(call, LIR::SeqTree(comp, helperCall));
-        ContainCheckCallOperands(helperCall);
         return;
     }
 
@@ -6713,11 +6637,9 @@ void Lowering::InsertPInvokeCallEpilog(GenTreeCall* call)
 
     GenTree* tree = SetGCState(1);
     BlockRange().InsertBefore(insertionPoint, LIR::SeqTree(comp, tree));
-    ContainCheckStoreIndir(tree->AsStoreInd());
 
     tree = CreateReturnTrapSeq();
     BlockRange().InsertBefore(insertionPoint, LIR::SeqTree(comp, tree));
-    ContainCheckReturnTrap(tree->AsOp());
 
     // Pop the frame if necessary. On 32-bit targets this only happens in the method epilog; on 64-bit targets
     // this happens after every PInvoke call in non-stubs. 32-bit targets instead mark the frame as inactive.
@@ -6727,7 +6649,6 @@ void Lowering::InsertPInvokeCallEpilog(GenTreeCall* call)
     {
         tree = CreateFrameLinkUpdate(PopFrame);
         BlockRange().InsertBefore(insertionPoint, LIR::SeqTree(comp, tree));
-        ContainCheckStoreIndir(tree->AsStoreInd());
     }
 #else
     const CORINFO_EE_INFO::InlinedCallFrameInfo& callFrameInfo = comp->eeGetEEInfo()->inlinedCallFrameInfo;
@@ -6740,7 +6661,6 @@ void Lowering::InsertPInvokeCallEpilog(GenTreeCall* call)
                                                                            callFrameInfo.offsetOfReturnAddress, zero);
 
     BlockRange().InsertBefore(insertionPoint, zero, storeCallSiteTracker);
-    ContainCheckStoreLoc(storeCallSiteTracker);
 #endif // USE_PER_FRAME_PINVOKE_INIT
 }
 
@@ -7024,7 +6944,6 @@ GenTree* Lowering::LowerVirtualVtableCall(GenTreeCall* call)
             BlockRange().InsertBefore(call, std::move(range));
 
             LIR::Range range2 = LIR::SeqTree(comp, lclvNodeStore2);
-            ContainCheckIndir(tmpTree->AsIndir());
             JITDUMP("result of obtaining pointer to virtual table 2nd level indirection:\n");
             DISPRANGE(range2);
             BlockRange().InsertAfter(lclvNodeStore, std::move(range2));
@@ -7095,8 +7014,6 @@ GenTree* Lowering::LowerVirtualStubCall(GenTreeCall* call)
         call->gtCallAddr = ind;
 
         ind->gtFlags |= GTF_IND_REQ_ADDR_IN_REG;
-
-        ContainCheckIndir(ind->AsIndir());
     }
     else
     {
@@ -7583,11 +7500,6 @@ GenTree* Lowering::LowerAdd(GenTreeOp* node)
     }
 #endif
 
-    if (node->OperIs(GT_ADD))
-    {
-        ContainCheckBinary(node);
-    }
-
     return nullptr;
 }
 
@@ -7680,7 +7592,6 @@ bool Lowering::LowerUnsignedDivOrMod(GenTreeOp* divMod)
 
         divMod->ChangeOper(newOper);
         divisor->AsIntCon()->SetIconValue(divisorValue);
-        ContainCheckNode(divMod);
         return true;
     }
     if (isDiv)
@@ -7692,7 +7603,6 @@ bool Lowering::LowerUnsignedDivOrMod(GenTreeOp* divMod)
         {
             divMod->ChangeOper(GT_GE);
             divMod->gtFlags |= GTF_UNSIGNED;
-            ContainCheckNode(divMod);
             return true;
         }
     }
@@ -7888,11 +7798,6 @@ bool Lowering::LowerUnsignedDivOrMod(GenTreeOp* divMod)
                 divMod->gtOp1                = mulhi;
                 divMod->gtOp2                = nullptr;
             }
-        }
-
-        if (firstNode != nullptr)
-        {
-            ContainCheckRange(firstNode, divMod);
         }
 
         return true;
@@ -8135,13 +8040,11 @@ bool Lowering::TryLowerConstIntDivOrMod(GenTree* node, GenTree** nextNode)
         divisor->AsIntCon()->SetIconValue(genLog2(absDivisorValue));
 
         newDivMod = comp->gtNewOperNode(GT_RSH, type, adjustedDividend, divisor);
-        ContainCheckShiftRotate(newDivMod->AsOp());
 
         if (divisorValue < 0)
         {
             // negate the result if the divisor is negative
             newDivMod = comp->gtNewOperNode(GT_NEG, type, newDivMod);
-            ContainCheckNode(newDivMod);
         }
     }
     else
@@ -8162,7 +8065,7 @@ bool Lowering::TryLowerConstIntDivOrMod(GenTree* node, GenTree** nextNode)
     BlockRange().Remove(dividend);
 
     // linearize and insert the new tree before the original divMod node
-    InsertTreeBeforeAndContainCheck(divMod, newDivMod);
+    InsertTreeBefore(divMod, newDivMod);
     BlockRange().Remove(divMod);
 
     // replace the original divmod node with the new divmod tree
@@ -8194,7 +8097,6 @@ GenTree* Lowering::LowerSignedDivOrMod(GenTree* node)
         }
         assert(nextNode == nullptr);
     }
-    ContainCheckDivOrMod(node->AsOp());
 
     return node->gtNext;
 }
@@ -8301,8 +8203,6 @@ void Lowering::LowerShift(GenTreeOp* shift)
         // The parent was replaced, clear contain and regOpt flag.
         shift->gtOp2->ClearContained();
     }
-
-    ContainCheckShiftRotate(shift);
 
 #ifdef TARGET_ARM64
     // Try to recognize ubfiz/sbfiz idiom in LSH(CAST(X), CNS) tree
@@ -8420,20 +8320,35 @@ PhaseStatus Lowering::DoPhase()
         MapParameterRegisterLocals();
     }
 
+#if !defined(TARGET_64BIT)
     for (BasicBlock* const block : comp->Blocks())
     {
         /* Make the block publicly available */
         comp->compCurBB = block;
 
-#if !defined(TARGET_64BIT)
         if (comp->compLongUsed)
         {
             decomp.DecomposeBlock(block);
         }
-#endif //! TARGET_64BIT
+    }
+    compiler->EndPhase(PHASE_LOWERING_DECOMP);
+#endif // TARGET_64BIT
 
+    for (BasicBlock* const block : comp->Blocks())
+    {
+        /* Make the block publicly available */
+        comp->compCurBB = block;
         LowerBlock(block);
     }
+    compiler->EndPhase(PHASE_LOWERING_TRANSFORM);
+
+    for (BasicBlock* const block : comp->Blocks())
+    {
+        /* Make the block publicly available */
+        comp->compCurBB = block;
+        ContainCheckBlock(block);
+    }
+    compiler->EndPhase(PHASE_LOWERING_CONTAINMENT);
 
 #ifdef DEBUG
     JITDUMP("Lower has completed modifying nodes.\n");
@@ -9032,6 +8947,32 @@ void Lowering::LowerBlock(BasicBlock* block)
     assert(CheckBlock(comp, block));
 }
 
+//------------------------------------------------------------------------
+// Lowering::ContainCheckBlock: Perform contain checks for all the nodes in a BasicBlock
+//
+// Arguments:
+//   block    - the block to perform containment checks against.
+//
+void Lowering::ContainCheckBlock(BasicBlock* block)
+{
+    assert(block == comp->compCurBB); // compCurBB must already be set.
+    assert(block->isEmpty() || block->IsLIR());
+
+    m_block = block;
+
+#ifdef TARGET_ARM64
+    m_blockIndirs.Reset();
+    m_ffrTrashed = true;
+#endif
+
+    GenTree* node = BlockRange().FirstNode();
+
+    while (node != nullptr)
+    {
+        node = ContainCheckNode(node);
+    }
+}
+
 /** Verifies if both of these trees represent the same indirection.
  * Used by Lower to annotate if CodeGen generate an instruction of the
  * form *addrMode BinOp= expr
@@ -9257,6 +9198,12 @@ void Lowering::ContainCheckNode(GenTree* node)
 {
     switch (node->gtOper)
     {
+        case GT_CALL:
+        {
+            ContainCheckCallOperands(node->AsCall());
+            break;
+        }
+
         case GT_STORE_LCL_VAR:
         case GT_STORE_LCL_FLD:
             ContainCheckStoreLoc(node->AsLclVarCommon());
@@ -9277,6 +9224,7 @@ void Lowering::ContainCheckNode(GenTree* node)
             break;
 
         case GT_SELECT:
+        case GT_SELECTCC:
             ContainCheckSelect(node->AsConditional());
             break;
 
@@ -9301,12 +9249,14 @@ void Lowering::ContainCheckNode(GenTree* node)
         case GT_MULHI:
             ContainCheckMul(node->AsOp());
             break;
+
         case GT_DIV:
         case GT_MOD:
         case GT_UDIV:
         case GT_UMOD:
             ContainCheckDivOrMod(node->AsOp());
             break;
+
         case GT_LSH:
         case GT_RSH:
         case GT_RSZ:
@@ -9318,42 +9268,79 @@ void Lowering::ContainCheckNode(GenTree* node)
 #endif
             ContainCheckShiftRotate(node->AsOp());
             break;
+
         case GT_CAST:
             ContainCheckCast(node->AsCast());
             break;
+
         case GT_BITCAST:
             ContainCheckBitCast(node->AsUnOp());
             break;
+
         case GT_LCLHEAP:
             ContainCheckLclHeap(node->AsOp());
             break;
+
         case GT_RETURN:
             ContainCheckRet(node->AsOp());
             break;
+
         case GT_RETURNTRAP:
             ContainCheckReturnTrap(node->AsOp());
             break;
+
         case GT_STOREIND:
             ContainCheckStoreIndir(node->AsStoreInd());
             break;
+
         case GT_IND:
             ContainCheckIndir(node->AsIndir());
             break;
+
         case GT_PUTARG_REG:
         case GT_PUTARG_STK:
             // The regNum must have been set by the lowering of the call.
             assert(node->GetRegNum() != REG_NA);
             break;
+
 #ifdef TARGET_XARCH
         case GT_INTRINSIC:
             ContainCheckIntrinsic(node->AsOp());
             break;
 #endif // TARGET_XARCH
+
 #ifdef FEATURE_HW_INTRINSICS
         case GT_HWINTRINSIC:
             ContainCheckHWIntrinsic(node->AsHWIntrinsic());
             break;
 #endif // FEATURE_HW_INTRINSICS
+
+#if defined(TARGET_XARCH) || defined(TARGET_ARM64) || defined(TARGET_LOONGARCH64) || defined(TARGET_RISCV64)
+        case GT_BOUNDS_CHECK:
+            ContainCheckBoundsChk(node->AsBoundsChk());
+            break;
+#endif // TARGET_XARCH || TARGET_ARM64 || TARGET_LOONGARCH64 || TARGET_RISCV64
+
+#if defined(TARGET_ARM64) || defined(TARGET_AMD64)
+        case GT_CCMP:
+        {
+            ContainCheckConditionalCompare(node->AsCCMP());
+            break;
+        }
+
+        case GT_NEG:
+        {
+            ContainCheckNeg(node->AsOp());
+            break;
+        }
+
+        case GT_NOT:
+        {
+            ContainCheckNot(node->AsOp());
+            break;
+        }
+#endif // TARGET_ARM64 || TARGET_AMD64
+
         default:
             break;
     }
@@ -10435,7 +10422,6 @@ GenTree* Lowering::LowerIndir(GenTreeIndir* ind)
 #endif
 
         TryCreateAddrMode(ind->Addr(), isContainable, ind);
-        ContainCheckIndir(ind);
 
 #ifdef TARGET_XARCH
         if (ind->OperIs(GT_NULLCHECK) || ind->IsUnusedValue())
@@ -11209,7 +11195,6 @@ void Lowering::LowerLclHeap(GenTree* node)
         }
     }
 #endif
-    ContainCheckLclHeap(node->AsOp());
 }
 
 //------------------------------------------------------------------------
@@ -11568,8 +11553,6 @@ bool Lowering::TryLowerAndOrToCCMP(GenTreeOp* tree, GenTree** next)
         // one succeed.
         ccmp->gtFlagsVal = TruthifyingFlags(cond2);
     }
-
-    ContainCheckConditionalCompare(ccmp);
 
     tree->SetOper(GT_SETCC);
     tree->AsCC()->gtCondition = cond2;

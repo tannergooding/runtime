@@ -545,8 +545,6 @@ GenTree* Lowering::LowerStoreLoc(GenTreeLclVarCommon* storeLoc)
         verifyLclFldDoNotEnregister(storeLoc->GetLclNum());
     }
 
-    ContainCheckStoreLoc(storeLoc);
-
     GenTree* next = storeLoc->gtNext;
 
 #ifdef TARGET_ARM64
@@ -571,7 +569,6 @@ GenTree* Lowering::LowerStoreLoc(GenTreeLclVarCommon* storeLoc)
 GenTree* Lowering::LowerStoreIndir(GenTreeStoreInd* node)
 {
     GenTree* next = node->gtNext;
-    ContainCheckStoreIndir(node);
 
 #ifdef TARGET_ARM64
     if (comp->opts.OptimizationEnabled())
@@ -633,8 +630,6 @@ GenTree* Lowering::LowerMul(GenTreeOp* mul)
         mul->ChangeOper(GT_MUL_LONG);
     }
 #endif // TARGET_ARM64
-
-    ContainCheckMul(mul);
 
     return mul->gtNext;
 }
@@ -728,8 +723,6 @@ GenTree* Lowering::LowerBinaryArithmetic(GenTreeOp* binOp)
         }
 #endif
     }
-
-    ContainCheckBinary(binOp);
 
     return binOp->gtNext;
 }
@@ -991,9 +984,6 @@ void Lowering::LowerCast(GenTree* tree)
     }
 
     assert(!varTypeIsSmall(srcType));
-
-    // Now determine if we have operands that should be contained.
-    ContainCheckCast(tree->AsCast());
 }
 
 //------------------------------------------------------------------------
@@ -1028,7 +1018,6 @@ void Lowering::LowerRotate(GenTree* tree)
         }
         tree->ChangeOper(GT_ROR);
     }
-    ContainCheckShiftRotate(tree->AsOp());
 }
 
 #ifdef TARGET_ARM64
@@ -1130,8 +1119,6 @@ void Lowering::LowerModPow2(GenTree* node)
         node->gtOp2       = falseExpr;
         node->gtCondition = GenCondition::S;
     }
-
-    ContainCheckNode(mod);
 }
 
 //------------------------------------------------------------------------
@@ -1478,8 +1465,6 @@ bool Lowering::TryLowerAddForPossibleContainment(GenTreeOp* node, GenTree** next
             node->gtOp2 = mul;
             node->ChangeOper(GT_SUB);
 
-            ContainCheckNode(node);
-
             *next = node->gtNext;
             return true;
         }
@@ -1493,8 +1478,6 @@ bool Lowering::TryLowerAddForPossibleContainment(GenTreeOp* node, GenTree** next
             node->gtOp2 = mul;
             node->ChangeOper(GT_SUB);
 
-            ContainCheckNode(node);
-
             *next = node->gtNext;
             return true;
         }
@@ -1503,8 +1486,6 @@ bool Lowering::TryLowerAddForPossibleContainment(GenTreeOp* node, GenTree** next
         {
             node->gtOp1 = c;
             node->gtOp2 = mul;
-
-            ContainCheckNode(node);
 
             *next = node->gtNext;
             return true;
@@ -2066,7 +2047,6 @@ GenTree* Lowering::LowerHWIntrinsic(GenTreeHWIntrinsic* node)
         LABELEDDISPTREERANGE("Embedded HWIntrinisic inside conditional select", BlockRange(), condSelNode);
     }
 
-    ContainCheckHWIntrinsic(node);
     return node->gtNext;
 }
 
@@ -4257,7 +4237,6 @@ GenTree* Lowering::LowerHWIntrinsicCndSel(GenTreeHWIntrinsic* cndSelNode)
         }
     }
 
-    ContainCheckHWIntrinsic(cndSelNode);
     return cndSelNode->gtNext;
 }
 
