@@ -11990,16 +11990,16 @@ GenTree* Compiler::impUnsupportedNamedIntrinsic(unsigned              helper,
     // We've hit some error case and may need to return a node for the given error.
     //
     // When `mustExpand=false`, we are attempting to inline the intrinsic directly into another method. In this
-    // scenario, we need to return `nullptr` so that a GT_CALL to the intrinsic is emitted instead. This is to
-    // ensure that everything continues to behave correctly when optimizations are enabled (e.g. things like the
-    // inliner may expect the node we return to have a certain signature, and the `MustThrowException` node won't
-    // match that).
+    // scenario, we need to return `nullptr` if optimizations are disabled so that a GT_CALL to the intrinsic is
+    // emitted instead. This is to ensure that the call stack is preserved and everything continues to behave
+    // correctly; otherwise we can still expand the node since it allows block merging and earlier DCE given that
+    // we know the node will always throw.
     //
     // When `mustExpand=true`, we are in a GT_CALL to the intrinsic and are attempting to JIT it. This will generally
     // be in response to an indirect call (e.g. done via reflection) or in response to an earlier attempt returning
     // `nullptr` (under `mustExpand=false`). In that scenario, we are safe to return the `MustThrowException` node.
 
-    if (mustExpand)
+    if (mustExpand || opts.OptimizationEnabled())
     {
         for (unsigned i = 0; i < sig->numArgs; i++)
         {
