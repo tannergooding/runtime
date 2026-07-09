@@ -52,6 +52,7 @@ class AliasSet final
 
     bool m_readsAddressableLocation;
     bool m_writesAddressableLocation;
+    bool m_writesGloballyVisibleLocal;
 
 public:
     //------------------------------------------------------------------------
@@ -129,18 +130,7 @@ public:
 
             if ((m_flags & ALIAS_WRITES_LCL_VAR) != 0)
             {
-                // Stores to locals live into handlers cannot be reordered with
-                // exception-throwing nodes so we conservatively consider them
-                // globally visible.
-
-                LclVarDsc* const varDsc = m_compiler->lvaGetDesc(LclNum());
-
-                if (varDsc->lvTracked)
-                {
-                    return varDsc->IsLiveInOutOfHandler();
-                }
-
-                return m_compiler->compHndBBtabCount > 0;
+                return WritesGloballyVisibleLocal(m_compiler, LclNum());
             }
 
             return false;
@@ -151,7 +141,7 @@ public:
 
     inline bool WritesAnyLocation() const
     {
-        return m_writesAddressableLocation || !m_lclVarWrites.IsEmpty();
+        return m_writesAddressableLocation || m_writesGloballyVisibleLocal;
     }
 
     void AddNode(Compiler* compiler, GenTree* node);
@@ -159,6 +149,13 @@ public:
     bool InterferesWith(const NodeInfo& node) const;
     bool WritesLocal(unsigned lclNum) const;
     void Clear();
+
+private:
+    // Determines whether a write to the given local is observable outside of
+    // the current thread's single-threaded execution (i.e. by an exception
+    // handler). Writes to purely private locals are not, per the memory model,
+    // and so need not be ordered with respect to exception-producing nodes.
+    static bool WritesGloballyVisibleLocal(Compiler* compiler, unsigned lclNum);
 };
 
 //------------------------------------------------------------------------

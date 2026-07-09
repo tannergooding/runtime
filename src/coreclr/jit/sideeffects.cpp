@@ -128,7 +128,40 @@ AliasSet::AliasSet()
     , m_lclVarWrites()
     , m_readsAddressableLocation(false)
     , m_writesAddressableLocation(false)
+    , m_writesGloballyVisibleLocal(false)
 {
+}
+
+//------------------------------------------------------------------------
+// AliasSet::WritesGloballyVisibleLocal:
+//    Determines whether a write to the given local is observable outside of
+//    the current thread's single-threaded execution.
+//
+//    Per the memory model, locals are thread-local and there is no type-safe
+//    mechanism for another thread to access them, so writes to a purely
+//    private local have no externally observable side effects. The one
+//    exception is a local that is live into an exception handler: such a write
+//    must remain ordered with respect to exception-producing nodes because the
+//    handler may observe it. Address-exposed locals are tracked separately via
+//    the addressable-location flags.
+//
+// Arguments:
+//    compiler - The compiler context.
+//    lclNum - The local number that is written.
+//
+// Returns:
+//    True if a write to the local may be observed by an exception handler.
+//
+bool AliasSet::WritesGloballyVisibleLocal(Compiler* compiler, unsigned lclNum)
+{
+    LclVarDsc* const varDsc = compiler->lvaGetDesc(lclNum);
+
+    if (varDsc->lvTracked)
+    {
+        return varDsc->IsLiveInOutOfHandler();
+    }
+
+    return compiler->compHndBBtabCount > 0;
 }
 
 //------------------------------------------------------------------------
@@ -319,6 +352,11 @@ void AliasSet::AddNode(Compiler* compiler, GenTree* node)
     {
         m_lclVarWrites.Add(compiler, nodeInfo.LclNum());
 
+        if (WritesGloballyVisibleLocal(compiler, nodeInfo.LclNum()))
+        {
+            m_writesGloballyVisibleLocal = true;
+        }
+
         LclVarDsc* dsc = compiler->lvaGetDesc(nodeInfo.LclNum());
         if (dsc->lvIsStructField)
         {
@@ -460,8 +498,9 @@ bool AliasSet::WritesLocal(unsigned lclNum) const
 //
 void AliasSet::Clear()
 {
-    m_readsAddressableLocation  = false;
-    m_writesAddressableLocation = false;
+    m_readsAddressableLocation   = false;
+    m_writesAddressableLocation  = false;
+    m_writesGloballyVisibleLocal = false;
 
     m_lclVarReads.Clear();
     m_lclVarWrites.Clear();
