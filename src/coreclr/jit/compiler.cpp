@@ -892,6 +892,53 @@ var_types Compiler::getReturnTypeForStruct(CORINFO_CLASS_HANDLE     clsHnd,
         useType             = TYP_UNKNOWN;
     }
 
+#if defined(WINDOWS_AMD64_ABI)
+    // The Windows x64 native ABI returns the intrinsic vector types Vector128<T>,
+    // Vector256<T>, and Vector512<T> (i.e. the __m128, __m256, and __m512 ABI
+    // primitives) in the corresponding XMM0/YMM0/ZMM0 register.
+    if (isHWSIMDClass(clsHnd))
+    {
+        const bool isManaged = (callConv == CorInfoCallConvExtension::Managed);
+        bool       returnInRegister;
+
+        switch (structSize)
+        {
+            case 16:
+                // Vector128<T> (__m128) is returned in XMM0 for every calling convention,
+                // including the managed ABI. XMM0 is always available on x64, so this needs
+                // no instruction set gating.
+                returnInRegister = true;
+                break;
+
+            case 32:
+                // Vector256<T> (__m256) is returned in YMM0. For unmanaged calling conventions
+                // this matches the native ABI unconditionally. For the managed ABI, YMM0 only
+                // exists when AVX is part of the ABI baseline, so gate on it. compExactlyDependsOn
+                // records the dependency, keeping R2R and the runtime JIT in agreement, and the
+                // VM's ComputeReturnFlags mirrors this via the same CPUCompileFlags.
+                returnInRegister = !isManaged || compExactlyDependsOn(InstructionSet_AVX);
+                break;
+
+            case 64:
+                // Vector512<T> (__m512) is returned in ZMM0, which requires AVX512 for the managed
+                // ABI (see the Vector256<T> case above).
+                returnInRegister = !isManaged || compExactlyDependsOn(InstructionSet_AVX512);
+                break;
+
+            default:
+                returnInRegister = false;
+                break;
+        }
+
+        if (returnInRegister)
+        {
+            canReturnInRegister = true;
+            useType             = getSIMDTypeForSize(structSize);
+            howToReturnStruct   = SPK_PrimitiveType;
+        }
+    }
+#endif // WINDOWS_AMD64_ABI
+
     // Check for cases where a small struct is returned in a register
     // via a primitive type.
     //

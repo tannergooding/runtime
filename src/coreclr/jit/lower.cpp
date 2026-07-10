@@ -5642,9 +5642,10 @@ GenTree* Lowering::LowerStoreLocCommon(GenTreeLclVarCommon* lclStore)
             const ClassLayout* layout    = lclStore->GetLayout(m_compiler);
             const unsigned     slotCount = layout->GetSlotCount();
 #if defined(TARGET_XARCH) && !defined(UNIX_AMD64_ABI)
-            // Windows x64 doesn't have multireg returns,
-            // x86 uses it only for long return type, not for structs.
-            assert(slotCount == 1);
+            // Windows x64 doesn't have multireg returns, except for the intrinsic vector types
+            // (Vector128/256/512) which are returned in a single SIMD register even though they
+            // occupy multiple stack slots. x86 uses it only for long return type, not for structs.
+            assert((slotCount == 1) || varTypeIsSIMD(lclRegType));
             assert(lclRegType != TYP_UNDEF);
 #else // !TARGET_XARCH || UNIX_AMD64_ABI
             if (!m_compiler->IsHfa(layout->GetClassHandle()))

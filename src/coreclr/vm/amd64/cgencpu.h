@@ -58,7 +58,10 @@ class ComCallMethodDesc;
 #else
 #define ENREGISTERED_RETURNTYPE_INTEGER_MAXSIZE 8    // bytes
 #define ENREGISTERED_PARAMTYPE_MAXSIZE          8    // bytes
-#define ENREGISTERED_RETURNTYPE_MAXSIZE         8    // bytes
+// The intrinsic vector types Vector128<T>/Vector256<T>/Vector512<T> (the __m128/__m256/__m512
+// ABI primitives) are returned in XMM0/YMM0/ZMM0, so the enregistered return value buffer must
+// be large enough to hold a 512-bit vector.
+#define ENREGISTERED_RETURNTYPE_MAXSIZE         64   // bytes
 #define CALLDESCR_REGTYPEMAP                    1
 #endif
 
@@ -299,11 +302,14 @@ typedef struct _PROFILE_PLATFORM_SPECIFIC_DATA
     UINT64      flt1;
     UINT64      flt2;
     UINT64      flt3;
-#if defined(UNIX_AMD64_ABI)
+    // flt4..flt7 give a contiguous 64-byte floating-point capture region (flt0..flt7). On the
+    // SysV ABI these hold the xmm4..xmm7 argument registers. On Windows x64 they let the leave
+    // hook harvest a full Vector256<T>/Vector512<T> return value out of YMM0/ZMM0.
     UINT64      flt4;
     UINT64      flt5;
     UINT64      flt6;
     UINT64      flt7;
+#if defined(UNIX_AMD64_ABI)
     UINT64      rdi;
     UINT64      rsi;
     UINT64      rdx;

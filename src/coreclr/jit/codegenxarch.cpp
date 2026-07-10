@@ -5908,7 +5908,7 @@ void CodeGen::genCall(GenTreeCall* call)
                 }
                 else
 #endif // TARGET_X86
-                    if (varTypeIsFloating(returnType))
+                    if (varTypeUsesFloatReg(returnType))
                     {
                         returnReg = REG_FLOATRET;
                     }
@@ -6003,7 +6003,10 @@ void CodeGen::genCallInstruction(GenTreeCall* call X86_ARG(target_ssize_t stackA
         }
         else
         {
-            assert(!varTypeIsStruct(call));
+            // On Windows x64 the intrinsic vector types (Vector128/256/512) are returned in a
+            // single SIMD register (XMM0/YMM0/ZMM0). Such returns are not GC references, so the
+            // default retSize is used, but the value is struct-flagged (VTF_S) so allow SIMD here.
+            assert(!varTypeIsStruct(call) || varTypeIsSIMD(call));
 
             if (call->TypeIs(TYP_REF))
             {
@@ -10910,7 +10913,7 @@ void CodeGen::genFuncletEpilog(BasicBlock* /* block */)
     }
 #endif
 
-    genClearAvxStateInEpilog();
+    genClearAvxStateInEpilog(/* isFunctionReturn */ false);
 
     inst_RV_IV(INS_add, REG_SPBASE, genFuncletInfo.fiSpDelta, EA_PTRSIZE);
     instGen_Return(0);
@@ -11033,7 +11036,7 @@ void CodeGen::genFuncletEpilog(BasicBlock* /* block */)
     }
 #endif
 
-    genClearAvxStateInEpilog();
+    genClearAvxStateInEpilog(/* isFunctionReturn */ false);
 
 #ifdef UNIX_X86_ABI
     // Revert a padding that was added for 16-byte alignment
@@ -11468,7 +11471,7 @@ void CodeGen::genClearAvxStateInProlog()
 //-----------------------------------------------------------------------------------
 // genClearAvxStateInEpilog: Generate vzeroupper instruction to clear AVX state if necessary in an epilog
 //
-void CodeGen::genClearAvxStateInEpilog()
+void CodeGen::genClearAvxStateInEpilog(bool isFunctionReturn)
 {
     if (GetEmitter()->Contains256bitOrMoreAVX())
     {
@@ -11477,6 +11480,17 @@ void CodeGen::genClearAvxStateInEpilog()
         //   between the VEX and the legacy SSE instructions. Often the best way to do this is to insert a
         //   VZEROUPPER before returning from any function that uses VEX (that does not produce a VEX
         //   register) and before any call to an unknown function.
+
+        // When the method returns its value in a YMM/ZMM register (Vector256<T>/Vector512<T> on the
+        // register-return ABIs), it *does* produce a VEX register, so the guidance does not apply.
+        // Emitting a vzeroupper here would zero the upper bits of the return value, corrupting it; the
+        // caller is responsible for any AVX->SSE transition on the value it receives. This only applies
+        // to the true function return; funclet epilogs do not carry the return value.
+        if (isFunctionReturn && varTypeIsSIMD(m_compiler->info.compRetNativeType) &&
+            (genTypeSize(m_compiler->info.compRetNativeType) >= 32))
+        {
+            return;
+        }
 
         instGen(INS_vzeroupper);
     }

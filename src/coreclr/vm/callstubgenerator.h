@@ -103,6 +103,13 @@ class CallStubGenerator
         ReturnTypeI8Double,
         ReturnTypeDoubleI8,
 #endif // UNIX_AMD64_ABI
+#if defined(TARGET_AMD64) && defined(TARGET_WINDOWS)
+        // Vector128<T>/Vector256<T>/Vector512<T> (the __m128/__m256/__m512 ABI primitives) are
+        // returned in XMM0/YMM0/ZMM0 on Windows x64.
+        ReturnTypeVector128,
+        ReturnTypeVector256,
+        ReturnTypeVector512,
+#endif // TARGET_AMD64 && TARGET_WINDOWS
 #ifdef TARGET_ARM64
         ReturnType2I8,
         ReturnType2Double,

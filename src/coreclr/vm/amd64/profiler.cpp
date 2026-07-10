@@ -498,6 +498,21 @@ LPVOID ProfileArgIterator::GetReturnBufferAddr(void)
     }
 #endif // UNIX_AMD64_ABI
 
+#ifndef UNIX_AMD64_ABI
+    if (ELEMENT_TYPE_VALUETYPE == t)
+    {
+        UINT fpReturnSize = m_argIterator.GetFPReturnSize();
+
+        if ((fpReturnSize == 16) || (fpReturnSize == 32) || (fpReturnSize == 64))
+        {
+            // A Vector128<T>/Vector256<T>/Vector512<T> is returned in XMM0/YMM0/ZMM0 on win-x64
+            // (no return buffer). ProfileLeaveNaked captures the full width of the return register
+            // into the contiguous flt0..flt7 slots so the leave hook can harvest it.
+            return &pData->flt0;
+        }
+    }
+#endif // !UNIX_AMD64_ABI
+
     if (ELEMENT_TYPE_R4 == t || ELEMENT_TYPE_R8 == t)
     {
         pData->rax = pData->flt0;

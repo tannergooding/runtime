@@ -581,15 +581,16 @@ bool IsValidForGenericMarshalling(MethodTable* pMT, bool isFieldScenario, bool b
     // * Span<T>: Not supported by built-in marshalling
     // * ReadOnlySpan<T>: Not supported by built-in marshalling
     // * Vector64<T>: Represents the __m64 ABI primitive which requires currently unimplemented handling
-    // * Vector128<T>: Represents the __m128 ABI primitive which requires currently unimplemented handling
     // * Vector256<T>: Represents the __m256 ABI primitive which requires currently unimplemented handling
     // * Vector512<T>: Represents the __m512 ABI primitive which requires currently unimplemented handling
     // * Vector<T>: Has a variable size (either __m128 or __m256) and isn't readily usable for interop scenarios
+    //
+    // Vector128<T> represents the __m128 ABI primitive and is supported: it is passed/returned per the
+    // native ABI (e.g. returned in XMM0 on Windows x64, matching Compiler::getReturnTypeForStruct).
     return !pMT->HasSameTypeDefAs(g_pNullableClass)
         && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__SPAN))
         && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__READONLY_SPAN))
         && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR64T))
-        && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR128T))
         && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR256T))
         && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR512T))
         && !pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTORT));

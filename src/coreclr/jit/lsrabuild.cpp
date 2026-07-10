@@ -4342,6 +4342,17 @@ int LinearScan::BuildReturn(GenTree* tree)
                     case TYP_LONG:
                         useCandidates = RBM_LNGRET.GetIntRegSet();
                         break;
+#if defined(WINDOWS_AMD64_ABI) && defined(FEATURE_SIMD)
+                    case TYP_SIMD8:
+                    case TYP_SIMD12:
+                    case TYP_SIMD16:
+                    case TYP_SIMD32:
+                    case TYP_SIMD64:
+                        // On Windows x64 the intrinsic vector types (Vector128/256/512, i.e. the
+                        // __m128/__m256/__m512 ABI primitives) are returned in XMM0/YMM0/ZMM0.
+                        useCandidates = RBM_FLOATRET.GetFloatRegSet();
+                        break;
+#endif // WINDOWS_AMD64_ABI && FEATURE_SIMD
                     default:
                         useCandidates = RBM_INTRET.GetIntRegSet();
                         break;

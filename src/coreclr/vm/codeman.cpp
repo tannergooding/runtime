@@ -1474,6 +1474,14 @@ extern "C" DWORD64 __stdcall GetDataCacheZeroIDReg();
 extern "C" uint64_t GetSveLengthFromOS();
 #endif
 
+#if defined(TARGET_AMD64) && !defined(UNIX_AMD64_ABI)
+// Width (in bytes) of the widest SIMD value that the win-x64 ABI returns in a vector register
+// (XMM0/YMM0/ZMM0). Read from the ProfileLeaveNaked asm stub so it can capture and preserve the
+// full return register across the ProfileLeave callback. Set once in EEJitManager::SetCpuInfo.
+// 16 => XMM0 only (Vector128<T>), 32 => YMM0 (Vector256<T>), 64 => ZMM0 (Vector512<T>).
+extern "C" UINT32 g_profilerVectorReturnWidth = 16;
+#endif // TARGET_AMD64 && !UNIX_AMD64_ABI
+
 void EEJitManager::SetCpuInfo()
 {
     LIMITED_METHOD_CONTRACT;
@@ -1937,6 +1945,25 @@ void EEJitManager::SetCpuInfo()
 #endif // TARGET_X86 || TARGET_AMD64
 
     m_CPUCompileFlags = CPUCompileFlags;
+
+#if defined(TARGET_AMD64) && !defined(UNIX_AMD64_ABI)
+    // Mirror the win-x64 vector return-register classification in ComputeReturnFlags /
+    // Compiler::getReturnTypeForStruct: Vector256<T> returns in YMM0 only when AVX is in the
+    // baseline, and Vector512<T> returns in ZMM0 only when AVX512 is. Publish the widest such
+    // register so the ProfileLeaveNaked stub can harvest and preserve the full return value.
+    if (CPUCompileFlags.IsSet(InstructionSet_AVX512))
+    {
+        g_profilerVectorReturnWidth = 64;
+    }
+    else if (CPUCompileFlags.IsSet(InstructionSet_AVX))
+    {
+        g_profilerVectorReturnWidth = 32;
+    }
+    else
+    {
+        g_profilerVectorReturnWidth = 16;
+    }
+#endif // TARGET_AMD64 && !UNIX_AMD64_ABI
 }
 
 // Define some data that we can use to get a better idea of what happened when we get a Watson dump that indicates the JIT failed to load.

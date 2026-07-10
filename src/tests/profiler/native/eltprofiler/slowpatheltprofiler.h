@@ -122,6 +122,46 @@ typedef struct
     float w;
 } MixedMixedStruct;
 
+typedef struct
+{
+    float e0;
+    float e1;
+    float e2;
+    float e3;
+} Vector128FloatStruct;
+
+typedef struct
+{
+    float e0;
+    float e1;
+    float e2;
+    float e3;
+    float e4;
+    float e5;
+    float e6;
+    float e7;
+} Vector256FloatStruct;
+
+typedef struct
+{
+    float e0;
+    float e1;
+    float e2;
+    float e3;
+    float e4;
+    float e5;
+    float e6;
+    float e7;
+    float e8;
+    float e9;
+    float e10;
+    float e11;
+    float e12;
+    float e13;
+    float e14;
+    float e15;
+} Vector512FloatStruct;
+
 class SlowPathELTProfiler : public Profiler
 {
 public:
@@ -166,6 +206,9 @@ public:
         _sawFuncLeave[L"MixedSseStructFunc"] = false;
         _sawFuncLeave[L"SseMixedStructFunc"] = false;
         _sawFuncLeave[L"MixedMixedStructFunc"] = false;
+        _sawFuncLeave[L"Vector128FloatFunc"] = false;
+        _sawFuncLeave[L"Vector256FloatFunc"] = false;
+        _sawFuncLeave[L"Vector512FloatFunc"] = false;
     }
 
     static GUID GetClsid();
@@ -210,6 +253,9 @@ private:
     bool ValidateMixedSseStruct(UINT_PTR ptr, MixedSseStruct expected);
     bool ValidateSseMixedStruct(UINT_PTR ptr, SseMixedStruct expected);
     bool ValidateMixedMixedStruct(UINT_PTR ptr, MixedMixedStruct expected);
+    bool ValidateVector128FloatStruct(UINT_PTR ptr, Vector128FloatStruct expected);
+    bool ValidateVector256FloatStruct(UINT_PTR ptr, Vector256FloatStruct expected);
+    bool ValidateVector512FloatStruct(UINT_PTR ptr, Vector512FloatStruct expected);
 
     HRESULT ValidateOneArgument(COR_PRF_FUNCTION_ARGUMENT_RANGE *pArgRange,
                                 String functionName,

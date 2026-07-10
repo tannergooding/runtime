@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 using System.Threading;
 
 namespace SlowPathELTTests
@@ -381,6 +382,12 @@ namespace SlowPathELTTests
 
             Console.WriteLine($"MixedMixedStructFunc returned {MixedMixedStructFunc()}");
 
+            Console.WriteLine($"Vector128FloatFunc returned {Vector128FloatFunc()}");
+
+            Console.WriteLine($"Vector256FloatFunc returned {Vector256FloatFunc()}");
+
+            Console.WriteLine($"Vector512FloatFunc returned {Vector512FloatFunc()}");
+
             var s1 = new MixedStruct(1, 1);
             var s2 = new MixedStruct(2, 2);
             var s3 = new MixedStruct(3, 3);
@@ -568,6 +575,25 @@ namespace SlowPathELTTests
         public static MixedMixedStruct MixedMixedStructFunc()
         {
             return new MixedMixedStruct(1.2f, 3, 5, 6.7f);
+        }
+
+        [MethodImplAttribute(MethodImplOptions.NoInlining)]
+        public static Vector128<float> Vector128FloatFunc()
+        {
+            return Vector128.Create(1.0f, 2.0f, 3.0f, 4.0f);
+        }
+
+        [MethodImplAttribute(MethodImplOptions.NoInlining)]
+        public static Vector256<float> Vector256FloatFunc()
+        {
+            return Vector256.Create(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
+        }
+
+        [MethodImplAttribute(MethodImplOptions.NoInlining)]
+        public static Vector512<float> Vector512FloatFunc()
+        {
+            return Vector512.Create(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f,
+                                    9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f);
         }
 
         [MethodImplAttribute(MethodImplOptions.NoInlining)]

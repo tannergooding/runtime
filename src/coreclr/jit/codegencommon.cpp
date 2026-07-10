@@ -7616,7 +7616,11 @@ bool CodeGen::isStructReturn(GenTree* treeNode)
     }
 
 #if defined(TARGET_AMD64) && !defined(UNIX_AMD64_ABI)
-    assert(!varTypeIsStruct(treeNode));
+    // On Windows x64 structs are returned via a return buffer, so a by-value struct-typed
+    // return node only occurs for the intrinsic vector types (Vector128/256/512, i.e. the
+    // __m128/__m256/__m512 ABI primitives) that are returned in a SIMD register (XMM0/YMM0/ZMM0).
+    // Those are handled by the normal register return path, not as a struct return.
+    assert(!varTypeIsStruct(treeNode) || varTypeIsSIMD(treeNode));
     return false;
 #else
     return varTypeIsStruct(treeNode) && (m_compiler->info.compRetNativeType == TYP_STRUCT);

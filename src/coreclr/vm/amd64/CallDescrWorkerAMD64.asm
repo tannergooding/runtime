@@ -79,6 +79,12 @@ CallDescrWorkerInternalReturnAddress:
         je      ReturnsFloat
         cmp     ecx, 8
         je      ReturnsDouble
+        cmp     ecx, 16
+        je      ReturnsVector128
+        cmp     ecx, 32
+        je      ReturnsVector256
+        cmp     ecx, 64
+        je      ReturnsVector512
         ; unexpected
         jmp     Epilog
 
@@ -98,6 +104,18 @@ ReturnsFloat:
 
 ReturnsDouble:
         movsd   real8 ptr [rbx+CallDescrData__returnValue], xmm0
+        jmp     Epilog
+
+ReturnsVector128:
+        movdqu  xmmword ptr [rbx+CallDescrData__returnValue], xmm0
+        jmp     Epilog
+
+ReturnsVector256:
+        vmovdqu ymmword ptr [rbx+CallDescrData__returnValue], ymm0
+        jmp     Epilog
+
+ReturnsVector512:
+        vmovdqu32 zmmword ptr [rbx+CallDescrData__returnValue], zmm0
         jmp     Epilog
 
 PATCH_LABEL CallDescrWorkerInternalReturnAddressOffset

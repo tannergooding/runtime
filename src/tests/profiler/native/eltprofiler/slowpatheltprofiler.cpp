@@ -578,6 +578,31 @@ HRESULT STDMETHODCALLTYPE SlowPathELTProfiler::LeaveCallback(FunctionIDOrClientI
 
         _sawFuncLeave[functionName.ToWString()] = true;
     }
+    else if (functionName == WCHAR("Vector128FloatFunc"))
+    {
+        Vector128FloatStruct val = { 1.0f, 2.0f, 3.0f, 4.0f };
+        ExpectedArgValue expectedRetValue = { sizeof(Vector128FloatStruct), (void*)&val, [&](UINT_PTR ptr) { return ValidateVector128FloatStruct(ptr, val); } };
+        hr = ValidateOneArgument(pRetvalRange, functionName, 0, expectedRetValue);
+
+        _sawFuncLeave[functionName.ToWString()] = true;
+    }
+    else if (functionName == WCHAR("Vector256FloatFunc"))
+    {
+        Vector256FloatStruct val = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f };
+        ExpectedArgValue expectedRetValue = { sizeof(Vector256FloatStruct), (void*)&val, [&](UINT_PTR ptr) { return ValidateVector256FloatStruct(ptr, val); } };
+        hr = ValidateOneArgument(pRetvalRange, functionName, 0, expectedRetValue);
+
+        _sawFuncLeave[functionName.ToWString()] = true;
+    }
+    else if (functionName == WCHAR("Vector512FloatFunc"))
+    {
+        Vector512FloatStruct val = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f,
+                                     9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f };
+        ExpectedArgValue expectedRetValue = { sizeof(Vector512FloatStruct), (void*)&val, [&](UINT_PTR ptr) { return ValidateVector512FloatStruct(ptr, val); } };
+        hr = ValidateOneArgument(pRetvalRange, functionName, 0, expectedRetValue);
+
+        _sawFuncLeave[functionName.ToWString()] = true;
+    }
 
     return hr;
 }
@@ -849,6 +874,36 @@ bool SlowPathELTProfiler::ValidateMixedMixedStruct(UINT_PTR ptr, MixedMixedStruc
         && lhs.y == expected.y
         && lhs.z == expected.z
         && lhs.w == expected.w;
+}
+
+bool SlowPathELTProfiler::ValidateVector128FloatStruct(UINT_PTR ptr, Vector128FloatStruct expected)
+{
+    if (ptr == (UINT_PTR)NULL)
+    {
+        return false;
+    }
+
+    return memcmp((void*)ptr, &expected, sizeof(Vector128FloatStruct)) == 0;
+}
+
+bool SlowPathELTProfiler::ValidateVector256FloatStruct(UINT_PTR ptr, Vector256FloatStruct expected)
+{
+    if (ptr == (UINT_PTR)NULL)
+    {
+        return false;
+    }
+
+    return memcmp((void*)ptr, &expected, sizeof(Vector256FloatStruct)) == 0;
+}
+
+bool SlowPathELTProfiler::ValidateVector512FloatStruct(UINT_PTR ptr, Vector512FloatStruct expected)
+{
+    if (ptr == (UINT_PTR)NULL)
+    {
+        return false;
+    }
+
+    return memcmp((void*)ptr, &expected, sizeof(Vector512FloatStruct)) == 0;
 }
 
 HRESULT SlowPathELTProfiler::ValidateOneArgument(COR_PRF_FUNCTION_ARGUMENT_RANGE *pArgRange,

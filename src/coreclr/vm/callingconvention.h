@@ -2056,6 +2056,52 @@ void ArgIteratorTemplate<ARGITERATOR_BASE>::ComputeReturnFlags()
             }
 #endif // defined(TARGET_X86) || defined(TARGET_AMD64)
 
+#if defined(TARGET_AMD64) && !defined(UNIX_AMD64_ABI)
+            // The Windows x64 ABI returns the intrinsic vector types Vector128<T>, Vector256<T>,
+            // and Vector512<T> (the __m128/__m256/__m512 ABI primitives) in the corresponding
+            // XMM0/YMM0/ZMM0 register. Match the JIT's return classification
+            // (Compiler::getReturnTypeForStruct) so that reflection invokes, stubs, and other VM
+            // callers agree there is no return buffer.
+            //
+            // XMM0 is always available, so Vector128<T> is unconditional. YMM0/ZMM0 only exist when
+            // AVX/AVX512 is part of the ABI baseline used for code generation, so Vector256<T> and
+            // Vector512<T> are gated on it. The JIT gates identically via compExactlyDependsOn, and
+            // both derive their instruction set support from the same CPUCompileFlags.
+            if (!thValueType.IsTypeDesc())
+            {
+                MethodTable* pReturnMT      = thValueType.AsMethodTable();
+                bool         returnInReg    = false;
+
+                // ComputeReturnFlags can run in a FORBID_FAULT/GC_NOTRIGGER context (e.g. the profiler
+                // leave hook). Use the non-faulting GetClassIfExist accessor: if a vector type has not
+                // been loaded yet then the return value cannot be an instance of it, so a NULL result
+                // simply means "not a match".
+                if (size == 16)
+                {
+                    MethodTable* pVectorMT = CoreLibBinder::GetClassIfExist(CLASS__VECTOR128T);
+                    returnInReg = (pVectorMT != NULL) && pReturnMT->HasSameTypeDefAs(pVectorMT);
+                }
+                else if (size == 32)
+                {
+                    MethodTable* pVectorMT = CoreLibBinder::GetClassIfExist(CLASS__VECTOR256T);
+                    returnInReg = (pVectorMT != NULL) && pReturnMT->HasSameTypeDefAs(pVectorMT)
+                        && ExecutionManager::GetEEJitManager()->GetCPUCompileFlags().IsSet(InstructionSet_AVX);
+                }
+                else if (size == 64)
+                {
+                    MethodTable* pVectorMT = CoreLibBinder::GetClassIfExist(CLASS__VECTOR512T);
+                    returnInReg = (pVectorMT != NULL) && pReturnMT->HasSameTypeDefAs(pVectorMT)
+                        && ExecutionManager::GetEEJitManager()->GetCPUCompileFlags().IsSet(InstructionSet_AVX512);
+                }
+
+                if (returnInReg)
+                {
+                    flags |= ((UINT32)size << RETURN_FP_SIZE_SHIFT);
+                    break;
+                }
+            }
+#endif // defined(TARGET_AMD64) && !defined(UNIX_AMD64_ABI)
+
 #if defined(TARGET_LOONGARCH64) || defined(TARGET_RISCV64)
             if  (size <= ENREGISTERED_RETURNTYPE_INTEGER_MAXSIZE)
             {

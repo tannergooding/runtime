@@ -1257,6 +1257,14 @@ extern "C" void CallJittedMethodRetBuffRCX(PCODE *routines, int8_t*pArgs, int8_t
 extern "C" void CallJittedMethodRetBuffRDX(PCODE *routines, int8_t*pArgs, int8_t*pRet, int totalStackSize, PTR_PTR_Object pContinuation);
 extern "C" void InterpreterStubRetBuffRCX();
 extern "C" void InterpreterStubRetBuffRDX();
+// Vector128<T>/Vector256<T>/Vector512<T> (the __m128/__m256/__m512 ABI primitives) are
+// returned in XMM0/YMM0/ZMM0 on Windows x64.
+extern "C" void CallJittedMethodRetVector128(PCODE *routines, int8_t *pArgs, int8_t *pRet, int totalStackSize, PTR_PTR_Object pContinuation);
+extern "C" void CallJittedMethodRetVector256(PCODE *routines, int8_t *pArgs, int8_t *pRet, int totalStackSize, PTR_PTR_Object pContinuation);
+extern "C" void CallJittedMethodRetVector512(PCODE *routines, int8_t *pArgs, int8_t *pRet, int totalStackSize, PTR_PTR_Object pContinuation);
+extern "C" void InterpreterStubRetVector128();
+extern "C" void InterpreterStubRetVector256();
+extern "C" void InterpreterStubRetVector512();
 #else // TARGET_WINDOWS
 extern "C" void CallJittedMethodRetBuffRDI(PCODE *routines, int8_t*pArgs, int8_t*pRet, int totalStackSize, PTR_PTR_Object pContinuation);
 extern "C" void CallJittedMethodRetBuffRSI(PCODE *routines, int8_t*pArgs, int8_t*pRet, int totalStackSize, PTR_PTR_Object pContinuation);
@@ -1378,6 +1386,12 @@ CallStubHeader::InvokeFunctionPtr CallStubGenerator::GetInvokeFunctionPtr(CallSt
             INVOKE_FUNCTION_PTR(CallJittedMethodRetBuffRCX);
         case ReturnTypeBuffArg2:
             INVOKE_FUNCTION_PTR(CallJittedMethodRetBuffRDX);
+        case ReturnTypeVector128:
+            INVOKE_FUNCTION_PTR(CallJittedMethodRetVector128);
+        case ReturnTypeVector256:
+            INVOKE_FUNCTION_PTR(CallJittedMethodRetVector256);
+        case ReturnTypeVector512:
+            INVOKE_FUNCTION_PTR(CallJittedMethodRetVector512);
 #else // TARGET_WINDOWS
         case ReturnTypeBuffArg1:
             INVOKE_FUNCTION_PTR(CallJittedMethodRetBuffRDI);
@@ -1506,6 +1520,14 @@ PCODE CallStubGenerator::GetInterpreterReturnTypeHandler(CallStubGenerator::Retu
             RETURN_TYPE_HANDLER(InterpreterStubRetBuffRDX);
 #else
             RETURN_TYPE_HANDLER(InterpreterStubRetBuffRSI);
+#endif
+#ifdef TARGET_WINDOWS
+        case ReturnTypeVector128:
+            RETURN_TYPE_HANDLER(InterpreterStubRetVector128);
+        case ReturnTypeVector256:
+            RETURN_TYPE_HANDLER(InterpreterStubRetVector256);
+        case ReturnTypeVector512:
+            RETURN_TYPE_HANDLER(InterpreterStubRetVector512);
 #endif
 #elif defined(TARGET_ARM64) && defined(TARGET_WINDOWS)
         case ReturnTypeBuffArg2:
@@ -2715,6 +2737,28 @@ CallStubGenerator::ReturnType CallStubGenerator::GetReturnType(ArgIteratorType *
             case ELEMENT_TYPE_VALUETYPE:
 #ifdef TARGET_AMD64
 #ifdef TARGET_WINDOWS
+                // Vector128<T>/Vector256<T>/Vector512<T> (the __m128/__m256/__m512 ABI primitives)
+                // are returned in XMM0/YMM0/ZMM0. This mirrors the return classification in
+                // ArgIteratorTemplate::ComputeReturnFlags: Vector128<T> is unconditional, while
+                // Vector256<T>/Vector512<T> require AVX/AVX512 to be part of the ABI baseline.
+                if (!thReturnValueType.IsNull() && !thReturnValueType.IsTypeDesc())
+                {
+                    MethodTable* pReturnMT = thReturnValueType.AsMethodTable();
+                    if (pReturnMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR128T)))
+                    {
+                        return ReturnTypeVector128;
+                    }
+                    if (pReturnMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR256T)) &&
+                        ExecutionManager::GetEEJitManager()->GetCPUCompileFlags().IsSet(InstructionSet_AVX))
+                    {
+                        return ReturnTypeVector256;
+                    }
+                    if (pReturnMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR512T)) &&
+                        ExecutionManager::GetEEJitManager()->GetCPUCompileFlags().IsSet(InstructionSet_AVX512))
+                    {
+                        return ReturnTypeVector512;
+                    }
+                }
                 // POD structs smaller than 64 bits are returned in rax
                 return ReturnTypeI8;
 #else // TARGET_WINDOWS

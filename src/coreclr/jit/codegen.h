@@ -555,7 +555,7 @@ protected:
 
     // Generate vzeroupper instruction to clear AVX state if necessary
     void genClearAvxStateInProlog();
-    void genClearAvxStateInEpilog();
+    void genClearAvxStateInEpilog(bool isFunctionReturn = true);
 
 #endif // TARGET_XARCH
 

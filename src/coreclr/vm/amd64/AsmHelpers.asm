@@ -22,6 +22,7 @@ endif
 
 extern g_pPollGC:QWORD
 extern g_TrapReturningThreads:DWORD
+extern g_profilerVectorReturnWidth:DWORD
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -153,10 +154,14 @@ NESTED_END OnHijackTripThread, _TEXT
 ;        UINT64      flt1;
 ;        UINT64      flt2;
 ;        UINT64      flt3;
+;        UINT64      flt4;
+;        UINT64      flt5;
+;        UINT64      flt6;
+;        UINT64      flt7;
 ;        UINT32      flags;
 ;    } PROFILE_PLATFORM_SPECIFIC_DATA, *PPROFILE_PLATFORM_SPECIFIC_DATA;
 ;
-SIZEOF_PROFILE_PLATFORM_SPECIFIC_DATA   equ 8h*11 + 4h*2    ; includes fudge to make FP_SPILL right
+SIZEOF_PROFILE_PLATFORM_SPECIFIC_DATA   equ 8h*15 + 4h*2    ; includes fudge to make FP_SPILL right
 SIZEOF_OUTGOING_ARGUMENT_HOMES          equ 8h*4
 SIZEOF_FP_ARG_SPILL                     equ 10h*1
 
@@ -231,7 +236,7 @@ NESTED_ENTRY ProfileEnterNaked, _TEXT
         movsd                   real8 ptr [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 48h], xmm2    ;      -- struct flt2 field
         movsd                   real8 ptr [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 50h], xmm3    ;      -- struct flt3 field
         mov                     r10, PROFILE_ENTER
-        mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 58h], r10d   ; flags    ;      -- struct flags field
+        mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 78h], r10d   ; flags    ;      -- struct flags field
 
         ; we need to be able to restore the fp return register
         save_xmm128_postrsp     xmm0, OFFSETOF_FP_ARG_SPILL +  0h
@@ -276,23 +281,58 @@ NESTED_ENTRY ProfileLeaveNaked, _TEXT
         mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 20h], rdx    ;                 -- struct profiledRsp field
         mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 28h], rax    ; return value    -- struct rax field
         mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 30h], r8     ; r8 is null      -- struct hiddenArg field
-        movsd                   real8 ptr [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 38h], xmm0    ;      -- struct flt0 field
-        movsd                   real8 ptr [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 40h], xmm1    ;      -- struct flt1 field
-        movsd                   real8 ptr [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 48h], xmm2    ;      -- struct flt2 field
-        movsd                   real8 ptr [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 50h], xmm3    ;      -- struct flt3 field
+        ; Capture the full return register into the contiguous flt0..flt7 slots so that a
+        ; Vector128<T>/Vector256<T>/Vector512<T> return value (returned in XMM0/YMM0/ZMM0 on
+        ; win-x64) can be harvested by the leave hook. The narrow xmm store matches the historical
+        ; behavior for scalar and Vector128<T> returns; the wider stores add the upper lanes and are
+        ; only taken when the ABI actually returns those widths in a register (AVX / AVX512).
+        mov                     r10d, dword ptr [g_profilerVectorReturnWidth]
+        cmp                     r10d, 32
+        jb                      LeaveFpCaptureXmm
+        je                      LeaveFpCaptureYmm
+        vmovdqu32               zmmword ptr [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 38h], zmm0  ; -- struct flt0..flt7 fields
+        jmp                     LeaveFpCaptureDone
+LeaveFpCaptureYmm:
+        vmovdqu                 ymmword ptr [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 38h], ymm0  ; -- struct flt0..flt3 fields
+        jmp                     LeaveFpCaptureDone
+LeaveFpCaptureXmm:
+        movdqu                  xmmword ptr [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 38h], xmm0  ; -- struct flt0/flt1 fields
+LeaveFpCaptureDone:
         mov                     r10, PROFILE_LEAVE
-        mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 58h], r10d   ; flags           -- struct flags field
+        mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 78h], r10d   ; flags           -- struct flags field
 
-        ; we need to be able to restore the fp return register
+        ; we need to be able to restore the fp return register (low 128 bits described by unwind)
         save_xmm128_postrsp     xmm0, OFFSETOF_FP_ARG_SPILL +  0h
     END_PROLOGUE
+
+        ; for wider vector returns, preserve the full YMM0/ZMM0 across the ProfileLeave call
+        mov                     r10d, dword ptr [g_profilerVectorReturnWidth]
+        cmp                     r10d, 32
+        jb                      LeaveFpPreserveDone
+        je                      LeaveFpPreserveYmm
+        vmovdqu32               zmmword ptr [rsp + OFFSETOF_FP_ARG_SPILL +  0h], zmm0
+        jmp                     LeaveFpPreserveDone
+LeaveFpPreserveYmm:
+        vmovdqu                 ymmword ptr [rsp + OFFSETOF_FP_ARG_SPILL +  0h], ymm0
+LeaveFpPreserveDone:
 
         ; rcx already contains the clientInfo
         lea                     rdx, [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA]
         call                    ProfileLeave
 
         ; restore fp return register
+        mov                     r10d, dword ptr [g_profilerVectorReturnWidth]
+        cmp                     r10d, 32
+        jb                      LeaveFpRestoreXmm
+        je                      LeaveFpRestoreYmm
+        vmovdqu32               zmm0, zmmword ptr [rsp + OFFSETOF_FP_ARG_SPILL +  0h]
+        jmp                     LeaveFpEpilogue
+LeaveFpRestoreYmm:
+        vmovdqu                 ymm0, ymmword ptr [rsp + OFFSETOF_FP_ARG_SPILL +  0h]
+        jmp                     LeaveFpEpilogue
+LeaveFpRestoreXmm:
         movdqa                  xmm0, [rsp + OFFSETOF_FP_ARG_SPILL +  0h]
+LeaveFpEpilogue:
 
         ; begin epilogue
         add                     rsp, SIZEOF_STACK_FRAME
@@ -331,7 +371,7 @@ NESTED_ENTRY ProfileTailcallNaked, _TEXT
         mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 48h], r8     ; r8 is null      -- struct flt2 field
         mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 50h], r8     ; r8 is null      -- struct flt3 field
         mov                     r10, PROFILE_TAILCALL
-        mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 58h], r10d   ; flags           -- struct flags field
+        mov                     [rsp + OFFSETOF_PLATFORM_SPECIFIC_DATA + 78h], r10d   ; flags           -- struct flags field
 
         ; we need to be able to restore the fp return register
         save_xmm128_postrsp     xmm0, OFFSETOF_FP_ARG_SPILL +  0h
@@ -598,6 +638,42 @@ END_PROLOGUE
         add             rsp, 028h
         ret
 NESTED_END InterpreterStubRetDouble, _TEXT
+
+NESTED_ENTRY InterpreterStubRetVector128, _TEXT
+        alloc_stack 028h
+END_PROLOGUE
+        mov             rcx, rax ; pTransitionBlock*
+        mov             rdx, rbx ; the IR bytecode pointer
+        xor             r8, r8
+        call            ExecuteInterpretedMethod
+        movdqu          xmm0, xmmword ptr [rax]
+        add             rsp, 028h
+        ret
+NESTED_END InterpreterStubRetVector128, _TEXT
+
+NESTED_ENTRY InterpreterStubRetVector256, _TEXT
+        alloc_stack 028h
+END_PROLOGUE
+        mov             rcx, rax ; pTransitionBlock*
+        mov             rdx, rbx ; the IR bytecode pointer
+        xor             r8, r8
+        call            ExecuteInterpretedMethod
+        vmovdqu         ymm0, ymmword ptr [rax]
+        add             rsp, 028h
+        ret
+NESTED_END InterpreterStubRetVector256, _TEXT
+
+NESTED_ENTRY InterpreterStubRetVector512, _TEXT
+        alloc_stack 028h
+END_PROLOGUE
+        mov             rcx, rax ; pTransitionBlock*
+        mov             rdx, rbx ; the IR bytecode pointer
+        xor             r8, r8
+        call            ExecuteInterpretedMethod
+        vmovdqu32       zmm0, zmmword ptr [rax]
+        add             rsp, 028h
+        ret
+NESTED_END InterpreterStubRetVector512, _TEXT
 
 NESTED_ENTRY InterpreterStubRetBuffRCX, _TEXT
         alloc_stack 028h
@@ -1147,6 +1223,66 @@ END_PROLOGUE
         pop rbp
         ret
 NESTED_END CallJittedMethodRetDouble, _TEXT
+
+NESTED_ENTRY CallJittedMethodRetVector128, _TEXT
+        push_nonvol_reg rbp
+        set_frame rbp, 0
+        push_vol_reg r8
+        push_vol_reg rax ; align
+END_PROLOGUE
+        add r9, 20h ; argument save area + alignment
+        sub rsp, r9 ; total stack space
+        mov r11, rcx ; The routines list
+        mov r10, rdx ; interpreter stack args
+        call qword ptr [r11]
+        mov rdx, [rbp + 48]
+        mov [rdx], rcx
+        mov r8, [rbp - 8]
+        movdqu xmmword ptr [r8], xmm0
+        mov rsp, rbp
+        pop rbp
+        ret
+NESTED_END CallJittedMethodRetVector128, _TEXT
+
+NESTED_ENTRY CallJittedMethodRetVector256, _TEXT
+        push_nonvol_reg rbp
+        set_frame rbp, 0
+        push_vol_reg r8
+        push_vol_reg rax ; align
+END_PROLOGUE
+        add r9, 20h ; argument save area + alignment
+        sub rsp, r9 ; total stack space
+        mov r11, rcx ; The routines list
+        mov r10, rdx ; interpreter stack args
+        call qword ptr [r11]
+        mov rdx, [rbp + 48]
+        mov [rdx], rcx
+        mov r8, [rbp - 8]
+        vmovdqu ymmword ptr [r8], ymm0
+        mov rsp, rbp
+        pop rbp
+        ret
+NESTED_END CallJittedMethodRetVector256, _TEXT
+
+NESTED_ENTRY CallJittedMethodRetVector512, _TEXT
+        push_nonvol_reg rbp
+        set_frame rbp, 0
+        push_vol_reg r8
+        push_vol_reg rax ; align
+END_PROLOGUE
+        add r9, 20h ; argument save area + alignment
+        sub rsp, r9 ; total stack space
+        mov r11, rcx ; The routines list
+        mov r10, rdx ; interpreter stack args
+        call qword ptr [r11]
+        mov rdx, [rbp + 48]
+        mov [rdx], rcx
+        mov r8, [rbp - 8]
+        vmovdqu32 zmmword ptr [r8], zmm0
+        mov rsp, rbp
+        pop rbp
+        ret
+NESTED_END CallJittedMethodRetVector512, _TEXT
 
 NESTED_ENTRY CallJittedMethodRetI1, _TEXT
         push_nonvol_reg rbp
