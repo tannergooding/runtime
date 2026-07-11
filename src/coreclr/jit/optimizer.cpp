@@ -3936,7 +3936,15 @@ bool Compiler::optHoistInvariantStores(FlowGraphNaturalLoop* loop, LoopHoistCont
 
         // The definition now lives in the preheader; update the SSA descriptor so
         // that uses in the loop are recognized as loop-invariant by the hoister.
-        lvaGetDesc(lclNum)->GetPerSsaData(ssaNum)->SetBlock(preheader);
+        LclSsaVarDsc* const ssaDsc = lvaGetDesc(lclNum)->GetPerSsaData(ssaNum);
+        ssaDsc->SetBlock(preheader);
+
+        // The def has moved out of the header, so any use of it inside the loop is
+        // now in a different block than the def -- a global use. The recorded flag
+        // was computed relative to the old (header) def block, so refresh it. Uses
+        // of this def are, by construction, in the loop body and thus never in the
+        // preheader, so marking it global is exact (and always a safe over-estimate).
+        ssaDsc->SetHasGlobalUse();
 
         // Re-record the RHS's SSA uses against their new block.
         optRecordSsaUses(store, preheader);

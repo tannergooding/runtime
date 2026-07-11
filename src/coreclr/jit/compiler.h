@@ -324,6 +324,11 @@ public:
         return m_hasGlobalUse;
     }
 
+    void SetHasGlobalUse()
+    {
+        m_hasGlobalUse = true;
+    }
+
     ValueNumPair m_vnPair;
 
 #ifdef DEBUG
