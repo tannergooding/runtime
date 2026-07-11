@@ -860,6 +860,12 @@ RELEASE_CONFIG_INTEGER(JitEnableInductionVariableOpts, "JitEnableInductionVariab
 // non-exiting GT_BOUNDS_CHECK nodes with SCK_USER_THROW, preserving the exact user throw block.
 RELEASE_CONFIG_INTEGER(JitEnableUserThrowChecks, "JitEnableUserThrowChecks", 0)
 
+// Enable prototype invariant store motion: relocate loop-invariant single-def SSA stores from the
+// loop header into the preheader so their uses become loop-invariant, enabling dependent invariant
+// expressions to hoist in a single pass. This is a general LICM-for-stores transform, independent of
+// the user bounds check recognizer.
+RELEASE_CONFIG_INTEGER(JitEnableInvariantStoreMotion, "JitEnableInvariantStoreMotion", 0)
+
 // When a "u<=" user guard is folded into an invariant-shaped GT_BOUNDS_CHECK (see JitEnableUserThrowChecks),
 // lifting it out of its loop requires several hoist -> CSE -> copy-prop -> hoist rounds because the inlined
 // accessor (e.g. List<T>'s indexer) builds a multi-level temp chain that copy-prop unwinds one level per pass.

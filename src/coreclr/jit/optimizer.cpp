@@ -4191,7 +4191,7 @@ bool Compiler::optHoistThisLoop(FlowGraphNaturalLoop* loop, LoopHoistContext* ho
     // stores from the header to the preheader so their uses become loop-invariant,
     // enabling dependent invariant expressions (e.g. a user bounds check) to hoist
     // in this same pass rather than relying on a repeated optimization phase.
-    if (JitConfig.JitEnableUserThrowChecks() != 0)
+    if (JitConfig.JitEnableInvariantStoreMotion() != 0)
     {
         optHoistInvariantStores(loop, hoistCtxt);
     }
