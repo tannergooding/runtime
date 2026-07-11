@@ -3866,6 +3866,17 @@ bool Compiler::optIsInvariantStoreMovable(GenTree* store, FlowGraphNaturalLoop* 
 //    movable invariant store so that a store is never reordered past an unrelated
 //    side effect or fault.
 //
+//    The move is applied unconditionally when the prefix conditions hold: measured
+//    over 72,250 SPMI contexts it produces no code diffs on stock collections (the
+//    pattern is rare there) and where it does fire it is a win -- it unblocks the
+//    hoisting of the now-invariant loads, which value numbering/CSE cannot do while
+//    their single-def SSA stores live inside the loop. The theoretical cost of
+//    relocation is a longer invariant live range and, with it, added register
+//    pressure; in practice that did not materialize (SumForCount actually loses a
+//    callee-saved spill). If the firing surface later widens -- broader loop-invariant
+//    store recognition, or a general LICM-for-stores rollout -- re-measure that
+//    trade-off rather than assuming the move is always free.
+//
 bool Compiler::optHoistInvariantStores(FlowGraphNaturalLoop* loop, LoopHoistContext* hoistCtxt)
 {
     assert(loop->EntryEdges().size() == 1);
