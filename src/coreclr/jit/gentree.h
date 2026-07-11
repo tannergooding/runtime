@@ -63,6 +63,7 @@ enum SpecialCodeKind
     SCK_ARG_RNG_EXCPN,              // target on ArgumentOutOfRangeException (currently used only for SIMD intrinsics)
     SCK_FAIL_FAST,                  // target for fail fast exception
     SCK_NULL_CHECK,                 // target for NullReferenceException (Wasm)
+    SCK_USER_THROW,                 // target is a preserved user-authored throw block (see gtThrowBlockId)
     SCK_COUNT
 };
 
@@ -7844,6 +7845,10 @@ struct GenTreeBoundsChk : public GenTreeOp
 {
     SpecialCodeKind gtThrowKind; // Kind of throw block to branch to on failure
 
+    // When gtThrowKind == SCK_USER_THROW, identifies the preserved user-authored throw block to branch to
+    // on failure (see Compiler::fgAddUserThrowTarget / fgGetUserThrowTarget). Unused for other kinds.
+    unsigned gtThrowBlockId;
+
     // Store some information about the array element type that was in the GT_INDEX_ADDR node before morphing.
     // Note that this information is also stored in the ARR_ADDR node of the morphed tree, but that can be hard
     // to find.
@@ -7852,6 +7857,17 @@ struct GenTreeBoundsChk : public GenTreeOp
     GenTreeBoundsChk(GenTree* index, GenTree* length, SpecialCodeKind kind)
         : GenTreeOp(GT_BOUNDS_CHECK, TYP_VOID, index, length)
         , gtThrowKind(kind)
+        , gtThrowBlockId(UINT_MAX)
+        , gtInxType(TYP_UNKNOWN)
+    {
+        assert(kind != SCK_USER_THROW); // user-throw checks must set gtThrowBlockId via the id-taking form
+        gtFlags |= GTF_EXCEPT;
+    }
+
+    GenTreeBoundsChk(GenTree* index, GenTree* length, unsigned userThrowBlockId)
+        : GenTreeOp(GT_BOUNDS_CHECK, TYP_VOID, index, length)
+        , gtThrowKind(SCK_USER_THROW)
+        , gtThrowBlockId(userThrowBlockId)
         , gtInxType(TYP_UNKNOWN)
     {
         gtFlags |= GTF_EXCEPT;

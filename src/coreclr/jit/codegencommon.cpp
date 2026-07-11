@@ -1946,12 +1946,17 @@ void CodeGen::genJumpToThrowHlpBlk(emitJumpKind jumpKind, SpecialCodeKind codeKi
             excpRaisingBlock = failBlk;
 
 #ifdef DEBUG
-            Compiler::AddCodeDsc* add = m_compiler->fgGetExcptnTarget(codeKind, m_compiler->compCurBB);
-            assert(add->acdUsed);
-            assert(excpRaisingBlock == add->acdDstBlk);
+            // A preserved user-throw target is keyed by id, not the source region, so the region-based
+            // lookup below does not apply; the caller resolved the block via fgGetUserThrowTarget.
+            if (codeKind != SCK_USER_THROW)
+            {
+                Compiler::AddCodeDsc* add = m_compiler->fgGetExcptnTarget(codeKind, m_compiler->compCurBB);
+                assert(add->acdUsed);
+                assert(excpRaisingBlock == add->acdDstBlk);
 #if !FEATURE_FIXED_OUT_ARGS
-            assert(add->acdStkLvlInit || isFramePointerUsed());
+                assert(add->acdStkLvlInit || isFramePointerUsed());
 #endif // !FEATURE_FIXED_OUT_ARGS
+            }
 #endif // DEBUG
         }
         else

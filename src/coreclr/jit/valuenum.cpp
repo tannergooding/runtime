@@ -6821,7 +6821,45 @@ void Compiler::fgValueNumberFieldLoad(GenTree* loadTree, GenTree* baseAddr, Fiel
     ValueNum loadValueVN = vnStore->VNForLoad(VNK_Liberal, fieldValueVN, fieldSize, loadType, offset, loadSize);
 
     loadTree->gtVNPair.SetLiberal(loadValueVN);
-    loadTree->gtVNPair.SetConservative(vnStore->VNForExpr(compCurBB, loadType));
+
+    ValueNum conservativeVN = vnStore->VNForExpr(compCurBB, loadType);
+
+    // Field loads normally receive a fresh conservative VN per read to be safe against
+    // aliasing stores to the mutable heap. That prevents two reads of the same
+    // loop-invariant location (e.g. `List._size` read once by the loop test and once by
+    // the indexer's manual guard) from sharing a conservative VN, which is what blocks
+    // RangeCheck's checked-bound machinery from folding the redundant guard.
+    //
+    // When the load is provably loop-invariant with respect to every loop -- its liberal
+    // VN has no reaching memory definition inside any loop -- then all reads of that
+    // location that share the (race-free) liberal VN yield the same value, so it is legal
+    // to use the liberal VN conservatively as well. Testing against every loop (rather than
+    // just the block's enclosing loop) is required so that a read in a loop's preheader
+    // (e.g. the `list.Count` loop limit, evaluated once before the loop) unifies with the
+    // matching read inside the loop body (e.g. the indexer's `_size` guard). Once both
+    // reads share a conservative VN, the existing checked-bound machinery folds the
+    // redundant guard with no changes to RangeCheck itself. Gated behind the
+    // user-throw-checks prototype flag.
+    if (JitConfig.JitEnableUserThrowChecks() != 0)
+    {
+        VNSet loopInvariantCache(getAllocator(CMK_ValueNumber));
+        bool  invariantInAllLoops = true;
+        for (FlowGraphNaturalLoop* loop : m_loops->InReversePostOrder())
+        {
+            if (!optVNIsLoopInvariant(loadValueVN, loop, &loopInvariantCache))
+            {
+                invariantInAllLoops = false;
+                break;
+            }
+        }
+
+        if (invariantInAllLoops && (m_loops->NumLoops() > 0))
+        {
+            conservativeVN = loadValueVN;
+        }
+    }
+
+    loadTree->gtVNPair.SetConservative(conservativeVN);
 }
 
 //------------------------------------------------------------------------

@@ -71,7 +71,9 @@ PhaseStatus StackLevelSetter::DoPhase()
                     // Remove the helper call block
                     //
                     BasicBlock* const block = add->acdDstBlk;
-                    assert(block->isEmpty());
+                    // A preserved user-throw block carries the user's throw code (not empty); if the check
+                    // that referenced it was fully optimized away, the block is genuinely dead and removable.
+                    assert((add->acdKind == SCK_USER_THROW) || block->isEmpty());
                     JITDUMP("Throw help block " FMT_BB " is unused\n", block->bbNum);
                     block->RemoveFlags(BBF_DONT_REMOVE);
                     m_compiler->fgRemoveBlock(block, /* unreachable */ true);
@@ -257,7 +259,14 @@ void StackLevelSetter::SetThrowHelperBlocks(GenTree* node, BasicBlock* block)
         case GT_BOUNDS_CHECK:
         {
             GenTreeBoundsChk* bndsChk = node->AsBoundsChk();
-            SetThrowHelperBlock(bndsChk->gtThrowKind, block);
+            if (bndsChk->gtThrowKind == SCK_USER_THROW)
+            {
+                SetThrowHelperBlockForDsc(m_compiler->fgGetUserThrowTarget(bndsChk->gtThrowBlockId));
+            }
+            else
+            {
+                SetThrowHelperBlock(bndsChk->gtThrowKind, block);
+            }
         }
         break;
 
@@ -367,6 +376,18 @@ void StackLevelSetter::SetThrowHelperBlocks(GenTree* node, BasicBlock* block)
 void StackLevelSetter::SetThrowHelperBlock(SpecialCodeKind kind, BasicBlock* block)
 {
     Compiler::AddCodeDsc* add = m_compiler->fgGetExcptnTarget(kind, block, /* createIfNeeded */ true);
+    assert(add != nullptr);
+    SetThrowHelperBlockForDsc(add);
+}
+
+//------------------------------------------------------------------------
+// SetThrowHelperBlockForDsc: mark a throw-helper descriptor used and record its stack level.
+//
+// Arguments:
+//   add - the throw-helper descriptor referenced from the current tree.
+//
+void StackLevelSetter::SetThrowHelperBlockForDsc(Compiler::AddCodeDsc* add)
+{
     assert(add != nullptr);
 
     // We expect we'll actually need this helper.

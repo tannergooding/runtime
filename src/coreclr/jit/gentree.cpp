@@ -11195,9 +11195,18 @@ GenTree* Compiler::gtCloneExpr(GenTree* tree)
                 break;
 
             case GT_BOUNDS_CHECK:
-                copy = new (this, GT_BOUNDS_CHECK)
-                    GenTreeBoundsChk(tree->AsBoundsChk()->GetIndex(), tree->AsBoundsChk()->GetArrayLength(),
-                                     tree->AsBoundsChk()->gtThrowKind);
+                if (tree->AsBoundsChk()->gtThrowKind == SCK_USER_THROW)
+                {
+                    copy = new (this, GT_BOUNDS_CHECK)
+                        GenTreeBoundsChk(tree->AsBoundsChk()->GetIndex(), tree->AsBoundsChk()->GetArrayLength(),
+                                         tree->AsBoundsChk()->gtThrowBlockId);
+                }
+                else
+                {
+                    copy = new (this, GT_BOUNDS_CHECK)
+                        GenTreeBoundsChk(tree->AsBoundsChk()->GetIndex(), tree->AsBoundsChk()->GetArrayLength(),
+                                         tree->AsBoundsChk()->gtThrowKind);
+                }
                 copy->AsBoundsChk()->gtInxType = tree->AsBoundsChk()->gtInxType;
                 break;
 
@@ -12560,6 +12569,9 @@ void Compiler::gtDispNodeName(GenTree* tree)
                 break;
             case SCK_ARG_RNG_EXCPN:
                 sprintf_s(bufp, sizeof(buf), " %s_ArgRng", name);
+                break;
+            case SCK_USER_THROW:
+                sprintf_s(bufp, sizeof(buf), " %s_User", name);
                 break;
             default:
                 unreached();

@@ -3493,6 +3493,9 @@ unsigned Compiler::acdHelper(SpecialCodeKind codeKind)
             return CORINFO_HELP_FAIL_FAST;
         case SCK_NULL_CHECK:
             return CORINFO_HELP_THROWNULLREF;
+        case SCK_USER_THROW:
+            assert(!"SCK_USER_THROW jumps to a preserved user block; it has no runtime helper");
+            return 0;
         default:
             assert(!"Bad codeKind");
             return 0;
@@ -3527,6 +3530,8 @@ const char* sckName(SpecialCodeKind codeKind)
             return "SCK_FAIL_FAST";
         case SCK_NULL_CHECK:
             return "SCK_NULL_CHECK";
+        case SCK_USER_THROW:
+            return "SCK_USER_THROW";
         default:
             return "SCK_UNKNOWN";
     }
@@ -3581,6 +3586,9 @@ Compiler::AddCodeDsc* Compiler::fgCreateAddCodeDsc(BasicBlock* srcBlk, SpecialCo
 
     add->acdKeyDsg = dsg;
     add->acdKind   = kind;
+
+    // Only meaningful for SCK_USER_THROW (set by fgAddUserThrowTarget).
+    add->acdUserThrowId = 0;
 
     // This gets set true in the stack level setter
     // if there's still a need for this helper
@@ -3639,6 +3647,7 @@ void Compiler::fgCreateThrowHelperBlock(AddCodeDsc* add)
         BBJ_THROW,  // SCK_ARG_RNG_EXCPN
         BBJ_THROW,  // SCK_FAIL_FAST
         BBJ_THROW,  // SCK_NULL_CHECK
+        BBJ_THROW,  // SCK_USER_THROW
     };
 
     noway_assert(sizeof(jumpKinds) == SCK_COUNT); // sanity check
@@ -3737,6 +3746,13 @@ void Compiler::fgCreateThrowHelperBlock(AddCodeDsc* add)
 void Compiler::fgCreateThrowHelperBlockCode(AddCodeDsc* add)
 {
     assert(add->acdUsed);
+
+    // A preserved user-throw target already contains the user's throw code; nothing to synthesize.
+    //
+    if (add->acdKind == SCK_USER_THROW)
+    {
+        return;
+    }
 
     // Find the block created earlier. It should be empty.
     //
@@ -3855,6 +3871,388 @@ Compiler::AddCodeDsc* Compiler::fgGetExcptnTarget(SpecialCodeKind kind, BasicBlo
 }
 
 //------------------------------------------------------------------------
+// fgAddUserThrowTarget: register an existing, user-authored throw block as a preserved
+//   throw target for a GT_BOUNDS_CHECK with SCK_USER_THROW.
+//
+// Arguments:
+//    fromBlock      - the block that will jump to the throw block on failure
+//    userThrowBlock - the existing block that raises the user's exception (kept as-is)
+//
+// Return Value:
+//    A stable id to store on the node's gtThrowBlockId, used later to resolve the target.
+//
+// Notes:
+//    Unlike the shared throw helpers, the destination block already exists and carries the
+//    user's exact exception (type/message); it is not synthesized. The descriptor is keyed by
+//    the returned id so distinct user throw blocks never share a single target.
+//
+unsigned Compiler::fgAddUserThrowTarget(BasicBlock* fromBlock, BasicBlock* userThrowBlock)
+{
+    // Cannot allow new demands once we have created throw helper blocks
+    //
+    assert(!fgRngChkThrowAdded);
+
+    // Several recognized guards can share one user throw block (e.g. List<T>'s index/size validation
+    // both jump to the same ArgumentOutOfRange throw). Model them with a single descriptor so the block
+    // is kept alive as long as *any* referencing check survives, and removed only once all are gone.
+    if (fgHasAddCodeDscMap())
+    {
+        for (AddCodeDsc* const existing : AddCodeDscMap::ValueIteration(fgGetAddCodeDscMap()))
+        {
+            if ((existing->acdKind == SCK_USER_THROW) && (existing->acdDstBlk == userThrowBlock))
+            {
+                return existing->acdUserThrowId;
+            }
+        }
+    }
+
+    const unsigned id = fgUserThrowIdCount++;
+
+    AddCodeDsc* const add = new (this, CMK_BasicBlock) AddCodeDsc;
+    add->acdDstBlk        = userThrowBlock;
+    add->acdTryIndex      = fromBlock->bbTryIndex;
+    add->acdHndIndex      = fromBlock->bbHndIndex;
+    add->acdKeyDsg        = AcdKeyDesignator::KD_NONE; // keyed by id, not region
+    add->acdKind          = SCK_USER_THROW;
+    add->acdUsed          = false; // set true by the stack level setter if still referenced
+    add->acdUserThrowId   = id;
+
+#if !FEATURE_FIXED_OUT_ARGS
+    add->acdStkLvl     = 0;
+    add->acdStkLvlInit = false;
+#endif // !FEATURE_FIXED_OUT_ARGS
+    INDEBUG(add->acdNum = acdCount++);
+
+    // The block is preserved as-is and must survive flow opts until lowering re-materializes the jump.
+    userThrowBlock->SetFlags(BBF_THROW_HELPER | BBF_DONT_REMOVE);
+
+    AddCodeDscMap* const map = fgGetAddCodeDscMap();
+    AddCodeDscKey        key(add);
+    map->Set(key, add);
+
+    JITDUMP(FMT_BB " uses preserved user throw block " FMT_BB ", created ACD%u (user throw id %u)\n", fromBlock->bbNum,
+            userThrowBlock->bbNum, add->acdNum, id);
+
+    return id;
+}
+
+//------------------------------------------------------------------------
+// fgGetUserThrowTarget: resolve a preserved user-throw target by its id.
+//
+// Arguments:
+//    userThrowBlockId - the id previously returned by fgAddUserThrowTarget
+//
+// Return Value:
+//    The descriptor whose acdDstBlk is the user throw block.
+//
+Compiler::AddCodeDsc* Compiler::fgGetUserThrowTarget(unsigned userThrowBlockId)
+{
+    AddCodeDsc*          add = nullptr;
+    AddCodeDscMap* const map = fgGetAddCodeDscMap();
+    AddCodeDscKey        key(SCK_USER_THROW, userThrowBlockId);
+    const bool           found = map->Lookup(key, &add);
+    assert(found && (add != nullptr));
+    return add;
+}
+
+//------------------------------------------------------------------------
+// fgIsUserThrowHelperBlock: is the given block a preserved user-authored throw target?
+//
+// Arguments:
+//    block - the block to test
+//
+// Return Value:
+//    True if some SCK_USER_THROW descriptor names this block as its destination. Unlike the shared
+//    throw helpers, these are recognized early (before lowering), so various pre-lower invariants
+//    that assume "no throw helper blocks yet" must make an exception for them.
+//
+bool Compiler::fgIsUserThrowHelperBlock(BasicBlock* block)
+{
+    if (!block->HasFlag(BBF_THROW_HELPER) || !fgHasAddCodeDscMap())
+    {
+        return false;
+    }
+
+    for (AddCodeDsc* const add : AddCodeDscMap::ValueIteration(fgGetAddCodeDscMap()))
+    {
+        if ((add->acdKind == SCK_USER_THROW) && (add->acdDstBlk == block))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+//------------------------------------------------------------------------
+// fgUserThrowBlockIsSelfContained: can this candidate user throw block be preserved and jumped to
+//    from a folded bounds check without needing correct live-in?
+//
+// Arguments:
+//    block - a BBJ_THROW candidate
+//
+// Return Value:
+//    True if the block has no upward-exposed local uses (every local it reads is defined earlier
+//    within the block). Such a block builds its exception purely from constants / block-local temps
+//    (e.g. a call to a parameterless ThrowHelper), so once its predecessors' edges are removed and it
+//    becomes unreachable in the flow graph, the fact that liveness never computes its live-in is
+//    harmless.
+//
+// Notes:
+//    Conservative: any use of a local not yet defined in the block is treated as live-in and rejects
+//    the block. This is the safety gate for the SCK_USER_THROW prototype's known liveness limitation.
+//
+bool Compiler::fgUserThrowBlockIsSelfContained(BasicBlock* block)
+{
+    struct LocalUseDefWalker : GenTreeVisitor<LocalUseDefWalker>
+    {
+        enum
+        {
+            DoPreOrder = true,
+        };
+
+        jitstd::vector<bool>& m_defined;
+        jitstd::vector<bool>& m_used;
+
+        LocalUseDefWalker(Compiler* comp, jitstd::vector<bool>& defined, jitstd::vector<bool>& used)
+            : GenTreeVisitor<LocalUseDefWalker>(comp)
+            , m_defined(defined)
+            , m_used(used)
+        {
+        }
+
+        fgWalkResult PreOrderVisit(GenTree** use, GenTree* user)
+        {
+            GenTree* const node = *use;
+            if (node->OperIsLocal())
+            {
+                const unsigned lclNum = node->AsLclVarCommon()->GetLclNum();
+                if (lclNum < m_compiler->lvaCount)
+                {
+                    if ((node->gtFlags & GTF_VAR_DEF) != 0)
+                    {
+                        m_defined[lclNum] = true;
+                    }
+                    else
+                    {
+                        m_used[lclNum] = true;
+                    }
+                }
+            }
+            return fgWalkResult::WALK_CONTINUE;
+        }
+    };
+
+    jitstd::vector<bool> defined(lvaCount, false, getAllocator(CMK_BasicBlock));
+    jitstd::vector<bool> used(lvaCount, false, getAllocator(CMK_BasicBlock));
+
+    LocalUseDefWalker walker(this, defined, used);
+    for (Statement* const stmt : block->Statements())
+    {
+        walker.WalkTree(stmt->GetRootNodePointer(), nullptr);
+    }
+
+    // Any local that is used but never defined within the block would be live-in.
+    for (unsigned lclNum = 0; lclNum < lvaCount; lclNum++)
+    {
+        if (used[lclNum] && !defined[lclNum])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+//
+// Recognizes the canonical pattern
+//
+//     BBcond (BBJ_COND):  if ((unsigned)index < (unsigned)length) goto BBinRange; else goto BBthrow;
+//     BBthrow (BBJ_THROW): <user throw, e.g. throw new ArgumentOutOfRangeException(...)>
+//
+// and rewrites it into a single non-branching bounds check
+//
+//     BBcond (BBJ_ALWAYS -> BBinRange):  BOUNDS_CHECK(index, length)  [SCK_USER_THROW -> BBthrow]
+//
+// The exact user exception is preserved because the check targets the original BBthrow block
+// (registered via fgAddUserThrowTarget). Modeling the guard as a single non-exiting node (rather
+// than a BBJ_COND to a throw block) lets loop IV analysis and cloning treat it like an array check.
+//
+// Return Value:
+//    Whether any transformation was made.
+//
+// Notes:
+//    Prototype, gated behind DOTNET_JitEnableUserThrowChecks. Handles any unsigned magnitude compare
+//    (`LT`/`LE`/`GT`/`GE`) on either the taken or fall-through edge, and allows the user throw block to
+//    be shared by multiple guards (e.g. List<T>'s index/size two-hop validation). The throw target must
+//    be provably non-returning (BBJ_THROW) and self-contained (no live-in from the guard).
+//
+PhaseStatus Compiler::fgRecognizeUserThrowChecks()
+{
+    if (JitConfig.JitEnableUserThrowChecks() == 0)
+    {
+        return PhaseStatus::MODIFIED_NOTHING;
+    }
+
+    // Cannot introduce new throw demands once the throw helper blocks have been materialized.
+    assert(!fgRngChkThrowAdded);
+
+    ArrayStack<BasicBlock*> candidates(getAllocator(CMK_BasicBlock));
+
+    for (BasicBlock* const block : Blocks())
+    {
+        if (!block->KindIs(BBJ_COND))
+        {
+            continue;
+        }
+
+        Statement* const condStmt = block->lastStmt();
+        if ((condStmt == nullptr) || !condStmt->GetRootNode()->OperIs(GT_JTRUE))
+        {
+            continue;
+        }
+
+        GenTree* const relop = condStmt->GetRootNode()->gtGetOp1();
+
+        // Only unsigned magnitude comparisons can be modeled as a "throw when index >=un length" check.
+        if (!relop->OperIs(GT_LT, GT_LE, GT_GT, GT_GE) || ((relop->gtFlags & GTF_UNSIGNED) == 0))
+        {
+            continue;
+        }
+
+        // GT_BOUNDS_CHECK models an int-sized index/length pair; only fold when both operands match so
+        // we neither miscompile a wider comparison nor trip codegen's index/length size invariants.
+        if (!genActualTypeIsInt(relop->gtGetOp1()) || !genActualTypeIsInt(relop->gtGetOp2()))
+        {
+            continue;
+        }
+
+        // Exactly one of the two successors must be a provably non-returning user throw block. The other
+        // successor is the in-range continuation. We allow the throw block to be shared by several guards
+        // (e.g. List<T>'s two-hop index/size validation both jump to the same ArgumentOutOfRange throw).
+        BasicBlock* const falseTarget = block->GetFalseTarget();
+        BasicBlock* const trueTarget  = block->GetTrueTarget();
+
+        const bool falseIsThrow = falseTarget->KindIs(BBJ_THROW);
+        const bool trueIsThrow  = trueTarget->KindIs(BBJ_THROW);
+
+        // Ambiguous or non-throwing shapes are not handled.
+        if (falseIsThrow == trueIsThrow)
+        {
+            continue;
+        }
+
+        // The throw block must build its exception without any live-in (e.g. from constants or a call
+        // to a parameterless ThrowHelper). Otherwise, disconnecting it from the flow graph would leave
+        // its live-in uncomputed and miscompile the throw.
+        BasicBlock* const throwBlock = falseIsThrow ? falseTarget : trueTarget;
+        if (!fgUserThrowBlockIsSelfContained(throwBlock))
+        {
+            continue;
+        }
+
+        candidates.Push(block);
+    }
+
+    if (candidates.Height() == 0)
+    {
+        return PhaseStatus::MODIFIED_NOTHING;
+    }
+
+    for (int i = 0; i < candidates.Height(); i++)
+    {
+        BasicBlock* const block    = candidates.Bottom(i);
+        Statement* const  condStmt = block->lastStmt();
+        GenTree* const    relop    = condStmt->GetRootNode()->gtGetOp1();
+
+        const bool        throwOnTrue = block->GetTrueTarget()->KindIs(BBJ_THROW);
+        BasicBlock* const throwBlock  = throwOnTrue ? block->GetTrueTarget() : block->GetFalseTarget();
+        FlowEdge* const   throwEdge   = throwOnTrue ? block->GetTrueEdge() : block->GetFalseEdge();
+        FlowEdge* const   inRangeEdge = throwOnTrue ? block->GetFalseEdge() : block->GetTrueEdge();
+
+        // Map the (relop, throw-on-true?) shape onto the canonical bounds-check relation "idx >=un len"
+        // (i.e. the check throws exactly when idx >=un len). Some shapes require the bound to be biased
+        // by one to express a "<=" guard as the strict "<" that GT_BOUNDS_CHECK models; this is always
+        // safe here because the biased operand is a length in [0, INT32_MAX].
+        //
+        //   relop        throw-on-true         throw-on-false (fall-through)
+        //   GE_UN(a,b)   idx=a, len=b          idx=b, len=a+1
+        //   GT_UN(a,b)   idx=a, len=b+1        idx=b, len=a
+        //   LT_UN(a,b)   idx=b, len=a+1        idx=a, len=b
+        //   LE_UN(a,b)   idx=b, len=a          idx=a, len=b+1
+        //
+        bool swap;
+        bool plusOne;
+        switch (relop->OperGet())
+        {
+            case GT_GE:
+                swap    = !throwOnTrue;
+                plusOne = !throwOnTrue;
+                break;
+            case GT_GT:
+                swap    = !throwOnTrue;
+                plusOne = throwOnTrue;
+                break;
+            case GT_LT:
+                swap    = throwOnTrue;
+                plusOne = throwOnTrue;
+                break;
+            case GT_LE:
+                swap    = throwOnTrue;
+                plusOne = !throwOnTrue;
+                break;
+            default:
+                unreached();
+        }
+
+        GenTree* const opA    = relop->gtGetOp1();
+        GenTree* const opB    = relop->gtGetOp2();
+        GenTree*       index  = swap ? opB : opA;
+        GenTree*       length = swap ? opA : opB;
+
+        if (plusOne)
+        {
+            // Model "idx u<= length" as "idx u< length + 1"; length is a non-negative bound, so this
+            // never overflows and preserves the exact fact for downstream checked-bound chaining.
+            length = gtNewOperNode(GT_ADD, TYP_INT, length, gtNewIconNode(1, TYP_INT));
+
+            // A "u<=" guard (e.g. List<T>'s `size u<= items.Length`) folds into a bounds check whose
+            // operands are loop-invariant, so it can hoist to the preheader -- but only once copy-prop
+            // has forwarded the separately hoisted field loads into it, which happens on a subsequent
+            // optimization pass. Record that such a candidate exists so the optimizer can opportunistically
+            // run one extra iteration to actually lift it.
+            fgHasUserThrowHoistCandidate = true;
+        }
+
+        const unsigned userThrowId = fgAddUserThrowTarget(block, throwBlock);
+
+        GenTree* const boundsChk = new (this, GT_BOUNDS_CHECK) GenTreeBoundsChk(index, length, userThrowId);
+        condStmt->SetRootNode(boundsChk);
+
+        if (fgNodeThreading == NodeThreading::AllTrees)
+        {
+            gtSetStmtInfo(condStmt);
+            fgSetStmtSeq(condStmt);
+        }
+
+        // Drop the conditional flow: the failure path is now modeled by the bounds check itself, and
+        // control unconditionally continues to the in-range block.
+        fgRemoveRefPred(throwEdge);
+        block->SetKindAndTargetEdge(BBJ_ALWAYS, inRangeEdge);
+
+        JITDUMP("Recognized user bounds check in " FMT_BB ": folded guard into BOUNDS_CHECK, preserving throw " FMT_BB
+                "\n",
+                block->bbNum, throwBlock->bbNum);
+    }
+
+    fgModified = true;
+
+    // The recognizer edits control flow (removing the guard's throw edge), so refresh the DFS tree
+    // that later phases (e.g. loop finding) consume without recomputing themselves.
+    fgInvalidateDfsTree();
+    m_dfsTree = fgComputeDfs();
+    return PhaseStatus::MODIFIED_EVERYTHING;
+}
+
 // bbThrowIndex: find acd map key for a given block
 //
 // Arguments:
@@ -3940,6 +4338,12 @@ Compiler::AddCodeDscKey::AddCodeDscKey(AddCodeDsc* add)
     if (acdKind == SCK_FAIL_FAST)
     {
         acdData = 0;
+    }
+    else if (acdKind == SCK_USER_THROW)
+    {
+        // User-throw targets are keyed by their stable id, not the EH region, so that distinct
+        // user throw blocks in the same region do not collapse onto a single shared helper.
+        acdData = add->acdUserThrowId;
     }
     else
     {

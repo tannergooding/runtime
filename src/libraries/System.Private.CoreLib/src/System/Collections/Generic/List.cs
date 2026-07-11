@@ -144,12 +144,18 @@ namespace System.Collections.Generic
         {
             get
             {
-                // Following trick can reduce the range check by one
-                if ((uint)index >= (uint)_size)
+                // Read _items and _size into locals once. This makes the guard race-safe and lets the
+                // JIT chain "(uint)index < (uint)size" with "(uint)size <= (uint)items.Length" to prove
+                // "(uint)index < (uint)items.Length", eliding the array's own bounds check. A torn read
+                // of _items/_size can at worst throw spuriously -- it can never produce an OOB access.
+                T[] items = _items;
+                int size = _size;
+                if ((uint)size <= (uint)items.Length && (uint)index < (uint)size)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessException();
+                    return items[index];
                 }
-                return _items[index];
+                ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessException();
+                return default!;
             }
 
             set

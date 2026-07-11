@@ -4422,7 +4422,15 @@ void CodeGen::genRangeCheck(GenTree* oper)
 #endif // DEBUG
 
     GetEmitter()->emitInsBinary(cmpKind, emitTypeSize(bndsChkType), src1, src2);
-    genJumpToThrowHlpBlk(jmpKind, bndsChk->gtThrowKind);
+    if (bndsChk->gtThrowKind == SCK_USER_THROW)
+    {
+        BasicBlock* const userThrowBlock = m_compiler->fgGetUserThrowTarget(bndsChk->gtThrowBlockId)->acdDstBlk;
+        genJumpToThrowHlpBlk(jmpKind, SCK_USER_THROW, userThrowBlock);
+    }
+    else
+    {
+        genJumpToThrowHlpBlk(jmpKind, bndsChk->gtThrowKind);
+    }
 }
 
 //---------------------------------------------------------------------

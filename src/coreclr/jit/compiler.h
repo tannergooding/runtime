@@ -7366,6 +7366,8 @@ public:
         SpecialCodeKind acdKind; // what kind of a special block is this?
         bool            acdUsed; // do we need to keep this helper block?
 
+        unsigned acdUserThrowId; // for SCK_USER_THROW: stable id that keys this descriptor
+
 #if !FEATURE_FIXED_OUT_ARGS
         bool     acdStkLvlInit; // has acdStkLvl value been already set?
         unsigned acdStkLvl;     // stack level in stack slots.
@@ -7387,6 +7389,7 @@ public:
     public:
         AddCodeDscKey(): acdKind(SCK_NONE), acdData(0) {}
         AddCodeDscKey(SpecialCodeKind kind, BasicBlock* block, Compiler* comp);
+        AddCodeDscKey(SpecialCodeKind kind, unsigned data): acdKind(kind), acdData(data) {}
         AddCodeDscKey(AddCodeDsc* add);
 
         static bool Equals(const AddCodeDscKey& x, const AddCodeDscKey& y)
@@ -7414,6 +7417,7 @@ private:
     static unsigned acdHelper(SpecialCodeKind codeKind);
 
     AddCodeDscMap* fgAddCodeDscMap = nullptr;
+    unsigned       fgUserThrowIdCount = 0; // running id for SCK_USER_THROW targets
     AddCodeDsc* fgCreateAddCodeDsc(BasicBlock* fromBlock, SpecialCodeKind kind);
     void fgCreateThrowHelperBlock(AddCodeDsc* add);
 
@@ -7422,6 +7426,22 @@ public:
     bool fgRngChkThrowAdded = false;
     bool fgHasAddCodeDscMap() const { return fgAddCodeDscMap != nullptr; }
     AddCodeDsc* fgGetExcptnTarget(SpecialCodeKind kind, BasicBlock* fromBlock, bool createIfNeeded = false);
+
+    // Register an already-existing, user-authored throw block as a preserved throw target for a
+    // GT_BOUNDS_CHECK with SCK_USER_THROW. Returns the id to store on the node's gtThrowBlockId.
+    unsigned fgAddUserThrowTarget(BasicBlock* fromBlock, BasicBlock* userThrowBlock);
+    // Resolve a preserved user-throw target previously registered via fgAddUserThrowTarget.
+    AddCodeDsc* fgGetUserThrowTarget(unsigned userThrowBlockId);
+    // Whether the given block is a preserved user-authored throw target (SCK_USER_THROW).
+    bool fgIsUserThrowHelperBlock(BasicBlock* block);
+    // Whether a candidate user throw block is self-contained (needs no live-in), so it can be safely
+    // preserved and jumped to from a folded SCK_USER_THROW bounds check.
+    bool fgUserThrowBlockIsSelfContained(BasicBlock* block);
+
+    // Prototype: recognize user "manual" bounds checks (if (idx >=un len) throw) and fold them into
+    // non-exiting GT_BOUNDS_CHECK nodes with SCK_USER_THROW, preserving the user throw block.
+    PhaseStatus fgRecognizeUserThrowChecks();
+
     bool fgUseThrowHelperBlocks();
     void fgCreateThrowHelperBlockCode(AddCodeDsc* add);
     void fgSetThrowHelpBlockLiveness(BasicBlock* block);
@@ -7665,6 +7685,13 @@ public:
 
 public:
     bool fgHasLoops = false;
+
+    // Set by fgRecognizeUserThrowChecks when it folds a "u<=" user guard into an invariant-shaped
+    // GT_BOUNDS_CHECK (e.g. List<T>'s `size u<= items.Length`). Such a check only hoists out of a
+    // loop after copy-prop has forwarded the hoisted field loads into it, which happens on a later
+    // optimization pass -- so when this is set (and the feature is enabled) we opportunistically
+    // request one extra optimization iteration. Gated behind DOTNET_JitEnableUserThrowChecks.
+    bool fgHasUserThrowHoistCandidate = false;
 
 protected:
     unsigned optCallCount = 0;                 // number of calls made in the method

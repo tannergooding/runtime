@@ -1318,7 +1318,7 @@ void Liveness<TLiveness>::DoLiveVarAnalysis()
                 continue;
             }
 
-            assert(!block->HasFlag(BBF_THROW_HELPER));
+            assert(!block->HasFlag(BBF_THROW_HELPER) || m_compiler->fgIsUserThrowHelperBlock(block));
         }
     }
 

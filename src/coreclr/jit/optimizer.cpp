@@ -4413,6 +4413,19 @@ void Compiler::optHoistLoopBlocks(FlowGraphNaturalLoop* loop,
                 // hence this check is not present in optIsCSEcandidate().
                 return true;
             }
+            else if (node->OperIs(GT_BOUNDS_CHECK) && (JitConfig.JitEnableUserThrowChecks() != 0))
+            {
+                // Prototype (DOTNET_JitEnableUserThrowChecks): a loop-invariant bounds check
+                // (e.g. the `List<T>` indexer's manual `(uint)size <= (uint)items.Length` guard)
+                // has no value, so it is never a CSE candidate, but -- exactly like GT_NULLCHECK
+                // above -- it is safe to hoist to the preheader when it is guaranteed to execute.
+                // The `m_canHoistSideEffects` gate ensures we only hoist it from the loop header
+                // before any other side effect, so a zero-trip loop is never faulted (the preheader
+                // only runs when the loop is entered). The leftover in-loop check is then removed by
+                // assertion prop / range analysis. Reuses the same guaranteed-execution reasoning as
+                // the null-check case.
+                return true;
+            }
             else if ((node->gtFlags & GTF_ORDER_SIDEEFF) != 0)
             {
                 // If a node has an order side effect, we can't hoist it at all: we don't know what the order
@@ -4420,7 +4433,18 @@ void Compiler::optHoistLoopBlocks(FlowGraphNaturalLoop* loop,
                 // an exception, and eliminated the GTF_EXCEPT flag, replacing it with GTF_ORDER_SIDEEFF. We
                 // can't hoist because we might then hoist above the expression that led assertion prop to make
                 // that decision. This can happen in JitOptRepeat, where hoisting can follow assertion prop.
-                return false;
+                //
+                // Prototype (DOTNET_JitEnableUserThrowChecks): a loop-invariant, non-faulting indirection
+                // (GTF_IND_NONFAULTING) only carries GTF_ORDER_SIDEEFF because non-null assertion prop elided
+                // its GTF_EXCEPT and pinned it below the establishing null check. Coalescing/hoisting such an
+                // ordinary non-volatile read is legal per docs/design/specs/Memory-model.md; for the motivating
+                // List<T> indexer loop the establishing non-null dominates the loop, so allow it under the flag
+                // so we can measure the impact of hoisting the invariant `_items`/`_size`/length reads.
+                if ((JitConfig.JitEnableUserThrowChecks() == 0) || !node->OperIsIndir() ||
+                    ((node->gtFlags & GTF_IND_NONFAULTING) == 0))
+                {
+                    return false;
+                }
             }
 
             // Tree must be a suitable CSE candidate for us to be able to hoist it.

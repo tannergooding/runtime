@@ -77,6 +77,7 @@ CompPhaseNameMacro(PHASE_CANONICALIZE_ENTRY,         "Canonicalize entry",      
 CompPhaseNameMacro(PHASE_SET_BLOCK_WEIGHTS,          "Set block weights",              false, -1, false)
 CompPhaseNameMacro(PHASE_ZERO_INITS,                 "Redundant zero Inits",           false, -1, false)
 CompPhaseNameMacro(PHASE_ADJUST_THROW_LIKELIHOODS,   "Adjust throw edge likelihoods",  false, -1, false)
+CompPhaseNameMacro(PHASE_RECOGNIZE_USER_THROW,       "Recognize user bounds checks",   false, -1, false)
 CompPhaseNameMacro(PHASE_FIND_LOOPS,                 "Find loops",                     false, -1, false)
 CompPhaseNameMacro(PHASE_CLONE_LOOPS,                "Clone loops",                    false, -1, false)
 CompPhaseNameMacro(PHASE_UNROLL_LOOPS,               "Unroll loops",                   false, -1, false)

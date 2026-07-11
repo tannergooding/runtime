@@ -1850,6 +1850,61 @@ AssertionInfo Compiler::optCreateJTrueBoundsAssertion(GenTree* tree)
         return index;
     }
 
+    // An unsigned relation of the form "(uint)X <= (uint)CB" where CB is a non-negative checked
+    // bound (typically an array/span length). Since CB is in [0, INT32_MAX], the unsigned relation
+    // additionally implies the signed facts "X >= 0" and "X <= CB". We record "X u<= CB" and flag
+    // X's VN as a checked bound so that a later "(uint)i < (uint)X" guard produces a NoThrowArrBnd
+    // assertion. Together with "X u<= CB" this lets manual guard patterns -- e.g. List<T>'s indexer
+    // validating the index against _size and _size against _items.Length -- chain "i u< X u<= CB"
+    // to elide the underlying CB bounds check. This is only interesting for global assertion prop.
+    //
+    // "X u<= CB" can appear directly (on the jump edge) as "X u<= CB" / "CB u>= X", or reversed (on
+    // the fall-through edge, the JIT's usual shape for a guard that throws when out of range) as
+    // "CB u< X" / "X u> CB". The strict "(uint)i < (uint)CB" forms are handled above as
+    // NoThrowArrBnd by IsVNUnsignedCompareCheckedBound and never reach here.
+    if (isUnsignedRelop)
+    {
+        ValueNum boundedVN      = ValueNumStore::NoVN;
+        ValueNum boundVN        = ValueNumStore::NoVN;
+        bool     factOnJumpEdge = true;
+
+        if (relopFuncApp.FuncIs(VNF_LE_UN) && vnStore->IsVNCheckedBound(op2VN) && vnStore->IsVNNeverNegative(op2VN))
+        {
+            boundedVN = op1VN; // "X u<= CB"
+            boundVN   = op2VN;
+        }
+        else if (relopFuncApp.FuncIs(VNF_GE_UN) && vnStore->IsVNCheckedBound(op1VN) &&
+                 vnStore->IsVNNeverNegative(op1VN))
+        {
+            boundedVN = op2VN; // "CB u>= X"
+            boundVN   = op1VN;
+        }
+        else if (relopFuncApp.FuncIs(VNF_LT_UN) && vnStore->IsVNCheckedBound(op1VN) &&
+                 vnStore->IsVNNeverNegative(op1VN))
+        {
+            boundedVN      = op2VN; // "CB u< X" -> "X u<= CB" on the fall-through edge
+            boundVN        = op1VN;
+            factOnJumpEdge = false;
+        }
+        else if (relopFuncApp.FuncIs(VNF_GT_UN) && vnStore->IsVNCheckedBound(op2VN) &&
+                 vnStore->IsVNNeverNegative(op2VN))
+        {
+            boundedVN      = op1VN; // "X u> CB" -> "X u<= CB" on the fall-through edge
+            boundVN        = op2VN;
+            factOnJumpEdge = false;
+        }
+
+        if ((boundedVN != ValueNumStore::NoVN) && !vnStore->IsVNConstant(boundedVN))
+        {
+            // Flag X so that "(uint)i < (uint)X" guards are recognized as bounds checks.
+            vnStore->SetVNIsCheckedBound(boundedVN);
+
+            AssertionDsc   dsc = AssertionDsc::CreateCompareCheckedBound(this, VNF_LE_UN, boundedVN, boundVN, 0);
+            AssertionIndex idx = optAddAssertion(dsc);
+            return factOnJumpEdge ? AssertionInfo(idx) : AssertionInfo::ForNextEdge(idx);
+        }
+    }
+
     // Create "X relop CNS" assertion (both signed and unsigned relops)
     // Ignore non-positive constants for unsigned relops as they don't add any useful information.
     ssize_t cns;
@@ -5585,6 +5640,58 @@ GenTree* Compiler::optAssertionProp_BndsChk(ASSERT_VALARG_TP assertions,
                     assert(getIdxRng().LowerLimit().GetConstant() >= 0);
                     return dropBoundsCheck(INDEBUG("currIdx upper bound covered by prevIdx lower bound"));
                 }
+            }
+        }
+    }
+
+    // Two-hop chaining: if we have "idx u< mid" (a NoThrowArrBnd assertion) and separately
+    // "mid <= curLen" (mid is a non-negative value known to be no larger than the array length),
+    // then "idx u< curLen" and the bounds check is redundant. Both 'mid' and 'curLen' are known
+    // non-negative here, so the unsigned chain is valid. This handles manual guard patterns like
+    // List<T>'s indexer, where the index is validated against _size and _size against _items.Length.
+    BitVecOps::Iter iterIdx(apTraits, assertions);
+    unsigned        idxToMidIndex = 0;
+    while (iterIdx.NextElem(&idxToMidIndex))
+    {
+        const AssertionDsc& idxToMid = optGetAssertion(GetAssertionIndex(idxToMidIndex));
+        if (!idxToMid.IsBoundsCheckNoThrow() || (idxToMid.GetOp1().GetVN() != vnCurIdx))
+        {
+            continue;
+        }
+
+        const ValueNum midVN = idxToMid.GetOp2().GetVN();
+        if (midVN == vnCurLen)
+        {
+            // Already handled by the direct-match loop above.
+            continue;
+        }
+
+        // Look for "mid <= curLen", i.e. "mid <relop> (curLen + cns)" with cns <= 0 and relop in
+        // {<, <=} (signed or unsigned). Since 'mid' and 'curLen' are both non-negative, this proves
+        // "mid u<= curLen" and hence "idx u< curLen".
+        //
+        // "mid u<= curLen" can also reach us as a folded user check "mid u< (curLen + 1)" -- a
+        // GT_BOUNDS_CHECK NoThrowArrBnd assertion whose length is one past curLen (this is how the
+        // user-throw recognizer models a "<=" length guard, e.g. List<T>'s "size u<= _items.Length").
+        const ValueNum vnLenPlusOne =
+            vnStore->VNForFunc(TYP_INT, ValueNumStore::GenTreeOpToVNFunc(GT_ADD), vnCurLen, vnStore->VNForIntCon(1));
+
+        BitVecOps::Iter iterMid(apTraits, assertions);
+        unsigned        midToLenIndex = 0;
+        while (iterMid.NextElem(&midToLenIndex))
+        {
+            const AssertionDsc& midToLen = optGetAssertion(GetAssertionIndex(midToLenIndex));
+            if (midToLen.KindIs(OAK_LT, OAK_LE, OAK_LT_UN, OAK_LE_UN) && midToLen.GetOp1().KindIs(O1K_VN) &&
+                (midToLen.GetOp1().GetVN() == midVN) && midToLen.GetOp2().KindIs(O2K_VN_ADD_CNS) &&
+                (midToLen.GetOp2().GetVN() == vnCurLen) && (midToLen.GetOp2().GetCns() <= 0))
+            {
+                return dropBoundsCheck(INDEBUG("i u< mid and mid u<= len"));
+            }
+
+            if (midToLen.IsBoundsCheckNoThrow() && (midToLen.GetOp1().GetVN() == midVN) &&
+                (midToLen.GetOp2().GetVN() == vnLenPlusOne))
+            {
+                return dropBoundsCheck(INDEBUG("i u< mid and mid u< len+1"));
             }
         }
     }

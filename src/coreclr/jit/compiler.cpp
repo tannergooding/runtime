@@ -4664,6 +4664,11 @@ void Compiler::compCompile(void** methodCodePtr, uint32_t* methodCodeSize, JitFl
         //
         DoPhase(this, PHASE_ADJUST_THROW_LIKELIHOODS, adjustThrowEdgeLikelihoods);
 
+        // Prototype: fold recognized user "manual" bounds checks into non-exiting GT_BOUNDS_CHECK
+        // nodes so loop opts can treat them like array checks (gated by DOTNET_JitEnableUserThrowChecks).
+        //
+        DoPhase(this, PHASE_RECOGNIZE_USER_THROW, &Compiler::fgRecognizeUserThrowChecks);
+
         // Discover and classify natural loops (e.g. mark iterative loops as such).
         //
         DoPhase(this, PHASE_FIND_LOOPS, &Compiler::optFindLoopsPhase);
@@ -4764,6 +4769,18 @@ void Compiler::compCompile(void** methodCodePtr, uint32_t* methodCodeSize, JitFl
 
         if (opts.optRepeat)
         {
+            opts.optRepeatActive = true;
+        }
+        else if (fgHasUserThrowHoistCandidate && (JitConfig.JitEnableUserThrowChecks() != 0))
+        {
+            // A recognized "u<=" user guard folded into an invariant-shaped GT_BOUNDS_CHECK. Lifting it
+            // out of its loop needs the hoist -> CSE -> copy-prop -> hoist chain, i.e. one or more extra
+            // optimization passes (the inlined accessor builds a multi-level temp chain that copy-prop
+            // unwinds one level per pass). Opportunistically enable a bounded optRepeat so the check is
+            // actually hoisted; enabling it here (before the loop) keeps every iteration repeat-aware,
+            // matching normal optRepeat.
+            opts.optRepeat       = true;
+            opts.optRepeatCount  = max(opts.optRepeatCount, (int)JitConfig.JitUserThrowOptRepeatCount());
             opts.optRepeatActive = true;
         }
 

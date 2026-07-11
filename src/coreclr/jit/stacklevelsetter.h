@@ -20,6 +20,7 @@ private:
     bool MayUseThrowHelperBlock(GenTree* node);
     void SetThrowHelperBlocks(GenTree* node, BasicBlock* block);
     void SetThrowHelperBlock(SpecialCodeKind kind, BasicBlock* block);
+    void SetThrowHelperBlockForDsc(Compiler::AddCodeDsc* add);
 
     unsigned PopArgumentsFromCall(GenTreeCall* call);
     void     AddStackLevel(unsigned value);
