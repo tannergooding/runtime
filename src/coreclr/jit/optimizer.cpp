@@ -3787,6 +3787,155 @@ PhaseStatus Compiler::optHoistLoopCode()
 }
 
 //------------------------------------------------------------------------
+// optIsInvariantStoreMovable: determine whether a store may be relocated from
+//   the loop header into the preheader by invariant store motion.
+//
+// Arguments:
+//    store     - candidate STORE_LCL_VAR tree (a statement root)
+//    loop      - the loop being processed
+//    hoistCtxt - context for the hoisting (provides the per-loop VN cache)
+//
+// Returns:
+//    true if the store is a full definition of an SSA local whose right-hand
+//    side is loop-invariant and free of any observable ordering or exception
+//    effect, so evaluating it once in the preheader is indistinguishable from
+//    evaluating it on the first iteration.
+//
+bool Compiler::optIsInvariantStoreMovable(GenTree* store, FlowGraphNaturalLoop* loop, LoopHoistContext* hoistCtxt)
+{
+    if (!store->OperIs(GT_STORE_LCL_VAR))
+    {
+        return false;
+    }
+
+    // Must be a full definition of an SSA local. Single static assignment then
+    // guarantees a single reaching def whose uses are all dominated by the
+    // header, hence by the (dominating) preheader after the move.
+    if ((store->gtFlags & GTF_VAR_USEASG) != 0)
+    {
+        return false;
+    }
+
+    GenTreeLclVar* const lclStore = store->AsLclVar();
+    if (!lclStore->HasSsaName() || !lvaInSsa(lclStore->GetLclNum()))
+    {
+        return false;
+    }
+
+    GenTree* const rhs = lclStore->Data();
+
+    // The RHS must be free of calls, stores, and faults so that evaluating it
+    // once in the preheader has no observable ordering or exception effect.
+    if ((rhs->gtFlags & (GTF_CALL | GTF_ASG | GTF_EXCEPT)) != 0)
+    {
+        return false;
+    }
+
+    // And it must produce the same value on every iteration.
+    return optVNIsLoopInvariant(rhs->gtVNPair.GetLiberal(), loop, &hoistCtxt->m_curLoopVnInvariantCache);
+}
+
+//------------------------------------------------------------------------
+// optHoistInvariantStores: move loop-invariant single-def SSA stores from the
+//   loop header into the preheader ("invariant store motion").
+//
+// Arguments:
+//    loop      - the loop being processed
+//    hoistCtxt - context for the hoisting
+//
+// Returns:
+//    true if any store was moved.
+//
+// Notes:
+//    This is a targeted form of LICM for stores. The main hoist visitor only
+//    treats a local use as loop-invariant when its SSA definition lives outside
+//    the loop (see the local-invariance check in optHoistLoopBlocks). An inlined
+//    accessor such as List<T>'s indexer introduces single-def SSA temps whose
+//    defining stores sit in the loop header and re-execute every iteration even
+//    though their right-hand sides are loop-invariant. That blocks an otherwise
+//    invariant BOUNDS_CHECK (which references those temps) from hoisting in a
+//    single pass.
+//
+//    By relocating such a store to the preheader (which unconditionally flows
+//    into, and dominates, the header) and updating the SSA definition's block,
+//    the temp becomes defined outside the loop and the existing hoister lifts the
+//    dependent invariant expression in the same pass.
+//
+//    Only the leading, guaranteed-executed prefix of the header is considered.
+//    We stop at the first statement that is neither a phi definition nor a
+//    movable invariant store so that a store is never reordered past an unrelated
+//    side effect or fault.
+//
+bool Compiler::optHoistInvariantStores(FlowGraphNaturalLoop* loop, LoopHoistContext* hoistCtxt)
+{
+    assert(loop->EntryEdges().size() == 1);
+    BasicBlock* const preheader = loop->EntryEdge(0)->getSourceBlock();
+    BasicBlock* const header    = loop->GetHeader();
+
+    // The preheader and header must share an EH region; otherwise moving a store
+    // across the region boundary could change exception behavior.
+    if (!BasicBlock::sameEHRegion(preheader, header))
+    {
+        return false;
+    }
+
+    ArrayStack<Statement*> toMove(getAllocator(CMK_LoopOpt));
+
+    for (Statement* const stmt : header->Statements())
+    {
+        GenTree* const root = stmt->GetRootNode();
+
+        // Phi definitions carry no memory/exception effect and always lead the
+        // header; skip them without ending the movable prefix.
+        if (root->OperIs(GT_STORE_LCL_VAR) && root->AsLclVar()->Data()->OperIs(GT_PHI))
+        {
+            continue;
+        }
+
+        if (optIsInvariantStoreMovable(root, loop, hoistCtxt))
+        {
+            toMove.Push(stmt);
+            continue;
+        }
+
+        // First real side effect / non-candidate ends the guaranteed-executed,
+        // reorder-safe prefix.
+        break;
+    }
+
+    if (toMove.Height() == 0)
+    {
+        return false;
+    }
+
+    for (int i = 0; i < toMove.Height(); i++)
+    {
+        Statement* const           stmt   = toMove.Bottom(i);
+        GenTreeLclVarCommon* const store  = stmt->GetRootNode()->AsLclVarCommon();
+        unsigned const             lclNum = store->GetLclNum();
+        unsigned const             ssaNum = store->GetSsaNum();
+
+        JITDUMP("Invariant store motion: moving [%06u] (V%02u." FMT_VN ") from header " FMT_BB " to preheader " FMT_BB
+                "\n",
+                dspTreeID(store), lclNum, store->AsLclVar()->Data()->gtVNPair.GetLiberal(), header->bbNum,
+                preheader->bbNum);
+
+        fgUnlinkStmt(header, stmt);
+        fgInsertStmtAtEnd(preheader, stmt);
+
+        // The definition now lives in the preheader; update the SSA descriptor so
+        // that uses in the loop are recognized as loop-invariant by the hoister.
+        lvaGetDesc(lclNum)->GetPerSsaData(ssaNum)->SetBlock(preheader);
+
+        // Re-record the RHS's SSA uses against their new block.
+        optRecordSsaUses(store, preheader);
+    }
+
+    preheader->CopyFlags(header, BBF_COPY_PROPAGATE);
+    return true;
+}
+
+//------------------------------------------------------------------------
 // optHoistThisLoop: run loop hoisting for the indicated loop
 //
 // Arguments:
@@ -4037,6 +4186,15 @@ bool Compiler::optHoistThisLoop(FlowGraphNaturalLoop* loop, LoopHoistContext* ho
 
     JITDUMP("  --  " FMT_BB " (header block)\n", loop->GetHeader()->bbNum);
     BitVecOps::AddElemD(&traits, defExec, loop->GetHeader()->bbPostorderNum);
+
+    // Flag-gated invariant store motion: relocate loop-invariant single-def SSA
+    // stores from the header to the preheader so their uses become loop-invariant,
+    // enabling dependent invariant expressions (e.g. a user bounds check) to hoist
+    // in this same pass rather than relying on a repeated optimization phase.
+    if (JitConfig.JitEnableUserThrowChecks() != 0)
+    {
+        optHoistInvariantStores(loop, hoistCtxt);
+    }
 
     optHoistLoopBlocks(loop, &traits, defExec, hoistCtxt);
 

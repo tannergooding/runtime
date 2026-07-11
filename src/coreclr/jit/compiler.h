@@ -7613,6 +7613,12 @@ protected:
     // Do hoisting for a particular loop
     bool optHoistThisLoop(FlowGraphNaturalLoop* loop, LoopHoistContext* hoistCtxt);
 
+    // Move loop-invariant single-def SSA stores from the loop header into the preheader.
+    bool optHoistInvariantStores(FlowGraphNaturalLoop* loop, LoopHoistContext* hoistCtxt);
+
+    // Return true if "store" is a loop-invariant store that may be moved to the preheader.
+    bool optIsInvariantStoreMovable(GenTree* store, FlowGraphNaturalLoop* loop, LoopHoistContext* hoistCtxt);
+
     // Hoist all expressions in "blocks" that are invariant in "loop"
     // outside of that loop.
     void optHoistLoopBlocks(FlowGraphNaturalLoop* loop, BitVecTraits* traits, BitVec blocks, LoopHoistContext* hoistContext);
