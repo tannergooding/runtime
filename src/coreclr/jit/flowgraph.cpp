@@ -4155,14 +4155,37 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
         return PhaseStatus::MODIFIED_NOTHING;
     }
 
+    // Reshaping a guard into a BOUNDS_CHECK only pays off when the guard is inside a loop: there LICM can
+    // hoist the check out of the loop (and it can collapse a redundant array bounds check on the same
+    // index). A scalar one-shot guard gains nothing from the reshape -- worse, the existing assertion and
+    // range-check propagation already eliminates many such guards in their original compare form, and
+    // converting them to a BOUNDS_CHECK makes them opaque to that, regressing codegen. Loops aren't
+    // identified until the next phase, so identify them locally (m_dfsTree is valid here) and only fold
+    // guards that a loop contains.
+    assert(m_dfsTree != nullptr);
+    FlowGraphNaturalLoops* const loops = FlowGraphNaturalLoops::Find(m_dfsTree);
+    if (loops->NumLoops() == 0)
+    {
+        return PhaseStatus::MODIFIED_NOTHING;
+    }
+    BlockToNaturalLoopMap* const blockToLoop = BlockToNaturalLoopMap::Build(loops);
+
     // Dedup shared throw targets so several guards register a single descriptor (and one late block).
     typedef JitHashTable<BasicBlock*, JitPtrKeyFuncs<BasicBlock>, unsigned> ThrowBlockIdMap;
     ThrowBlockIdMap         throwBlockToId(getAllocator(CMK_BasicBlock));
     ArrayStack<BasicBlock*> throwBlocks(getAllocator(CMK_BasicBlock));
+    bool                    anyFolded = false;
 
     for (int i = 0; i < candidates.Height(); i++)
     {
         BasicBlock* const block    = candidates.Bottom(i);
+
+        // Only fold guards that sit inside a loop (see above); reshaping a scalar guard regresses codegen.
+        if (blockToLoop->GetLoop(block) == nullptr)
+        {
+            continue;
+        }
+
         Statement* const  condStmt = block->lastStmt();
         GenTree* const    relop    = condStmt->GetRootNode()->gtGetOp1();
 
@@ -4253,6 +4276,13 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
         JITDUMP("Recognized user bounds check in " FMT_BB ": folded guard into BOUNDS_CHECK, capturing throw " FMT_BB
                 "\n",
                 block->bbNum, throwBlock->bbNum);
+        anyFolded = true;
+    }
+
+    if (!anyFolded)
+    {
+        // Every structural candidate was filtered out by the loop gate; nothing was reshaped.
+        return PhaseStatus::MODIFIED_NOTHING;
     }
 
     // Remove any throw block that no longer has predecessors (its guards were all folded). Its throw call
