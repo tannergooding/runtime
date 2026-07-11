@@ -4084,6 +4084,67 @@ GenTreeCall* Compiler::fgGetUserThrowCall(BasicBlock* block)
 //    be provably non-returning (BBJ_THROW) and re-materializable late: a single self-contained call with
 //    no live-in (e.g. a parameterless ThrowHelper call); see fgGetUserThrowCall.
 //
+// A recognized user guard's canonical unsigned relation "index <un length", captured before any
+// "u<=" length bias is applied. Used to detect the two-hop transitive chain that makes reshaping
+// profitable (see fgRecognizeUserThrowChecks' profitability gate).
+struct UserThrowGuardFact
+{
+    FlowGraphNaturalLoop* loop;
+    GenTree*              index;
+    GenTree*              length;
+};
+
+//------------------------------------------------------------------------
+// UserThrowCanonicalOperands: map a recognized guard's (relop, throw-on-true?) shape onto the
+//   canonical bounds-check relation "index <un length" (i.e. the check throws exactly when
+//   index >=un length), reporting whether the "<=" form requires biasing the length by one.
+//
+// Arguments:
+//   relop       - the unsigned magnitude compare feeding the guard's JTRUE
+//   throwOnTrue - whether the guard's true edge targets the throw block
+//   pIndex      - [out] canonical index operand (un-biased)
+//   pLength     - [out] canonical length operand (un-biased)
+//   pPlusOne    - [out] whether the length must be biased by one to model a "<=" guard as a strict "<"
+//
+static void UserThrowCanonicalOperands(
+    GenTree* relop, bool throwOnTrue, GenTree** pIndex, GenTree** pLength, bool* pPlusOne)
+{
+    //   relop        throw-on-true         throw-on-false (fall-through)
+    //   GE_UN(a,b)   idx=a, len=b          idx=b, len=a+1
+    //   GT_UN(a,b)   idx=a, len=b+1        idx=b, len=a
+    //   LT_UN(a,b)   idx=b, len=a+1        idx=a, len=b
+    //   LE_UN(a,b)   idx=b, len=a          idx=a, len=b+1
+    bool swap;
+    bool plusOne;
+    switch (relop->OperGet())
+    {
+        case GT_GE:
+            swap    = !throwOnTrue;
+            plusOne = !throwOnTrue;
+            break;
+        case GT_GT:
+            swap    = !throwOnTrue;
+            plusOne = throwOnTrue;
+            break;
+        case GT_LT:
+            swap    = throwOnTrue;
+            plusOne = throwOnTrue;
+            break;
+        case GT_LE:
+            swap    = throwOnTrue;
+            plusOne = !throwOnTrue;
+            break;
+        default:
+            unreached();
+    }
+
+    GenTree* const opA = relop->gtGetOp1();
+    GenTree* const opB = relop->gtGetOp2();
+    *pIndex            = swap ? opB : opA;
+    *pLength           = swap ? opA : opB;
+    *pPlusOne          = plusOne;
+}
+
 PhaseStatus Compiler::fgRecognizeUserThrowChecks()
 {
     if (JitConfig.JitEnableUserThrowChecks() == 0)
@@ -4170,6 +4231,114 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
     }
     BlockToNaturalLoopMap* const blockToLoop = BlockToNaturalLoopMap::Build(loops);
 
+    // Collect the canonical "index <un length" fact for every in-loop candidate guard, captured from the
+    // raw compares before any reshape. These facts are the legs of the transitive chain the profitability
+    // gate below looks for. They must be gathered up front: once a guard is folded its compare is gone and
+    // its reshaped BOUNDS_CHECK carries the "u<=" +1 bias, so it can no longer be matched structurally.
+    ArrayStack<UserThrowGuardFact> guardFacts(getAllocator(CMK_BasicBlock));
+    for (int i = 0; i < candidates.Height(); i++)
+    {
+        BasicBlock* const           block = candidates.Bottom(i);
+        FlowGraphNaturalLoop* const loop  = blockToLoop->GetLoop(block);
+        if (loop == nullptr)
+        {
+            continue;
+        }
+
+        GenTree* const relop       = block->lastStmt()->GetRootNode()->gtGetOp1();
+        const bool     throwOnTrue = block->GetTrueTarget()->KindIs(BBJ_THROW);
+        GenTree*       factIndex;
+        GenTree*       factLength;
+        bool           factPlusOne;
+        UserThrowCanonicalOperands(relop, throwOnTrue, &factIndex, &factLength, &factPlusOne);
+        guardFacts.Push({loop, factIndex, factLength});
+    }
+
+    // Profitability gate: reshaping a guard into an opaque SCK_USER_THROW BOUNDS_CHECK only pays off when
+    // it lets range-check elimination collapse a real per-iteration array element check. That happens when
+    // the guard is one leg of a two-hop transitive chain "index <un m <=un arr.Length" that terminates
+    // exactly at a real element check BOUNDS_CHECK(index, arr.Length), with the linking element `m` (e.g.
+    // List<T>'s `size`) supplied by a *second* user guard:
+    //
+    //   guard B: index <un size            (index leg)
+    //   guard A: size  <=un items.Length   (length leg, +1 biased)
+    //   array:   BOUNDS_CHECK(index, items.Length)   ==> redundant given A and B
+    //
+    // Requiring the full chain (rather than merely sharing one operand with some check) rejects the
+    // coincidental single-operand matches that otherwise dominate the measured libraries.pmi regression
+    // tail -- e.g. Enum formatting's `foundItems.Slice(0, n)` / constant-index guards that share one
+    // operand with an element check but complete no chain, so reshaping eliminates nothing and only
+    // materializes a throw helper. It also rejects a guard that fully duplicates a real check (local
+    // assertion/range-check prop already handles those in compare form). The array element checks are
+    // present at this phase (recognition runs after morph, before any bounds-check elimination), and our
+    // own reshaped checks are skipped via SCK_USER_THROW so a candidate never matches itself.
+    auto guardCompletesChain = [&](FlowGraphNaturalLoop* loop, GenTree* gi, GenTree* gl) -> bool {
+        auto hasBridge = [&](GenTree* wantIndex, GenTree* wantLength) -> bool {
+            for (int f = 0; f < guardFacts.Height(); f++)
+            {
+                const UserThrowGuardFact fact = guardFacts.Bottom(f);
+                if ((fact.loop == loop) && GenTree::Compare(fact.index, wantIndex) &&
+                    GenTree::Compare(fact.length, wantLength))
+                {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        bool completes = false;
+        loop->VisitLoopBlocks([&](BasicBlock* block) {
+            for (Statement* const stmt : block->Statements())
+            {
+                // Node threading is not guaranteed at this phase, so walk each statement's tree
+                // structurally via an explicit worklist rather than stmt->TreeList().
+                ArrayStack<GenTree*> stack(getAllocator(CMK_ArrayStack));
+                stack.Push(stmt->GetRootNode());
+
+                while (stack.Height() > 0)
+                {
+                    GenTree* const node = stack.Pop();
+
+                    if (node->OperIs(GT_BOUNDS_CHECK) && (node->AsBoundsChk()->gtThrowKind != SCK_USER_THROW))
+                    {
+                        GenTreeBoundsChk* const check = node->AsBoundsChk();
+                        GenTree* const          ai    = check->GetIndex();
+                        GenTree* const          al    = check->GetArrayLength();
+                        const bool              mi    = GenTree::Compare(gi, ai);
+                        const bool              ml    = GenTree::Compare(gl, al);
+
+                        // Index leg: this guard is "ai <un m" (gl == m). Complete the chain with a length
+                        // leg "m <=un al" supplied by another guard.
+                        if (mi && !ml && hasBridge(gl, al))
+                        {
+                            completes = true;
+                        }
+                        // Length leg: this guard is "m <=un al" (gi == m). Complete the chain with an
+                        // index leg "ai <un m" supplied by another guard.
+                        else if (ml && !mi && hasBridge(ai, gi))
+                        {
+                            completes = true;
+                        }
+
+                        if (completes)
+                        {
+                            return BasicBlockVisit::Abort;
+                        }
+                    }
+
+                    node->VisitOperands([&](GenTree* op) {
+                        stack.Push(op);
+                        return GenTree::VisitResult::Continue;
+                    });
+                }
+            }
+
+            return BasicBlockVisit::Continue;
+        });
+
+        return completes;
+    };
+
     // Dedup shared throw targets so several guards register a single descriptor (and one late block).
     typedef JitHashTable<BasicBlock*, JitPtrKeyFuncs<BasicBlock>, unsigned> ThrowBlockIdMap;
     ThrowBlockIdMap         throwBlockToId(getAllocator(CMK_BasicBlock));
@@ -4178,16 +4347,17 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
 
     for (int i = 0; i < candidates.Height(); i++)
     {
-        BasicBlock* const block    = candidates.Bottom(i);
+        BasicBlock* const block = candidates.Bottom(i);
 
         // Only fold guards that sit inside a loop (see above); reshaping a scalar guard regresses codegen.
-        if (blockToLoop->GetLoop(block) == nullptr)
+        FlowGraphNaturalLoop* const loop = blockToLoop->GetLoop(block);
+        if (loop == nullptr)
         {
             continue;
         }
 
-        Statement* const  condStmt = block->lastStmt();
-        GenTree* const    relop    = condStmt->GetRootNode()->gtGetOp1();
+        Statement* const condStmt = block->lastStmt();
+        GenTree* const   relop    = condStmt->GetRootNode()->gtGetOp1();
 
         const bool        throwOnTrue = block->GetTrueTarget()->KindIs(BBJ_THROW);
         BasicBlock* const throwBlock  = throwOnTrue ? block->GetTrueTarget() : block->GetFalseTarget();
@@ -4198,41 +4368,20 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
         // (i.e. the check throws exactly when idx >=un len). Some shapes require the bound to be biased
         // by one to express a "<=" guard as the strict "<" that GT_BOUNDS_CHECK models; this is always
         // safe here because the biased operand is a length in [0, INT32_MAX].
-        //
-        //   relop        throw-on-true         throw-on-false (fall-through)
-        //   GE_UN(a,b)   idx=a, len=b          idx=b, len=a+1
-        //   GT_UN(a,b)   idx=a, len=b+1        idx=b, len=a
-        //   LT_UN(a,b)   idx=b, len=a+1        idx=a, len=b
-        //   LE_UN(a,b)   idx=b, len=a          idx=a, len=b+1
-        //
-        bool swap;
-        bool plusOne;
-        switch (relop->OperGet())
-        {
-            case GT_GE:
-                swap    = !throwOnTrue;
-                plusOne = !throwOnTrue;
-                break;
-            case GT_GT:
-                swap    = !throwOnTrue;
-                plusOne = throwOnTrue;
-                break;
-            case GT_LT:
-                swap    = throwOnTrue;
-                plusOne = throwOnTrue;
-                break;
-            case GT_LE:
-                swap    = throwOnTrue;
-                plusOne = !throwOnTrue;
-                break;
-            default:
-                unreached();
-        }
+        GenTree* index;
+        GenTree* length;
+        bool     plusOne;
+        UserThrowCanonicalOperands(relop, throwOnTrue, &index, &length, &plusOne);
 
-        GenTree* const opA    = relop->gtGetOp1();
-        GenTree* const opB    = relop->gtGetOp2();
-        GenTree*       index  = swap ? opB : opA;
-        GenTree*       length = swap ? opA : opB;
+        // Profitability gate: only reshape when this guard is one leg of a transitive chain that lets
+        // range-check elimination collapse a real array element check (see guardCompletesChain). Compare
+        // on the un-biased operands so List<T>'s guard A/B match the array length/index. Guards that share
+        // an operand with a check but complete no chain -- e.g. Enum formatting's Slice/constant-index
+        // guards -- gain nothing from the reshape and only materialize a throw helper, regressing codegen.
+        if (!guardCompletesChain(loop, index, length))
+        {
+            continue;
+        }
 
         if (plusOne)
         {
