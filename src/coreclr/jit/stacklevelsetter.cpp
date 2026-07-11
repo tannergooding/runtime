@@ -61,7 +61,8 @@ PhaseStatus StackLevelSetter::DoPhase()
             {
                 if (add->acdUsed)
                 {
-                    // Create the helper call
+                    // Create the helper call. A user-throw target defers block creation until here (it does
+                    // not exist during opts); fgCreateThrowHelperBlockCode creates its block on demand.
                     //
                     m_compiler->fgCreateThrowHelperBlockCode(add);
                     m_compiler->compUsesThrowHelper = true;
@@ -71,12 +72,15 @@ PhaseStatus StackLevelSetter::DoPhase()
                     // Remove the helper call block
                     //
                     BasicBlock* const block = add->acdDstBlk;
-                    // A preserved user-throw block carries the user's throw code (not empty); if the check
-                    // that referenced it was fully optimized away, the block is genuinely dead and removable.
-                    assert((add->acdKind == SCK_USER_THROW) || block->isEmpty());
-                    JITDUMP("Throw help block " FMT_BB " is unused\n", block->bbNum);
-                    block->RemoveFlags(BBF_DONT_REMOVE);
-                    m_compiler->fgRemoveBlock(block, /* unreachable */ true);
+                    // A user-throw target that was never referenced was never created, so there is nothing
+                    // to remove for it.
+                    if (block != nullptr)
+                    {
+                        assert(block->isEmpty());
+                        JITDUMP("Throw help block " FMT_BB " is unused\n", block->bbNum);
+                        block->RemoveFlags(BBF_DONT_REMOVE);
+                        m_compiler->fgRemoveBlock(block, /* unreachable */ true);
+                    }
                 }
 
                 madeChanges = true;

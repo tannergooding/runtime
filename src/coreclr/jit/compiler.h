@@ -7368,6 +7368,12 @@ public:
 
         unsigned acdUserThrowId; // for SCK_USER_THROW: stable id that keys this descriptor
 
+        // For SCK_USER_THROW: the user's throw call (e.g. a parameterless ThrowHelper call), captured at
+        // recognition time. The original throw block is removed from the flow graph during recognition; this
+        // call is re-materialized into a freshly created throw helper block late (in the stack level setter),
+        // mirroring how the runtime throw helpers are created after lowering.
+        GenTreeCall* acdUserThrowCall;
+
 #if !FEATURE_FIXED_OUT_ARGS
         bool     acdStkLvlInit; // has acdStkLvl value been already set?
         unsigned acdStkLvl;     // stack level in stack slots.
@@ -7427,19 +7433,19 @@ public:
     bool fgHasAddCodeDscMap() const { return fgAddCodeDscMap != nullptr; }
     AddCodeDsc* fgGetExcptnTarget(SpecialCodeKind kind, BasicBlock* fromBlock, bool createIfNeeded = false);
 
-    // Register an already-existing, user-authored throw block as a preserved throw target for a
-    // GT_BOUNDS_CHECK with SCK_USER_THROW. Returns the id to store on the node's gtThrowBlockId.
-    unsigned fgAddUserThrowTarget(BasicBlock* fromBlock, BasicBlock* userThrowBlock);
-    // Resolve a preserved user-throw target previously registered via fgAddUserThrowTarget.
+    // Register a user-authored throw as a late-materialized throw target for a GT_BOUNDS_CHECK with
+    // SCK_USER_THROW. The original throw block is removed from the flow graph; its throw call is captured
+    // and re-emitted into a fresh throw helper block after lowering. Returns the id to store on the node's
+    // gtThrowBlockId.
+    unsigned fgAddUserThrowTarget(BasicBlock* fromBlock, GenTreeCall* throwCall);
+    // Resolve a user-throw target previously registered via fgAddUserThrowTarget.
     AddCodeDsc* fgGetUserThrowTarget(unsigned userThrowBlockId);
-    // Whether the given block is a preserved user-authored throw target (SCK_USER_THROW).
-    bool fgIsUserThrowHelperBlock(BasicBlock* block);
-    // Whether a candidate user throw block is self-contained (needs no live-in), so it can be safely
-    // preserved and jumped to from a folded SCK_USER_THROW bounds check.
-    bool fgUserThrowBlockIsSelfContained(BasicBlock* block);
+    // If a candidate user throw block can be re-materialized late, return its throw call (a single,
+    // self-contained call with no live-in, e.g. a parameterless ThrowHelper). Otherwise return nullptr.
+    GenTreeCall* fgGetUserThrowCall(BasicBlock* block);
 
     // Prototype: recognize user "manual" bounds checks (if (idx >=un len) throw) and fold them into
-    // non-exiting GT_BOUNDS_CHECK nodes with SCK_USER_THROW, preserving the user throw block.
+    // non-exiting GT_BOUNDS_CHECK nodes with SCK_USER_THROW, re-materializing the user throw block late.
     PhaseStatus fgRecognizeUserThrowChecks();
 
     bool fgUseThrowHelperBlocks();

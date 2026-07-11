@@ -3588,7 +3588,8 @@ Compiler::AddCodeDsc* Compiler::fgCreateAddCodeDsc(BasicBlock* srcBlk, SpecialCo
     add->acdKind   = kind;
 
     // Only meaningful for SCK_USER_THROW (set by fgAddUserThrowTarget).
-    add->acdUserThrowId = 0;
+    add->acdUserThrowId   = 0;
+    add->acdUserThrowCall = nullptr;
 
     // This gets set true in the stack level setter
     // if there's still a need for this helper
@@ -3724,6 +3725,9 @@ void Compiler::fgCreateThrowHelperBlock(AddCodeDsc* add)
             case SCK_NULL_CHECK:
                 msg = " for NULL_CHECK";
                 break;
+            case SCK_USER_THROW:
+                msg = " for USER_THROW";
+                break;
             default:
                 msg = " for ??";
                 break;
@@ -3747,10 +3751,41 @@ void Compiler::fgCreateThrowHelperBlockCode(AddCodeDsc* add)
 {
     assert(add->acdUsed);
 
-    // A preserved user-throw target already contains the user's throw code; nothing to synthesize.
+    // A user-throw target is materialized late: create its block if needed and re-emit the captured
+    // user throw call (mirroring the runtime throw helper path below).
     //
     if (add->acdKind == SCK_USER_THROW)
     {
+        if (add->acdDstBlk == nullptr)
+        {
+            fgCreateThrowHelperBlock(add);
+        }
+
+        BasicBlock* const userBlock = add->acdDstBlk;
+        assert(userBlock->isEmpty());
+
+        // Materialize a fresh copy of the captured (pristine, pre-lowering) throw call, so its nodes have
+        // unique ids and are independent of the stored template.
+        //
+        assert(add->acdUserThrowCall != nullptr);
+        GenTreeCall* const userCall = gtCloneExpr(add->acdUserThrowCall)->AsCall();
+
+        // The captured call was already morphed when the original throw block was live; re-lower it here
+        // just like a freshly built helper call.
+        //
+        if (fgNodeThreading != NodeThreading::LIR)
+        {
+            fgInsertStmtAtEnd(userBlock, fgNewStmtFromTree(userCall));
+        }
+        else
+        {
+            LIR::Range     userRange = LIR::SeqTree(this, userCall);
+            GenTree* const firstNode = userRange.FirstNode();
+            GenTree* const lastNode  = userRange.LastNode();
+            LIR::AsRange(userBlock).InsertAtEnd(std::move(userRange));
+            LIR::ReadOnlyRange userBlockRange(firstNode, lastNode);
+            m_pLowering->LowerRange(userBlock, userBlockRange);
+        }
         return;
     }
 
@@ -3871,51 +3906,45 @@ Compiler::AddCodeDsc* Compiler::fgGetExcptnTarget(SpecialCodeKind kind, BasicBlo
 }
 
 //------------------------------------------------------------------------
-// fgAddUserThrowTarget: register an existing, user-authored throw block as a preserved
-//   throw target for a GT_BOUNDS_CHECK with SCK_USER_THROW.
+// fgAddUserThrowTarget: register a user-authored throw as a late-materialized throw target
+//   for a GT_BOUNDS_CHECK with SCK_USER_THROW.
 //
 // Arguments:
-//    fromBlock      - the block that will jump to the throw block on failure
-//    userThrowBlock - the existing block that raises the user's exception (kept as-is)
+//    fromBlock - the block that will jump to the throw on failure (supplies the EH region)
+//    throwCall - the captured user throw call (e.g. a parameterless ThrowHelper call)
 //
 // Return Value:
 //    A stable id to store on the node's gtThrowBlockId, used later to resolve the target.
 //
 // Notes:
-//    Unlike the shared throw helpers, the destination block already exists and carries the
-//    user's exact exception (type/message); it is not synthesized. The descriptor is keyed by
-//    the returned id so distinct user throw blocks never share a single target.
+//    Unlike the shared runtime throw helpers, the target carries the user's exact exception
+//    (type/message) via the captured call. The original throw block is removed from the flow graph
+//    by the recognizer; the block is re-created and the call re-emitted late (in the stack level
+//    setter). The descriptor is keyed by the returned id so distinct user throws never collapse.
+//    Callers dedup shared throw targets (e.g. List<T>'s two-hop index/size validation) and pass the
+//    same captured call, registering a single descriptor.
 //
-unsigned Compiler::fgAddUserThrowTarget(BasicBlock* fromBlock, BasicBlock* userThrowBlock)
+unsigned Compiler::fgAddUserThrowTarget(BasicBlock* fromBlock, GenTreeCall* throwCall)
 {
     // Cannot allow new demands once we have created throw helper blocks
     //
     assert(!fgRngChkThrowAdded);
-
-    // Several recognized guards can share one user throw block (e.g. List<T>'s index/size validation
-    // both jump to the same ArgumentOutOfRange throw). Model them with a single descriptor so the block
-    // is kept alive as long as *any* referencing check survives, and removed only once all are gone.
-    if (fgHasAddCodeDscMap())
-    {
-        for (AddCodeDsc* const existing : AddCodeDscMap::ValueIteration(fgGetAddCodeDscMap()))
-        {
-            if ((existing->acdKind == SCK_USER_THROW) && (existing->acdDstBlk == userThrowBlock))
-            {
-                return existing->acdUserThrowId;
-            }
-        }
-    }
+    assert(throwCall != nullptr);
 
     const unsigned id = fgUserThrowIdCount++;
 
     AddCodeDsc* const add = new (this, CMK_BasicBlock) AddCodeDsc;
-    add->acdDstBlk        = userThrowBlock;
+    add->acdDstBlk        = nullptr; // created late, in the stack level setter
     add->acdTryIndex      = fromBlock->bbTryIndex;
     add->acdHndIndex      = fromBlock->bbHndIndex;
     add->acdKeyDsg        = AcdKeyDesignator::KD_NONE; // keyed by id, not region
     add->acdKind          = SCK_USER_THROW;
     add->acdUsed          = false; // set true by the stack level setter if still referenced
     add->acdUserThrowId   = id;
+    // Capture a pristine (pre-lowering) clone of the throw call, fully detached from the original block.
+    // The original block may remain reachable and be lowered in place, or be removed; either way this
+    // snapshot is independent and is re-materialized late into a fresh throw helper block.
+    add->acdUserThrowCall = gtCloneExpr(throwCall)->AsCall();
 
 #if !FEATURE_FIXED_OUT_ARGS
     add->acdStkLvl     = 0;
@@ -3923,15 +3952,12 @@ unsigned Compiler::fgAddUserThrowTarget(BasicBlock* fromBlock, BasicBlock* userT
 #endif // !FEATURE_FIXED_OUT_ARGS
     INDEBUG(add->acdNum = acdCount++);
 
-    // The block is preserved as-is and must survive flow opts until lowering re-materializes the jump.
-    userThrowBlock->SetFlags(BBF_THROW_HELPER | BBF_DONT_REMOVE);
-
     AddCodeDscMap* const map = fgGetAddCodeDscMap();
     AddCodeDscKey        key(add);
     map->Set(key, add);
 
-    JITDUMP(FMT_BB " uses preserved user throw block " FMT_BB ", created ACD%u (user throw id %u)\n", fromBlock->bbNum,
-            userThrowBlock->bbNum, add->acdNum, id);
+    JITDUMP(FMT_BB " gets late-materialized user throw, created ACD%u (user throw id %u)\n", fromBlock->bbNum,
+            add->acdNum, id);
 
     return id;
 }
@@ -3956,113 +3982,81 @@ Compiler::AddCodeDsc* Compiler::fgGetUserThrowTarget(unsigned userThrowBlockId)
 }
 
 //------------------------------------------------------------------------
-// fgIsUserThrowHelperBlock: is the given block a preserved user-authored throw target?
-//
-// Arguments:
-//    block - the block to test
-//
-// Return Value:
-//    True if some SCK_USER_THROW descriptor names this block as its destination. Unlike the shared
-//    throw helpers, these are recognized early (before lowering), so various pre-lower invariants
-//    that assume "no throw helper blocks yet" must make an exception for them.
-//
-bool Compiler::fgIsUserThrowHelperBlock(BasicBlock* block)
-{
-    if (!block->HasFlag(BBF_THROW_HELPER) || !fgHasAddCodeDscMap())
-    {
-        return false;
-    }
-
-    for (AddCodeDsc* const add : AddCodeDscMap::ValueIteration(fgGetAddCodeDscMap()))
-    {
-        if ((add->acdKind == SCK_USER_THROW) && (add->acdDstBlk == block))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-//------------------------------------------------------------------------
-// fgUserThrowBlockIsSelfContained: can this candidate user throw block be preserved and jumped to
-//    from a folded bounds check without needing correct live-in?
+// fgGetUserThrowCall: if a candidate user throw block can be re-materialized late, return its
+//    throw call; otherwise return nullptr.
 //
 // Arguments:
 //    block - a BBJ_THROW candidate
 //
 // Return Value:
-//    True if the block has no upward-exposed local uses (every local it reads is defined earlier
-//    within the block). Such a block builds its exception purely from constants / block-local temps
-//    (e.g. a call to a parameterless ThrowHelper), so once its predecessors' edges are removed and it
-//    becomes unreachable in the flow graph, the fact that liveness never computes its live-in is
-//    harmless.
+//    The user's throw call if the block consists of exactly one statement whose root is a call
+//    (e.g. a parameterless `[DoesNotReturn]` ThrowHelper call), and the block is self-contained
+//    (needs no live-in). Otherwise nullptr.
 //
 // Notes:
-//    Conservative: any use of a local not yet defined in the block is treated as live-in and rejects
-//    the block. This is the safety gate for the SCK_USER_THROW prototype's known liveness limitation.
+//    Restricting to a single self-contained call keeps re-materialization trivial and safe: the
+//    captured call is re-sequenced and lowered into a fresh throw helper block after lowering, with
+//    no live-in to reconstruct and no HIR control constructs (COMMA/QMARK) to rationalize. This
+//    covers the dominant BCL pattern (ThrowHelper.Throw*), including the List<T> motivating case.
+//    Blocks that build the exception inline (`throw new X(...)`, multiple statements, or a call with
+//    live-in arguments) are not handled and return nullptr.
 //
-bool Compiler::fgUserThrowBlockIsSelfContained(BasicBlock* block)
+GenTreeCall* Compiler::fgGetUserThrowCall(BasicBlock* block)
 {
-    struct LocalUseDefWalker : GenTreeVisitor<LocalUseDefWalker>
+    Statement* const firstStmt = block->firstStmt();
+
+    // Exactly one statement, whose root is a call.
+    if ((firstStmt == nullptr) || (firstStmt->GetNextStmt() != nullptr))
+    {
+        return nullptr;
+    }
+
+    GenTree* const root = firstStmt->GetRootNode();
+    if (!root->IsCall())
+    {
+        return nullptr;
+    }
+
+    // The call must be self-contained: every local it references must be defined within the block
+    // (i.e. no live-in). A parameterless ThrowHelper call trivially satisfies this.
+    struct LiveInWalker : GenTreeVisitor<LiveInWalker>
     {
         enum
         {
             DoPreOrder = true,
         };
 
-        jitstd::vector<bool>& m_defined;
-        jitstd::vector<bool>& m_used;
+        bool m_hasLiveIn = false;
 
-        LocalUseDefWalker(Compiler* comp, jitstd::vector<bool>& defined, jitstd::vector<bool>& used)
-            : GenTreeVisitor<LocalUseDefWalker>(comp)
-            , m_defined(defined)
-            , m_used(used)
+        LiveInWalker(Compiler* comp)
+            : GenTreeVisitor<LiveInWalker>(comp)
         {
         }
 
         fgWalkResult PreOrderVisit(GenTree** use, GenTree* user)
         {
             GenTree* const node = *use;
-            if (node->OperIsLocal())
+            // Any local read is treated as live-in (the block defines nothing before a leading throw call).
+            if (node->OperIsLocalRead())
             {
-                const unsigned lclNum = node->AsLclVarCommon()->GetLclNum();
-                if (lclNum < m_compiler->lvaCount)
-                {
-                    if ((node->gtFlags & GTF_VAR_DEF) != 0)
-                    {
-                        m_defined[lclNum] = true;
-                    }
-                    else
-                    {
-                        m_used[lclNum] = true;
-                    }
-                }
+                m_hasLiveIn = true;
+                return fgWalkResult::WALK_ABORT;
             }
             return fgWalkResult::WALK_CONTINUE;
         }
     };
 
-    jitstd::vector<bool> defined(lvaCount, false, getAllocator(CMK_BasicBlock));
-    jitstd::vector<bool> used(lvaCount, false, getAllocator(CMK_BasicBlock));
+    LiveInWalker walker(this);
+    walker.WalkTree(firstStmt->GetRootNodePointer(), nullptr);
 
-    LocalUseDefWalker walker(this, defined, used);
-    for (Statement* const stmt : block->Statements())
+    if (walker.m_hasLiveIn)
     {
-        walker.WalkTree(stmt->GetRootNodePointer(), nullptr);
+        return nullptr;
     }
 
-    // Any local that is used but never defined within the block would be live-in.
-    for (unsigned lclNum = 0; lclNum < lvaCount; lclNum++)
-    {
-        if (used[lclNum] && !defined[lclNum])
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return root->AsCall();
 }
+
 //
 // Recognizes the canonical pattern
 //
@@ -4071,11 +4065,14 @@ bool Compiler::fgUserThrowBlockIsSelfContained(BasicBlock* block)
 //
 // and rewrites it into a single non-branching bounds check
 //
-//     BBcond (BBJ_ALWAYS -> BBinRange):  BOUNDS_CHECK(index, length)  [SCK_USER_THROW -> BBthrow]
+//     BBcond (BBJ_ALWAYS -> BBinRange):  BOUNDS_CHECK(index, length)  [SCK_USER_THROW -> id]
 //
-// The exact user exception is preserved because the check targets the original BBthrow block
-// (registered via fgAddUserThrowTarget). Modeling the guard as a single non-exiting node (rather
-// than a BBJ_COND to a throw block) lets loop IV analysis and cloning treat it like an array check.
+// The exact user exception is preserved by capturing the original BBthrow block's throw call and
+// re-materializing it into a fresh throw helper block late (after lowering), keyed by the id recorded
+// on the node (see fgAddUserThrowTarget). The original BBthrow block is removed from the flow graph
+// here, so it never becomes a flow-disconnected block that later DFS/dominator/refs invariants trip
+// over. Modeling the guard as a single non-exiting node (rather than a BBJ_COND to a throw block) lets
+// loop IV analysis and cloning treat it like an array check.
 //
 // Return Value:
 //    Whether any transformation was made.
@@ -4084,7 +4081,8 @@ bool Compiler::fgUserThrowBlockIsSelfContained(BasicBlock* block)
 //    Prototype, gated behind DOTNET_JitEnableUserThrowChecks. Handles any unsigned magnitude compare
 //    (`LT`/`LE`/`GT`/`GE`) on either the taken or fall-through edge, and allows the user throw block to
 //    be shared by multiple guards (e.g. List<T>'s index/size two-hop validation). The throw target must
-//    be provably non-returning (BBJ_THROW) and self-contained (no live-in from the guard).
+//    be provably non-returning (BBJ_THROW) and re-materializable late: a single self-contained call with
+//    no live-in (e.g. a parameterless ThrowHelper call); see fgGetUserThrowCall.
 //
 PhaseStatus Compiler::fgRecognizeUserThrowChecks()
 {
@@ -4141,11 +4139,10 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
             continue;
         }
 
-        // The throw block must build its exception without any live-in (e.g. from constants or a call
-        // to a parameterless ThrowHelper). Otherwise, disconnecting it from the flow graph would leave
-        // its live-in uncomputed and miscompile the throw.
+        // The throw block must be re-materializable late: a single self-contained call with no live-in
+        // (e.g. a parameterless ThrowHelper call). Otherwise we cannot re-emit it after removing it here.
         BasicBlock* const throwBlock = falseIsThrow ? falseTarget : trueTarget;
-        if (!fgUserThrowBlockIsSelfContained(throwBlock))
+        if (fgGetUserThrowCall(throwBlock) == nullptr)
         {
             continue;
         }
@@ -4157,6 +4154,11 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
     {
         return PhaseStatus::MODIFIED_NOTHING;
     }
+
+    // Dedup shared throw targets so several guards register a single descriptor (and one late block).
+    typedef JitHashTable<BasicBlock*, JitPtrKeyFuncs<BasicBlock>, unsigned> ThrowBlockIdMap;
+    ThrowBlockIdMap         throwBlockToId(getAllocator(CMK_BasicBlock));
+    ArrayStack<BasicBlock*> throwBlocks(getAllocator(CMK_BasicBlock));
 
     for (int i = 0; i < candidates.Height(); i++)
     {
@@ -4223,7 +4225,16 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
             fgHasUserThrowHoistCandidate = true;
         }
 
-        const unsigned userThrowId = fgAddUserThrowTarget(block, throwBlock);
+        // Register (or reuse) the late-materialized user throw target for this throw block.
+        unsigned userThrowId;
+        if (!throwBlockToId.Lookup(throwBlock, &userThrowId))
+        {
+            GenTreeCall* const throwCall = fgGetUserThrowCall(throwBlock);
+            assert(throwCall != nullptr);
+            userThrowId = fgAddUserThrowTarget(block, throwCall);
+            throwBlockToId.Set(throwBlock, userThrowId);
+            throwBlocks.Push(throwBlock);
+        }
 
         GenTree* const boundsChk = new (this, GT_BOUNDS_CHECK) GenTreeBoundsChk(index, length, userThrowId);
         condStmt->SetRootNode(boundsChk);
@@ -4239,15 +4250,29 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
         fgRemoveRefPred(throwEdge);
         block->SetKindAndTargetEdge(BBJ_ALWAYS, inRangeEdge);
 
-        JITDUMP("Recognized user bounds check in " FMT_BB ": folded guard into BOUNDS_CHECK, preserving throw " FMT_BB
+        JITDUMP("Recognized user bounds check in " FMT_BB ": folded guard into BOUNDS_CHECK, capturing throw " FMT_BB
                 "\n",
                 block->bbNum, throwBlock->bbNum);
     }
 
+    // Remove any throw block that no longer has predecessors (its guards were all folded). Its throw call
+    // was captured and is re-materialized late. A block still reachable from an unrecognized predecessor is
+    // left as-is; the folded guards simply get their own late-materialized copy of the throw.
+    for (int i = 0; i < throwBlocks.Height(); i++)
+    {
+        BasicBlock* const throwBlock = throwBlocks.Bottom(i);
+        if (throwBlock->bbPreds == nullptr)
+        {
+            JITDUMP("Removing now-unreachable user throw block " FMT_BB "\n", throwBlock->bbNum);
+            throwBlock->RemoveFlags(BBF_DONT_REMOVE);
+            fgRemoveBlock(throwBlock, /* unreachable */ true);
+        }
+    }
+
     fgModified = true;
 
-    // The recognizer edits control flow (removing the guard's throw edge), so refresh the DFS tree
-    // that later phases (e.g. loop finding) consume without recomputing themselves.
+    // The recognizer edits control flow (removing the guard's throw edge and dead throw blocks), so
+    // refresh the DFS tree that later phases (e.g. loop finding) consume without recomputing themselves.
     fgInvalidateDfsTree();
     m_dfsTree = fgComputeDfs();
     return PhaseStatus::MODIFIED_EVERYTHING;
