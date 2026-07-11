@@ -4239,13 +4239,6 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
             // Model "idx u<= length" as "idx u< length + 1"; length is a non-negative bound, so this
             // never overflows and preserves the exact fact for downstream checked-bound chaining.
             length = gtNewOperNode(GT_ADD, TYP_INT, length, gtNewIconNode(1, TYP_INT));
-
-            // A "u<=" guard (e.g. List<T>'s `size u<= items.Length`) folds into a bounds check whose
-            // operands are loop-invariant, so it can hoist to the preheader -- but only once copy-prop
-            // has forwarded the separately hoisted field loads into it, which happens on a subsequent
-            // optimization pass. Record that such a candidate exists so the optimizer can opportunistically
-            // run one extra iteration to actually lift it.
-            fgHasUserThrowHoistCandidate = true;
         }
 
         // Register (or reuse) the late-materialized user throw target for this throw block.

@@ -866,13 +866,6 @@ RELEASE_CONFIG_INTEGER(JitEnableUserThrowChecks, "JitEnableUserThrowChecks", 0)
 // the user bounds check recognizer.
 RELEASE_CONFIG_INTEGER(JitEnableInvariantStoreMotion, "JitEnableInvariantStoreMotion", 0)
 
-// When a "u<=" user guard is folded into an invariant-shaped GT_BOUNDS_CHECK (see JitEnableUserThrowChecks),
-// lifting it out of its loop requires several hoist -> CSE -> copy-prop -> hoist rounds because the inlined
-// accessor (e.g. List<T>'s indexer) builds a multi-level temp chain that copy-prop unwinds one level per pass.
-// This controls how many optimization passes to opportunistically run in that case. Only takes effect when
-// JitEnableUserThrowChecks is enabled.
-RELEASE_CONFIG_INTEGER(JitUserThrowOptRepeatCount, "JitUserThrowOptRepeatCount", 5)
-
 // JitFunctionFile: Name of a file that contains a list of functions. If the currently compiled function is in the
 // file, certain other JIT config variables will be active. If the currently compiled function is not in the file,
 // the specific JIT config variables will not be active.

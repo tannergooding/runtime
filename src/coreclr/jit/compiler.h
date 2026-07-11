@@ -7703,13 +7703,6 @@ public:
 public:
     bool fgHasLoops = false;
 
-    // Set by fgRecognizeUserThrowChecks when it folds a "u<=" user guard into an invariant-shaped
-    // GT_BOUNDS_CHECK (e.g. List<T>'s `size u<= items.Length`). Such a check only hoists out of a
-    // loop after copy-prop has forwarded the hoisted field loads into it, which happens on a later
-    // optimization pass -- so when this is set (and the feature is enabled) we opportunistically
-    // request one extra optimization iteration. Gated behind DOTNET_JitEnableUserThrowChecks.
-    bool fgHasUserThrowHoistCandidate = false;
-
 protected:
     unsigned optCallCount = 0;                 // number of calls made in the method
     unsigned optIndirectCallCount = 0;         // number of virtual, interface and indirect calls made in the method
