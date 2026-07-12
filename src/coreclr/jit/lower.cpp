@@ -4771,6 +4771,15 @@ GenTree* Lowering::LowerJTrue(GenTreeOp* jtrue)
 #endif // TARGET_ARM64
 
     GenCondition condCode;
+#if defined(TARGET_AMD64) || defined(TARGET_ARM64)
+    if (TryLowerCarryToJcc(jtrue->AsOp(), cond))
+    {
+        JITDUMP("Lowering JTRUE Result (carry-to-branch):\n");
+        DISPTREERANGE(BlockRange(), jtrue);
+        JITDUMP("\n");
+        return nullptr;
+    }
+#endif // TARGET_AMD64 || TARGET_ARM64
     if (TryLowerConditionToFlagsNode(jtrue, cond, &condCode))
     {
         jtrue->SetOper(GT_JCC);
@@ -8280,6 +8289,216 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
     }
 
     return false;
+}
+
+//------------------------------------------------------------------------
+// TryLowerCarryToJcc: Recognize an unsigned carry/borrow compare that feeds a branch and
+//    fold it into the flags produced by the low add/sub, eliding the compare.
+//
+//        lo = a + b;
+//        if (lo < a) { ... }   // unsigned; == carry-out of the low add
+//
+//        lo = a - b;
+//        if (lo > a) { ... }   // unsigned; == borrow-out of the low sub
+//
+//    The unsigned 'lo < a' / 'lo > a' is exactly the carry/borrow out of the low op, so it
+//    is redundant with the flags that op already computes. We mark the low op as flag-setting
+//    (GTF_SET_FLAGS, which also forces a real 'add'/'sub' rather than a 'lea'), delete the
+//    compare, and rewrite the consuming GT_JTRUE into a flags-consuming GT_JCC. This turns
+//    'add; cmp; jb' into 'add; jc' (x64) / 'adds; b.hs' (Arm64).
+//
+//    The compare may have been reversed and/or had its operands swapped by earlier phases
+//    (e.g. 'lo < a' becomes 'lo >= a' when the branch is laid out to fall through the
+//    common path), so all four orderings are recognized and mapped to the branch condition:
+//
+//        add : lo <  a (carry set)     => C           lo >= a (carry clear)     => NC
+//        sub : lo >  a (borrow set)    => C  / NC*    lo <= a (borrow clear)    => NC / C*
+//                                          (* Arm64: 'subs' sets C = NOT borrow, so borrow
+//                                             is the NC/C mirror of x64)
+//
+// Arguments:
+//    jtrue - the GT_JTRUE node being lowered
+//    cond  - the JTRUE's condition (jtrue->gtGetOp1())
+//
+// Returns:
+//    True if the pattern was recognized and 'jtrue' was rewritten into a GT_JCC.
+//
+bool Lowering::TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond)
+{
+    assert(jtrue->OperIs(GT_JTRUE));
+
+    if (!m_compiler->opts.OptimizationEnabled())
+    {
+        return false;
+    }
+
+    // Only the unsigned relational compares can encode a carry/borrow-out.
+    if (!cond->OperIs(GT_LT, GT_LE, GT_GT, GT_GE) || ((cond->gtFlags & GTF_UNSIGNED) == 0))
+    {
+        return false;
+    }
+
+    GenTree* condOp1 = cond->AsOp()->gtGetOp1();
+    GenTree* condOp2 = cond->AsOp()->gtGetOp2();
+
+    if (!condOp1->TypeIs(TYP_INT, TYP_LONG) || (genActualType(condOp1) != genActualType(condOp2)))
+    {
+        return false;
+    }
+
+    // One operand is 'lo' (the low add/sub result, threaded through a single-def local) and the
+    // other is 'a' (a low operand of that op). Try both assignments; if 'lo' is condOp2 the
+    // effective compare direction is swapped (lo < a  <=>  a > lo).
+    GenTree*   loSum   = nullptr;
+    GenTree*   loAdd   = nullptr;
+    genTreeOps effOper = GT_NONE; // compare oper normalized to 'lo <effOper> a'
+    for (int swap = 0; swap < 2; swap++)
+    {
+        GenTree* sumCand = (swap == 0) ? condOp1 : condOp2;
+        GenTree* aCand   = (swap == 0) ? condOp2 : condOp1;
+
+        GenTree* loStore = GetSingleDefLocalStore(sumCand);
+        if (loStore == nullptr)
+        {
+            continue;
+        }
+
+        GenTree* def = loStore->AsLclVar()->Data();
+        if (!def->OperIs(GT_ADD, GT_SUB) || def->gtOverflow() || !def->TypeIs(sumCand->TypeGet()))
+        {
+            continue;
+        }
+
+        // 'a' must be a non-address-exposed local so its value is stable to the compare.
+        if (!aCand->OperIs(GT_LCL_VAR) || m_compiler->lvaGetDesc(aCand->AsLclVar())->IsAddressExposed())
+        {
+            continue;
+        }
+
+        const bool defIsSub = def->OperIs(GT_SUB);
+        GenTree*   defOp1   = def->AsOp()->gtGetOp1();
+        GenTree*   defOp2   = def->AsOp()->gtGetOp2();
+
+        // For add (commutative) 'a' may be either addend; for sub it must be the minuend (op1),
+        // since the borrow-out identity '(a - b) > a' only holds for the minuend.
+        unsigned aLclNum = aCand->AsLclVar()->GetLclNum();
+        bool     matches = (defOp1->OperIs(GT_LCL_VAR) && (defOp1->AsLclVar()->GetLclNum() == aLclNum)) ||
+                       (!defIsSub && defOp2->OperIs(GT_LCL_VAR) && (defOp2->AsLclVar()->GetLclNum() == aLclNum));
+        if (!matches)
+        {
+            continue;
+        }
+
+        loSum   = sumCand;
+        loAdd   = def;
+        effOper = cond->OperGet();
+        if (swap == 1)
+        {
+            // Operands are (a, lo); mirror the compare so it reads 'lo <effOper> a'.
+            switch (effOper)
+            {
+                case GT_LT:
+                    effOper = GT_GT;
+                    break;
+                case GT_GT:
+                    effOper = GT_LT;
+                    break;
+                case GT_LE:
+                    effOper = GT_GE;
+                    break;
+                case GT_GE:
+                    effOper = GT_LE;
+                    break;
+                default:
+                    unreached();
+            }
+        }
+        break;
+    }
+
+    if (loAdd == nullptr)
+    {
+        return false;
+    }
+
+    const bool isSub = loAdd->OperIs(GT_SUB);
+
+    // Map the normalized 'lo <effOper> a' to the branch condition. Carry-out of an add is
+    // 'lo < a'; borrow-out of a sub is 'lo > a'. The complementary compare (>= / <=) is the
+    // carry/borrow-clear branch.
+    //
+    // carry/borrow set  => x64: C  ; Arm64 add: C, Arm64 sub: NC (subs sets C = NOT borrow)
+    // carry/borrow clear => the mirror of the above.
+    bool branchOnSet; // does the branch condition select "carry/borrow set"?
+    if (!isSub)
+    {
+        // add: 'lo < a' is carry-set; 'lo >= a' is carry-clear.
+        if (effOper == GT_LT)
+        {
+            branchOnSet = true;
+        }
+        else if (effOper == GT_GE)
+        {
+            branchOnSet = false;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        // sub: 'lo > a' is borrow-set; 'lo <= a' is borrow-clear.
+        if (effOper == GT_GT)
+        {
+            branchOnSet = true;
+        }
+        else if (effOper == GT_LE)
+        {
+            branchOnSet = false;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+#ifdef TARGET_ARM64
+    // Arm64 'subs' sets C = NOT borrow, so a set borrow is C clear (NC).
+    const bool setIsCarryFlag = !isSub;
+#else
+    const bool setIsCarryFlag = true;
+#endif
+
+    GenCondition::Code ccCode = (branchOnSet == setIsCarryFlag) ? GenCondition::C : GenCondition::NC;
+
+    // Verify the CPU flags set by the low op survive to the compare, ignoring the compare's own
+    // operands (which this transform deletes).
+    GenTree*             aNode = (loSum == condOp1) ? condOp2 : condOp1;
+    ArrayStack<GenTree*> ignoreNodes(m_compiler->getAllocator(CMK_ArrayStack));
+    ignoreNodes.Push(loSum);
+    ignoreNodes.Push(aNode);
+    if (!AreFlagsPreservedToConsumer(loAdd, cond, ignoreNodes))
+    {
+        return false;
+    }
+
+    // Recognized. Rewrite 'add; cmp; jcc' into 'add; jc/jnc' (Arm64 'adds; b.hs/b.lo').
+    JITDUMP("Recognized carry-to-branch pattern; folding compare [%06u] into the %s flags\n", cond->gtTreeID,
+            isSub ? "sub" : "add");
+
+    // The low op now sets the CPU flags (this also forces a real 'add'/'sub' instead of a 'lea').
+    loAdd->gtFlags |= GTF_SET_FLAGS;
+
+    BlockRange().Remove(loSum);
+    BlockRange().Remove(aNode);
+    BlockRange().Remove(cond);
+
+    jtrue->gtOp1 = nullptr;
+    jtrue->ChangeOper(GT_JCC);
+    jtrue->AsCC()->gtCondition = GenCondition(ccCode);
+
+    return true;
 }
 #endif // TARGET_AMD64 || TARGET_ARM64
 

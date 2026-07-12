@@ -418,6 +418,7 @@ private:
     GenTree* LowerAdd(GenTreeOp* node);
 #if defined(TARGET_AMD64) || defined(TARGET_ARM64)
     bool     TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next);
+    bool     TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond);
     GenTree* GetSingleDefLocalStore(GenTree* lclUse);
     bool     IsCarryLocalSingleUse(GenTree* lclUse);
     bool     AreFlagsPreservedToConsumer(GenTree* flagsDef, GenTree* consumer, ArrayStack<GenTree*>& ignoreNodes);
