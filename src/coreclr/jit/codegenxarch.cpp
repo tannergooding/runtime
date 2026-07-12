@@ -954,8 +954,9 @@ void CodeGen::genCodeForBinary(GenTreeOp* treeNode)
     else
     {
         isValidOper |= treeNode->OperIs(GT_AND, GT_OR, GT_XOR);
+        isValidOper |= treeNode->OperIs(GT_ADD_HI, GT_SUB_HI);
 #ifndef TARGET_64BIT
-        isValidOper |= treeNode->OperIs(GT_ADD_LO, GT_ADD_HI, GT_SUB_LO, GT_SUB_HI);
+        isValidOper |= treeNode->OperIs(GT_ADD_LO, GT_SUB_LO);
 #endif
     }
     assert(isValidOper);
@@ -1931,10 +1932,10 @@ void CodeGen::genCodeForTreeNode(GenTree* treeNode)
 
 #if !defined(TARGET_64BIT)
         case GT_ADD_LO:
-        case GT_ADD_HI:
         case GT_SUB_LO:
-        case GT_SUB_HI:
 #endif // !defined(TARGET_64BIT)
+        case GT_ADD_HI:
+        case GT_SUB_HI:
 
         case GT_ADD:
         case GT_SUB:
@@ -4572,18 +4573,22 @@ instruction CodeGen::genGetInsForOper(genTreeOps oper, var_types type)
         case GT_XOR:
             ins = INS_xor;
             break;
+        // GT_ADD_HI/GT_SUB_HI are the add-with-carry/subtract-with-borrow half of a
+        // carry chain. On 64-bit they are produced by the carry-pattern recognition in
+        // lowering; on 32-bit they are also produced by long decomposition (along with
+        // the GT_ADD_LO/GT_SUB_LO and shift variants below).
+        case GT_ADD_HI:
+            ins = INS_adc;
+            break;
+        case GT_SUB_HI:
+            ins = INS_sbb;
+            break;
 #if !defined(TARGET_64BIT)
         case GT_ADD_LO:
             ins = INS_add;
             break;
-        case GT_ADD_HI:
-            ins = INS_adc;
-            break;
         case GT_SUB_LO:
             ins = INS_sub;
-            break;
-        case GT_SUB_HI:
-            ins = INS_sbb;
             break;
         case GT_LSH_HI:
             ins = INS_shld;

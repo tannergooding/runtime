@@ -416,6 +416,12 @@ private:
                                                const LoadStoreCoalescingData& currData,
                                                const LoadStoreCoalescingData& prevData);
     GenTree* LowerAdd(GenTreeOp* node);
+#if defined(TARGET_AMD64)
+    bool     TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next);
+    GenTree* GetSingleDefLocalStore(GenTree* lclUse);
+    bool     IsCarryLocalSingleUse(GenTree* lclUse);
+    bool     AreFlagsPreservedToConsumer(GenTree* flagsDef, GenTree* consumer, ArrayStack<GenTree*>& ignoreNodes);
+#endif // TARGET_AMD64
     GenTree* LowerMul(GenTreeOp* mul);
     bool     TryLowerAndNegativeOne(GenTreeOp* node, GenTree** nextNode);
     GenTree* LowerBinaryArithmetic(GenTreeOp* binOp);

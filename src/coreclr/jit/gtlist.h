@@ -163,6 +163,16 @@ GTNODE(COLON            , GenTreeColon       ,0,1,GTK_BINOP|DBK_NOTLIR)
 GTNODE(INDEX_ADDR       , GenTreeIndexAddr   ,0,0,GTK_BINOP|GTK_EXOP)   // Address of SZ-array-element.
 GTNODE(LEA              , GenTreeAddrMode    ,0,0,GTK_BINOP|GTK_EXOP|DBK_NOTHIR)
 
+// The high operators of a 64-bit operation that requires a carry/borrow, named
+// GT_XXX_HI for consistency. GT_ADD_HI lowers to add-with-carry (adc) and GT_SUB_HI
+// to subtract-with-borrow (sbb/sbc). They consume the CPU flags produced by the
+// immediately-preceding GTF_SET_FLAGS-marked low operation. On 32-bit these are
+// produced by long decomposition; on 64-bit they are produced by the add-with-carry
+// pattern recognition in lowering (recognizing multi-word carry chains such as
+// Int128/UInt128 and BigInteger limb loops).
+GTNODE(ADD_HI           , GenTreeOp          ,1,0,GTK_BINOP|DBK_NOTHIR)
+GTNODE(SUB_HI           , GenTreeOp          ,0,0,GTK_BINOP|DBK_NOTHIR)
+
 #if !defined(TARGET_64BIT)
 // A GT_LONG node simply represents the long value produced by the concatenation
 // of its two (lower and upper half) operands.  Some GT_LONG nodes are transient,
@@ -170,15 +180,10 @@ GTNODE(LEA              , GenTreeAddrMode    ,0,0,GTK_BINOP|GTK_EXOP|DBK_NOTHIR)
 // nodes such as calls, returns and stores of long lclVars.
 GTNODE(LONG             , GenTreeOp          ,0,0,GTK_BINOP|DBK_NOTHIR)
 
-// The following are nodes representing x86/arm32 specific long operators, including
-// high operators of a 64-bit operations that requires a carry/borrow, which are
-// named GT_XXX_HI for consistency, low operators of 64-bit operations that need
-// to not be modified in phases post-decompose, and operators that return 64-bit
-// results in one instruction.
+// The following are nodes representing x86/arm32 specific low operators of 64-bit
+// operations that need to not be modified in phases post-decompose.
 GTNODE(ADD_LO           , GenTreeOp          ,1,0,GTK_BINOP|DBK_NOTHIR)
-GTNODE(ADD_HI           , GenTreeOp          ,1,0,GTK_BINOP|DBK_NOTHIR)
 GTNODE(SUB_LO           , GenTreeOp          ,0,0,GTK_BINOP|DBK_NOTHIR)
-GTNODE(SUB_HI           , GenTreeOp          ,0,0,GTK_BINOP|DBK_NOTHIR)
 
 // The following are nodes that specify shifts that take a GT_LONG op1. The GT_LONG
 // contains the hi and lo parts of three operand shift form where one op will be
