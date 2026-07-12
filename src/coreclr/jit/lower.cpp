@@ -397,13 +397,13 @@ GenTree* Lowering::LowerNode(GenTree* node)
             if (m_compiler->opts.OptimizationEnabled())
             {
                 GenTree* nextNode = nullptr;
-#if defined(TARGET_AMD64)
+#if defined(TARGET_AMD64) || defined(TARGET_ARM64)
                 if (node->OperIs(GT_SUB) && TryLowerAddSubWithCarry(node->AsOp(), &nextNode))
                 {
                     return nextNode;
                 }
                 assert(nextNode == nullptr);
-#endif // TARGET_AMD64
+#endif // TARGET_AMD64 || TARGET_ARM64
 
                 if (node->OperIs(GT_AND) && TryLowerAndNegativeOne(node->AsOp(), &nextNode))
                 {
@@ -7924,7 +7924,7 @@ bool Lowering::TryCreateAddrMode(GenTree* addr, bool isContainable, GenTree* par
     return true;
 }
 
-#if defined(TARGET_AMD64)
+#if defined(TARGET_AMD64) || defined(TARGET_ARM64)
 //------------------------------------------------------------------------
 // GetSingleDefLocalStore: If 'lclUse' is a GT_LCL_VAR use of a non-address-exposed
 //    local, find the nearest preceding STORE_LCL_VAR to the same local within the
@@ -8281,7 +8281,7 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
 
     return false;
 }
-#endif // TARGET_AMD64
+#endif // TARGET_AMD64 || TARGET_ARM64
 
 //------------------------------------------------------------------------
 // LowerAdd: turn this add into a GT_LEA if that would be profitable
@@ -8295,7 +8295,7 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
 //
 GenTree* Lowering::LowerAdd(GenTreeOp* node)
 {
-#if defined(TARGET_AMD64)
+#if defined(TARGET_AMD64) || defined(TARGET_ARM64)
     {
         GenTree* next;
         if (TryLowerAddSubWithCarry(node, &next))
@@ -8303,7 +8303,7 @@ GenTree* Lowering::LowerAdd(GenTreeOp* node)
             return next;
         }
     }
-#endif // TARGET_AMD64
+#endif // TARGET_AMD64 || TARGET_ARM64
 
     if (varTypeIsIntegralOrI(node->TypeGet()))
     {

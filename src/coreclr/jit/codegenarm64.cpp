@@ -2692,7 +2692,7 @@ void CodeGen::genCodeForBinary(GenTreeOp* tree)
     emitter*         emit       = GetEmitter();
 
     assert(tree->OperIs(GT_ADD, GT_SUB, GT_MUL, GT_DIV, GT_UDIV, GT_AND, GT_AND_NOT, GT_OR, GT_OR_NOT, GT_XOR,
-                        GT_XOR_NOT));
+                        GT_XOR_NOT, GT_ADD_HI, GT_SUB_HI));
 
     GenTree* op1 = tree->gtGetOp1();
     GenTree* op2 = tree->gtGetOp2();
@@ -4148,6 +4148,9 @@ instruction CodeGen::genGetInsForOper(genTreeOps oper, var_types type)
             case GT_ADD:
                 ins = INS_add;
                 break;
+            case GT_ADD_HI:
+                ins = INS_adc;
+                break;
             case GT_AND:
                 ins = INS_and;
                 break;
@@ -4189,6 +4192,9 @@ instruction CodeGen::genGetInsForOper(genTreeOps oper, var_types type)
                 break;
             case GT_SUB:
                 ins = INS_sub;
+                break;
+            case GT_SUB_HI:
+                ins = INS_sbc;
                 break;
             case GT_XOR:
                 ins = INS_eor;
