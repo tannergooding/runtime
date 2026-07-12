@@ -4254,6 +4254,43 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
         guardFacts.Push({loop, factIndex, factLength});
     }
 
+    // Collect the (index, length) of every real (non-user) array/span element bounds check that sits in a
+    // loop, in a single walk over all loop blocks. The profitability gate consults this list per candidate
+    // rather than re-walking the loop trees each time. Real element checks are untouched by the reshape
+    // (we only fold the user compares), so gathering them up front stays valid across the fold loop; and
+    // our own reshaped checks are SCK_USER_THROW so they are excluded here (a candidate never matches
+    // itself). Node threading is not guaranteed at this phase, so walk each statement's tree structurally
+    // via an explicit worklist rather than stmt->TreeList().
+    ArrayStack<UserThrowGuardFact> realChecks(getAllocator(CMK_BasicBlock));
+    for (FlowGraphNaturalLoop* const loop : loops->InPostOrder())
+    {
+        loop->VisitLoopBlocks([&](BasicBlock* block) {
+            for (Statement* const stmt : block->Statements())
+            {
+                ArrayStack<GenTree*> stack(getAllocator(CMK_ArrayStack));
+                stack.Push(stmt->GetRootNode());
+
+                while (stack.Height() > 0)
+                {
+                    GenTree* const node = stack.Pop();
+
+                    if (node->OperIs(GT_BOUNDS_CHECK) && (node->AsBoundsChk()->gtThrowKind != SCK_USER_THROW))
+                    {
+                        GenTreeBoundsChk* const check = node->AsBoundsChk();
+                        realChecks.Push({loop, check->GetIndex(), check->GetArrayLength()});
+                    }
+
+                    node->VisitOperands([&](GenTree* op) {
+                        stack.Push(op);
+                        return GenTree::VisitResult::Continue;
+                    });
+                }
+            }
+
+            return BasicBlockVisit::Continue;
+        });
+    }
+
     // Profitability gate: reshaping a guard into an opaque SCK_USER_THROW BOUNDS_CHECK only pays off when
     // it lets range-check elimination collapse a real per-iteration array element check. That happens when
     // the guard is one leg of a two-hop transitive chain "index <un m <=un arr.Length" that terminates
@@ -4270,8 +4307,7 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
     // operand with an element check but complete no chain, so reshaping eliminates nothing and only
     // materializes a throw helper. It also rejects a guard that fully duplicates a real check (local
     // assertion/range-check prop already handles those in compare form). The array element checks are
-    // present at this phase (recognition runs after morph, before any bounds-check elimination), and our
-    // own reshaped checks are skipped via SCK_USER_THROW so a candidate never matches itself.
+    // present at this phase (recognition runs after morph, before any bounds-check elimination).
     auto guardCompletesChain = [&](FlowGraphNaturalLoop* loop, GenTree* gi, GenTree* gl) -> bool {
         auto hasBridge = [&](GenTree* wantIndex, GenTree* wantLength) -> bool {
             for (int f = 0; f < guardFacts.Height(); f++)
@@ -4286,57 +4322,34 @@ PhaseStatus Compiler::fgRecognizeUserThrowChecks()
             return false;
         };
 
-        bool completes = false;
-        loop->VisitLoopBlocks([&](BasicBlock* block) {
-            for (Statement* const stmt : block->Statements())
+        for (int c = 0; c < realChecks.Height(); c++)
+        {
+            const UserThrowGuardFact check = realChecks.Bottom(c);
+            if (check.loop != loop)
             {
-                // Node threading is not guaranteed at this phase, so walk each statement's tree
-                // structurally via an explicit worklist rather than stmt->TreeList().
-                ArrayStack<GenTree*> stack(getAllocator(CMK_ArrayStack));
-                stack.Push(stmt->GetRootNode());
-
-                while (stack.Height() > 0)
-                {
-                    GenTree* const node = stack.Pop();
-
-                    if (node->OperIs(GT_BOUNDS_CHECK) && (node->AsBoundsChk()->gtThrowKind != SCK_USER_THROW))
-                    {
-                        GenTreeBoundsChk* const check = node->AsBoundsChk();
-                        GenTree* const          ai    = check->GetIndex();
-                        GenTree* const          al    = check->GetArrayLength();
-                        const bool              mi    = GenTree::Compare(gi, ai);
-                        const bool              ml    = GenTree::Compare(gl, al);
-
-                        // Index leg: this guard is "ai <un m" (gl == m). Complete the chain with a length
-                        // leg "m <=un al" supplied by another guard.
-                        if (mi && !ml && hasBridge(gl, al))
-                        {
-                            completes = true;
-                        }
-                        // Length leg: this guard is "m <=un al" (gi == m). Complete the chain with an
-                        // index leg "ai <un m" supplied by another guard.
-                        else if (ml && !mi && hasBridge(ai, gi))
-                        {
-                            completes = true;
-                        }
-
-                        if (completes)
-                        {
-                            return BasicBlockVisit::Abort;
-                        }
-                    }
-
-                    node->VisitOperands([&](GenTree* op) {
-                        stack.Push(op);
-                        return GenTree::VisitResult::Continue;
-                    });
-                }
+                continue;
             }
 
-            return BasicBlockVisit::Continue;
-        });
+            GenTree* const ai = check.index;
+            GenTree* const al = check.length;
+            const bool     mi = GenTree::Compare(gi, ai);
+            const bool     ml = GenTree::Compare(gl, al);
 
-        return completes;
+            // Index leg: this guard is "ai <un m" (gl == m). Complete the chain with a length leg
+            // "m <=un al" supplied by another guard.
+            if (mi && !ml && hasBridge(gl, al))
+            {
+                return true;
+            }
+            // Length leg: this guard is "m <=un al" (gi == m). Complete the chain with an index leg
+            // "ai <un m" supplied by another guard.
+            if (ml && !mi && hasBridge(ai, gi))
+            {
+                return true;
+            }
+        }
+
+        return false;
     };
 
     // Dedup shared throw targets so several guards register a single descriptor (and one late block).
