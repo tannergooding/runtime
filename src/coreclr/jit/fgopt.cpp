@@ -2514,13 +2514,29 @@ void Compiler::fgRemoveConditionalJump(BasicBlock* block)
 
         if (jmp->OperIs(GT_JCC))
         {
-            // For JCC we have an invariant until resolution that the
-            // previous node sets those CPU flags.
-            GenTree* prevNode = jmp->gtPrev;
-            assert((prevNode != nullptr) && ((prevNode->gtFlags & GTF_SET_FLAGS) != 0));
-            prevNode->gtFlags &= ~GTF_SET_FLAGS;
-            jmpRange = blockRange.GetTreeRange(prevNode, &isClosed, &sideEffects);
-            jmpRange = LIR::ReadOnlyRange(jmpRange.FirstNode(), jmp);
+            // The JCC's flags come from an earlier node (until resolution): usually the
+            // immediately-preceding GT_CMP, but a flags-consuming add/sub (the adc idiom) is a
+            // live value whose store sits between it and the JCC. Walk back to that flags-def
+            // and clear GTF_SET_FLAGS, since nothing consumes the flags once the branch is gone.
+            GenTree* flagsDef = jmp->gtPrev;
+            while ((flagsDef != nullptr) && ((flagsDef->gtFlags & GTF_SET_FLAGS) == 0))
+            {
+                flagsDef = flagsDef->gtPrev;
+            }
+            assert((flagsDef != nullptr) && ((flagsDef->gtFlags & GTF_SET_FLAGS) != 0));
+            flagsDef->gtFlags &= ~GTF_SET_FLAGS;
+
+            if (flagsDef == jmp->gtPrev)
+            {
+                // Pure flag producer with no live value; remove it with the jump if it is dead.
+                jmpRange = blockRange.GetTreeRange(flagsDef, &isClosed, &sideEffects);
+                jmpRange = LIR::ReadOnlyRange(jmpRange.FirstNode(), jmp);
+            }
+            else
+            {
+                // Flags come from a still-live value; remove only the jump.
+                jmpRange = blockRange.GetTreeRange(jmp, &isClosed, &sideEffects);
+            }
         }
         else
         {

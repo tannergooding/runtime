@@ -8207,6 +8207,14 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
         GenTree* loAddOp1 = loAdd->AsOp()->gtGetOp1();
         GenTree* loAddOp2 = loAdd->AsOp()->gtGetOp2();
 
+        // A low op whose other operand is a contained GT_MUL would be emitted as an Arm64
+        // 'madd'/'msub', which cannot also set the CPU flags. Don't fold such a low op.
+        if ((loAddOp1->OperIs(GT_MUL) && loAddOp1->isContained()) ||
+            (loAddOp2->OperIs(GT_MUL) && loAddOp2->isContained()))
+        {
+            continue;
+        }
+
         // For add (commutative) 'a' may be either addend; for sub it must be the minuend
         // (op1), since the borrow-out identity '(a - b) > a' only holds for the minuend.
         unsigned aLclNum   = cmpA->AsLclVar()->GetLclNum();
@@ -8378,6 +8386,13 @@ bool Lowering::TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond)
         const bool defIsSub = def->OperIs(GT_SUB);
         GenTree*   defOp1   = def->AsOp()->gtGetOp1();
         GenTree*   defOp2   = def->AsOp()->gtGetOp2();
+
+        // A low op whose other operand is a contained GT_MUL would be emitted as an Arm64
+        // 'madd'/'msub', which cannot also set the CPU flags. Don't fold such a low op.
+        if ((defOp1->OperIs(GT_MUL) && defOp1->isContained()) || (defOp2->OperIs(GT_MUL) && defOp2->isContained()))
+        {
+            continue;
+        }
 
         // For add (commutative) 'a' may be either addend; for sub it must be the minuend (op1),
         // since the borrow-out identity '(a - b) > a' only holds for the minuend.

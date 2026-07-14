@@ -2923,6 +2923,12 @@ void CodeGen::genCodeForBinary(GenTreeOp* tree)
             case GT_SUB:
                 ins = INS_subs;
                 break;
+            case GT_ADD_HI:
+                ins = INS_adcs;
+                break;
+            case GT_SUB_HI:
+                ins = INS_sbcs;
+                break;
             case GT_AND:
                 ins = INS_ands;
                 break;
