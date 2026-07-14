@@ -411,6 +411,14 @@ GenTree* Lowering::LowerNode(GenTree* node)
                 }
                 assert(nextNode == nullptr);
 
+#if defined(TARGET_AMD64) || defined(TARGET_ARM64)
+                if (node->OperIs(GT_AND) && TryLowerSignedOverflowToJcc(node->AsOp(), &nextNode))
+                {
+                    return nextNode;
+                }
+                assert(nextNode == nullptr);
+#endif // TARGET_AMD64 || TARGET_ARM64
+
                 nextNode = node->gtNext;
                 if (node->OperIs(GT_AND, GT_OR, GT_XOR) && TryFoldBinop(node->AsOp()))
                 {
@@ -8512,6 +8520,282 @@ bool Lowering::TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond)
     jtrue->gtOp1 = nullptr;
     jtrue->ChangeOper(GT_JCC);
     jtrue->AsCC()->gtCondition = GenCondition(ccCode);
+
+    return true;
+}
+
+//------------------------------------------------------------------------
+// TryLowerSignedOverflowToJcc: Recognize a hand-rolled signed add/sub overflow check that
+//    feeds a branch and fold it into the overflow (OF/V) flag produced by the add/sub.
+//
+//        sum = a + b;
+//        if (((sum ^ a) & ~(a ^ b)) < 0) { ... }   // signed add overflow
+//
+//        dif = a - b;
+//        if (((dif ^ a) & (a ^ b)) < 0) { ... }     // signed sub overflow
+//
+//    The '... < 0' tests the sign bit of the canonical signed-overflow expression, which is
+//    exactly the overflow flag the add/sub already computes (OF on x64, V on Arm64, same
+//    polarity for both add and sub). The expression is therefore redundant with a flag the
+//    hardware already has. We mark the add/sub as flag-setting, delete the whole
+//    overflow-computing subtree and the compare, and rewrite the consuming GT_JTRUE into a
+//    flags-consuming GT_JCC. This turns 'add; xor; xor; and; js' (BMI: 'add; xor; xor; andn;
+//    js') into 'add; jo' (x64) / 'adds; b.vs' (Arm64).
+//
+//    We hook the GT_AND before target-specific lowering (which would otherwise rewrite
+//    'x & ~y' into an 'andn'/'bic' HWINTRINSIC), so the tree is still a plain
+//    GT_AND(GT_XOR, GT_XOR)  (sub) or GT_AND(GT_XOR, GT_NOT(GT_XOR))  (add).
+//
+// Arguments:
+//    andNode - the GT_AND node being lowered
+//    next    - [out] set to the next node to lower when the pattern is recognized
+//
+// Returns:
+//    True if the pattern was recognized and the consuming GT_JTRUE was rewritten into a GT_JCC.
+//
+bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
+{
+    assert(andNode->OperIs(GT_AND));
+
+    if (!m_compiler->opts.OptimizationEnabled())
+    {
+        return false;
+    }
+
+    if (!andNode->TypeIs(TYP_INT, TYP_LONG))
+    {
+        return false;
+    }
+
+    // The AND must feed a signed compare against zero that in turn feeds a GT_JTRUE.
+    LIR::Use andUse;
+    if (!BlockRange().TryGetUse(andNode, &andUse))
+    {
+        return false;
+    }
+
+    GenTree* cmp = andUse.User();
+    if (!cmp->OperIs(GT_LT, GT_LE, GT_GT, GT_GE) || ((cmp->gtFlags & GTF_UNSIGNED) != 0))
+    {
+        return false;
+    }
+
+    GenTree* cmpOp1 = cmp->AsOp()->gtGetOp1();
+    GenTree* cmpOp2 = cmp->AsOp()->gtGetOp2();
+
+    // One side is the AND, the other must be the integer constant zero. Normalize the compare
+    // so it reads 'and <effOper> 0'; only the strict sign tests ('< 0' / '>= 0') are pure
+    // overflow-flag tests ('<= 0' / '> 0' additionally depend on the zero/equal case).
+    GenTree*   zeroOp;
+    genTreeOps effOper = cmp->OperGet();
+    if (cmpOp1 == andNode)
+    {
+        zeroOp = cmpOp2;
+    }
+    else
+    {
+        zeroOp = cmpOp1;
+        switch (effOper)
+        {
+            case GT_LT:
+                effOper = GT_GT;
+                break;
+            case GT_GT:
+                effOper = GT_LT;
+                break;
+            case GT_LE:
+                effOper = GT_GE;
+                break;
+            case GT_GE:
+                effOper = GT_LE;
+                break;
+            default:
+                unreached();
+        }
+    }
+
+    if (!zeroOp->IsIntegralConst(0))
+    {
+        return false;
+    }
+
+    bool overflowSet; // does the branch's taken edge correspond to "overflow"?
+    if (effOper == GT_LT)
+    {
+        overflowSet = true; // and < 0
+    }
+    else if (effOper == GT_GE)
+    {
+        overflowSet = false; // and >= 0
+    }
+    else
+    {
+        return false;
+    }
+
+    LIR::Use cmpUse;
+    if (!BlockRange().TryGetUse(cmp, &cmpUse))
+    {
+        return false;
+    }
+
+    GenTree* jtrue = cmpUse.User();
+    if (!jtrue->OperIs(GT_JTRUE))
+    {
+        return false;
+    }
+
+    // Decompose 'AND(resXor, opXor)'. One leg is 'res ^ x' where 'res' is the add/sub result
+    // (threaded through a single-def local) and 'x' is one of its operands; the other leg is
+    // 'a ^ b' (sub) or '~(a ^ b)' (add), i.e. the two operands of the same add/sub.
+    GenTree* andL = andNode->gtGetOp1();
+    GenTree* andR = andNode->gtGetOp2();
+
+    GenTree* def = nullptr;
+    for (int order = 0; (order < 2) && (def == nullptr); order++)
+    {
+        GenTree* resLeg = (order == 0) ? andL : andR;
+        GenTree* othLeg = (order == 0) ? andR : andL;
+
+        if (!resLeg->OperIs(GT_XOR))
+        {
+            continue;
+        }
+
+        GenTree* rx1 = resLeg->AsOp()->gtGetOp1();
+        GenTree* rx2 = resLeg->AsOp()->gtGetOp2();
+
+        for (int rswap = 0; (rswap < 2) && (def == nullptr); rswap++)
+        {
+            GenTree* resCand = (rswap == 0) ? rx1 : rx2;
+            GenTree* xCand   = (rswap == 0) ? rx2 : rx1;
+
+            GenTree* store = GetSingleDefLocalStore(resCand);
+            if (store == nullptr)
+            {
+                continue;
+            }
+
+            GenTree* defCand = store->AsLclVar()->Data();
+            if (!defCand->OperIs(GT_ADD, GT_SUB, GT_ADD_HI, GT_SUB_HI) || !defCand->TypeIs(andNode->TypeGet()))
+            {
+                continue;
+            }
+            if (defCand->OperIs(GT_ADD, GT_SUB) && defCand->gtOverflow())
+            {
+                continue;
+            }
+
+            GenTree* aDef = defCand->AsOp()->gtGetOp1();
+            GenTree* bDef = defCand->AsOp()->gtGetOp2();
+            if (!aDef->OperIs(GT_LCL_VAR) || !bDef->OperIs(GT_LCL_VAR))
+            {
+                continue;
+            }
+
+            if (m_compiler->lvaGetDesc(aDef->AsLclVar())->IsAddressExposed() ||
+                m_compiler->lvaGetDesc(bDef->AsLclVar())->IsAddressExposed())
+            {
+                continue;
+            }
+
+            const unsigned aNum     = aDef->AsLclVar()->GetLclNum();
+            const unsigned bNum     = bDef->AsLclVar()->GetLclNum();
+            const bool     defIsSub = defCand->OperIs(GT_SUB, GT_SUB_HI);
+
+            // 'x' in 'res ^ x' must be an operand of the add/sub. For sub it must be the
+            // minuend (op1), since the identity is '(a - b) ^ a'; for add either operand works.
+            if (!xCand->OperIs(GT_LCL_VAR))
+            {
+                continue;
+            }
+            const unsigned xNum = xCand->AsLclVar()->GetLclNum();
+            if (defIsSub ? (xNum != aNum) : ((xNum != aNum) && (xNum != bNum)))
+            {
+                continue;
+            }
+
+            // The other leg is 'a ^ b' for sub and '~(a ^ b)' for add.
+            GenTree* xorAB   = othLeg;
+            bool     negated = false;
+            if (xorAB->OperIs(GT_NOT))
+            {
+                negated = true;
+                xorAB   = xorAB->AsUnOp()->gtGetOp1();
+            }
+            if (defIsSub == negated)
+            {
+                continue;
+            }
+            if (!xorAB->OperIs(GT_XOR))
+            {
+                continue;
+            }
+
+            GenTree* ab1 = xorAB->AsOp()->gtGetOp1();
+            GenTree* ab2 = xorAB->AsOp()->gtGetOp2();
+            if (!ab1->OperIs(GT_LCL_VAR) || !ab2->OperIs(GT_LCL_VAR))
+            {
+                continue;
+            }
+            const unsigned ab1n = ab1->AsLclVar()->GetLclNum();
+            const unsigned ab2n = ab2->AsLclVar()->GetLclNum();
+            if (!(((ab1n == aNum) && (ab2n == bNum)) || ((ab1n == bNum) && (ab2n == aNum))))
+            {
+                continue;
+            }
+
+            def = defCand;
+        }
+    }
+
+    if (def == nullptr)
+    {
+        return false;
+    }
+
+    // Collect every node of the overflow-computing subtree (the AND and all its descendants:
+    // both XORs, the optional NOT, and their leaf reads). These are pure, single-use nodes
+    // that will be deleted; they are also passed as 'ignore' to the flags-liveness check since
+    // they are the nodes that would otherwise clobber the overflow flag before the branch.
+    ArrayStack<GenTree*> subtree(m_compiler->getAllocator(CMK_ArrayStack));
+    ArrayStack<GenTree*> work(m_compiler->getAllocator(CMK_ArrayStack));
+    work.Push(andNode);
+    while (!work.Empty())
+    {
+        GenTree* cur = work.Pop();
+        subtree.Push(cur);
+        cur->VisitOperands([&work](GenTree* op) -> GenTree::VisitResult {
+            work.Push(op);
+            return GenTree::VisitResult::Continue;
+        });
+    }
+
+    // Verify the overflow flag set by the add/sub survives to the compare, ignoring the
+    // subtree we are about to delete.
+    if (!AreFlagsPreservedToConsumer(def, cmp, subtree))
+    {
+        return false;
+    }
+
+    JITDUMP("Recognized signed-overflow-to-branch pattern; folding overflow check [%06u] into the %s flags\n",
+            andNode->gtTreeID, def->OperIs(GT_SUB, GT_SUB_HI) ? "sub" : "add");
+
+    // The add/sub now sets the CPU flags (this also forces a real 'add'/'sub' instead of a 'lea').
+    def->gtFlags |= GTF_SET_FLAGS;
+
+    for (int i = 0; i < subtree.Height(); i++)
+    {
+        BlockRange().Remove(subtree.Top(i));
+    }
+    BlockRange().Remove(zeroOp);
+    BlockRange().Remove(cmp);
+
+    *next = jtrue->gtNext;
+
+    jtrue->AsOp()->gtOp1 = nullptr;
+    jtrue->ChangeOper(GT_JCC);
+    jtrue->AsCC()->gtCondition = GenCondition(overflowSet ? GenCondition::O : GenCondition::NO);
 
     return true;
 }
