@@ -7440,18 +7440,35 @@ void Lowering::ContainCheckStoreIndir(GenTreeStoreInd* node)
 
                 case NI_X86Base_Extract:
                 case NI_X86Base_X64_Extract:
-                case NI_AVX_ExtractVector128:
-                case NI_AVX2_ExtractVector128:
-                case NI_AVX512_ExtractVector128:
-                case NI_AVX512_ExtractVector256:
                 {
-                    // These intrinsics are "ins reg/mem, xmm, imm8"
+                    // These intrinsics are "pextr[bwdq] reg/mem, xmm, imm8" and extract a single
+                    // scalar element, so the store size must match the extracted element size.
 
                     size_t   numArgs = hwintrinsic->GetOperandCount();
                     GenTree* lastOp  = hwintrinsic->Op(numArgs);
 
                     isContainable = HWIntrinsicInfo::isImmOp(intrinsicId, lastOp) && lastOp->IsCnsIntOrI() &&
                                     (genTypeSize(simdBaseType) == genTypeSize(node));
+                    break;
+                }
+
+                case NI_AVX_ExtractVector128:
+                case NI_AVX2_ExtractVector128:
+                case NI_AVX512_ExtractVector128:
+                case NI_AVX512_ExtractVector256:
+                {
+                    // These intrinsics are "vextract[if]128/x4 reg/mem, [yz]mm, imm8" and extract a
+                    // full 128/256-bit lane, so the store size must match the extracted lane, namely
+                    // the result type of the intrinsic (genTypeSize(src)), not the element size.
+                    //
+                    // imm8 == 0 selects the low lane, which is better left as a plain store of the
+                    // low half, so only contain the non-zero lane extracts.
+
+                    size_t   numArgs = hwintrinsic->GetOperandCount();
+                    GenTree* lastOp  = hwintrinsic->Op(numArgs);
+
+                    isContainable = HWIntrinsicInfo::isImmOp(intrinsicId, lastOp) && lastOp->IsCnsIntOrI() &&
+                                    !lastOp->IsIntegralConst(0) && (genTypeSize(node) == genTypeSize(src));
                     break;
                 }
 
