@@ -107,6 +107,19 @@ namespace System.Tests
         private static readonly HashSet<string> s_bid64RoundIntegral = new() { "bid64_round_integral_exact", "bid64_round_integral_nearest_even", "bid64_round_integral_nearest_away", "bid64_round_integral_negative", "bid64_round_integral_positive", "bid64_round_integral_zero" };
         private static readonly HashSet<string> s_bid128RoundIntegral = new() { "bid128_round_integral_exact", "bid128_round_integral_nearest_even", "bid128_round_integral_nearest_away", "bid128_round_integral_negative", "bid128_round_integral_positive", "bid128_round_integral_zero" };
 
+        // Transcendental functions. Unlike every other family above, these are NOT a bit-exact oracle: both
+        // Intel's library and the .NET implementations evaluate the result in binary floating-point and round
+        // back to the decimal format, but they use independent binary cores, so the two results can differ in
+        // the last places. The theories that consume these vectors therefore compare with a deliberately loose
+        // tolerance and only assert that the operation was wired to the right function and round-trips sanely.
+        private static readonly HashSet<string> s_bid32TranscendentalUnary = new() { "bid32_exp", "bid32_exp2", "bid32_exp10", "bid32_expm1", "bid32_log", "bid32_log2", "bid32_log10", "bid32_log1p", "bid32_cbrt", "bid32_sin", "bid32_cos", "bid32_tan", "bid32_asin", "bid32_acos", "bid32_atan", "bid32_sinh", "bid32_cosh", "bid32_tanh", "bid32_asinh", "bid32_acosh", "bid32_atanh" };
+        private static readonly HashSet<string> s_bid64TranscendentalUnary = new() { "bid64_exp", "bid64_exp2", "bid64_exp10", "bid64_expm1", "bid64_log", "bid64_log2", "bid64_log10", "bid64_log1p", "bid64_cbrt", "bid64_sin", "bid64_cos", "bid64_tan", "bid64_asin", "bid64_acos", "bid64_atan", "bid64_sinh", "bid64_cosh", "bid64_tanh", "bid64_asinh", "bid64_acosh", "bid64_atanh" };
+        private static readonly HashSet<string> s_bid128TranscendentalUnary = new() { "bid128_exp", "bid128_exp2", "bid128_exp10", "bid128_expm1", "bid128_log", "bid128_log2", "bid128_log10", "bid128_log1p", "bid128_cbrt", "bid128_sin", "bid128_cos", "bid128_tan", "bid128_asin", "bid128_acos", "bid128_atan", "bid128_sinh", "bid128_cosh", "bid128_tanh", "bid128_asinh", "bid128_acosh", "bid128_atanh" };
+
+        private static readonly HashSet<string> s_bid32TranscendentalBinary = new() { "bid32_pow", "bid32_hypot", "bid32_atan2" };
+        private static readonly HashSet<string> s_bid64TranscendentalBinary = new() { "bid64_pow", "bid64_hypot", "bid64_atan2" };
+        private static readonly HashSet<string> s_bid128TranscendentalBinary = new() { "bid128_pow", "bid128_hypot", "bid128_atan2" };
+
         /// <summary>
         /// Gets a value indicating whether the Intel <c>readtest.in</c> reference vectors are available,
         /// gating the theories that consume them.
@@ -507,6 +520,72 @@ namespace System.Tests
                 if (TryParseBid128(fields[2], out UInt128 value) && !IsBid128NaN(value) && TryParseBid128(fields[3], out UInt128 expected))
                 {
                     yield return new object[] { OperationSuffix(fields[0]), value, expected };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> Decimal32TranscendentalUnary()
+        {
+            foreach (string[] fields in EnumerateRows(s_bid32TranscendentalUnary))
+            {
+                if (TryParseBid32(fields[2], out uint value) && TryParseBid32(fields[3], out uint expected))
+                {
+                    yield return new object[] { OperationSuffix(fields[0]), value, expected };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> Decimal64TranscendentalUnary()
+        {
+            foreach (string[] fields in EnumerateRows(s_bid64TranscendentalUnary))
+            {
+                if (TryParseBid64(fields[2], out ulong value) && TryParseBid64(fields[3], out ulong expected))
+                {
+                    yield return new object[] { OperationSuffix(fields[0]), value, expected };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> Decimal128TranscendentalUnary()
+        {
+            foreach (string[] fields in EnumerateRows(s_bid128TranscendentalUnary))
+            {
+                if (TryParseBid128(fields[2], out UInt128 value) && TryParseBid128(fields[3], out UInt128 expected))
+                {
+                    yield return new object[] { OperationSuffix(fields[0]), value, expected };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> Decimal32TranscendentalBinary()
+        {
+            foreach (string[] fields in EnumerateRows(s_bid32TranscendentalBinary))
+            {
+                if (TryParseBid32(fields[2], out uint left) && TryParseBid32(fields[3], out uint right) && TryParseBid32(fields[4], out uint expected))
+                {
+                    yield return new object[] { OperationSuffix(fields[0]), left, right, expected };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> Decimal64TranscendentalBinary()
+        {
+            foreach (string[] fields in EnumerateRows(s_bid64TranscendentalBinary))
+            {
+                if (TryParseBid64(fields[2], out ulong left) && TryParseBid64(fields[3], out ulong right) && TryParseBid64(fields[4], out ulong expected))
+                {
+                    yield return new object[] { OperationSuffix(fields[0]), left, right, expected };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> Decimal128TranscendentalBinary()
+        {
+            foreach (string[] fields in EnumerateRows(s_bid128TranscendentalBinary))
+            {
+                if (TryParseBid128(fields[2], out UInt128 left) && TryParseBid128(fields[3], out UInt128 right) && TryParseBid128(fields[4], out UInt128 expected))
+                {
+                    yield return new object[] { OperationSuffix(fields[0]), left, right, expected };
                 }
             }
         }

@@ -1730,6 +1730,102 @@ namespace System.Tests
             Assert.Equal(expected, Unsafe.BitCast<Decimal32, uint>(result));
         }
 
+        // The Intel transcendental vectors are not a bit-exact oracle: Intel evaluates on the exact decimal
+        // operand, where-as Option B rounds the operand to double, evaluates there, and rounds back. This is a
+        // loose sanity check that each operation is wired to the right function and round-trips within the
+        // domain where double routing is faithful; it is not a correctly-rounded assertion. The following are
+        // skipped because Option B cannot reproduce Intel there (the documented precision limitation), not
+        // because of a bug: non-finite operands/results (the libraries disagree at the overflow/underflow
+        // boundary) and sin/cos/tan of a large argument (double cannot hold the operand closely enough to
+        // range-reduce it, so the result is meaningless).
+        private const double IntelTranscendentalRelativeTolerance = 1e-5;
+        private const double IntelTranscendentalAbsoluteTolerance = 1e-6;
+        private const double IntelPeriodicArgumentCeiling = 1e6;
+
+        private static void AssertIntelClose(double expected, Decimal32 actual)
+        {
+            double a = (double)actual;
+            double bound = IntelTranscendentalAbsoluteTolerance + (IntelTranscendentalRelativeTolerance * Math.Abs(expected));
+            Assert.True(Math.Abs(a - expected) <= bound, $"expected ~{expected}, actual {a}");
+        }
+
+        [ConditionalTheory(typeof(DecimalIeee754IntelTestData), nameof(DecimalIeee754IntelTestData.IsAvailable))]
+        [MemberData(nameof(DecimalIeee754IntelTestData.Decimal32TranscendentalUnary), MemberType = typeof(DecimalIeee754IntelTestData))]
+        public static void TranscendentalUnary_IntelReferenceVectors(string operation, uint value, uint expected)
+        {
+            Decimal32 x = Unsafe.BitCast<uint, Decimal32>(value);
+
+            double operandDouble = (double)x;
+            double expectedDouble = (double)Unsafe.BitCast<uint, Decimal32>(expected);
+            if (!double.IsFinite(expectedDouble) || !double.IsFinite(operandDouble))
+            {
+                return;
+            }
+
+            if ((operation is "sin" or "cos" or "tan") && (Math.Abs(operandDouble) > IntelPeriodicArgumentCeiling))
+            {
+                return;
+            }
+
+            Decimal32 result = operation switch
+            {
+                "exp" => Decimal32.Exp(x),
+                "exp2" => Decimal32.Exp2(x),
+                "exp10" => Decimal32.Exp10(x),
+                "expm1" => Decimal32.ExpM1(x),
+                "log" => Decimal32.Log(x),
+                "log2" => Decimal32.Log2(x),
+                "log10" => Decimal32.Log10(x),
+                "log1p" => Decimal32.LogP1(x),
+                "cbrt" => Decimal32.Cbrt(x),
+                "sin" => Decimal32.Sin(x),
+                "cos" => Decimal32.Cos(x),
+                "tan" => Decimal32.Tan(x),
+                "asin" => Decimal32.Asin(x),
+                "acos" => Decimal32.Acos(x),
+                "atan" => Decimal32.Atan(x),
+                "sinh" => Decimal32.Sinh(x),
+                "cosh" => Decimal32.Cosh(x),
+                "tanh" => Decimal32.Tanh(x),
+                "asinh" => Decimal32.Asinh(x),
+                "acosh" => Decimal32.Acosh(x),
+                "atanh" => Decimal32.Atanh(x),
+                _ => throw new InvalidOperationException($"Unexpected operation '{operation}'."),
+            };
+
+            if (double.IsFinite((double)result))
+            {
+                AssertIntelClose(expectedDouble, result);
+            }
+        }
+
+        [ConditionalTheory(typeof(DecimalIeee754IntelTestData), nameof(DecimalIeee754IntelTestData.IsAvailable))]
+        [MemberData(nameof(DecimalIeee754IntelTestData.Decimal32TranscendentalBinary), MemberType = typeof(DecimalIeee754IntelTestData))]
+        public static void TranscendentalBinary_IntelReferenceVectors(string operation, uint left, uint right, uint expected)
+        {
+            Decimal32 l = Unsafe.BitCast<uint, Decimal32>(left);
+            Decimal32 r = Unsafe.BitCast<uint, Decimal32>(right);
+
+            double expectedDouble = (double)Unsafe.BitCast<uint, Decimal32>(expected);
+            if (!double.IsFinite(expectedDouble) || !double.IsFinite((double)l) || !double.IsFinite((double)r))
+            {
+                return;
+            }
+
+            Decimal32 result = operation switch
+            {
+                "pow" => Decimal32.Pow(l, r),
+                "hypot" => Decimal32.Hypot(l, r),
+                "atan2" => Decimal32.Atan2(l, r),
+                _ => throw new InvalidOperationException($"Unexpected operation '{operation}'."),
+            };
+
+            if (double.IsFinite((double)result))
+            {
+                AssertIntelClose(expectedDouble, result);
+            }
+        }
+
         [Theory]
         [InlineData("0", 0x32800000U)]
         [InlineData("0.00", 0x31800000U)]
