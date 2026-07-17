@@ -921,6 +921,15 @@ namespace System.Numerics
         /// <inheritdoc cref="IPowerFunctions{TSelf}.Pow(TSelf, TSelf)" />
         public static Decimal32 Pow(Decimal32 x, Decimal32 y) => new Decimal32(Number.BinaryFromDoubleDecimalIeee754ObservingNaN<Decimal32, uint>(x._value, y._value, double.Pow));
 
+        /// <inheritdoc cref="IRootFunctions{TSelf}.Cbrt(TSelf)" />
+        public static Decimal32 Cbrt(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Cbrt));
+
+        /// <inheritdoc cref="IRootFunctions{TSelf}.Hypot(TSelf, TSelf)" />
+        public static Decimal32 Hypot(Decimal32 x, Decimal32 y) => new Decimal32(Number.BinaryFromDoubleDecimalIeee754ObservingNaN<Decimal32, uint>(x._value, y._value, double.Hypot));
+
+        /// <inheritdoc cref="IRootFunctions{TSelf}.RootN(TSelf, int)" />
+        public static Decimal32 RootN(Decimal32 x, int n) => new Decimal32(Number.RootNFromDoubleDecimalIeee754<Decimal32, uint>(x._value, n));
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>

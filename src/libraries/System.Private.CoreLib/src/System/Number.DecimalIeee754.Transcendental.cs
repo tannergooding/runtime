@@ -86,5 +86,25 @@ namespace System
 
             return ConvertFloatToDecimalIeee754<double, TDecimal, TValue>(result);
         }
+
+        internal static TValue RootNFromDoubleDecimalIeee754<TDecimal, TValue>(TValue decimalBits, int n)
+            where TDecimal : unmanaged, IDecimalIeee754ParseAndFormatInfo<TDecimal, TValue>
+            where TValue : unmanaged, IBinaryInteger<TValue>
+        {
+            if (TDecimal.IsNaN(decimalBits))
+            {
+                return PropagateNaN<TDecimal, TValue>(decimalBits, decimalBits);
+            }
+
+            double x = ConvertDecimalIeee754ToFloat<TDecimal, TValue, double>(decimalBits);
+            double result = double.RootN(x, n);
+
+            if (double.IsNaN(result))
+            {
+                return TDecimal.NaN;
+            }
+
+            return ConvertFloatToDecimalIeee754<double, TDecimal, TValue>(result);
+        }
     }
 }

@@ -912,6 +912,15 @@ namespace System.Numerics
         /// <inheritdoc cref="IPowerFunctions{TSelf}.Pow(TSelf, TSelf)" />
         public static Decimal64 Pow(Decimal64 x, Decimal64 y) => new Decimal64(Number.BinaryFromDoubleDecimalIeee754ObservingNaN<Decimal64, ulong>(x._value, y._value, double.Pow));
 
+        /// <inheritdoc cref="IRootFunctions{TSelf}.Cbrt(TSelf)" />
+        public static Decimal64 Cbrt(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.Cbrt));
+
+        /// <inheritdoc cref="IRootFunctions{TSelf}.Hypot(TSelf, TSelf)" />
+        public static Decimal64 Hypot(Decimal64 x, Decimal64 y) => new Decimal64(Number.BinaryFromDoubleDecimalIeee754ObservingNaN<Decimal64, ulong>(x._value, y._value, double.Hypot));
+
+        /// <inheritdoc cref="IRootFunctions{TSelf}.RootN(TSelf, int)" />
+        public static Decimal64 RootN(Decimal64 x, int n) => new Decimal64(Number.RootNFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, n));
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>

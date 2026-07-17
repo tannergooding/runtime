@@ -2938,5 +2938,40 @@ namespace System.Tests
             AssertClose(-8.0, Decimal64.Pow((Decimal64)(-2.0), (Decimal64)3.0), 1e-12);
         }
 
+        [Fact]
+        public static void Cbrt()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Cbrt(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Cbrt(Decimal64.Zero)));
+            Assert.Equal(Bits(Decimal64.NegativeZero), Bits(Decimal64.Cbrt(Decimal64.NegativeZero)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Cbrt(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.NegativeInfinity), Bits(Decimal64.Cbrt(Decimal64.NegativeInfinity)));
+
+            AssertClose(3.0, Decimal64.Cbrt((Decimal64)27.0), 1e-12);
+            AssertClose(-2.0, Decimal64.Cbrt((Decimal64)(-8.0)), 1e-12);
+        }
+
+        [Fact]
+        public static void Hypot()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Hypot(Decimal64.NaN, (Decimal64)3.0)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Hypot(Decimal64.NaN, Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Hypot(Decimal64.NegativeInfinity, Decimal64.NaN)));
+
+            AssertClose(5.0, Decimal64.Hypot((Decimal64)3.0, (Decimal64)4.0), 1e-12);
+            AssertClose(5.0, Decimal64.Hypot((Decimal64)(-3.0), (Decimal64)(-4.0)), 1e-12);
+        }
+
+        [Fact]
+        public static void RootN()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.RootN(Decimal64.NaN, 3)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.RootN(Decimal64.PositiveInfinity, 3)));
+
+            AssertClose(3.0, Decimal64.RootN((Decimal64)27.0, 3), 1e-12);
+            AssertClose(-2.0, Decimal64.RootN((Decimal64)(-8.0), 3), 1e-12);
+            AssertClose(2.0, Decimal64.RootN((Decimal64)16.0, 4), 1e-12);
+        }
+
     }
 }

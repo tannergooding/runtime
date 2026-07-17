@@ -898,6 +898,15 @@ namespace System.Numerics
         /// <inheritdoc cref="IPowerFunctions{TSelf}.Pow(TSelf, TSelf)" />
         public static Decimal128 Pow(Decimal128 x, Decimal128 y) => new Decimal128(Number.BinaryFromDoubleDecimalIeee754ObservingNaN<Decimal128, UInt128>(new UInt128(x._upper, x._lower), new UInt128(y._upper, y._lower), double.Pow));
 
+        /// <inheritdoc cref="IRootFunctions{TSelf}.Cbrt(TSelf)" />
+        public static Decimal128 Cbrt(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Cbrt));
+
+        /// <inheritdoc cref="IRootFunctions{TSelf}.Hypot(TSelf, TSelf)" />
+        public static Decimal128 Hypot(Decimal128 x, Decimal128 y) => new Decimal128(Number.BinaryFromDoubleDecimalIeee754ObservingNaN<Decimal128, UInt128>(new UInt128(x._upper, x._lower), new UInt128(y._upper, y._lower), double.Hypot));
+
+        /// <inheritdoc cref="IRootFunctions{TSelf}.RootN(TSelf, int)" />
+        public static Decimal128 RootN(Decimal128 x, int n) => new Decimal128(Number.RootNFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), n));
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>

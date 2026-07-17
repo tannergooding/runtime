@@ -2932,5 +2932,40 @@ namespace System.Tests
             AssertClose(-8.0, Decimal32.Pow((Decimal32)(-2.0), (Decimal32)3.0), 1e-6);
         }
 
+        [Fact]
+        public static void Cbrt()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Cbrt(Decimal32.NaN)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Cbrt(Decimal32.Zero)));
+            Assert.Equal(Bits(Decimal32.NegativeZero), Bits(Decimal32.Cbrt(Decimal32.NegativeZero)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Cbrt(Decimal32.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal32.NegativeInfinity), Bits(Decimal32.Cbrt(Decimal32.NegativeInfinity)));
+
+            AssertClose(3.0, Decimal32.Cbrt((Decimal32)27.0), 1e-6);
+            AssertClose(-2.0, Decimal32.Cbrt((Decimal32)(-8.0)), 1e-6);
+        }
+
+        [Fact]
+        public static void Hypot()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Hypot(Decimal32.NaN, (Decimal32)3.0)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Hypot(Decimal32.NaN, Decimal32.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Hypot(Decimal32.NegativeInfinity, Decimal32.NaN)));
+
+            AssertClose(5.0, Decimal32.Hypot((Decimal32)3.0, (Decimal32)4.0), 1e-6);
+            AssertClose(5.0, Decimal32.Hypot((Decimal32)(-3.0), (Decimal32)(-4.0)), 1e-6);
+        }
+
+        [Fact]
+        public static void RootN()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.RootN(Decimal32.NaN, 3)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.RootN(Decimal32.PositiveInfinity, 3)));
+
+            AssertClose(3.0, Decimal32.RootN((Decimal32)27.0, 3), 1e-6);
+            AssertClose(-2.0, Decimal32.RootN((Decimal32)(-8.0), 3), 1e-6);
+            AssertClose(2.0, Decimal32.RootN((Decimal32)16.0, 4), 1e-6);
+        }
+
     }
 }
