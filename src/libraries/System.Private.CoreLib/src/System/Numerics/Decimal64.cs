@@ -921,6 +921,39 @@ namespace System.Numerics
         /// <inheritdoc cref="IRootFunctions{TSelf}.RootN(TSelf, int)" />
         public static Decimal64 RootN(Decimal64 x, int n) => new Decimal64(Number.RootNFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, n));
 
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Sin(TSelf)" />
+        public static Decimal64 Sin(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.Sin));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.SinCos(TSelf)" />
+        public static (Decimal64 Sin, Decimal64 Cos) SinCos(Decimal64 x)
+        {
+            (ulong sin, ulong cos) = Number.SinCosFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.SinCos);
+            return (new Decimal64(sin), new Decimal64(cos));
+        }
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.SinCosPi(TSelf)" />
+        public static (Decimal64 SinPi, Decimal64 CosPi) SinCosPi(Decimal64 x)
+        {
+            (ulong sin, ulong cos) = Number.SinCosFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.SinCosPi);
+            return (new Decimal64(sin), new Decimal64(cos));
+        }
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.SinPi(TSelf)" />
+        public static Decimal64 SinPi(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.SinPi));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Cos(TSelf)" />
+        public static Decimal64 Cos(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.Cos));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.CosPi(TSelf)" />
+        public static Decimal64 CosPi(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.CosPi));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Tan(TSelf)" />
+        public static Decimal64 Tan(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.Tan));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.TanPi(TSelf)" />
+        public static Decimal64 TanPi(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.TanPi));
+
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>

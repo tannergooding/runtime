@@ -106,5 +106,23 @@ namespace System
 
             return ConvertFloatToDecimalIeee754<double, TDecimal, TValue>(result);
         }
+
+        internal static (TValue Sin, TValue Cos) SinCosFromDoubleDecimalIeee754<TDecimal, TValue>(TValue decimalBits, Func<double, (double Sin, double Cos)> operation)
+            where TDecimal : unmanaged, IDecimalIeee754ParseAndFormatInfo<TDecimal, TValue>
+            where TValue : unmanaged, IBinaryInteger<TValue>
+        {
+            if (TDecimal.IsNaN(decimalBits))
+            {
+                TValue nan = PropagateNaN<TDecimal, TValue>(decimalBits, decimalBits);
+                return (nan, nan);
+            }
+
+            double x = ConvertDecimalIeee754ToFloat<TDecimal, TValue, double>(decimalBits);
+            (double sin, double cos) = operation(x);
+
+            TValue sinBits = double.IsNaN(sin) ? TDecimal.NaN : ConvertFloatToDecimalIeee754<double, TDecimal, TValue>(sin);
+            TValue cosBits = double.IsNaN(cos) ? TDecimal.NaN : ConvertFloatToDecimalIeee754<double, TDecimal, TValue>(cos);
+            return (sinBits, cosBits);
+        }
     }
 }

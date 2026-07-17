@@ -930,6 +930,38 @@ namespace System.Numerics
         /// <inheritdoc cref="IRootFunctions{TSelf}.RootN(TSelf, int)" />
         public static Decimal32 RootN(Decimal32 x, int n) => new Decimal32(Number.RootNFromDoubleDecimalIeee754<Decimal32, uint>(x._value, n));
 
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Sin(TSelf)" />
+        public static Decimal32 Sin(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Sin));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.SinCos(TSelf)" />
+        public static (Decimal32 Sin, Decimal32 Cos) SinCos(Decimal32 x)
+        {
+            (uint sin, uint cos) = Number.SinCosFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.SinCos);
+            return (new Decimal32(sin), new Decimal32(cos));
+        }
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.SinCosPi(TSelf)" />
+        public static (Decimal32 SinPi, Decimal32 CosPi) SinCosPi(Decimal32 x)
+        {
+            (uint sin, uint cos) = Number.SinCosFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.SinCosPi);
+            return (new Decimal32(sin), new Decimal32(cos));
+        }
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.SinPi(TSelf)" />
+        public static Decimal32 SinPi(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.SinPi));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Cos(TSelf)" />
+        public static Decimal32 Cos(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Cos));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.CosPi(TSelf)" />
+        public static Decimal32 CosPi(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.CosPi));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Tan(TSelf)" />
+        public static Decimal32 Tan(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Tan));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.TanPi(TSelf)" />
+        public static Decimal32 TanPi(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.TanPi));
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>

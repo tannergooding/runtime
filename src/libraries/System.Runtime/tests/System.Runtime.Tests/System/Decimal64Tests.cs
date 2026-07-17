@@ -2973,5 +2973,83 @@ namespace System.Tests
             AssertClose(2.0, Decimal64.RootN((Decimal64)16.0, 4), 1e-12);
         }
 
+        [Fact]
+        public static void Sin()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Sin(Decimal64.NaN)));
+            Assert.True(Decimal64.IsNaN(Decimal64.Sin(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Sin(Decimal64.Zero)));
+            Assert.Equal(Bits(Decimal64.NegativeZero), Bits(Decimal64.Sin(Decimal64.NegativeZero)));
+
+            AssertClose(double.Sin(0.5), Decimal64.Sin((Decimal64)0.5), 1e-12);
+        }
+
+        [Fact]
+        public static void Cos()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Cos(Decimal64.NaN)));
+            Assert.True(Decimal64.IsNaN(Decimal64.Cos(Decimal64.PositiveInfinity)));
+            Assert.Equal(Decimal64.One, Decimal64.Cos(Decimal64.Zero));
+
+            AssertClose(double.Cos(0.5), Decimal64.Cos((Decimal64)0.5), 1e-12);
+        }
+
+        [Fact]
+        public static void Tan()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Tan(Decimal64.NaN)));
+            Assert.True(Decimal64.IsNaN(Decimal64.Tan(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Tan(Decimal64.Zero)));
+
+            AssertClose(double.Tan(0.5), Decimal64.Tan((Decimal64)0.5), 1e-12);
+        }
+
+        [Fact]
+        public static void SinPi()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.SinPi(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.SinPi(Decimal64.Zero)));
+
+            AssertClose(1.0, Decimal64.SinPi((Decimal64)0.5), 1e-12);
+        }
+
+        [Fact]
+        public static void CosPi()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.CosPi(Decimal64.NaN)));
+            Assert.Equal(Decimal64.One, Decimal64.CosPi(Decimal64.Zero));
+
+            AssertClose(-1.0, Decimal64.CosPi(Decimal64.One), 1e-12);
+        }
+
+        [Fact]
+        public static void TanPi()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.TanPi(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.TanPi(Decimal64.Zero)));
+
+            AssertClose(1.0, Decimal64.TanPi((Decimal64)0.25), 1e-12);
+        }
+
+        [Fact]
+        public static void SinCos()
+        {
+            (Decimal64 sin, Decimal64 cos) = Decimal64.SinCos(Decimal64.Zero);
+            Assert.Equal(Bits(Decimal64.Zero), Bits(sin));
+            Assert.Equal(Decimal64.One, cos);
+
+            (sin, cos) = Decimal64.SinCos((Decimal64)0.5);
+            AssertClose(double.Sin(0.5), sin, 1e-12);
+            AssertClose(double.Cos(0.5), cos, 1e-12);
+        }
+
+        [Fact]
+        public static void SinCosPi()
+        {
+            (Decimal64 sin, Decimal64 cos) = Decimal64.SinCosPi((Decimal64)0.5);
+            AssertClose(1.0, sin, 1e-12);
+            AssertClose(0.0, cos, 1e-12);
+        }
+
     }
 }

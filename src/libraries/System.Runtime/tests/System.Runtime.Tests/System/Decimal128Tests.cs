@@ -2967,5 +2967,83 @@ namespace System.Tests
             AssertClose(2.0, Decimal128.RootN((Decimal128)16.0, 4), 1e-12);
         }
 
+        [Fact]
+        public static void Sin()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Sin(Decimal128.NaN)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Sin(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Sin(Decimal128.Zero)));
+            Assert.Equal(Bits(Decimal128.NegativeZero), Bits(Decimal128.Sin(Decimal128.NegativeZero)));
+
+            AssertClose(double.Sin(0.5), Decimal128.Sin((Decimal128)0.5), 1e-12);
+        }
+
+        [Fact]
+        public static void Cos()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Cos(Decimal128.NaN)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Cos(Decimal128.PositiveInfinity)));
+            Assert.Equal(Decimal128.One, Decimal128.Cos(Decimal128.Zero));
+
+            AssertClose(double.Cos(0.5), Decimal128.Cos((Decimal128)0.5), 1e-12);
+        }
+
+        [Fact]
+        public static void Tan()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Tan(Decimal128.NaN)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Tan(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Tan(Decimal128.Zero)));
+
+            AssertClose(double.Tan(0.5), Decimal128.Tan((Decimal128)0.5), 1e-12);
+        }
+
+        [Fact]
+        public static void SinPi()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.SinPi(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.SinPi(Decimal128.Zero)));
+
+            AssertClose(1.0, Decimal128.SinPi((Decimal128)0.5), 1e-12);
+        }
+
+        [Fact]
+        public static void CosPi()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.CosPi(Decimal128.NaN)));
+            Assert.Equal(Decimal128.One, Decimal128.CosPi(Decimal128.Zero));
+
+            AssertClose(-1.0, Decimal128.CosPi(Decimal128.One), 1e-12);
+        }
+
+        [Fact]
+        public static void TanPi()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.TanPi(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.TanPi(Decimal128.Zero)));
+
+            AssertClose(1.0, Decimal128.TanPi((Decimal128)0.25), 1e-12);
+        }
+
+        [Fact]
+        public static void SinCos()
+        {
+            (Decimal128 sin, Decimal128 cos) = Decimal128.SinCos(Decimal128.Zero);
+            Assert.Equal(Bits(Decimal128.Zero), Bits(sin));
+            Assert.Equal(Decimal128.One, cos);
+
+            (sin, cos) = Decimal128.SinCos((Decimal128)0.5);
+            AssertClose(double.Sin(0.5), sin, 1e-12);
+            AssertClose(double.Cos(0.5), cos, 1e-12);
+        }
+
+        [Fact]
+        public static void SinCosPi()
+        {
+            (Decimal128 sin, Decimal128 cos) = Decimal128.SinCosPi((Decimal128)0.5);
+            AssertClose(1.0, sin, 1e-12);
+            AssertClose(0.0, cos, 1e-12);
+        }
+
     }
 }
