@@ -897,6 +897,27 @@ namespace System.Numerics
         /// <inheritdoc cref="IExponentialFunctions{TSelf}.Exp10M1(TSelf)" />
         public static Decimal32 Exp10M1(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Exp10M1));
 
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log(TSelf)" />
+        public static Decimal32 Log(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Log));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log(TSelf, TSelf)" />
+        public static Decimal32 Log(Decimal32 x, Decimal32 newBase) => new Decimal32(Number.BinaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, newBase._value, double.Log));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.LogP1(TSelf)" />
+        public static Decimal32 LogP1(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.LogP1));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log2(TSelf)" />
+        public static Decimal32 Log2(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Log2));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log2P1(TSelf)" />
+        public static Decimal32 Log2P1(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Log2P1));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log10(TSelf)" />
+        public static Decimal32 Log10(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Log10));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log10P1(TSelf)" />
+        public static Decimal32 Log10P1(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Log10P1));
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>

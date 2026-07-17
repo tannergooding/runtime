@@ -2840,5 +2840,83 @@ namespace System.Tests
             AssertClose(999.0, Decimal128.Exp10M1((Decimal128)3.0), 1e-12);
         }
 
+        [Fact]
+        public static void Log()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Log(Decimal128.NaN)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Log(Decimal128.NegativeOne)));
+            Assert.Equal(Bits(Decimal128.NegativeInfinity), Bits(Decimal128.Log(Decimal128.Zero)));
+            Assert.Equal(Bits(Decimal128.NegativeInfinity), Bits(Decimal128.Log(Decimal128.NegativeZero)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Log(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Log(Decimal128.One)));
+
+            AssertClose(double.Log(10.0), Decimal128.Log((Decimal128)10.0), 1e-12);
+        }
+
+        [Fact]
+        public static void LogNewBase()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Log(Decimal128.NaN, (Decimal128)10.0)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Log((Decimal128)10.0, Decimal128.NaN)));
+
+            AssertClose(2.0, Decimal128.Log((Decimal128)100.0, (Decimal128)10.0), 1e-12);
+            AssertClose(3.0, Decimal128.Log((Decimal128)8.0, (Decimal128)2.0), 1e-12);
+        }
+
+        [Fact]
+        public static void LogP1()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.LogP1(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.NegativeInfinity), Bits(Decimal128.LogP1(Decimal128.NegativeOne)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.LogP1(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.LogP1(Decimal128.Zero)));
+
+            AssertClose(double.Log(11.0), Decimal128.LogP1((Decimal128)10.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Log2()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Log2(Decimal128.NaN)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Log2(Decimal128.NegativeOne)));
+            Assert.Equal(Bits(Decimal128.NegativeInfinity), Bits(Decimal128.Log2(Decimal128.Zero)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Log2(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Log2(Decimal128.One)));
+
+            AssertClose(3.0, Decimal128.Log2((Decimal128)8.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Log2P1()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Log2P1(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.NegativeInfinity), Bits(Decimal128.Log2P1(Decimal128.NegativeOne)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Log2P1(Decimal128.Zero)));
+
+            AssertClose(2.0, Decimal128.Log2P1((Decimal128)3.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Log10()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Log10(Decimal128.NaN)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Log10(Decimal128.NegativeOne)));
+            Assert.Equal(Bits(Decimal128.NegativeInfinity), Bits(Decimal128.Log10(Decimal128.Zero)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Log10(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Log10(Decimal128.One)));
+
+            AssertClose(3.0, Decimal128.Log10((Decimal128)1000.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Log10P1()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Log10P1(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.NegativeInfinity), Bits(Decimal128.Log10P1(Decimal128.NegativeOne)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Log10P1(Decimal128.Zero)));
+
+            AssertClose(3.0, Decimal128.Log10P1((Decimal128)999.0), 1e-12);
+        }
+
     }
 }

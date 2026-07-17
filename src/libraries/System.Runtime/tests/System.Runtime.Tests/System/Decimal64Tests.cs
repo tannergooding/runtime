@@ -2846,5 +2846,83 @@ namespace System.Tests
             AssertClose(999.0, Decimal64.Exp10M1((Decimal64)3.0), 1e-12);
         }
 
+        [Fact]
+        public static void Log()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Log(Decimal64.NaN)));
+            Assert.True(Decimal64.IsNaN(Decimal64.Log(Decimal64.NegativeOne)));
+            Assert.Equal(Bits(Decimal64.NegativeInfinity), Bits(Decimal64.Log(Decimal64.Zero)));
+            Assert.Equal(Bits(Decimal64.NegativeInfinity), Bits(Decimal64.Log(Decimal64.NegativeZero)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Log(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Log(Decimal64.One)));
+
+            AssertClose(double.Log(10.0), Decimal64.Log((Decimal64)10.0), 1e-12);
+        }
+
+        [Fact]
+        public static void LogNewBase()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Log(Decimal64.NaN, (Decimal64)10.0)));
+            Assert.True(Decimal64.IsNaN(Decimal64.Log((Decimal64)10.0, Decimal64.NaN)));
+
+            AssertClose(2.0, Decimal64.Log((Decimal64)100.0, (Decimal64)10.0), 1e-12);
+            AssertClose(3.0, Decimal64.Log((Decimal64)8.0, (Decimal64)2.0), 1e-12);
+        }
+
+        [Fact]
+        public static void LogP1()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.LogP1(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.NegativeInfinity), Bits(Decimal64.LogP1(Decimal64.NegativeOne)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.LogP1(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.LogP1(Decimal64.Zero)));
+
+            AssertClose(double.Log(11.0), Decimal64.LogP1((Decimal64)10.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Log2()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Log2(Decimal64.NaN)));
+            Assert.True(Decimal64.IsNaN(Decimal64.Log2(Decimal64.NegativeOne)));
+            Assert.Equal(Bits(Decimal64.NegativeInfinity), Bits(Decimal64.Log2(Decimal64.Zero)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Log2(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Log2(Decimal64.One)));
+
+            AssertClose(3.0, Decimal64.Log2((Decimal64)8.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Log2P1()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Log2P1(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.NegativeInfinity), Bits(Decimal64.Log2P1(Decimal64.NegativeOne)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Log2P1(Decimal64.Zero)));
+
+            AssertClose(2.0, Decimal64.Log2P1((Decimal64)3.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Log10()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Log10(Decimal64.NaN)));
+            Assert.True(Decimal64.IsNaN(Decimal64.Log10(Decimal64.NegativeOne)));
+            Assert.Equal(Bits(Decimal64.NegativeInfinity), Bits(Decimal64.Log10(Decimal64.Zero)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Log10(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Log10(Decimal64.One)));
+
+            AssertClose(3.0, Decimal64.Log10((Decimal64)1000.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Log10P1()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Log10P1(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.NegativeInfinity), Bits(Decimal64.Log10P1(Decimal64.NegativeOne)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Log10P1(Decimal64.Zero)));
+
+            AssertClose(3.0, Decimal64.Log10P1((Decimal64)999.0), 1e-12);
+        }
+
     }
 }

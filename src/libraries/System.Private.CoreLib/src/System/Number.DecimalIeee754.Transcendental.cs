@@ -44,5 +44,26 @@ namespace System
 
             return ConvertFloatToDecimalIeee754<double, TDecimal, TValue>(result);
         }
+
+        internal static TValue BinaryFromDoubleDecimalIeee754<TDecimal, TValue>(TValue leftBits, TValue rightBits, Func<double, double, double> operation)
+            where TDecimal : unmanaged, IDecimalIeee754ParseAndFormatInfo<TDecimal, TValue>
+            where TValue : unmanaged, IBinaryInteger<TValue>
+        {
+            if (TDecimal.IsNaN(leftBits) || TDecimal.IsNaN(rightBits))
+            {
+                return PropagateNaN<TDecimal, TValue>(leftBits, rightBits);
+            }
+
+            double x = ConvertDecimalIeee754ToFloat<TDecimal, TValue, double>(leftBits);
+            double y = ConvertDecimalIeee754ToFloat<TDecimal, TValue, double>(rightBits);
+            double result = operation(x, y);
+
+            if (double.IsNaN(result))
+            {
+                return TDecimal.NaN;
+            }
+
+            return ConvertFloatToDecimalIeee754<double, TDecimal, TValue>(result);
+        }
     }
 }

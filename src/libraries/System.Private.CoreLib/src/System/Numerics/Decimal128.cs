@@ -874,6 +874,27 @@ namespace System.Numerics
         /// <inheritdoc cref="IExponentialFunctions{TSelf}.Exp10M1(TSelf)" />
         public static Decimal128 Exp10M1(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Exp10M1));
 
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log(TSelf)" />
+        public static Decimal128 Log(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Log));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log(TSelf, TSelf)" />
+        public static Decimal128 Log(Decimal128 x, Decimal128 newBase) => new Decimal128(Number.BinaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), new UInt128(newBase._upper, newBase._lower), double.Log));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.LogP1(TSelf)" />
+        public static Decimal128 LogP1(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.LogP1));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log2(TSelf)" />
+        public static Decimal128 Log2(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Log2));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log2P1(TSelf)" />
+        public static Decimal128 Log2P1(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Log2P1));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log10(TSelf)" />
+        public static Decimal128 Log10(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Log10));
+
+        /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log10P1(TSelf)" />
+        public static Decimal128 Log10P1(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Log10P1));
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>
