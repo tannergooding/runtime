@@ -986,6 +986,24 @@ namespace System.Numerics
         /// <inheritdoc cref="IFloatingPointIeee754{TSelf}.Atan2Pi(TSelf, TSelf)" />
         public static Decimal32 Atan2Pi(Decimal32 y, Decimal32 x) => new Decimal32(Number.BinaryFromDoubleDecimalIeee754<Decimal32, uint>(y._value, x._value, double.Atan2Pi));
 
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Sinh(TSelf)" />
+        public static Decimal32 Sinh(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Sinh));
+
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Cosh(TSelf)" />
+        public static Decimal32 Cosh(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Cosh));
+
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Tanh(TSelf)" />
+        public static Decimal32 Tanh(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Tanh));
+
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Asinh(TSelf)" />
+        public static Decimal32 Asinh(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Asinh));
+
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Acosh(TSelf)" />
+        public static Decimal32 Acosh(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Acosh));
+
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Atanh(TSelf)" />
+        public static Decimal32 Atanh(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Atanh));
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>

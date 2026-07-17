@@ -963,6 +963,24 @@ namespace System.Numerics
         /// <inheritdoc cref="IFloatingPointIeee754{TSelf}.Atan2Pi(TSelf, TSelf)" />
         public static Decimal128 Atan2Pi(Decimal128 y, Decimal128 x) => new Decimal128(Number.BinaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(y._upper, y._lower), new UInt128(x._upper, x._lower), double.Atan2Pi));
 
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Sinh(TSelf)" />
+        public static Decimal128 Sinh(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Sinh));
+
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Cosh(TSelf)" />
+        public static Decimal128 Cosh(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Cosh));
+
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Tanh(TSelf)" />
+        public static Decimal128 Tanh(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Tanh));
+
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Asinh(TSelf)" />
+        public static Decimal128 Asinh(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Asinh));
+
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Acosh(TSelf)" />
+        public static Decimal128 Acosh(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Acosh));
+
+        /// <inheritdoc cref="IHyperbolicFunctions{TSelf}.Atanh(TSelf)" />
+        public static Decimal128 Atanh(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Atanh));
+
 
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>

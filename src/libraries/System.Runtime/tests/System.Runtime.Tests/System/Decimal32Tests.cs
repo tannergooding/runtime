@@ -3121,5 +3121,67 @@ namespace System.Tests
             AssertClose(0.25, Decimal32.Atan2Pi(Decimal32.One, Decimal32.One), 1e-6);
         }
 
+        [Fact]
+        public static void Sinh()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Sinh(Decimal32.NaN)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Sinh(Decimal32.Zero)));
+            Assert.Equal(Bits(Decimal32.NegativeZero), Bits(Decimal32.Sinh(Decimal32.NegativeZero)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Sinh(Decimal32.PositiveInfinity)));
+
+            AssertClose(double.Sinh(1.0), Decimal32.Sinh(Decimal32.One), 1e-6);
+        }
+
+        [Fact]
+        public static void Cosh()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Cosh(Decimal32.NaN)));
+            Assert.Equal(Decimal32.One, Decimal32.Cosh(Decimal32.Zero));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Cosh(Decimal32.PositiveInfinity)));
+
+            AssertClose(double.Cosh(1.0), Decimal32.Cosh(Decimal32.One), 1e-6);
+        }
+
+        [Fact]
+        public static void Tanh()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Tanh(Decimal32.NaN)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Tanh(Decimal32.Zero)));
+            Assert.Equal(Decimal32.One, Decimal32.Tanh(Decimal32.PositiveInfinity));
+
+            AssertClose(double.Tanh(1.0), Decimal32.Tanh(Decimal32.One), 1e-6);
+        }
+
+        [Fact]
+        public static void Asinh()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Asinh(Decimal32.NaN)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Asinh(Decimal32.Zero)));
+            Assert.Equal(Bits(Decimal32.NegativeZero), Bits(Decimal32.Asinh(Decimal32.NegativeZero)));
+
+            AssertClose(double.Asinh(1.0), Decimal32.Asinh(Decimal32.One), 1e-6);
+        }
+
+        [Fact]
+        public static void Acosh()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Acosh(Decimal32.NaN)));
+            Assert.True(Decimal32.IsNaN(Decimal32.Acosh(Decimal32.Zero)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Acosh(Decimal32.One)));
+
+            AssertClose(double.Acosh(2.0), Decimal32.Acosh((Decimal32)2.0), 1e-6);
+        }
+
+        [Fact]
+        public static void Atanh()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Atanh(Decimal32.NaN)));
+            Assert.True(Decimal32.IsNaN(Decimal32.Atanh((Decimal32)2.0)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Atanh(Decimal32.Zero)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Atanh(Decimal32.One)));
+
+            AssertClose(double.Atanh(0.5), Decimal32.Atanh((Decimal32)0.5), 1e-6);
+        }
+
     }
 }

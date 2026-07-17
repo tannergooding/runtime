@@ -3121,5 +3121,67 @@ namespace System.Tests
             AssertClose(0.25, Decimal128.Atan2Pi(Decimal128.One, Decimal128.One), 1e-12);
         }
 
+        [Fact]
+        public static void Sinh()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Sinh(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Sinh(Decimal128.Zero)));
+            Assert.Equal(Bits(Decimal128.NegativeZero), Bits(Decimal128.Sinh(Decimal128.NegativeZero)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Sinh(Decimal128.PositiveInfinity)));
+
+            AssertClose(double.Sinh(1.0), Decimal128.Sinh(Decimal128.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Cosh()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Cosh(Decimal128.NaN)));
+            Assert.Equal(Decimal128.One, Decimal128.Cosh(Decimal128.Zero));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Cosh(Decimal128.PositiveInfinity)));
+
+            AssertClose(double.Cosh(1.0), Decimal128.Cosh(Decimal128.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Tanh()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Tanh(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Tanh(Decimal128.Zero)));
+            Assert.Equal(Decimal128.One, Decimal128.Tanh(Decimal128.PositiveInfinity));
+
+            AssertClose(double.Tanh(1.0), Decimal128.Tanh(Decimal128.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Asinh()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Asinh(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Asinh(Decimal128.Zero)));
+            Assert.Equal(Bits(Decimal128.NegativeZero), Bits(Decimal128.Asinh(Decimal128.NegativeZero)));
+
+            AssertClose(double.Asinh(1.0), Decimal128.Asinh(Decimal128.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Acosh()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Acosh(Decimal128.NaN)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Acosh(Decimal128.Zero)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Acosh(Decimal128.One)));
+
+            AssertClose(double.Acosh(2.0), Decimal128.Acosh((Decimal128)2.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Atanh()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Atanh(Decimal128.NaN)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Atanh((Decimal128)2.0)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Atanh(Decimal128.Zero)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Atanh(Decimal128.One)));
+
+            AssertClose(double.Atanh(0.5), Decimal128.Atanh((Decimal128)0.5), 1e-12);
+        }
+
     }
 }

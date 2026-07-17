@@ -3127,5 +3127,67 @@ namespace System.Tests
             AssertClose(0.25, Decimal64.Atan2Pi(Decimal64.One, Decimal64.One), 1e-12);
         }
 
+        [Fact]
+        public static void Sinh()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Sinh(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Sinh(Decimal64.Zero)));
+            Assert.Equal(Bits(Decimal64.NegativeZero), Bits(Decimal64.Sinh(Decimal64.NegativeZero)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Sinh(Decimal64.PositiveInfinity)));
+
+            AssertClose(double.Sinh(1.0), Decimal64.Sinh(Decimal64.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Cosh()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Cosh(Decimal64.NaN)));
+            Assert.Equal(Decimal64.One, Decimal64.Cosh(Decimal64.Zero));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Cosh(Decimal64.PositiveInfinity)));
+
+            AssertClose(double.Cosh(1.0), Decimal64.Cosh(Decimal64.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Tanh()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Tanh(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Tanh(Decimal64.Zero)));
+            Assert.Equal(Decimal64.One, Decimal64.Tanh(Decimal64.PositiveInfinity));
+
+            AssertClose(double.Tanh(1.0), Decimal64.Tanh(Decimal64.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Asinh()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Asinh(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Asinh(Decimal64.Zero)));
+            Assert.Equal(Bits(Decimal64.NegativeZero), Bits(Decimal64.Asinh(Decimal64.NegativeZero)));
+
+            AssertClose(double.Asinh(1.0), Decimal64.Asinh(Decimal64.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Acosh()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Acosh(Decimal64.NaN)));
+            Assert.True(Decimal64.IsNaN(Decimal64.Acosh(Decimal64.Zero)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Acosh(Decimal64.One)));
+
+            AssertClose(double.Acosh(2.0), Decimal64.Acosh((Decimal64)2.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Atanh()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Atanh(Decimal64.NaN)));
+            Assert.True(Decimal64.IsNaN(Decimal64.Atanh((Decimal64)2.0)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Atanh(Decimal64.Zero)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Atanh(Decimal64.One)));
+
+            AssertClose(double.Atanh(0.5), Decimal64.Atanh((Decimal64)0.5), 1e-12);
+        }
+
     }
 }
