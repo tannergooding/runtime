@@ -3045,5 +3045,81 @@ namespace System.Tests
             AssertClose(0.0, cos, 1e-12);
         }
 
+        [Fact]
+        public static void Asin()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Asin(Decimal128.NaN)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Asin((Decimal128)2.0)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Asin(Decimal128.Zero)));
+            Assert.Equal(Bits(Decimal128.NegativeZero), Bits(Decimal128.Asin(Decimal128.NegativeZero)));
+
+            AssertClose(double.Asin(0.5), Decimal128.Asin((Decimal128)0.5), 1e-12);
+        }
+
+        [Fact]
+        public static void Acos()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Acos(Decimal128.NaN)));
+            Assert.True(Decimal128.IsNaN(Decimal128.Acos((Decimal128)2.0)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Acos(Decimal128.One)));
+
+            AssertClose(double.Acos(0.5), Decimal128.Acos((Decimal128)0.5), 1e-12);
+        }
+
+        [Fact]
+        public static void Atan()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Atan(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Atan(Decimal128.Zero)));
+
+            AssertClose(double.Atan(1.0), Decimal128.Atan(Decimal128.One), 1e-12);
+            AssertClose(double.Atan(double.PositiveInfinity), Decimal128.Atan(Decimal128.PositiveInfinity), 1e-12);
+        }
+
+        [Fact]
+        public static void AsinPi()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.AsinPi(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.AsinPi(Decimal128.Zero)));
+
+            AssertClose(0.5, Decimal128.AsinPi(Decimal128.One), 1e-12);
+        }
+
+        [Fact]
+        public static void AcosPi()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.AcosPi(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.AcosPi(Decimal128.One)));
+
+            AssertClose(0.5, Decimal128.AcosPi(Decimal128.Zero), 1e-12);
+        }
+
+        [Fact]
+        public static void AtanPi()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.AtanPi(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.AtanPi(Decimal128.Zero)));
+
+            AssertClose(0.25, Decimal128.AtanPi(Decimal128.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Atan2()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Atan2(Decimal128.NaN, Decimal128.One)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Atan2(Decimal128.Zero, Decimal128.One)));
+
+            AssertClose(double.Atan2(1.0, 1.0), Decimal128.Atan2(Decimal128.One, Decimal128.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Atan2Pi()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Atan2Pi(Decimal128.NaN, Decimal128.One)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Atan2Pi(Decimal128.Zero, Decimal128.One)));
+
+            AssertClose(0.25, Decimal128.Atan2Pi(Decimal128.One, Decimal128.One), 1e-12);
+        }
+
     }
 }

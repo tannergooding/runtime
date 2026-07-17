@@ -953,6 +953,30 @@ namespace System.Numerics
         /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.TanPi(TSelf)" />
         public static Decimal64 TanPi(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.TanPi));
 
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Asin(TSelf)" />
+        public static Decimal64 Asin(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.Asin));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.AsinPi(TSelf)" />
+        public static Decimal64 AsinPi(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.AsinPi));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Acos(TSelf)" />
+        public static Decimal64 Acos(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.Acos));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.AcosPi(TSelf)" />
+        public static Decimal64 AcosPi(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.AcosPi));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Atan(TSelf)" />
+        public static Decimal64 Atan(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.Atan));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.AtanPi(TSelf)" />
+        public static Decimal64 AtanPi(Decimal64 x) => new Decimal64(Number.UnaryFromDoubleDecimalIeee754<Decimal64, ulong>(x._value, double.AtanPi));
+
+        /// <inheritdoc cref="IFloatingPointIeee754{TSelf}.Atan2(TSelf, TSelf)" />
+        public static Decimal64 Atan2(Decimal64 y, Decimal64 x) => new Decimal64(Number.BinaryFromDoubleDecimalIeee754<Decimal64, ulong>(y._value, x._value, double.Atan2));
+
+        /// <inheritdoc cref="IFloatingPointIeee754{TSelf}.Atan2Pi(TSelf, TSelf)" />
+        public static Decimal64 Atan2Pi(Decimal64 y, Decimal64 x) => new Decimal64(Number.BinaryFromDoubleDecimalIeee754<Decimal64, ulong>(y._value, x._value, double.Atan2Pi));
+
 
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>

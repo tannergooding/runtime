@@ -939,6 +939,30 @@ namespace System.Numerics
         /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.TanPi(TSelf)" />
         public static Decimal128 TanPi(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.TanPi));
 
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Asin(TSelf)" />
+        public static Decimal128 Asin(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Asin));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.AsinPi(TSelf)" />
+        public static Decimal128 AsinPi(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.AsinPi));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Acos(TSelf)" />
+        public static Decimal128 Acos(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Acos));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.AcosPi(TSelf)" />
+        public static Decimal128 AcosPi(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.AcosPi));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.Atan(TSelf)" />
+        public static Decimal128 Atan(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Atan));
+
+        /// <inheritdoc cref="ITrigonometricFunctions{TSelf}.AtanPi(TSelf)" />
+        public static Decimal128 AtanPi(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.AtanPi));
+
+        /// <inheritdoc cref="IFloatingPointIeee754{TSelf}.Atan2(TSelf, TSelf)" />
+        public static Decimal128 Atan2(Decimal128 y, Decimal128 x) => new Decimal128(Number.BinaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(y._upper, y._lower), new UInt128(x._upper, x._lower), double.Atan2));
+
+        /// <inheritdoc cref="IFloatingPointIeee754{TSelf}.Atan2Pi(TSelf, TSelf)" />
+        public static Decimal128 Atan2Pi(Decimal128 y, Decimal128 x) => new Decimal128(Number.BinaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(y._upper, y._lower), new UInt128(x._upper, x._lower), double.Atan2Pi));
+
 
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
