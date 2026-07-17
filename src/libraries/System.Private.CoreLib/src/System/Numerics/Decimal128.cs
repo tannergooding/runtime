@@ -852,6 +852,28 @@ namespace System.Numerics
             return false;
         }
 
+        //
+        // IFloatingPointIeee754 (transcendental operations, routed through double)
+        //
+
+        /// <inheritdoc cref="IExponentialFunctions{TSelf}.Exp(TSelf)" />
+        public static Decimal128 Exp(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Exp));
+
+        /// <inheritdoc cref="IExponentialFunctions{TSelf}.ExpM1(TSelf)" />
+        public static Decimal128 ExpM1(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.ExpM1));
+
+        /// <inheritdoc cref="IExponentialFunctions{TSelf}.Exp2(TSelf)" />
+        public static Decimal128 Exp2(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Exp2));
+
+        /// <inheritdoc cref="IExponentialFunctions{TSelf}.Exp2M1(TSelf)" />
+        public static Decimal128 Exp2M1(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Exp2M1));
+
+        /// <inheritdoc cref="IExponentialFunctions{TSelf}.Exp10(TSelf)" />
+        public static Decimal128 Exp10(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Exp10));
+
+        /// <inheritdoc cref="IExponentialFunctions{TSelf}.Exp10M1(TSelf)" />
+        public static Decimal128 Exp10M1(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Exp10M1));
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>

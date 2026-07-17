@@ -2756,5 +2756,89 @@ namespace System.Tests
             Assert.Equal(123, Decimal32.ConvertToInteger<int>(Unsafe.BitCast<uint, Decimal32>(0x31803039U)));
         }
 
+        // Transcendental operations (routed through binary64). Special cases assert exact canonical bits;
+        // ordinary values assert closeness to the binary64 reference (validating operation selection and the
+        // decimal<->double round-trip). True-value accuracy is bounded by double, as documented on the helper.
+
+        private static uint Bits(Decimal32 value) => Unsafe.BitCast<Decimal32, uint>(value);
+
+        private static void AssertClose(double expected, Decimal32 actual, double relativeTolerance)
+        {
+            double a = (double)actual;
+            double bound = (expected == 0.0) ? relativeTolerance : relativeTolerance * Math.Abs(expected);
+            Assert.True(Math.Abs(a - expected) <= bound, $"expected ~{expected}, actual {a}");
+        }
+
+        [Fact]
+        public static void Exp()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Exp(Decimal32.NaN)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Exp(Decimal32.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Exp(Decimal32.NegativeInfinity)));
+            Assert.Equal(Decimal32.One, Decimal32.Exp(Decimal32.Zero));
+            Assert.Equal(Decimal32.One, Decimal32.Exp(Decimal32.NegativeZero));
+
+            AssertClose(double.Exp(1.0), Decimal32.Exp(Decimal32.One), 1e-6);
+            AssertClose(double.Exp(2.0), Decimal32.Exp((Decimal32)2.0), 1e-6);
+            AssertClose(double.Exp(-3.5), Decimal32.Exp((Decimal32)(-3.5)), 1e-6);
+        }
+
+        [Fact]
+        public static void Exp2()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Exp2(Decimal32.NaN)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Exp2(Decimal32.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Exp2(Decimal32.NegativeInfinity)));
+            Assert.Equal(Decimal32.One, Decimal32.Exp2(Decimal32.Zero));
+
+            AssertClose(8.0, Decimal32.Exp2((Decimal32)3.0), 1e-6);
+            AssertClose(0.25, Decimal32.Exp2((Decimal32)(-2.0)), 1e-6);
+        }
+
+        [Fact]
+        public static void Exp10()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Exp10(Decimal32.NaN)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Exp10(Decimal32.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Exp10(Decimal32.NegativeInfinity)));
+            Assert.Equal(Decimal32.One, Decimal32.Exp10(Decimal32.Zero));
+
+            AssertClose(1000.0, Decimal32.Exp10((Decimal32)3.0), 1e-6);
+            AssertClose(0.01, Decimal32.Exp10((Decimal32)(-2.0)), 1e-6);
+        }
+
+        [Fact]
+        public static void ExpM1()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.ExpM1(Decimal32.NaN)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.ExpM1(Decimal32.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal32.NegativeOne), Bits(Decimal32.ExpM1(Decimal32.NegativeInfinity)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.ExpM1(Decimal32.Zero)));
+
+            AssertClose(double.Exp(1.0) - 1.0, Decimal32.ExpM1(Decimal32.One), 1e-6);
+        }
+
+        [Fact]
+        public static void Exp2M1()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Exp2M1(Decimal32.NaN)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Exp2M1(Decimal32.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal32.NegativeOne), Bits(Decimal32.Exp2M1(Decimal32.NegativeInfinity)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Exp2M1(Decimal32.Zero)));
+
+            AssertClose(7.0, Decimal32.Exp2M1((Decimal32)3.0), 1e-6);
+        }
+
+        [Fact]
+        public static void Exp10M1()
+        {
+            Assert.True(Decimal32.IsNaN(Decimal32.Exp10M1(Decimal32.NaN)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Exp10M1(Decimal32.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal32.NegativeOne), Bits(Decimal32.Exp10M1(Decimal32.NegativeInfinity)));
+            Assert.Equal(Bits(Decimal32.Zero), Bits(Decimal32.Exp10M1(Decimal32.Zero)));
+
+            AssertClose(999.0, Decimal32.Exp10M1((Decimal32)3.0), 1e-6);
+        }
+
     }
 }

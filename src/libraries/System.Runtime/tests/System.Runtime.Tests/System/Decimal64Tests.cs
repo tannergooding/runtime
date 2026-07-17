@@ -2762,5 +2762,89 @@ namespace System.Tests
             Assert.Equal(123, Decimal64.ConvertToInteger<int>(Unsafe.BitCast<ulong, Decimal64>(0x3180000000003039UL)));
         }
 
+        // Transcendental operations (routed through binary64). Special cases assert exact canonical bits;
+        // ordinary values assert closeness to the binary64 reference (validating operation selection and the
+        // decimal<->double round-trip). True-value accuracy is bounded by double, as documented on the helper.
+
+        private static ulong Bits(Decimal64 value) => Unsafe.BitCast<Decimal64, ulong>(value);
+
+        private static void AssertClose(double expected, Decimal64 actual, double relativeTolerance)
+        {
+            double a = (double)actual;
+            double bound = (expected == 0.0) ? relativeTolerance : relativeTolerance * Math.Abs(expected);
+            Assert.True(Math.Abs(a - expected) <= bound, $"expected ~{expected}, actual {a}");
+        }
+
+        [Fact]
+        public static void Exp()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Exp(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Exp(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Exp(Decimal64.NegativeInfinity)));
+            Assert.Equal(Decimal64.One, Decimal64.Exp(Decimal64.Zero));
+            Assert.Equal(Decimal64.One, Decimal64.Exp(Decimal64.NegativeZero));
+
+            AssertClose(double.Exp(1.0), Decimal64.Exp(Decimal64.One), 1e-12);
+            AssertClose(double.Exp(2.0), Decimal64.Exp((Decimal64)2.0), 1e-12);
+            AssertClose(double.Exp(-3.5), Decimal64.Exp((Decimal64)(-3.5)), 1e-12);
+        }
+
+        [Fact]
+        public static void Exp2()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Exp2(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Exp2(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Exp2(Decimal64.NegativeInfinity)));
+            Assert.Equal(Decimal64.One, Decimal64.Exp2(Decimal64.Zero));
+
+            AssertClose(8.0, Decimal64.Exp2((Decimal64)3.0), 1e-12);
+            AssertClose(0.25, Decimal64.Exp2((Decimal64)(-2.0)), 1e-12);
+        }
+
+        [Fact]
+        public static void Exp10()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Exp10(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Exp10(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Exp10(Decimal64.NegativeInfinity)));
+            Assert.Equal(Decimal64.One, Decimal64.Exp10(Decimal64.Zero));
+
+            AssertClose(1000.0, Decimal64.Exp10((Decimal64)3.0), 1e-12);
+            AssertClose(0.01, Decimal64.Exp10((Decimal64)(-2.0)), 1e-12);
+        }
+
+        [Fact]
+        public static void ExpM1()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.ExpM1(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.ExpM1(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.NegativeOne), Bits(Decimal64.ExpM1(Decimal64.NegativeInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.ExpM1(Decimal64.Zero)));
+
+            AssertClose(double.Exp(1.0) - 1.0, Decimal64.ExpM1(Decimal64.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Exp2M1()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Exp2M1(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Exp2M1(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.NegativeOne), Bits(Decimal64.Exp2M1(Decimal64.NegativeInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Exp2M1(Decimal64.Zero)));
+
+            AssertClose(7.0, Decimal64.Exp2M1((Decimal64)3.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Exp10M1()
+        {
+            Assert.True(Decimal64.IsNaN(Decimal64.Exp10M1(Decimal64.NaN)));
+            Assert.Equal(Bits(Decimal64.PositiveInfinity), Bits(Decimal64.Exp10M1(Decimal64.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal64.NegativeOne), Bits(Decimal64.Exp10M1(Decimal64.NegativeInfinity)));
+            Assert.Equal(Bits(Decimal64.Zero), Bits(Decimal64.Exp10M1(Decimal64.Zero)));
+
+            AssertClose(999.0, Decimal64.Exp10M1((Decimal64)3.0), 1e-12);
+        }
+
     }
 }

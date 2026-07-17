@@ -2756,5 +2756,89 @@ namespace System.Tests
             Assert.Equal(123, Decimal128.ConvertToInteger<int>(Unsafe.BitCast<UInt128, Decimal128>(new UInt128(0x303C000000000000, 0x0000000000003039))));
         }
 
+        // Transcendental operations (routed through binary64). Special cases assert exact canonical bits;
+        // ordinary values assert closeness to the binary64 reference (validating operation selection and the
+        // decimal<->double round-trip). True-value accuracy is bounded by double, as documented on the helper.
+
+        private static UInt128 Bits(Decimal128 value) => Unsafe.BitCast<Decimal128, UInt128>(value);
+
+        private static void AssertClose(double expected, Decimal128 actual, double relativeTolerance)
+        {
+            double a = (double)actual;
+            double bound = (expected == 0.0) ? relativeTolerance : relativeTolerance * Math.Abs(expected);
+            Assert.True(Math.Abs(a - expected) <= bound, $"expected ~{expected}, actual {a}");
+        }
+
+        [Fact]
+        public static void Exp()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Exp(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Exp(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Exp(Decimal128.NegativeInfinity)));
+            Assert.Equal(Decimal128.One, Decimal128.Exp(Decimal128.Zero));
+            Assert.Equal(Decimal128.One, Decimal128.Exp(Decimal128.NegativeZero));
+
+            AssertClose(double.Exp(1.0), Decimal128.Exp(Decimal128.One), 1e-12);
+            AssertClose(double.Exp(2.0), Decimal128.Exp((Decimal128)2.0), 1e-12);
+            AssertClose(double.Exp(-3.5), Decimal128.Exp((Decimal128)(-3.5)), 1e-12);
+        }
+
+        [Fact]
+        public static void Exp2()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Exp2(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Exp2(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Exp2(Decimal128.NegativeInfinity)));
+            Assert.Equal(Decimal128.One, Decimal128.Exp2(Decimal128.Zero));
+
+            AssertClose(8.0, Decimal128.Exp2((Decimal128)3.0), 1e-12);
+            AssertClose(0.25, Decimal128.Exp2((Decimal128)(-2.0)), 1e-12);
+        }
+
+        [Fact]
+        public static void Exp10()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Exp10(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Exp10(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Exp10(Decimal128.NegativeInfinity)));
+            Assert.Equal(Decimal128.One, Decimal128.Exp10(Decimal128.Zero));
+
+            AssertClose(1000.0, Decimal128.Exp10((Decimal128)3.0), 1e-12);
+            AssertClose(0.01, Decimal128.Exp10((Decimal128)(-2.0)), 1e-12);
+        }
+
+        [Fact]
+        public static void ExpM1()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.ExpM1(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.ExpM1(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.NegativeOne), Bits(Decimal128.ExpM1(Decimal128.NegativeInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.ExpM1(Decimal128.Zero)));
+
+            AssertClose(double.Exp(1.0) - 1.0, Decimal128.ExpM1(Decimal128.One), 1e-12);
+        }
+
+        [Fact]
+        public static void Exp2M1()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Exp2M1(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Exp2M1(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.NegativeOne), Bits(Decimal128.Exp2M1(Decimal128.NegativeInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Exp2M1(Decimal128.Zero)));
+
+            AssertClose(7.0, Decimal128.Exp2M1((Decimal128)3.0), 1e-12);
+        }
+
+        [Fact]
+        public static void Exp10M1()
+        {
+            Assert.True(Decimal128.IsNaN(Decimal128.Exp10M1(Decimal128.NaN)));
+            Assert.Equal(Bits(Decimal128.PositiveInfinity), Bits(Decimal128.Exp10M1(Decimal128.PositiveInfinity)));
+            Assert.Equal(Bits(Decimal128.NegativeOne), Bits(Decimal128.Exp10M1(Decimal128.NegativeInfinity)));
+            Assert.Equal(Bits(Decimal128.Zero), Bits(Decimal128.Exp10M1(Decimal128.Zero)));
+
+            AssertClose(999.0, Decimal128.Exp10M1((Decimal128)3.0), 1e-12);
+        }
+
     }
 }
