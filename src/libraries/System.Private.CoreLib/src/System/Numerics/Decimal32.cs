@@ -918,6 +918,9 @@ namespace System.Numerics
         /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log10P1(TSelf)" />
         public static Decimal32 Log10P1(Decimal32 x) => new Decimal32(Number.UnaryFromDoubleDecimalIeee754<Decimal32, uint>(x._value, double.Log10P1));
 
+        /// <inheritdoc cref="IPowerFunctions{TSelf}.Pow(TSelf, TSelf)" />
+        public static Decimal32 Pow(Decimal32 x, Decimal32 y) => new Decimal32(Number.BinaryFromDoubleDecimalIeee754ObservingNaN<Decimal32, uint>(x._value, y._value, double.Pow));
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>

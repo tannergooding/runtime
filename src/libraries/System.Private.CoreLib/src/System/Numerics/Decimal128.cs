@@ -895,6 +895,9 @@ namespace System.Numerics
         /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log10P1(TSelf)" />
         public static Decimal128 Log10P1(Decimal128 x) => new Decimal128(Number.UnaryFromDoubleDecimalIeee754<Decimal128, UInt128>(new UInt128(x._upper, x._lower), double.Log10P1));
 
+        /// <inheritdoc cref="IPowerFunctions{TSelf}.Pow(TSelf, TSelf)" />
+        public static Decimal128 Pow(Decimal128 x, Decimal128 y) => new Decimal128(Number.BinaryFromDoubleDecimalIeee754ObservingNaN<Decimal128, UInt128>(new UInt128(x._upper, x._lower), new UInt128(y._upper, y._lower), double.Pow));
+
         /// <summary>Computes the absolute of a value.</summary>
         /// <param name="value">The value for which to get its absolute.</param>
         /// <returns>The absolute of <paramref name="value" />.</returns>

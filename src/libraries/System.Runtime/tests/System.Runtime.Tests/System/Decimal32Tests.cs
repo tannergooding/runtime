@@ -2918,5 +2918,19 @@ namespace System.Tests
             AssertClose(3.0, Decimal32.Log10P1((Decimal32)999.0), 1e-6);
         }
 
+        [Fact]
+        public static void Pow()
+        {
+            Assert.Equal(Decimal32.One, Decimal32.Pow(Decimal32.NaN, Decimal32.Zero));
+            Assert.Equal(Decimal32.One, Decimal32.Pow(Decimal32.One, Decimal32.NaN));
+            Assert.Equal(Decimal32.One, Decimal32.Pow(Decimal32.PositiveInfinity, Decimal32.Zero));
+            Assert.True(Decimal32.IsNaN(Decimal32.Pow(Decimal32.NaN, (Decimal32)2.0)));
+            Assert.Equal(Bits(Decimal32.PositiveInfinity), Bits(Decimal32.Pow(Decimal32.PositiveInfinity, (Decimal32)2.0)));
+
+            AssertClose(8.0, Decimal32.Pow((Decimal32)2.0, (Decimal32)3.0), 1e-6);
+            AssertClose(2.0, Decimal32.Pow((Decimal32)4.0, (Decimal32)0.5), 1e-6);
+            AssertClose(-8.0, Decimal32.Pow((Decimal32)(-2.0), (Decimal32)3.0), 1e-6);
+        }
+
     }
 }

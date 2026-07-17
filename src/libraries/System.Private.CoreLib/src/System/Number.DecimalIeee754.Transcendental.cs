@@ -65,5 +65,26 @@ namespace System
 
             return ConvertFloatToDecimalIeee754<double, TDecimal, TValue>(result);
         }
+
+        // Pow and Hypot have IEEE special cases where a NaN operand does not force a NaN result
+        // (pow(x, +/-0) = 1, pow(1, y) = 1, hypot(+/-Infinity, NaN) = +Infinity). Unlike the other binary
+        // operations, these must let the double math surface observe the NaN operand directly instead of
+        // short-circuiting it; the conversions map a decimal NaN/Infinity to the double equivalent, so double's
+        // IEEE special-case handling yields the correct result, which is then canonicalized.
+        internal static TValue BinaryFromDoubleDecimalIeee754ObservingNaN<TDecimal, TValue>(TValue leftBits, TValue rightBits, Func<double, double, double> operation)
+            where TDecimal : unmanaged, IDecimalIeee754ParseAndFormatInfo<TDecimal, TValue>
+            where TValue : unmanaged, IBinaryInteger<TValue>
+        {
+            double x = ConvertDecimalIeee754ToFloat<TDecimal, TValue, double>(leftBits);
+            double y = ConvertDecimalIeee754ToFloat<TDecimal, TValue, double>(rightBits);
+            double result = operation(x, y);
+
+            if (double.IsNaN(result))
+            {
+                return TDecimal.NaN;
+            }
+
+            return ConvertFloatToDecimalIeee754<double, TDecimal, TValue>(result);
+        }
     }
 }
