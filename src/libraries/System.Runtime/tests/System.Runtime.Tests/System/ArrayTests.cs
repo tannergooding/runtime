@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.DotNet.RemoteExecutor;
 using Microsoft.DotNet.XUnitExtensions;
 using Xunit;
 
@@ -4910,8 +4911,13 @@ namespace System.Tests
     {
         static readonly GCMemoryInfo memoryInfo = GC.GetGCMemoryInfo();
 
+        // 2 * Dim1Length exceeds int.MaxValue so the flattened length crosses the
+        // 32-bit boundary, exercising the native-sized index paths in Copy/Clear.
+        // byte elements keep the allocation to ~2 GB.
+        private const int Dim1Length = 1_073_741_825;
+
         [OuterLoop] // Allocates large array
-        [ConditionalFact]
+        [ConditionalFact(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
         public static void Copy_LargeMultiDimensionalArray()
         {
             // If this test is run in a 32-bit process, the large allocation will fail.
@@ -4927,19 +4933,22 @@ namespace System.Tests
                 throw new SkipTestException($"Prone to OOM killer. {memoryInfo.TotalAvailableMemoryBytes} is available.");
             }
 
-            // dim1 is just over int.MaxValue / 2 so the flattened length exceeds
-            // int.MaxValue, exercising the native-sized index paths in Copy/Clear.
-            byte[,] a = AllocateLargeMDArray(2, 1_073_741_825);
-            a[0, 1] = 42;
-            Array.Copy(a, 1, a, Int32.MaxValue, 2);
-            Assert.Equal(42, a[1, Int32.MaxValue - 1_073_741_825]);
+            // Allocate in a child process so that if the OOM killer does fire it
+            // fails just this test instead of taking down the whole test run.
+            RemoteExecutor.Invoke(static () =>
+            {
+                byte[,] a = new byte[2, Dim1Length];
+                a[0, 1] = 42;
+                Array.Copy(a, 1, a, int.MaxValue, 2);
+                Assert.Equal(42, a[1, int.MaxValue - Dim1Length]);
 
-            Array.Clear(a, Int32.MaxValue - 1, 3);
-            Assert.Equal(0, a[1, Int32.MaxValue - 1_073_741_825]);
+                Array.Clear(a, int.MaxValue - 1, 3);
+                Assert.Equal(0, a[1, int.MaxValue - Dim1Length]);
+            }).Dispose();
         }
 
         [OuterLoop] // Allocates large array
-        [ConditionalFact]
+        [ConditionalFact(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
         public static void Clear_LargeMultiDimensionalArray()
         {
             // If this test is run in a 32-bit process, the large allocation will fail.
@@ -4955,32 +4964,22 @@ namespace System.Tests
                 throw new SkipTestException($"Prone to OOM killer. {memoryInfo.TotalAvailableMemoryBytes} is available.");
             }
 
-            // dim1 is just over int.MaxValue / 2 so the flattened length exceeds
-            // int.MaxValue, exercising the native-sized index paths in Copy/Clear.
-            byte[,] a = AllocateLargeMDArray(2, 1_073_741_825);
-
-            // Test 1: use Array.Clear
-            a[1, 1_073_741_824] = 0x12;
-            Array.Clear(a);
-            Assert.Equal(0, a[1, 1_073_741_824]);
-
-            // Test 2: use IList.Clear
-            a[1, 1_073_741_824] = 0x12;
-            ((IList)a).Clear();
-            Assert.Equal(0, a[1, 1_073_741_824]);
-        }
-
-        private static byte[,] AllocateLargeMDArray(int dim0Length, int dim1Length)
-        {
-            try
+            // Allocate in a child process so that if the OOM killer does fire it
+            // fails just this test instead of taking down the whole test run.
+            RemoteExecutor.Invoke(static () =>
             {
-                return new byte[dim0Length, dim1Length];
-            }
-            catch (OutOfMemoryException)
-            {
-                // not a fatal error - we'll just skip the test in this case
-                throw new SkipTestException("Unable to allocate enough memory");
-            }
+                byte[,] a = new byte[2, Dim1Length];
+
+                // Test 1: use Array.Clear
+                a[1, Dim1Length - 1] = 0x12;
+                Array.Clear(a);
+                Assert.Equal(0, a[1, Dim1Length - 1]);
+
+                // Test 2: use IList.Clear
+                a[1, Dim1Length - 1] = 0x12;
+                ((IList)a).Clear();
+                Assert.Equal(0, a[1, Dim1Length - 1]);
+            }).Dispose();
         }
     }
 }
