@@ -4911,10 +4911,10 @@ namespace System.Tests
     {
         static readonly GCMemoryInfo memoryInfo = GC.GetGCMemoryInfo();
 
-        // 2 * Dim1Length exceeds int.MaxValue so the flattened length crosses the
-        // 32-bit boundary, exercising the native-sized index paths in Copy/Clear.
-        // byte elements keep the allocation to ~2 GB.
-        private const int Dim1Length = 1_073_741_825;
+        // The flattened length (2 * Dim1Length) must exceed int.MaxValue so the
+        // index math crosses the 32-bit boundary, exercising the native-sized
+        // paths in Copy/Clear. byte elements keep the allocation to ~2 GB.
+        private const int Dim1Length = (int.MaxValue / 2) + 2;
 
         [OuterLoop] // Allocates large array
         [ConditionalFact(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
