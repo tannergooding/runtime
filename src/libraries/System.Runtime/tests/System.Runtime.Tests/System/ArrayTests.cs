@@ -4920,20 +4920,22 @@ namespace System.Tests
                 throw new SkipTestException("Unable to allocate enough memory");
             }
 
-            if (memoryInfo.TotalAvailableMemoryBytes < 4_000_000_000 )
+            if (memoryInfo.TotalAvailableMemoryBytes < 4_000_000_000)
             {
-                // On these platforms, occasionally the OOM Killer will terminate the
-                // tests when they're using ~1GB, before they complete.
+                // The array below is ~2 GB; require headroom so the OOM killer
+                // doesn't terminate the process before the test completes.
                 throw new SkipTestException($"Prone to OOM killer. {memoryInfo.TotalAvailableMemoryBytes} is available.");
             }
 
-            short[,] a = AllocateLargeMDArray(2, 2_000_000_000);
+            // dim1 is just over int.MaxValue / 2 so the flattened length exceeds
+            // int.MaxValue, exercising the native-sized index paths in Copy/Clear.
+            byte[,] a = AllocateLargeMDArray(2, 1_073_741_825);
             a[0, 1] = 42;
             Array.Copy(a, 1, a, Int32.MaxValue, 2);
-            Assert.Equal(42, a[1, Int32.MaxValue - 2_000_000_000]);
+            Assert.Equal(42, a[1, Int32.MaxValue - 1_073_741_825]);
 
             Array.Clear(a, Int32.MaxValue - 1, 3);
-            Assert.Equal(0, a[1, Int32.MaxValue - 2_000_000_000]);
+            Assert.Equal(0, a[1, Int32.MaxValue - 1_073_741_825]);
         }
 
         [OuterLoop] // Allocates large array
@@ -4946,31 +4948,33 @@ namespace System.Tests
                 throw new SkipTestException("Unable to allocate enough memory");
             }
 
-            if (memoryInfo.TotalAvailableMemoryBytes < 4_000_000_000 )
+            if (memoryInfo.TotalAvailableMemoryBytes < 4_000_000_000)
             {
-                // On these platforms, occasionally the OOM Killer will terminate the
-                // tests when they're using ~1GB, before they complete.
-                throw new SkipTestException($"Prone to OOM killer. ${memoryInfo.TotalAvailableMemoryBytes} is available.");
+                // The array below is ~2 GB; require headroom so the OOM killer
+                // doesn't terminate the process before the test completes.
+                throw new SkipTestException($"Prone to OOM killer. {memoryInfo.TotalAvailableMemoryBytes} is available.");
             }
 
-            short[,] a = AllocateLargeMDArray(2, 2_000_000_000);
+            // dim1 is just over int.MaxValue / 2 so the flattened length exceeds
+            // int.MaxValue, exercising the native-sized index paths in Copy/Clear.
+            byte[,] a = AllocateLargeMDArray(2, 1_073_741_825);
 
             // Test 1: use Array.Clear
-            a[1, 1_999_999_999] = 0x1234;
+            a[1, 1_073_741_824] = 0x12;
             Array.Clear(a);
-            Assert.Equal(0, a[1, 1_999_999_999]);
+            Assert.Equal(0, a[1, 1_073_741_824]);
 
             // Test 2: use IList.Clear
-            a[1, 1_999_999_999] = 0x1234;
+            a[1, 1_073_741_824] = 0x12;
             ((IList)a).Clear();
-            Assert.Equal(0, a[1, 1_999_999_999]);
+            Assert.Equal(0, a[1, 1_073_741_824]);
         }
 
-        private static short[,] AllocateLargeMDArray(int dim0Length, int dim1Length)
+        private static byte[,] AllocateLargeMDArray(int dim0Length, int dim1Length)
         {
             try
             {
-                return new short[dim0Length, dim1Length];
+                return new byte[dim0Length, dim1Length];
             }
             catch (OutOfMemoryException)
             {
