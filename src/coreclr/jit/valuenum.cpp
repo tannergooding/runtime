@@ -12909,11 +12909,17 @@ void Compiler::fgValueNumberStore(GenTree* store)
 
             valueVNPair.SetBoth(initObjVN);
         }
-        else if (varTypeIsGC(value))
+        else if (value->TypeIs(TYP_REF) ||
+                 (value->TypeIs(TYP_BYREF) && value->OperIs(GT_LCL_VAR) && lvaGetDesc(value->AsLclVar())->lvPinned))
         {
-            // A GC reference reinterpreted as another type (an unsafe IL store of a TYP_REF, or one of
-            // morph's "Cast away GC" temps) is a raw address snapshot that is only valid until the
-            // referent can next move, so give each store its own VN rather than letting CSE share one.
+            // A GC reference reinterpreted as a raw address is only safe to CSE when the referent
+            // cannot move between the two uses.  For TYP_REF (heap object), the GC can always
+            // compact the heap, so give each store its own VN.  For TYP_BYREF, casting to a raw
+            // address is only well-defined when the referent is pinned; the one case where the same
+            // pinned local can be cast across two separate fixed regions (with a compacting GC between
+            // them) is when the source is directly the pin local itself (lvPinned=true).  Other byref
+            // sources (ref parameters, MemoryMarshal.GetReference, etc.) require the caller to have
+            // already pinned the referent, so those casts are stable for VN purposes.
             valueVNPair.SetBoth(vnStore->VNForExpr(compCurBB, store->TypeGet()));
         }
         else
