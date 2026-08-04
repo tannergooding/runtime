@@ -1317,11 +1317,17 @@ bool Compiler::optTryUnrollLoop(FlowGraphNaturalLoop* loop, bool* changedIR)
     }
 #endif
 
+#if defined(TARGET_AMD64) || defined(TARGET_ARM64)
+    constexpr int unrollLimitSzBase = 450;
+#else
+    constexpr int unrollLimitSzBase = 300;
+#endif
+
     static const int UNROLL_LIMIT_SZ[COUNT_OPT_CODE + 1] = {
-        300, // BLENDED_CODE
-        0,   // SMALL_CODE
-        600, // FAST_CODE
-        0    // COUNT_OPT_CODE
+        CODE_SIZE_BUDGET(unrollLimitSzBase),     // BLENDED_CODE
+        0,                                       // SMALL_CODE
+        CODE_SIZE_BUDGET(2 * unrollLimitSzBase), // FAST_CODE
+        0                                        // COUNT_OPT_CODE
     };
 
     assert(UNROLL_LIMIT_SZ[SMALL_CODE] == 0);
@@ -2093,7 +2099,7 @@ bool Compiler::optTryInvertWhileLoop(FlowGraphNaturalLoop* loop)
         }
     }
 
-    unsigned maxDupCostSz = 34;
+    unsigned maxDupCostSz = CODE_SIZE_BUDGET(34);
 
     if ((compCodeOpt() == FAST_CODE) || compStressCompile(STRESS_DO_WHILE_LOOPS, 30))
     {
@@ -2169,10 +2175,11 @@ bool Compiler::optTryInvertWhileLoop(FlowGraphNaturalLoop* loop)
                 {
                     // Calculate a new maximum cost. We might be able to early exit.
 
-                    unsigned newMaxDupCostSz =
-                        maxDupCostSz +
-                        24 * min(optInvertTotalInfo.sharedStaticHelperCount, (int)(loopIterations + 1.5)) +
-                        8 * optInvertTotalInfo.arrayLengthCount + (hasSplitIVTestAndIncrement ? 24 : 0);
+                    unsigned newMaxDupCostSz = maxDupCostSz +
+                                               CODE_SIZE_BUDGET(24) * min(optInvertTotalInfo.sharedStaticHelperCount,
+                                                                          (int)(loopIterations + 1.5)) +
+                                               CODE_SIZE_BUDGET(8) * optInvertTotalInfo.arrayLengthCount +
+                                               (hasSplitIVTestAndIncrement ? CODE_SIZE_BUDGET(24) : 0);
 
                     // Is the cost too high now?
                     costIsTooHigh = (estDupCostSz > newMaxDupCostSz);

@@ -3390,7 +3390,8 @@ PhaseStatus Compiler::fgDetermineFirstColdBlock()
                     // so the code size for block needs be large
                     // enough to make it worth our while
                     //
-                    if ((lblk == nullptr) || !lblk->KindIs(BBJ_COND) || (fgGetCodeEstimate(block) >= 8))
+                    if ((lblk == nullptr) || !lblk->KindIs(BBJ_COND) ||
+                        (fgGetCodeEstimate(block) >= CODE_SIZE_BUDGET(8)))
                     {
                         // This block is now a candidate for first cold block
                         // Also remember the predecessor to this block
@@ -3427,10 +3428,9 @@ PhaseStatus Compiler::fgDetermineFirstColdBlock()
         //
         if (!forceSplit && firstColdBlock->IsLast())
         {
-            // If the size of the cold block is 7 or less
-            // then we will keep it in the Hot section.
+            // If the cold block is small enough then we will keep it in the Hot section.
             //
-            if (fgGetCodeEstimate(firstColdBlock) < 8)
+            if (fgGetCodeEstimate(firstColdBlock) < CODE_SIZE_BUDGET(8))
             {
                 firstColdBlock = nullptr;
                 goto EXIT;

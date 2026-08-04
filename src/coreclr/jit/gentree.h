@@ -918,6 +918,21 @@ public:
     static int GetLocalAccessSize(var_types type, bool isStore);
     static int GetStoreCost(var_types type);
 
+// Code size budgets are compared against sums of costSz, which counts bytes of generated
+// code. Arm64 needs roughly 30% more of them than xarch to express the same program, as it
+// has no fused load-op forms and no variable length encoding. Scaling the budgets keeps an
+// optimization decision the same on both targets instead of penalizing the less dense one.
+//
+// Measured over benchmarks.run, split on whether the method uses the FP/SIMD register file
+// because those methods are an order of magnitude larger and are not present in the same
+// proportion in both collections: the arm64/xarch ratio of modelled bytes per method is
+// 1.28 over the 42k scalar methods and 1.31 over the 6k FP/SIMD ones.
+#if defined(TARGET_ARM64)
+#define CODE_SIZE_BUDGET(bytes) ((((bytes) * 13) + 9) / 10)
+#else
+#define CODE_SIZE_BUDGET(bytes) (bytes)
+#endif
+
     unsigned char GetCostEx() const
     {
         assert(gtCostsInitialized);

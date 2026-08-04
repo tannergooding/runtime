@@ -2664,7 +2664,7 @@ bool Compiler::fgOptimizeBranch(BasicBlock* bJump)
         }
     }
 
-    unsigned maxDupCostSz = 6;
+    unsigned maxDupCostSz = CODE_SIZE_BUDGET(6);
 
     //
     // Branches between the hot and rarely run regions
@@ -2672,12 +2672,12 @@ bool Compiler::fgOptimizeBranch(BasicBlock* bJump)
     //
     if (rareDest != rareJump)
     {
-        maxDupCostSz += 6;
+        maxDupCostSz += CODE_SIZE_BUDGET(6);
     }
 
     if (rareDest != rareNext)
     {
-        maxDupCostSz += 6;
+        maxDupCostSz += CODE_SIZE_BUDGET(6);
     }
 
     //
@@ -4979,10 +4979,18 @@ unsigned Compiler::fgGetCodeEstimate(BasicBlock* block)
         case BBJ_EHCATCHRET:
         case BBJ_LEAVE:
         case BBJ_COND:
+#if defined(TARGET_ARM64)
+            costSz = 4;
+#else
             costSz = 2;
+#endif
             break;
         case BBJ_CALLFINALLY:
+#if defined(TARGET_ARM64)
+            costSz = 4;
+#else
             costSz = 5;
+#endif
             break;
         case BBJ_CALLFINALLYRET:
             costSz = 0;
@@ -4991,15 +4999,27 @@ unsigned Compiler::fgGetCodeEstimate(BasicBlock* block)
             costSz = 10;
             break;
         case BBJ_THROW:
+#if defined(TARGET_ARM64)
+            costSz = 4;
+#else
             costSz = 1; // We place a int3 after the code for a throw block
+#endif
             break;
         case BBJ_EHFINALLYRET:
         case BBJ_EHFAULTRET:
         case BBJ_EHFILTERRET:
+#if defined(TARGET_ARM64)
+            costSz = 4;
+#else
             costSz = 1;
+#endif
             break;
         case BBJ_RETURN: // return from method
+#if defined(TARGET_ARM64)
+            costSz = 4;
+#else
             costSz = 3;
+#endif
             break;
         default:
             noway_assert(!"Bad bbKind");
