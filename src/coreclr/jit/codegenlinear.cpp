@@ -2430,7 +2430,22 @@ void CodeGen::genCodeForCast(GenTreeOp* tree)
     // The per-case functions call genProduceReg()
 }
 
+static bool IsCastLoad(GenTreeCast* cast)
+{
+    GenTree* src        = cast->CastOp();
+    bool     castIsLoad = !src->isUsedFromReg();
+
+    assert(castIsLoad == src->isUsedFromMemory());
+
+    return castIsLoad;
+}
+
 CodeGen::GenIntCastDesc::GenIntCastDesc(GenTreeCast* cast)
+    : GenIntCastDesc(cast, IsCastLoad(cast))
+{
+}
+
+CodeGen::GenIntCastDesc::GenIntCastDesc(GenTreeCast* cast, bool castIsLoad)
 {
     GenTree* const  src          = cast->CastOp();
     const var_types srcType      = genActualType(src);
@@ -2442,9 +2457,6 @@ CodeGen::GenIntCastDesc::GenIntCastDesc(GenTreeCast* cast)
     const var_types dstType      = genActualType(cast->TypeGet());
     const unsigned  dstSize      = genTypeSize(dstType);
     const bool      overflow     = cast->gtOverflow();
-    const bool      castIsLoad   = !src->isUsedFromReg();
-
-    assert(castIsLoad == src->isUsedFromMemory());
 #ifndef TARGET_WASM
     assert((srcSize == 4) || (srcSize == genTypeSize(TYP_I_IMPL)));
     assert((dstSize == 4) || (dstSize == genTypeSize(TYP_I_IMPL)));

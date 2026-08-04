@@ -1708,4 +1708,429 @@ GenTree* Compiler::gtNewSimdFalseMaskByteNode()
     return mskCon;
 }
 
+//------------------------------------------------------------------------
+// lookupInsLatency: Gets the expected latency, in cycles, of an instruction
+//
+// Arguments:
+//    ins          -- The instruction to query
+//    simdBaseType -- The element type
+//    simdSize     -- The vector size, or zero for a scalar instruction
+//
+// Return Value:
+//    The number of cycles the instruction is expected to take, or -1 if unknown
+//
+int HWIntrinsicInfo::lookupInsLatency(instruction ins, var_types simdBaseType, unsigned simdSize)
+{
+    if (ins == INS_invalid)
+    {
+        return -1;
+    }
+
+    bool isScalar = simdSize == 0;
+
+    if ((ins >= INS_sve_invalid) && (ins < INS_lea))
+    {
+        switch (ins)
+        {
+            case INS_sve_fabs:
+            case INS_sve_fadd:
+            case INS_sve_fabd:
+            case INS_sve_fmax:
+            case INS_sve_fmaxnm:
+            case INS_sve_fmin:
+            case INS_sve_fminnm:
+            case INS_sve_fneg:
+            case INS_sve_fsub:
+            {
+                return 2;
+            }
+
+            case INS_sve_fmul:
+            case INS_sve_fmulx:
+            case INS_sve_fscale:
+            {
+                return 3;
+            }
+
+            case INS_sve_fmla:
+            case INS_sve_fmls:
+            case INS_sve_fnmla:
+            case INS_sve_fnmls:
+            case INS_sve_frecps:
+            case INS_sve_frsqrts:
+            {
+                return 4;
+            }
+
+            case INS_sve_fdiv:
+            {
+                return (simdBaseType == TYP_DOUBLE) ? 15 : 10;
+            }
+
+            case INS_sve_fsqrt:
+            {
+                return (simdBaseType == TYP_DOUBLE) ? 16 : 10;
+            }
+
+            case INS_sve_sdiv:
+            case INS_sve_udiv:
+            {
+                return (genTypeSize(simdBaseType) == 8) ? 20 : 12;
+            }
+
+            case INS_sve_mul:
+            {
+                return (genTypeSize(simdBaseType) == 8) ? 5 : 4;
+            }
+
+            case INS_sve_saddv:
+            case INS_sve_smaxv:
+            case INS_sve_sminv:
+            case INS_sve_uaddv:
+            case INS_sve_umaxv:
+            case INS_sve_uminv:
+            {
+                switch (genTypeSize(simdBaseType))
+                {
+                    case 1:
+                    {
+                        return 11;
+                    }
+
+                    case 2:
+                    {
+                        return 9;
+                    }
+
+                    default:
+                    {
+                        return 8;
+                    }
+                }
+            }
+
+            case INS_sve_fadda:
+            case INS_sve_faddv:
+            case INS_sve_fmaxv:
+            case INS_sve_fminv:
+            {
+                return (simdBaseType == TYP_DOUBLE) ? 2 : 4;
+            }
+
+            case INS_sve_frinta:
+            case INS_sve_frinti:
+            case INS_sve_frintm:
+            case INS_sve_frintn:
+            case INS_sve_frintp:
+            case INS_sve_frintx:
+            case INS_sve_frintz:
+            case INS_sve_frecpe:
+            case INS_sve_frsqrte:
+            {
+                return (simdBaseType == TYP_DOUBLE) ? 3 : 4;
+            }
+
+            default:
+            {
+                return varTypeIsFloating(simdBaseType) ? 4 : 2;
+            }
+        }
+    }
+
+    switch (ins)
+    {
+        case INS_crc32b:
+        case INS_crc32h:
+        case INS_crc32w:
+        case INS_crc32x:
+        case INS_crc32cb:
+        case INS_crc32ch:
+        case INS_crc32cw:
+        case INS_crc32cx:
+        {
+            return 2;
+        }
+
+        case INS_mul:
+        {
+            if (isScalar)
+            {
+                return varTypeIsLong(simdBaseType) ? 4 : 2;
+            }
+
+            return varTypeIsByte(simdBaseType) ? 2 : ((simdSize == 16) ? 5 : 4);
+        }
+
+        case INS_madd:
+        case INS_msub:
+        case INS_mneg:
+        {
+            assert(isScalar);
+            return varTypeIsLong(simdBaseType) ? 4 : 2;
+        }
+
+        case INS_smaddl:
+        case INS_smsubl:
+        case INS_smnegl:
+        case INS_umaddl:
+        case INS_umsubl:
+        case INS_umnegl:
+        {
+            assert(isScalar);
+            return 2;
+        }
+
+        case INS_smulh:
+        case INS_umulh:
+        {
+            return 5;
+        }
+
+        case INS_smull:
+        case INS_smull2:
+        case INS_umull:
+        case INS_umull2:
+        {
+            return isScalar ? 2 : 4;
+        }
+
+        case INS_mla:
+        case INS_mls:
+        case INS_sqdmulh:
+        case INS_sqrdmlah:
+        case INS_sqrdmlsh:
+        case INS_sqrdmulh:
+        {
+            return (simdSize == 16) ? 5 : 4;
+        }
+
+        case INS_sabal:
+        case INS_sabal2:
+        case INS_saba:
+        case INS_sadalp:
+        case INS_smlal:
+        case INS_smlal2:
+        case INS_smlsl:
+        case INS_smlsl2:
+        case INS_sqdmlal:
+        case INS_sqdmlal2:
+        case INS_sqdmlsl:
+        case INS_sqdmlsl2:
+        case INS_sqdmull:
+        case INS_sqdmull2:
+        case INS_uabal:
+        case INS_uabal2:
+        case INS_uaba:
+        case INS_uadalp:
+        case INS_umlal:
+        case INS_umlal2:
+        case INS_umlsl:
+        case INS_umlsl2:
+        case INS_ssra:
+        case INS_srsra:
+        case INS_usra:
+        case INS_ursra:
+        {
+            return 4;
+        }
+
+        case INS_pmul:
+        {
+            return (simdSize == 16) ? 4 : 3;
+        }
+
+        case INS_sdot:
+        case INS_udot:
+        {
+            return 4;
+        }
+
+        case INS_rshrn:
+        case INS_rshrn2:
+        case INS_sqrshl:
+        case INS_sqrshrn:
+        case INS_sqrshrn2:
+        case INS_sqrshrun:
+        case INS_sqrshrun2:
+        case INS_sqshl:
+        case INS_sqshrn:
+        case INS_sqshrn2:
+        case INS_sqshrun:
+        case INS_sqshrun2:
+        case INS_sqxtn:
+        case INS_sqxtn2:
+        case INS_sqxtun:
+        case INS_sqxtun2:
+        case INS_srshr:
+        case INS_srshl:
+        case INS_uqrshl:
+        case INS_uqrshrn:
+        case INS_uqrshrn2:
+        case INS_uqshl:
+        case INS_uqshrn:
+        case INS_uqshrn2:
+        case INS_uqxtn:
+        case INS_uqxtn2:
+        case INS_urshr:
+        case INS_urshl:
+        {
+            return 4;
+        }
+
+        case INS_addv:
+        case INS_saddlv:
+        case INS_smaxv:
+        case INS_sminv:
+        case INS_uaddlv:
+        case INS_umaxv:
+        case INS_uminv:
+        {
+            unsigned elementCount = simdSize / genTypeSize(simdBaseType);
+
+            return (elementCount == 4) ? 3 : ((elementCount == 8) ? 5 : 6);
+        }
+
+        case INS_fmaxnmv:
+        case INS_fmaxv:
+        case INS_fminnmv:
+        case INS_fminv:
+        {
+            return 5;
+        }
+
+        case INS_dup:
+        {
+            return 3;
+        }
+
+        case INS_ins:
+        {
+            return 5;
+        }
+
+        case INS_fmul:
+        case INS_fmulx:
+        case INS_fnmul:
+        {
+            return 3;
+        }
+
+        case INS_fmla:
+        case INS_fmls:
+        case INS_fmadd:
+        case INS_fmsub:
+        case INS_fnmadd:
+        case INS_fnmsub:
+        case INS_frecps:
+        case INS_frsqrts:
+        {
+            return 4;
+        }
+
+        case INS_fdiv:
+        {
+            return (simdBaseType == TYP_DOUBLE) ? 15 : 10;
+        }
+
+        case INS_fsqrt:
+        {
+            return (simdBaseType == TYP_DOUBLE) ? 17 : 10;
+        }
+
+        case INS_fcvt:
+        case INS_fcvtl:
+        case INS_fcvtl2:
+        case INS_fcvtn:
+        case INS_fcvtn2:
+        case INS_fcvtxn:
+        case INS_fcvtxn2:
+        {
+            return 3;
+        }
+
+        case INS_fcvtas:
+        case INS_fcvtau:
+        case INS_fcvtms:
+        case INS_fcvtmu:
+        case INS_fcvtns:
+        case INS_fcvtnu:
+        case INS_fcvtps:
+        case INS_fcvtpu:
+        case INS_fcvtzs:
+        case INS_fcvtzu:
+        {
+            if (isScalar)
+            {
+                return 4;
+            }
+
+            return ((simdSize == 16) && (simdBaseType == TYP_FLOAT)) ? 4 : 3;
+        }
+
+        case INS_scvtf:
+        case INS_ucvtf:
+        {
+            if (isScalar)
+            {
+                return 6;
+            }
+
+            return ((simdSize == 16) && (simdBaseType == TYP_FLOAT)) ? 4 : 3;
+        }
+
+        case INS_frinta:
+        case INS_frinti:
+        case INS_frintm:
+        case INS_frintn:
+        case INS_frintp:
+        case INS_frintx:
+        case INS_frintz:
+        {
+            if (isScalar)
+            {
+                return 3;
+            }
+
+            return ((simdSize == 16) && (simdBaseType == TYP_FLOAT)) ? 4 : 3;
+        }
+
+        case INS_frecpe:
+        case INS_frecpx:
+        case INS_frsqrte:
+        case INS_urecpe:
+        case INS_ursqrte:
+        {
+            return ((simdSize == 16) && (simdBaseType == TYP_FLOAT)) ? 4 : 3;
+        }
+
+        case INS_tbl_3regs:
+        case INS_tbl_4regs:
+        case INS_tbx_2regs:
+        {
+            return 4;
+        }
+
+        case INS_tbx_3regs:
+        case INS_tbx_4regs:
+        {
+            return 6;
+        }
+
+        case INS_sha1c:
+        case INS_sha1m:
+        case INS_sha1p:
+        case INS_sha256h:
+        case INS_sha256h2:
+        case INS_sha256su1:
+        {
+            return 4;
+        }
+
+        default:
+        {
+            return isScalar ? 1 : 2;
+        }
+    }
+}
+
 #endif // FEATURE_HW_INTRINSICS

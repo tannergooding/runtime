@@ -2170,14 +2170,14 @@ protected:
 #elif defined(TARGET_ARM64) || defined(TARGET_ARM)
 
 // a read,write or modify from stack location, possible def to use latency from L0 cache
-#define PERFSCORE_LATENCY_RD_STACK         PERFSCORE_LATENCY_3C
+#define PERFSCORE_LATENCY_RD_STACK         PERFSCORE_LATENCY_4C
 #define PERFSCORE_LATENCY_WR_STACK         PERFSCORE_LATENCY_1C
-#define PERFSCORE_LATENCY_RD_WR_STACK      PERFSCORE_LATENCY_3C
+#define PERFSCORE_LATENCY_RD_WR_STACK      PERFSCORE_LATENCY_4C
 
 // a read, write or modify from constant location, possible def to use latency from L0 cache
-#define PERFSCORE_LATENCY_RD_CONST_ADDR    PERFSCORE_LATENCY_3C
+#define PERFSCORE_LATENCY_RD_CONST_ADDR    PERFSCORE_LATENCY_4C
 #define PERFSCORE_LATENCY_WR_CONST_ADDR    PERFSCORE_LATENCY_1C
-#define PERFSCORE_LATENCY_RD_WR_CONST_ADDR PERFSCORE_LATENCY_3C
+#define PERFSCORE_LATENCY_RD_WR_CONST_ADDR PERFSCORE_LATENCY_4C
 
 // a read, write or modify from memory location, possible def to use latency from L0 or L1 cache
 // plus an extra cost  (of 1.0) for a increased chance  of a cache miss

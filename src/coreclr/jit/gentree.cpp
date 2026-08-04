@@ -14,11 +14,194 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 #include "hwintrinsic.h"
 #include "simd.h"
 
+#if defined(TARGET_ARM64) || defined(TARGET_AMD64)
+#include "codegen.h"
+#endif
+
 #ifdef _MSC_VER
 #pragma hdrstop
 #endif
 
 /*****************************************************************************/
+
+int GenTree::GetIndirectionCost(var_types type)
+{
+    int cost = (varTypeUsesFloatReg(type) || varTypeUsesMaskReg(type)) ? FLT_IND_COST_EX : IND_COST_EX;
+
+#if defined(TARGET_XARCH)
+    if (type == TYP_SIMD64)
+    {
+        cost += 2;
+    }
+    else if (type == TYP_SIMD32)
+    {
+        cost += 1;
+    }
+#endif
+
+    return cost;
+}
+
+int GenTree::GetStoreCost(var_types type)
+{
+#if defined(TARGET_ARM64)
+    return (varTypeUsesFloatReg(type) || varTypeUsesMaskReg(type)) ? 2 : 1;
+#elif defined(TARGET_XARCH)
+    return 1;
+#else
+    return GenTree::GetIndirectionCost(type);
+#endif
+}
+
+static int GetIndirectionSize(var_types type, bool isStore)
+{
+#if defined(TARGET_XARCH)
+    if (type == TYP_SIMD64)
+    {
+        return 6;
+    }
+
+    if (varTypeUsesFloatReg(type) || varTypeUsesMaskReg(type))
+    {
+        return 4;
+    }
+
+    if (!isStore && varTypeIsSmall(type))
+    {
+        return 3;
+    }
+
+#if defined(TARGET_AMD64)
+    if (varTypeUsesIntReg(type) && (genTypeSize(type) == 8))
+    {
+        return 3;
+    }
+#endif
+
+    return 2;
+#elif defined(TARGET_ARM64) || defined(TARGET_LOONGARCH64) || defined(TARGET_RISCV64)
+    return 4;
+#elif defined(TARGET_ARM)
+    return varTypeUsesFloatReg(type) ? 4 : 2;
+#elif defined(TARGET_WASM)
+    return 3;
+#else
+#error Unknown target
+#endif
+}
+
+int GenTree::GetLocalAccessSize(var_types type, bool isStore)
+{
+#if defined(TARGET_AMD64)
+    return GetIndirectionSize(type, isStore) + 2;
+#elif defined(TARGET_X86)
+    return GetIndirectionSize(type, isStore) + 1;
+#elif defined(TARGET_WASM)
+    return 2;
+#else
+    return GetIndirectionSize(type, isStore);
+#endif
+}
+
+static int GetRegisterMoveSize(var_types type)
+{
+#if defined(TARGET_XARCH)
+    return GetIndirectionSize(type, true);
+#elif defined(TARGET_ARM64) || defined(TARGET_LOONGARCH64) || defined(TARGET_RISCV64)
+    return 4;
+#elif defined(TARGET_ARM)
+    return varTypeUsesFloatReg(type) ? 4 : 2;
+#elif defined(TARGET_WASM)
+    return 2;
+#else
+#error Unknown target
+#endif
+}
+
+static int GetRegisterMoveCost(var_types type)
+{
+#if defined(TARGET_ARM64)
+    return varTypeUsesFloatReg(type) ? 2 : 1;
+#else
+    return 1;
+#endif
+}
+
+#if defined(TARGET_ARM64) || defined(TARGET_AMD64)
+static void GetIntCastOverflowCosts(GenTreeCast* cast, int* costEx, int* costSz)
+{
+    CodeGen::GenIntCastDesc desc = CodeGen::GenIntCastDesc::CreateForCosting(cast);
+
+#if defined(TARGET_ARM64)
+    int checkCount = 0;
+
+    if (desc.CheckKind() != CodeGen::GenIntCastDesc::CHECK_NONE)
+    {
+        checkCount = 1;
+
+        if ((desc.CheckKind() == CodeGen::GenIntCastDesc::CHECK_SMALL_INT_RANGE) && (desc.CheckSmallIntMin() != 0))
+        {
+            checkCount = 2;
+        }
+    }
+
+    *costEx = 2 * checkCount;
+    *costSz = 8 * checkCount;
+#else
+    constexpr int branchSize = 6;
+
+    switch (desc.CheckKind())
+    {
+        case CodeGen::GenIntCastDesc::CHECK_NONE:
+            *costEx = 0;
+            *costSz = 0;
+            break;
+
+        case CodeGen::GenIntCastDesc::CHECK_POSITIVE:
+            *costEx = 2;
+            *costSz = (desc.CheckSrcSize() == 8 ? 3 : 2) + branchSize;
+            break;
+
+#if defined(TARGET_64BIT)
+        case CodeGen::GenIntCastDesc::CHECK_UINT_RANGE:
+            *costEx = 3;
+            *costSz = 3 + 4 + branchSize;
+            break;
+
+        case CodeGen::GenIntCastDesc::CHECK_POSITIVE_INT_RANGE:
+            *costEx = 2;
+            *costSz = 7 + branchSize;
+            break;
+
+        case CodeGen::GenIntCastDesc::CHECK_INT_RANGE:
+            *costEx = 3;
+            *costSz = 3 + 3 + branchSize;
+            break;
+#endif
+
+        default:
+        {
+            assert(desc.CheckKind() == CodeGen::GenIntCastDesc::CHECK_SMALL_INT_RANGE);
+
+            int compareSize = GenTreeIntConCommon::FitsInI8(desc.CheckSmallIntMax()) ? 3 : 6;
+
+#if defined(TARGET_AMD64)
+            if (desc.CheckSrcSize() == 8)
+            {
+                compareSize++;
+            }
+#endif
+
+            int checkCount = (desc.CheckSmallIntMin() == 0) ? 1 : 2;
+
+            *costEx = 2 * checkCount;
+            *costSz = (compareSize + branchSize) * checkCount;
+            break;
+        }
+    }
+#endif
+}
+#endif
 
 const unsigned char GenTree::gtOperKindTable[] = {
 #define GTNODE(en, st, cm, ivn, ok) ((ok) & GTK_MASK) + GTK_COMMUTE *cm,
@@ -4085,25 +4268,56 @@ unsigned Compiler::gtSetCallArgsOrder(CallArgs* args, bool lateArgs, int* callCo
     unsigned costEx = 0;
     unsigned costSz = 0;
 
-    auto update = [&level, &costEx, &costSz, lateArgs](GenTree* argNode, unsigned argLevel) {
+    auto update = [args, &level, &costEx, &costSz](CallArg& arg, GenTree* argNode, unsigned argLevel) {
         if (argLevel > level)
         {
             level = argLevel;
         }
 
-        if (argNode->GetCostEx() != 0)
+        costEx += argNode->GetCostEx();
+        costSz += argNode->GetCostSz();
+
+        bool isActualArgument = argNode == arg.GetNode();
+        if (isActualArgument && !argNode->OperIsPutArg())
         {
-            costEx += argNode->GetCostEx();
-            costEx += lateArgs ? 0 : IND_COST_EX;
-        }
-        if (argNode->GetCostSz() != 0)
-        {
-            costSz += argNode->GetCostSz();
-#ifdef TARGET_XARCH
-            if (lateArgs) // push is smaller than mov to reg
-#endif
+            bool needsRegisterMove = (argNode->GetCostSz() == 0) || varTypeIsStruct(argNode);
+
+            if (args->IsAbiInformationDetermined() && (arg.AbiInfo.NumSegments != 0))
             {
-                costSz += 1;
+                for (const ABIPassingSegment& segment : arg.AbiInfo.Segments())
+                {
+                    if (segment.IsPassedInRegister())
+                    {
+                        if (needsRegisterMove)
+                        {
+                            var_types segmentType = segment.GetRegisterType(arg.GetSignatureLayout());
+                            costEx += GetRegisterMoveCost(segmentType);
+                            costSz += GetRegisterMoveSize(segmentType);
+                        }
+                    }
+                    else
+                    {
+                        var_types segmentType = arg.GetSignatureType();
+                        if (varTypeIsStruct(segmentType))
+                        {
+                            segmentType = TYP_I_IMPL;
+                        }
+
+                        costEx += GenTree::GetStoreCost(segmentType);
+                        costSz += GetIndirectionSize(segmentType, true);
+                    }
+                }
+            }
+            else if (needsRegisterMove)
+            {
+                var_types argType = argNode->TypeGet();
+                if (varTypeIsStruct(argType))
+                {
+                    argType = TYP_I_IMPL;
+                }
+
+                costEx += GetRegisterMoveCost(argType);
+                costSz += GetRegisterMoveSize(argType);
             }
         }
     };
@@ -4114,7 +4328,7 @@ unsigned Compiler::gtSetCallArgsOrder(CallArgs* args, bool lateArgs, int* callCo
         {
             GenTree* node  = arg.GetLateNode();
             unsigned level = gtSetEvalOrder(node);
-            update(node, level);
+            update(arg, node, level);
         }
     }
     else
@@ -4123,7 +4337,7 @@ unsigned Compiler::gtSetCallArgsOrder(CallArgs* args, bool lateArgs, int* callCo
         {
             GenTree* node  = arg.GetEarlyNode();
             unsigned level = gtSetEvalOrder(node);
-            update(node, level);
+            update(arg, node, level);
         }
     }
 
@@ -4174,27 +4388,42 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
             costSz = 4;
         }
 
+        switch (intrinsicId)
+        {
+            case NI_AES_CarrylessMultiply:
+            case NI_AES_KeygenAssist:
+            {
+                costSz = 6;
+                break;
+            }
+
+            case NI_AES_Decrypt:
+            case NI_AES_DecryptLast:
+            case NI_AES_Encrypt:
+            case NI_AES_EncryptLast:
+            case NI_AES_InverseMixColumns:
+            {
+                costSz = 5;
+                break;
+            }
+
+            default:
+            {
+                break;
+            }
+        }
+
         bool isLoad = hwTree->OperIsMemoryLoad(&addrOp);
 
         if (isLoad || hwTree->OperIsMemoryStore(&addrOp))
         {
-            costEx = FLT_IND_COST_EX;
-
-            if (simdSize != 16)
+            if (isLoad)
             {
-                if (simdSize == 32)
-                {
-                    costEx += 1;
-                }
-                else
-                {
-                    costEx += 2;
-                }
+                costEx = GenTree::GetIndirectionCost(retType);
             }
-
-            if (!isLoad)
+            else
             {
-                costEx += 2;
+                costEx = 1;
             }
 
             switch (intrinsicId)
@@ -4205,14 +4434,14 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
                 case NI_AVX_StoreAlignedNonTemporal:
                 case NI_AVX512_StoreAlignedNonTemporal:
                 {
-                    costEx += 38;
+                    costEx = 1;
                     break;
                 }
 
                 case NI_AVX_MaskStore:
                 case NI_AVX2_MaskStore:
                 {
-                    costEx += 5;
+                    costEx = 2;
                     break;
                 }
 
@@ -4246,7 +4475,14 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
                 case NI_AVX512_MaskStoreMask:
                 case NI_AVX512_MaskStoreAlignedMask:
                 {
-                    costEx += 3;
+                    if (isLoad)
+                    {
+                        costEx += 3;
+                    }
+                    else
+                    {
+                        costEx = 2;
+                    }
                     break;
                 }
 
@@ -4424,35 +4660,20 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
                         }
                         else
                         {
-                            // We need a spill + load
-                            costEx = FLT_IND_COST_EX;
-
-                            if (simdSize != 16)
-                            {
-                                if (simdSize == 32)
-                                {
-                                    costEx += 1;
-                                }
-                                else
-                                {
-                                    costEx += 2;
-                                }
-                            }
+                            var_types simdType = getSIMDTypeForSize(simdSize);
+                            costEx = GenTree::GetStoreCost(simdType) + GenTree::GetIndirectionCost(simdBaseType) + 1;
 
                             if (varTypeIsIntegral(simdBaseType))
                             {
-                                costEx += IND_COST_EX + 1;
                                 costSz += 4;
 
                                 if (varTypeIsSmall(simdBaseType))
                                 {
-                                    costEx += 1;
                                     costSz += 1;
                                 }
                             }
                             else
                             {
-                                costEx = FLT_IND_COST_EX + 2;
                                 costSz += 6;
                             }
                         }
@@ -4537,35 +4758,21 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
                         }
                         else
                         {
-                            // We need a spill + write + load
-                            costEx = FLT_IND_COST_EX;
-
-                            if (simdSize != 16)
-                            {
-                                if (simdSize == 32)
-                                {
-                                    costEx += 1;
-                                }
-                                else
-                                {
-                                    costEx += 2;
-                                }
-                            }
+                            var_types simdType = getSIMDTypeForSize(simdSize);
+                            costEx             = GenTree::GetStoreCost(simdType) + GenTree::GetStoreCost(simdBaseType) +
+                                     GenTree::GetIndirectionCost(simdType) + 1;
 
                             if (varTypeIsIntegral(simdBaseType))
                             {
-                                costEx += IND_COST_EX + IND_COST_EX + 1;
                                 costSz += 8;
 
                                 if (varTypeIsSmall(simdBaseType))
                                 {
-                                    costEx += 2;
                                     costSz += 2;
                                 }
                             }
                             else
                             {
-                                costEx = FLT_IND_COST_EX + FLT_IND_COST_EX + 2;
                                 costSz += 12;
                             }
                         }
@@ -4617,7 +4824,14 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
                     case NI_AVX512_Divide:
                     case NI_AVX512_DivideScalar:
                     {
-                        costEx = (simdBaseType == TYP_DOUBLE) ? 14 : 11;
+                        if ((intrinsicId == NI_AVX512_Divide) && (simdSize == 64))
+                        {
+                            costEx = (simdBaseType == TYP_DOUBLE) ? 23 : 18;
+                        }
+                        else
+                        {
+                            costEx = (simdBaseType == TYP_DOUBLE) ? 14 : 11;
+                        }
                         break;
                     }
 
@@ -4626,6 +4840,30 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
                         costEx = (simdBaseType == TYP_DOUBLE) ? 9 : 13;
                         break;
                     }
+
+                    case NI_X86Base_CompareGreaterThan:
+                    case NI_X86Base_CompareLessThan:
+                    case NI_AVX2_CompareGreaterThan:
+                    case NI_AVX2_CompareLessThan:
+                    {
+                        costEx = varTypeIsLong(simdBaseType) ? 3 : 1;
+                        break;
+                    }
+
+                    case NI_X86Base_ConvertToVector128Int32:
+                    case NI_X86Base_ConvertToVector128Int32WithTruncation:
+                    {
+                        costEx = (simdBaseType == TYP_DOUBLE) ? 5 : 4;
+                        break;
+                    }
+
+#if defined(TARGET_AMD64)
+                    case NI_X86Base_X64_DivRem:
+                    {
+                        costEx = varTypeIsUnsigned(simdBaseType) ? 47 : 67;
+                        break;
+                    }
+#endif
 
                     case NI_X86Base_LoadFence:
                     {
@@ -4641,8 +4879,36 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
 
                     case NI_X86Base_MultiplyLow:
                     case NI_AVX2_MultiplyLow:
+                    case NI_AVX512_MultiplyLow:
                     {
                         costEx = varTypeIsInt(simdBaseType) ? 10 : 5;
+                        break;
+                    }
+
+                    case NI_X86Base_ShiftLeftLogical:
+                    case NI_X86Base_ShiftRightArithmetic:
+                    case NI_X86Base_ShiftRightLogical:
+                    case NI_AVX2_ShiftLeftLogical:
+                    case NI_AVX2_ShiftRightArithmetic:
+                    case NI_AVX2_ShiftRightLogical:
+                    case NI_AVX512_ShiftLeftLogical:
+                    case NI_AVX512_ShiftRightArithmetic:
+                    case NI_AVX512_ShiftRightLogical:
+                    {
+                        costEx = HWIntrinsicInfo::isImmOp(intrinsicId, hwTree->Op(2)) ? 1 : ((simdSize == 16) ? 2 : 4);
+                        break;
+                    }
+
+                    case NI_AVX512_BlendVariableMask:
+                    {
+                        costEx = varTypeIsSmall(simdBaseType) ? 3 : 1;
+                        break;
+                    }
+
+                    case NI_AVX512_Max:
+                    case NI_AVX512_Min:
+                    {
+                        costEx = varTypeIsLong(simdBaseType) ? 3 : 1;
                         break;
                     }
 
@@ -4667,7 +4933,14 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
                     case NI_AVX512_Sqrt:
                     case NI_AVX512_SqrtScalar:
                     {
-                        costEx = (simdBaseType == TYP_DOUBLE) ? 16 : 12;
+                        if ((intrinsicId == NI_AVX512_Sqrt) && (simdSize == 64))
+                        {
+                            costEx = (simdBaseType == TYP_DOUBLE) ? 32 : 20;
+                        }
+                        else
+                        {
+                            costEx = (simdBaseType == TYP_DOUBLE) ? 18 : 12;
+                        }
                         break;
                     }
 
@@ -4682,6 +4955,11 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
                     case NI_AVX_TestZ:
                     {
                         costEx = (simdSize == 16) ? 3 : 5;
+
+                        if (varTypeIsIntegral(simdBaseType))
+                        {
+                            costEx += 1;
+                        }
                         break;
                     }
 
@@ -4727,13 +5005,13 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
                     case NI_AVX512_ConvertToVector256Double:
                     case NI_AVX512_ConvertToVector512Double:
                     {
-                        if (varTypeIsLong(simdBaseType))
+                        if (simdBaseType == TYP_FLOAT)
                         {
-                            costEx = 4;
+                            costEx = 3;
                         }
                         else
                         {
-                            costEx = (retType == TYP_SIMD16) ? 5 : 7;
+                            costEx = 4;
                         }
                         break;
                     }
@@ -4782,7 +5060,15 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
                         }
                         else if (simdBaseType == TYP_DOUBLE)
                         {
-                            costEx = (simdSize == 16) ? 5 : 7;
+                            if ((intrinsicId == NI_AVX512_ConvertToVector256Int32) ||
+                                (intrinsicId == NI_AVX512_ConvertToVector256Int32WithTruncation))
+                            {
+                                costEx = 3;
+                            }
+                            else
+                            {
+                                costEx = (simdSize == 16) ? 5 : 7;
+                            }
                         }
                         else
                         {
@@ -4883,6 +5169,458 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
             }
         }
 #endif // TARGET_XARCH
+
+#if defined(TARGET_ARM64)
+        // Every AdvSimd and SVE instruction encodes as 4 bytes.
+        costSz = 4;
+
+        bool isLoad = hwTree->OperIsMemoryLoad(&addrOp);
+
+        if (isLoad || hwTree->OperIsMemoryStore(&addrOp))
+        {
+            instruction ins = INS_invalid;
+
+            if ((simdBaseType >= TYP_BYTE) && (simdBaseType <= TYP_DOUBLE))
+            {
+                ins = HWIntrinsicInfo::lookupIns(hwTree, this);
+            }
+
+            bool isSve = (ins >= INS_sve_invalid) && (ins < INS_lea);
+            bool isSveGather =
+                (intrinsicId >= NI_Sve_GatherVector) && (intrinsicId <= NI_Sve_GatherVectorWithByteOffsets);
+            bool isSveNonTemporalGather = (intrinsicId >= NI_Sve2_GatherVectorByteZeroExtendNonTemporal) &&
+                                          (intrinsicId <= NI_Sve2_GatherVectorWithByteOffsetsNonTemporal);
+            bool isSveScatter = ((intrinsicId >= NI_Sve_Scatter) && (intrinsicId <= NI_Sve_ScatterWithByteOffsets)) ||
+                                ((intrinsicId >= NI_Sve2_Scatter16BitNarrowingNonTemporal) &&
+                                 (intrinsicId <= NI_Sve2_ScatterWithByteOffsetsNonTemporal));
+
+            if (isLoad)
+            {
+                if (isSveGather)
+                {
+                    bool isSlowScaledGather = false;
+
+                    if (genTypeSize(simdBaseType) == 4)
+                    {
+                        switch (intrinsicId)
+                        {
+                            case NI_Sve_GatherVector:
+                            case NI_Sve_GatherVectorFirstFaulting:
+                            case NI_Sve_GatherVectorInt16SignExtend:
+                            case NI_Sve_GatherVectorInt16SignExtendFirstFaulting:
+                            case NI_Sve_GatherVectorUInt16ZeroExtend:
+                            case NI_Sve_GatherVectorUInt16ZeroExtendFirstFaulting:
+                                isSlowScaledGather = true;
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+
+                    costEx = isSlowScaledGather ? 10 : 9;
+                }
+                else if (isSveNonTemporalGather)
+                {
+                    costEx = (genTypeSize(simdBaseType) == 8) ? 10 : 9;
+                }
+                else
+                {
+                    costEx = isSve ? 6 : GenTree::GetIndirectionCost(retType);
+                }
+            }
+            else
+            {
+                costEx = isSveScatter && (genTypeSize(simdBaseType) == 4) ? 4 : 2;
+            }
+
+            switch (ins)
+            {
+                case INS_ldp:
+                case INS_ldnp:
+                {
+                    costEx = (simdSize == 16) ? 7 : 5;
+                    break;
+                }
+
+                case INS_stp:
+                case INS_stnp:
+                {
+                    costEx = (simdSize == 16) ? 3 : 2;
+                    break;
+                }
+
+                case INS_ld1_2regs:
+                {
+                    costEx = 5;
+                    break;
+                }
+
+                case INS_st1_2regs:
+                {
+                    costEx = (simdSize == 16) ? 3 : 2;
+                    break;
+                }
+
+                case INS_ld1_3regs:
+                {
+                    costEx = 6;
+                    break;
+                }
+
+                case INS_st1_3regs:
+                {
+                    costEx = (simdSize == 16) ? 4 : 3;
+                    break;
+                }
+
+                case INS_ld1_4regs:
+                {
+                    costEx = 6;
+                    break;
+                }
+
+                case INS_st1_4regs:
+                {
+                    costEx = (simdSize == 16) ? 5 : 3;
+                    break;
+                }
+
+                case INS_ld1:
+                {
+                    costEx = HWIntrinsicInfo::SIMDScalar(intrinsicId) ? 7 : 5;
+                    break;
+                }
+
+                case INS_st1:
+                {
+                    costEx = HWIntrinsicInfo::SIMDScalar(intrinsicId) ? 4 : 2;
+                    break;
+                }
+
+                case INS_ld2:
+                case INS_ld2r:
+                {
+                    costEx = 7;
+                    break;
+                }
+
+                case INS_st2:
+                {
+                    costEx = HWIntrinsicInfo::SIMDScalar(intrinsicId) ? 4 : ((simdSize == 16) ? 5 : 4);
+                    break;
+                }
+
+                case INS_ld3:
+                {
+                    costEx = HWIntrinsicInfo::SIMDScalar(intrinsicId) ? 7 : 8;
+                    break;
+                }
+
+                case INS_st3:
+                {
+                    if (HWIntrinsicInfo::SIMDScalar(intrinsicId))
+                    {
+                        costEx = (simdBaseType == TYP_DOUBLE) ? 5 : 4;
+                    }
+                    else
+                    {
+                        costEx = (simdSize == 16) ? 6 : 5;
+                    }
+                    break;
+                }
+
+                case INS_ld3r:
+                {
+                    costEx = 7;
+                    break;
+                }
+
+                case INS_ld4:
+                {
+                    costEx = (HWIntrinsicInfo::SIMDScalar(intrinsicId) || (simdSize == 8)) ? 8 : 10;
+                    break;
+                }
+
+                case INS_st4:
+                {
+                    if (HWIntrinsicInfo::SIMDScalar(intrinsicId))
+                    {
+                        costEx = (simdBaseType == TYP_DOUBLE) ? 4 : 5;
+                    }
+                    else if (simdSize == 8)
+                    {
+                        costEx = 7;
+                    }
+                    else
+                    {
+                        costEx = (simdBaseType == TYP_DOUBLE) ? 6 : 9;
+                    }
+                    break;
+                }
+
+                case INS_ld4r:
+                {
+                    costEx = 8;
+                    break;
+                }
+
+                case INS_sve_ld2b:
+                case INS_sve_ld2h:
+                case INS_sve_ld2w:
+                case INS_sve_ld2d:
+                {
+                    costEx = 8;
+                    break;
+                }
+
+                case INS_sve_st2b:
+                case INS_sve_st2h:
+                case INS_sve_st2w:
+                case INS_sve_st2d:
+                {
+                    costEx = 4;
+                    break;
+                }
+
+                case INS_sve_ld3b:
+                case INS_sve_ld3h:
+                case INS_sve_ld3w:
+                case INS_sve_ld3d:
+                {
+                    costEx = 9;
+                    break;
+                }
+
+                case INS_sve_st3b:
+                case INS_sve_st3h:
+                case INS_sve_st3w:
+                case INS_sve_st3d:
+                {
+                    costEx = 7;
+                    break;
+                }
+
+                case INS_sve_ld4b:
+                case INS_sve_ld4h:
+                case INS_sve_ld4w:
+                case INS_sve_ld4d:
+                {
+                    costEx = 9;
+                    break;
+                }
+
+                case INS_sve_st4b:
+                case INS_sve_st4h:
+                case INS_sve_st4w:
+                case INS_sve_st4d:
+                {
+                    costEx = 11;
+                    break;
+                }
+
+                default:
+                {
+                    break;
+                }
+            }
+
+            // ARM64 hardware intrinsics consume memory addresses from registers.
+            addrOp = nullptr;
+        }
+        else
+        {
+            switch (intrinsicId)
+            {
+                case NI_Vector_Create:
+                {
+                    if (opCount == 1)
+                    {
+                        costEx = varTypeIsFloating(simdBaseType) ? 2 : 3;
+                        costSz = 4;
+                    }
+                    else if (varTypeIsFloating(simdBaseType))
+                    {
+                        costEx = 2 * (opCount - 1);
+                        costSz = 4 * (opCount - 1);
+                    }
+                    else
+                    {
+                        costEx = 3 + (5 * (opCount - 1));
+                        costSz = 4 * opCount;
+                    }
+                    break;
+                }
+
+                case NI_Vector_CreateScalar:
+                {
+                    costEx = varTypeIsFloating(simdBaseType) ? 4 : 7;
+                    costSz = 8;
+                    break;
+                }
+
+                case NI_Vector_CreateScalarUnsafe:
+                {
+                    if (varTypeIsFloating(simdBaseType))
+                    {
+                        costEx = 0;
+                        costSz = 0;
+                    }
+                    else
+                    {
+                        costEx = 3;
+                        costSz = 4;
+                    }
+                    break;
+                }
+
+                case NI_Vector_ToScalar:
+                case NI_Vector_GetLower:
+                case NI_Vector_GetUpper:
+                case NI_Vector_WithLower:
+                case NI_Vector_WithUpper:
+                {
+                    // A single `mov`/`ins`/`fmov`, often elided entirely
+                    costEx = 2;
+                    break;
+                }
+
+                case NI_Vector_GetElement:
+                case NI_Vector_WithElement:
+                {
+                    if (multiOp->Op(2)->IsCnsIntOrI())
+                    {
+                        costEx = (intrinsicId == NI_Vector_WithElement) && varTypeIsIntegral(simdBaseType) ? 5 : 2;
+                    }
+                    else
+                    {
+                        // A variable lane has to round trip through memory
+                        costEx = GenTree::GetIndirectionCost(simdBaseType) + 2;
+                        costSz = 16;
+                    }
+                    break;
+                }
+
+                case NI_Vector_ConditionalSelect:
+                {
+                    // `bsl`/`bif`/`bit`, plus a `mov` when the target is a fourth register
+                    costEx = 4;
+                    costSz = 8;
+                    break;
+                }
+
+                case NI_Vector_Dot:
+                {
+                    if (varTypeIsFloating(simdBaseType))
+                    {
+                        costEx = 3;
+
+                        if ((simdSize == 8) && (simdBaseType == TYP_FLOAT))
+                        {
+                            costEx += 2;
+                        }
+                        else if (simdSize == 16)
+                        {
+                            costEx += (simdBaseType == TYP_FLOAT) ? 4 : 2;
+                        }
+                    }
+                    else
+                    {
+                        int multiplyCost = varTypeIsByte(simdBaseType) ? 2 : ((simdSize == 16) ? 5 : 4);
+
+                        if ((simdSize == 8) && varTypeIsInt(simdBaseType))
+                        {
+                            costEx = multiplyCost + 2;
+                        }
+                        else
+                        {
+                            unsigned elementCount  = simdSize / genTypeSize(simdBaseType);
+                            int      reductionCost = (elementCount == 4) ? 3 : ((elementCount == 8) ? 5 : 6);
+
+                            costEx = multiplyCost + reductionCost;
+                        }
+                    }
+                    if (varTypeIsFloating(simdBaseType))
+                    {
+                        costSz = ((simdSize == 8) && (simdBaseType == TYP_DOUBLE))
+                                     ? 4
+                                     : (((simdSize == 8) && (simdBaseType == TYP_FLOAT))
+                                            ? 8
+                                            : ((simdBaseType == TYP_FLOAT) ? 12 : 8));
+                    }
+                    else
+                    {
+                        costSz = 8;
+                    }
+                    break;
+                }
+
+                case NI_Vector_op_Equality:
+                case NI_Vector_op_Inequality:
+                {
+                    bool isZeroComparison = varTypeIsIntegral(simdBaseType) &&
+                                            (hwTree->Op(1)->IsVectorZero() || hwTree->Op(2)->IsVectorZero());
+
+                    if (isZeroComparison)
+                    {
+                        costEx = (simdSize == 8) ? 3 : 5;
+                        costSz = (simdSize == 8) ? 8 : 12;
+                    }
+                    else
+                    {
+                        costEx = (simdSize == 8) ? 5 : 7;
+                        costSz = (simdSize == 8) ? 12 : 16;
+                    }
+                    break;
+                }
+
+                case NI_Vector_ExtractMostSignificantBits:
+                {
+                    // Mask, reduce, and extract; the byte case additionally widens
+                    costEx = varTypeIsByte(simdBaseType) && (simdSize == 16) ? 20 : 10;
+                    costSz = varTypeIsByte(simdBaseType) && (simdSize == 16) ? 36 : 24;
+                    break;
+                }
+
+                case NI_Vector_op_Division:
+                {
+                    costEx = (simdBaseType == TYP_DOUBLE) ? 15 : 10;
+                    break;
+                }
+
+                default:
+                {
+                    instruction ins = INS_invalid;
+
+                    if ((simdBaseType >= TYP_BYTE) && (simdBaseType <= TYP_DOUBLE))
+                    {
+                        ins = HWIntrinsicInfo::lookupIns(hwTree, this);
+                    }
+
+                    costEx = HWIntrinsicInfo::lookupInsLatency(ins, simdBaseType, simdSize);
+
+                    if (costEx == -1)
+                    {
+                        costEx = varTypeIsFloating(simdBaseType) ? 4 : 2;
+                    }
+                    break;
+                }
+            }
+        }
+#endif // TARGET_ARM64
+
+        if (hwTree->IsUserCall())
+        {
+            costEx = 5 + (3 * IND_COST_EX);
+#if defined(TARGET_XARCH)
+            costSz = 5;
+#elif defined(TARGET_ARM64)
+            costSz = 4;
+#else
+            costSz = 1;
+#endif
+            addrOp = nullptr;
+        }
     }
 #endif // FEATURE_HW_INTRINSICS
 
@@ -5234,43 +5972,27 @@ void Compiler::gtGetLclVarNodeCost(GenTreeLclVar* node, int* pCostEx, int* pCost
     int costSz;
     if (isLikelyRegVar)
     {
-        costEx = 1;
-        costSz = 1;
-        /* Sign-extend and zero-extend are more expensive to load */
+        costEx = 0;
+        costSz = 0;
+
         if (lvaGetDesc(node)->lvNormalizeOnLoad())
         {
-            costEx += 1;
-            costSz += 1;
+            costEx = 1;
+            costSz = GetIndirectionSize(node->TypeGet(), false);
         }
+    }
+    else if (node->TypeIs(TYP_STRUCT))
+    {
+        costEx = 3 * (node->OperIsLocalStore() ? GenTree::GetStoreCost(TYP_I_IMPL)
+                                               : GenTree::GetIndirectionCost(TYP_I_IMPL));
+        costSz = 3 * GenTree::GetLocalAccessSize(TYP_I_IMPL, false);
     }
     else
     {
-        costEx = IND_COST_EX;
-        costSz = 2;
-
-        // Some types are more expensive to load than others.
-        if (varTypeIsSmall(node))
-        {
-            costEx += 1;
-            costSz += 1;
-        }
-        else if (node->TypeIs(TYP_STRUCT))
-        {
-            costEx += 2 * IND_COST_EX;
-            costSz += 2 * 2;
-        }
+        costEx = node->OperIsLocalStore() ? GenTree::GetStoreCost(node->TypeGet())
+                                          : GenTree::GetIndirectionCost(node->TypeGet());
+        costSz = GenTree::GetLocalAccessSize(node->TypeGet(), node->OperIsLocalStore());
     }
-#if defined(TARGET_AMD64)
-    // increase costSz for floating point locals
-    if (varTypeIsFloating(node))
-    {
-        costSz += 1;
-        if (!isLikelyRegVar)
-        {
-            costSz += 1;
-        }
-    }
-#endif
 
     *pCostEx = costEx;
     *pCostSz = costSz;
@@ -5288,17 +6010,20 @@ void Compiler::gtGetLclVarNodeCost(GenTreeLclVar* node, int* pCostEx, int* pCost
 //
 void Compiler::gtGetLclFldNodeCost(GenTreeLclFld* node, int* pCostEx, int* pCostSz)
 {
-    int costEx = IND_COST_EX;
-    int costSz = 4;
-    if (varTypeIsSmall(node->TypeGet()))
+    int costEx;
+    int costSz;
+
+    if (node->TypeIs(TYP_STRUCT))
     {
-        costEx += 1;
-        costSz += 1;
+        costEx = 3 * (node->OperIsLocalStore() ? GenTree::GetStoreCost(TYP_I_IMPL)
+                                               : GenTree::GetIndirectionCost(TYP_I_IMPL));
+        costSz = 3 * GenTree::GetLocalAccessSize(TYP_I_IMPL, false);
     }
-    else if (node->TypeIs(TYP_STRUCT))
+    else
     {
-        costEx += 2 * IND_COST_EX;
-        costSz += 2 * 2;
+        costEx = node->OperIsLocalStore() ? GenTree::GetStoreCost(node->TypeGet())
+                                          : GenTree::GetIndirectionCost(node->TypeGet());
+        costSz = GenTree::GetLocalAccessSize(node->TypeGet(), node->OperIsLocalStore());
     }
 
     *pCostEx = costEx;
@@ -5322,43 +6047,9 @@ bool Compiler::gtGetIndNodeCost(GenTreeIndir* node, int* pCostEx, int* pCostSz)
 {
     assert(node->isIndir());
 
-    // Indirections have a costEx of IND_COST_EX.
-    int costEx = IND_COST_EX;
-    int costSz = 2;
-
-    // If we have to sign-extend or zero-extend, bump the cost.
-    if (varTypeIsSmall(node))
-    {
-        costEx += 1;
-        costSz += 1;
-    }
-#if defined(TARGET_XARCH)
-    else if (!varTypeUsesIntReg(node))
-    {
-        assert(varTypeIsFloating(node) || varTypeIsSIMD(node) || varTypeIsMask(node));
-
-        if (node->TypeIs(TYP_SIMD64))
-        {
-            costEx = FLT_IND_COST_EX + 2;
-            costSz = 6;
-        }
-        else if (node->TypeIs(TYP_SIMD32))
-        {
-            costEx = FLT_IND_COST_EX + 1;
-            costSz = 4;
-        }
-        else
-        {
-            costEx = FLT_IND_COST_EX;
-            costSz = 4;
-        }
-    }
-#elif defined(TARGET_ARM)
-    else if (varTypeIsFloating(node))
-    {
-        costSz += 2;
-    }
-#endif
+    int costEx = node->OperIs(GT_STOREIND) ? GenTree::GetStoreCost(node->TypeGet())
+                                           : GenTree::GetIndirectionCost(node->TypeGet());
+    int costSz = GetIndirectionSize(node->TypeGet(), node->OperIs(GT_STOREIND));
 
     // Can we form an addressing mode with this indirection?
 
@@ -5434,7 +6125,7 @@ bool Compiler::gtGetAddrNodeCost(GenTree* addr, var_types type, bool isVolatile,
 #ifdef TARGET_XARCH
     else if (addr->IsCnsIntOrI())
     {
-        // Indirection of a CNS_INT, subtract 1 from costEx makes costEx 3 for x86 and 4 for amd64.
+        // The address can be encoded in the memory operand, so it does not need its nominal materialization.
         costEx += (addr->GetCostEx() - 1);
         costSz += addr->GetCostSz();
         includesAddrCost = true;
@@ -5670,10 +6361,6 @@ bool Compiler::gtMarkAddrMode(GenTree* addr, int* pCostEx, int* pCostSz, var_typ
         {
             addrModeCostEx += base->GetCostEx();
             addrModeCostSz += base->GetCostSz();
-            if (base->OperIs(GT_LCL_VAR) && ((idx == NULL) || (cns == 0)))
-            {
-                addrModeCostSz -= 1;
-            }
         }
 
         if (idx)
@@ -6313,14 +7000,14 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                     // These can be cheaply reconstituted but still take up 4-bytes of native codegen
 
                     costEx = 1;
-                    costSz = 2;
+                    costSz = 4;
                 }
                 else
                 {
                     // We load the constant from memory and so will take the same cost as GT_IND
 
-                    costEx = IND_COST_EX;
-                    costSz = 2;
+                    costEx = FLT_IND_COST_EX;
+                    costSz = 4;
                 }
 #elif defined(TARGET_LOONGARCH64)
                 // TODO-LoongArch64-CQ: tune the costs.
@@ -6389,13 +7076,17 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
 #else
                 if (vecCon->IsAllBitsSet() || vecCon->IsZero())
                 {
+#if defined(TARGET_ARM64)
+                    costEx = 2;
+#else
                     costEx = 1;
-                    costSz = 2;
+#endif
+                    costSz = 4;
                 }
                 else
                 {
-                    costEx = IND_COST_EX;
-                    costSz = 2;
+                    costEx = GenTree::GetIndirectionCost(tree->TypeGet());
+                    costSz = 4;
                 }
                 break;
 #endif
@@ -6421,7 +7112,7 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                 else
                 {
                     // kmovq k1, [reloc @RWD00]
-                    costEx = IND_COST_EX;
+                    costEx = GenTree::GetIndirectionCost(tree->TypeGet());
                     costSz = 9;
                 }
                 break;
@@ -6429,12 +7120,12 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                 if (mskCon->IsAllBitsSet() || mskCon->IsZero())
                 {
                     costEx = 1;
-                    costSz = 2;
+                    costSz = 4;
                 }
                 else
                 {
-                    costEx = IND_COST_EX;
-                    costSz = 2;
+                    costEx = GenTree::GetIndirectionCost(tree->TypeGet());
+                    costSz = 4;
                 }
                 break;
 #endif
@@ -6452,9 +7143,14 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                 break;
 
             case GT_LCL_ADDR:
-                level  = 1;
-                costEx = 3;
+                level = 1;
+                // A single lea/add off the frame pointer.
+                costEx = 1;
+#if defined(TARGET_ARM64)
+                costSz = 4;
+#else
                 costSz = 3;
+#endif
                 break;
 
             case GT_PHI_ARG:
@@ -6515,9 +7211,18 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
         {
             /* Process the operand of the operator */
 
-            /* Most Unary ops have costEx of 1 */
             costEx = 1;
+#if defined(TARGET_ARM64)
+            costSz = 4;
+#elif defined(TARGET_XARCH)
+#if defined(TARGET_AMD64)
+            costSz = varTypeUsesIntReg(tree->TypeGet()) && (genTypeSize(tree->TypeGet()) == 8) ? 3 : 2;
+#else
+            costSz = 2;
+#endif
+#else
             costSz = 1;
+#endif
 
             level = gtSetEvalOrder(op1);
 
@@ -6529,12 +7234,51 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
             {
                 case GT_JTRUE:
                     costEx = 2;
+#if defined(TARGET_ARM64)
+                    costSz = 4;
+#else
                     costSz = 2;
+#endif
                     break;
 
                 case GT_SWITCH:
+#if defined(TARGET_ARM64)
+                    costEx = 10;
+                    costSz = 28;
+#elif defined(TARGET_AMD64)
+                    costEx = 11;
+                    costSz = 32;
+#elif defined(TARGET_X86)
+                    costEx = 10;
+                    costSz = 19;
+#else
                     costEx = 10;
                     costSz = 5;
+#endif
+                    break;
+
+                case GT_COPY:
+                case GT_RELOAD:
+                    costEx = GetRegisterMoveCost(tree->TypeGet());
+                    costSz = GetRegisterMoveSize(tree->TypeGet());
+                    break;
+
+                case GT_PUTARG_REG:
+                    if (op1->GetCostSz() == 0)
+                    {
+                        costEx = GetRegisterMoveCost(op1->TypeGet());
+                        costSz = GetRegisterMoveSize(op1->TypeGet());
+                    }
+                    else
+                    {
+                        costEx = 0;
+                        costSz = 0;
+                    }
+                    break;
+
+                case GT_PUTARG_STK:
+                    costEx = GenTree::GetStoreCost(op1->TypeGet());
+                    costSz = GetIndirectionSize(op1->TypeGet(), true);
                     break;
 
                 case GT_CAST:
@@ -6548,12 +7292,19 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                         costSz = 4;
                     }
 #elif defined(TARGET_ARM64)
+                    var_types srcType = op1->TypeGet();
+                    var_types dstType = tree->AsCast()->CastToType();
+
                     costEx = 1;
-                    costSz = 2;
-                    if (isflt || varTypeIsFloating(op1->TypeGet()))
+                    costSz = 4;
+
+                    if (varTypeIsFloating(dstType))
                     {
-                        costEx = 2;
-                        costSz = 4;
+                        costEx = varTypeIsFloating(srcType) ? 3 : 6;
+                    }
+                    else if (varTypeIsFloating(srcType))
+                    {
+                        costEx = 4;
                     }
 #elif defined(TARGET_XARCH)
                     costEx = 1;
@@ -6912,8 +7663,16 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                     /* Overflow casts are a lot more expensive */
                     if (tree->gtOverflow())
                     {
+#if defined(TARGET_ARM64) || defined(TARGET_AMD64)
+                        int checkCostEx;
+                        int checkCostSz;
+                        GetIntCastOverflowCosts(tree->AsCast(), &checkCostEx, &checkCostSz);
+                        costEx += checkCostEx;
+                        costSz += checkCostSz;
+#else
                         costEx += 6;
                         costSz += 6;
+#endif
                     }
 
                     break;
@@ -6941,6 +7700,11 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                             // vandp* xmm0, xmm0, [reloc @RWD00]
                             costEx = 1 + FLT_IND_COST_EX;
                             costSz = 8;
+                            break;
+#elif defined(TARGET_ARM64)
+                            // FABS s0, s0 / FABS d0, d0
+                            costEx = 2;
+                            costSz = 4;
                             break;
 #else
                             costEx = 5;
@@ -7044,8 +7808,59 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                                     }
                                 }
 #else
+#if defined(TARGET_ARM64)
+                                switch (intrinsic->gtIntrinsicName)
+                                {
+                                    case NI_System_Math_Ceiling:
+                                    case NI_System_Math_Floor:
+                                    case NI_System_Math_Round:
+                                    case NI_System_Math_Truncate:
+                                    {
+                                        // FRINTP/FRINTM/FRINTN/FRINTZ d0, d0
+                                        costEx = 3;
+                                        costSz = 4;
+                                        break;
+                                    }
+
+                                    case NI_System_Math_Sqrt:
+                                    {
+                                        // FSQRT s0, s0 / FSQRT d0, d0
+                                        costEx = tree->TypeIs(TYP_FLOAT) ? 10 : 17;
+                                        costSz = 4;
+                                        break;
+                                    }
+
+                                    case NI_PRIMITIVE_TrailingZeroCount:
+                                    {
+                                        // RBIT x0, x0; CLZ x0, x0
+                                        costEx = 2;
+                                        costSz = 8;
+                                        break;
+                                    }
+
+                                    case NI_PRIMITIVE_PopCount:
+                                    {
+                                        // The count has to round trip through a vector register:
+                                        // FMOV d0, x0; CNT v0.8b, v0.8b; ADDV b0, v0.8b; FMOV x0, d0
+                                        costEx = 12;
+                                        costSz = 16;
+                                        break;
+                                    }
+
+                                    default:
+                                    {
+                                        // Assume a single instruction. This switch has to track
+                                        // IsTargetIntrinsic, which lists more intrinsics for arm64
+                                        // than for xarch, so drift here must not be fatal.
+                                        costEx = 2;
+                                        costSz = 4;
+                                        break;
+                                    }
+                                }
+#else
                                 costEx = 3;
                                 costSz = 4;
+#endif
 #endif
                             }
                             break;
@@ -7094,6 +7909,19 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                         costEx = 1 + FLT_IND_COST_EX;
                         costSz = 8;
                     }
+#elif defined(TARGET_ARM64)
+                    if (isflt)
+                    {
+                        // FNEG s0, s0
+                        costEx = 2;
+                        costSz = 4;
+                    }
+                    else
+                    {
+                        // NEG x0, x0
+                        costEx = 1;
+                        costSz = 4;
+                    }
 #endif
                     // We need to ensure that -x is evaluated before x or else
                     // we get burned while adjusting genFPstkLevel in x*-x where
@@ -7111,21 +7939,20 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                 case GT_MDARR_LOWER_BOUND:
                     level++;
 
-                    // Array meta-data access should be the same as an indirection, which has a costEx of IND_COST_EX.
-                    costEx = IND_COST_EX - 1;
-                    costSz = 2;
+                    costEx = GenTree::GetIndirectionCost(TYP_INT);
+                    costSz = GetIndirectionSize(TYP_INT, false);
                     break;
 
                 case GT_BLK:
                     // We estimate the cost of a GT_BLK to be two loads (GT_INDs)
-                    costEx = 2 * IND_COST_EX;
-                    costSz = 2 * 2;
+                    costEx = 2 * GenTree::GetIndirectionCost(TYP_I_IMPL);
+                    costSz = 2 * GetIndirectionSize(TYP_I_IMPL, false);
                     break;
 
                 case GT_BOX:
                     // We estimate the cost of a GT_BOX to be two stores (GT_INDs)
-                    costEx = 2 * IND_COST_EX;
-                    costSz = 2 * 2;
+                    costEx = 2 * GenTree::GetStoreCost(TYP_I_IMPL);
+                    costSz = 2 * GetIndirectionSize(TYP_I_IMPL, true);
                     break;
 
                 case GT_ARR_ADDR:
@@ -7158,8 +7985,8 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                     if (gtIsLikelyRegVar(tree))
                     {
                         // Store to an enregistered local.
-                        costEx = op1->GetCostEx();
-                        costSz = max(3, (int)op1->GetCostSz()); // 3 is an estimate for a reg-reg move.
+                        costEx = max(GetRegisterMoveCost(tree->TypeGet()), (int)op1->GetCostEx());
+                        costSz = max(GetRegisterMoveSize(tree->TypeGet()), (int)op1->GetCostSz());
                         goto DONE;
                     }
 
@@ -7170,14 +7997,6 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                     gtGetLclFldNodeCost(tree->AsLclFld(), &costEx, &costSz);
 
                 SET_LCL_STORE_COSTS:
-                    costEx += 1;
-                    costSz += 1;
-#ifdef TARGET_ARM
-                    if (isflt)
-                    {
-                        costSz += 2;
-                    }
-#endif // TARGET_ARM
 #ifndef TARGET_64BIT
                     if (tree->TypeIs(TYP_LONG))
                     {
@@ -7201,9 +8020,18 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
         bool includeOp2Cost = true;
         bool allowReversal  = true;
 
-        /* Default Binary ops have a cost of 1,1 */
         costEx = 1;
+#if defined(TARGET_ARM64)
+        costSz = 4;
+#elif defined(TARGET_XARCH)
+#if defined(TARGET_AMD64)
+        costSz = varTypeUsesIntReg(op1->TypeGet()) && (genTypeSize(op1->TypeGet()) == 8) ? 3 : 2;
+#else
+        costSz = 2;
+#endif
+#else
         costSz = 1;
+#endif
 
 #ifdef TARGET_ARM
         if (isflt)
@@ -7250,6 +8078,10 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                     // vdivs* xmm0, xmm0, xmm0
                     costEx = tree->TypeIs(TYP_FLOAT) ? 11 : 14;
                     costSz = 4;
+#elif defined(TARGET_ARM64)
+                    // FDIV s0, s0, s1 / FDIV d0, d0, d1
+                    costEx = tree->TypeIs(TYP_FLOAT) ? 10 : 15;
+                    costSz = 4;
 #else
                     /* fp division is very expensive to execute */
                     costEx = 36; // TYP_DOUBLE
@@ -7258,9 +8090,43 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                 }
                 else
                 {
-                    /* integer division is also very expensive */
+#if defined(TARGET_XARCH)
+                    // idiv/div, which additionally needs the dividend sign extended into EDX:EAX
+                    if (tree->TypeIs(TYP_LONG))
+                    {
+                        costEx = tree->OperIs(GT_UDIV, GT_UMOD) ? 62 : 69;
+                    }
+                    else
+                    {
+                        costEx = 26;
+                    }
+
+#if defined(TARGET_AMD64)
+                    if (tree->TypeIs(TYP_LONG))
+                    {
+                        costSz = 5;
+                    }
+                    else
+                    {
+                        costSz = tree->OperIs(GT_UDIV, GT_UMOD) ? 4 : 3;
+                    }
+#else
+                    costSz += 3;
+#endif
+#elif defined(TARGET_ARM64)
+                    // sdiv/udiv, plus an msub to recover the remainder for a modulo
+                    costEx = tree->TypeIs(TYP_LONG) ? 20 : 12;
+                    costSz = 4;
+
+                    if (tree->OperIs(GT_MOD, GT_UMOD))
+                    {
+                        costEx += 3;
+                        costSz += 4;
+                    }
+#else
                     costEx = 20;
                     costSz += 2;
+#endif
 
                     // Encourage the first operand to be evaluated (into EAX/EDX) first */
                     level += 3;
@@ -7275,6 +8141,10 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                     // vmuls* xmm0, xmm0, xmm0
                     costEx = 4;
                     costSz = 4;
+#elif defined(TARGET_ARM64)
+                    // FMUL s0, s0, s1 / FMUL d0, d0, d1
+                    costEx = 3;
+                    costSz = 4;
 #else
                     /* FP multiplication instructions are more expensive */
                     costEx += 4;
@@ -7283,15 +8153,31 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                 }
                 else
                 {
-                    /* Integer multiplication instructions are more expensive */
-                    costEx += 3;
+#if defined(TARGET_XARCH)
+                    // imul reg, reg
+                    costEx += 2;
+                    costSz += 1;
+#elif defined(TARGET_ARM64)
+                    // MUL w0, w1, w2 is 2 cycles, MUL x0, x1, x2 is 4
+                    costEx = tree->TypeIs(TYP_LONG) ? 4 : 2;
+                    costSz = 4;
+#else
+                    costEx += 2;
                     costSz += 2;
+#endif
 
                     if (tree->gtOverflow())
                     {
-                        /* Overflow check are more expensive */
+#if defined(TARGET_ARM64)
+                        costEx += 3;
+                        costSz += 12;
+#elif defined(TARGET_XARCH)
+                        costEx += 1;
+                        costSz += 6;
+#else
                         costEx += 3;
                         costSz += 3;
+#endif
                     }
 
 #ifdef TARGET_X86
@@ -7319,6 +8205,13 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                     costEx = 4;
                     costSz = 4;
                     break;
+#elif defined(TARGET_ARM64)
+                    // add: FADD s0, s0, s1
+                    // sub: FSUB s0, s0, s1
+
+                    costEx = 2;
+                    costSz = 4;
+                    break;
 #else
                     /* FP instructions are a bit more expensive */
                     costEx += 4;
@@ -7327,11 +8220,18 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
 #endif
                 }
 
-                /* Overflow check are more expensive */
                 if (tree->gtOverflow())
                 {
+#if defined(TARGET_ARM64)
+                    costEx += 1;
+                    costSz += 4;
+#elif defined(TARGET_XARCH)
+                    costEx += 1;
+                    costSz += 6;
+#else
                     costEx += 3;
                     costSz += 3;
+#endif
                 }
                 break;
 
@@ -7344,7 +8244,33 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
 
                 if (!op2->IsCnsIntOrI())
                 {
+#if defined(TARGET_XARCH)
+                    bool canUseBmi2 = tree->OperIsShift() && compOpportunisticallyDependsOn(InstructionSet_AVX2) &&
+                                      !tree->gtSetFlags();
+
+#if !defined(TARGET_64BIT)
+                    canUseBmi2 = canUseBmi2 && !tree->TypeIs(TYP_LONG);
+#endif
+
+                    if (canUseBmi2)
+                    {
+                        costEx = 1;
+                        costSz = 5;
+                    }
+                    else
+                    {
+                        costEx += tree->OperIs(GT_ROL, GT_ROR) ? 1 : 2;
+#if defined(TARGET_AMD64)
+                        costSz += tree->TypeIs(TYP_LONG) ? 3 : 2;
+#else
+                        costSz += 2;
+#endif
+                    }
+#elif defined(TARGET_ARM64)
+                    // lslv/lsrv/asrv/rorv cost the same as the immediate forms
+#else
                     costEx += 3;
+#endif
 #ifndef TARGET_64BIT
                     // Variable sized LONG shifts require the use of a helper call
                     //
@@ -7371,6 +8297,10 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                     // vucomis* xmm0, xmm1
                     costEx = 3;
                     costSz = 4;
+#elif defined(TARGET_ARM64)
+                    // FCMP s0, s1 / FCMP d0, d1
+                    costEx = 2;
+                    costSz = 4;
 #else
                     // TODO-CQ: This is a historical artifact from when the x87 FPU was used
                     // it should be properly adjusted for all platforms
@@ -7381,13 +8311,27 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                 if ((tree->gtFlags & GTF_RELOP_JMP_USED) == 0)
                 {
                     /* Using a setcc instruction is more expensive */
+#if defined(TARGET_ARM64)
+                    // cset w0, <cc>
+                    costEx += 1;
+                    costSz += 4;
+#elif defined(TARGET_XARCH)
+                    // setcc al; movzx eax, al
+                    costEx += 2;
+                    costSz += 6;
+#else
                     costEx += 3;
+#endif
                 }
                 break;
 
             case GT_BOUNDS_CHECK:
-                costEx = 4; // cmp reg,reg and jae throw (not taken)
+                costEx = 2; // cmp reg,reg and jae throw (not taken)
+#if defined(TARGET_ARM64)
+                costSz = 8; // cmp reg,reg and b.hs throw
+#else
                 costSz = 7; // jump to cold section
+#endif
                 // Bounds check nodes used to not be binary, thus GTF_REVERSE_OPS was not enabled for them. This
                 // condition preserves that behavior. Additionally, CQ analysis shows that enabling GTF_REVERSE_OPS
                 // for these nodes leads to mixed results at best.
@@ -7448,14 +8392,18 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                 goto DONE;
 
             case GT_INDEX_ADDR:
-                costEx = 6; // cmp reg,reg; jae throw; mov reg, [addrmode]  (not taken)
+                costEx = 3; // cmp reg,reg; jae throw; mov reg, [addrmode]  (not taken)
+#if defined(TARGET_ARM64)
+                costSz = 12; // cmp reg,reg; b.hs throw; add reg, reg, reg lsl #n
+#else
                 costSz = 9; // jump to cold section
+#endif
                 break;
 
             case GT_STORE_BLK:
                 // We estimate the cost of a GT_STORE_BLK to be two stores.
-                costEx += 2 * IND_COST_EX;
-                costSz += 2 * 2;
+                costEx = 2 * GenTree::GetStoreCost(TYP_I_IMPL);
+                costSz = 2 * GetIndirectionSize(TYP_I_IMPL, true);
                 goto SET_INDIRECT_STORE_ORDER;
 
             case GT_STOREIND:
@@ -7464,8 +8412,6 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                     includeOp1Cost = false;
                 }
 
-                costEx += 1;
-                costSz += 1;
 #ifndef TARGET_64BIT
                 if (tree->TypeIs(TYP_LONG))
                 {
@@ -7687,7 +8633,9 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
 #endif
 
 #ifdef TARGET_XARCH
-                costSz += 3;
+                costSz += 3; // call rel32 is 5 bytes
+#elif defined(TARGET_ARM64)
+                costSz += 2; // bl is 4 bytes
 #endif
             }
 
@@ -7730,7 +8678,11 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
 
             level += arrElem->gtArrRank;
             costEx += 2 + (arrElem->gtArrRank * (IND_COST_EX + 1));
+#if defined(TARGET_ARM64)
+            costSz += 4 + (arrElem->gtArrRank * 4);
+#else
             costSz += 2 + (arrElem->gtArrRank * 2);
+#endif
         }
         break;
 
@@ -7805,7 +8757,13 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
             costSz += tree->AsConditional()->gtOp2->GetCostSz();
 
             costEx += 1;
+#if defined(TARGET_ARM64)
+            costSz += 4; // csel
+#elif defined(TARGET_XARCH)
+            costSz += 4; // cmovcc
+#else
             costSz += 1;
+#endif
             break;
 
         default:
@@ -35206,9 +36164,14 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
 #if defined(TARGET_XARCH)
         tryHandle = op->OperIsHWIntrinsic();
 #elif defined(TARGET_ARM64)
-        assert(op->OperIsHWIntrinsic(NI_Sve_ConversionTrueMask));
-        op        = op2;
-        tryHandle = op->OperIsHWIntrinsic();
+        // Op(1) is the governing predicate, which is all true by construction. CSE can replace
+        // it with a local or with the comma that defines one, and the fold drops it, so it can
+        // only be discarded when it is side effect free.
+        if ((op->gtFlags & GTF_SIDE_EFFECT) == 0)
+        {
+            op        = op2;
+            tryHandle = op->OperIsHWIntrinsic();
+        }
 #endif // TARGET_ARM64
 
         if (tryHandle)

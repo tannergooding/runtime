@@ -15506,10 +15506,8 @@ void emitter::getMemoryOperation(instrDesc* id, PerfScoreMemoryAccessKind* pMemA
 //
 // Notes:
 //    The instruction latencies and throughput values returned by this function
-//    are from
-//
-//    The Arm Cortex-A55 Software Optimization Guide:
-//    https://static.docs.arm.com/epm128372/20/arm_cortex_a55_software_optimization_guide_v2.pdf
+//    model Arm Neoverse N1:
+//    https://github.com/llvm/llvm-project/blob/d7575bc5e72bf15dabb9f5782a629e211bf4914a/llvm/lib/Target/AArch64/AArch64SchedNeoverseN1.td
 //
 emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(instrDesc* id)
 {
@@ -15521,8 +15519,9 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
     bool                      isLocalAccess;
     getMemoryOperation(id, &memAccessKind, &isLocalAccess);
 
-    result.insThroughput = PERFSCORE_THROUGHPUT_ILLEGAL;
-    result.insLatency    = PERFSCORE_LATENCY_ILLEGAL;
+    result.insThroughput       = PERFSCORE_THROUGHPUT_ILLEGAL;
+    result.insLatency          = PERFSCORE_LATENCY_ILLEGAL;
+    result.insMemoryAccessKind = memAccessKind;
 
     // Initialize insLatency based upon the instruction's memAccessKind and local access values
     //
@@ -15593,31 +15592,43 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             switch (ins)
             {
                 case INS_mul:
+                case INS_mneg:
+                    if (id->idOpSize() == EA_8BYTE)
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_3C;
+                        result.insLatency    = PERFSCORE_LATENCY_4C;
+                    }
+                    else
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_2C;
+                    }
+                    break;
+
                 case INS_smull:
                 case INS_umull:
-                case INS_mneg:
                     result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
 
                 case INS_smulh:
                 case INS_umulh:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_3C;
-                    result.insLatency    = PERFSCORE_LATENCY_6C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_4C;
+                    result.insLatency    = PERFSCORE_LATENCY_5C;
                     break;
 
                 case INS_sdiv:
                 case INS_udiv:
                     if (id->idOpSize() == EA_4BYTE)
                     {
-                        result.insThroughput = PERFSCORE_THROUGHPUT_4C;
+                        result.insThroughput = PERFSCORE_THROUGHPUT_5C;
                         result.insLatency    = PERFSCORE_LATENCY_12C;
                         break;
                     }
                     else
                     {
                         assert(id->idOpSize() == EA_8BYTE);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_4C;
+                        result.insThroughput = PERFSCORE_THROUGHPUT_5C;
                         result.insLatency    = PERFSCORE_LATENCY_20C;
                         break;
                     }
@@ -15645,7 +15656,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_cmp:
                 case INS_cmn:
                 case INS_tst:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_3X;
                     result.insLatency    = PERFSCORE_LATENCY_1C;
                     break;
 
@@ -15654,7 +15665,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_lsrv:
                 case INS_rorv:
                     // variable shift by register
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_3X;
                     result.insLatency    = PERFSCORE_LATENCY_1C;
                     break;
 
@@ -15664,14 +15675,14 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_crc32ch:
                 case INS_crc32x:
                 case INS_crc32cx:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
                     result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
 
                 case INS_crc32w:
                 case INS_crc32cw:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_1C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
 
                 case INS_smaddl:
@@ -15680,8 +15691,8 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_umaddl:
                 case INS_umsubl:
                 case INS_umnegl:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
 
                 default:
@@ -15700,7 +15711,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         case IF_DI_2A: // add, adds, suv, subs
         case IF_DI_2C: // and, ands, eor, orr
 
-            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+            result.insThroughput = PERFSCORE_THROUGHPUT_3X;
             result.insLatency    = PERFSCORE_LATENCY_1C;
             break;
 
@@ -15708,7 +15719,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         case IF_DR_2E: // mov, neg, mvn, negs
         case IF_DI_1B: // mov, movk, movn, movz
 
-            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+            result.insThroughput = PERFSCORE_THROUGHPUT_3X;
             result.insLatency    = PERFSCORE_LATENCY_1C;
             break;
 
@@ -15765,7 +15776,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         case IF_DR_1D: // cset, csetm
         case IF_DR_3D: // csel, csinc, csinv, csneg
 
-            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+            result.insThroughput = PERFSCORE_THROUGHPUT_3X;
             result.insLatency    = PERFSCORE_LATENCY_1C;
             break;
 
@@ -15778,24 +15789,30 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
 
         // Multiply accumulate
         case IF_DR_4A: // madd, msub, smaddl, smsubl, umaddl, umsubl
-            if (id->idOpSize() == EA_4BYTE)
+            if ((ins == INS_smaddl) || (ins == INS_smsubl) || (ins == INS_umaddl) || (ins == INS_umsubl))
             {
                 result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                result.insLatency    = PERFSCORE_LATENCY_3C;
+                result.insLatency    = PERFSCORE_LATENCY_2C;
+                break;
+            }
+            else if (id->idOpSize() == EA_4BYTE)
+            {
+                result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                result.insLatency    = PERFSCORE_LATENCY_2C;
                 break;
             }
             else
             {
                 assert(id->idOpSize() == EA_8BYTE);
-                result.insThroughput = PERFSCORE_THROUGHPUT_5C;
-                result.insLatency    = PERFSCORE_LATENCY_3C;
+                result.insThroughput = PERFSCORE_THROUGHPUT_3C;
+                result.insLatency    = PERFSCORE_LATENCY_4C;
                 break;
             }
 
         // Miscellaneous Data Preocessing instructions
         case IF_DR_3E: // extr
-            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-            result.insLatency    = PERFSCORE_LATENCY_2C;
+            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+            result.insLatency    = PERFSCORE_LATENCY_3C;
             break;
 
         case IF_DR_2H: // sxtb, sxth, sxtw, uxtb, uxth, sha1h
@@ -15804,7 +15821,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             break;
 
         case IF_DI_2D: // lsl, lsr, asr, sbfm, bfm, ubfm, sbfiz, bfi, ubfiz, sbfx, bfxil, ubfx
-            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
             result.insLatency    = PERFSCORE_LATENCY_2C;
             break;
 
@@ -15827,62 +15844,132 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             //
 
         case IF_LS_1A: // ldr, ldrsw (literal, pc relative immediate)
-            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+            result.insLatency    = genIsValidFloatReg(id->idReg1()) ? PERFSCORE_LATENCY_5C : PERFSCORE_LATENCY_4C;
             break;
 
         case IF_LS_2A: // ldr, ldrsw, ldrb, ldrh, ldrsb, ldrsh, str, strb, strh (no immediate)
                        // ldar, ldarb, ldarh, ldapr, ldaprb, ldaprh, ldxr, ldxrb, ldxrh,
                        // ldaxr, ldaxrb, ldaxrh, stlr, stlrb, stlrh
 
-            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-            // ToDo: store release have 2/4 cycle latency
+            if (memAccessKind == PerfScoreMemoryAccessKind::ReadWrite)
+            {
+                result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+            }
+            else if (genIsValidFloatReg(id->idReg1()))
+            {
+                result.insThroughput = (memAccessKind == PerfScoreMemoryAccessKind::Read)
+                                           ? (2.0f / 3.0f)
+                                           : ((id->idOpSize() == EA_16BYTE) ? (4.0f / 3.0f) : (2.0f / 3.0f));
+                result.insLatency =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read) ? PERFSCORE_LATENCY_5C : PERFSCORE_LATENCY_2C;
+            }
+            else
+            {
+                result.insThroughput =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read) ? PERFSCORE_THROUGHPUT_2X : (2.0f / 3.0f);
+                result.insLatency =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read) ? PERFSCORE_LATENCY_4C : PERFSCORE_LATENCY_1C;
+            }
             break;
 
         case IF_LS_2B: // ldr, ldrsw, ldrb, ldrh, ldrsb, ldrsh, str, strb, strh (scaled immediate)
-            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+            if (genIsValidFloatReg(id->idReg1()))
+            {
+                result.insThroughput = (memAccessKind == PerfScoreMemoryAccessKind::Read)
+                                           ? (2.0f / 3.0f)
+                                           : ((id->idOpSize() == EA_16BYTE) ? (4.0f / 3.0f) : (2.0f / 3.0f));
+                result.insLatency =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read) ? PERFSCORE_LATENCY_5C : PERFSCORE_LATENCY_2C;
+            }
+            else
+            {
+                result.insThroughput =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read) ? PERFSCORE_THROUGHPUT_2X : (2.0f / 3.0f);
+                result.insLatency =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read) ? PERFSCORE_LATENCY_4C : PERFSCORE_LATENCY_1C;
+            }
             break;
 
         case IF_LS_2C: // ldr, ldrsw, ldrb, ldrh, ldrsb, ldrsh, str, strb, strh
                        // ldur, ldurb, ldurh, ldursb, ldursh, ldursw, stur, sturb, sturh
-            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+            if (genIsValidFloatReg(id->idReg1()))
+            {
+                result.insThroughput = (memAccessKind == PerfScoreMemoryAccessKind::Read)
+                                           ? (2.0f / 3.0f)
+                                           : ((id->idOpSize() == EA_16BYTE) ? (5.0f / 3.0f) : PERFSCORE_THROUGHPUT_1C);
+                result.insLatency =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read) ? PERFSCORE_LATENCY_5C : PERFSCORE_LATENCY_2C;
+            }
+            else
+            {
+                result.insThroughput =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read) ? (2.0f / 3.0f) : PERFSCORE_THROUGHPUT_1C;
+                result.insLatency =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read) ? PERFSCORE_LATENCY_4C : PERFSCORE_LATENCY_1C;
+            }
             break;
 
         case IF_LS_3A: // ldr, ldrsw, ldrb, ldrh, ldrsb, ldrsh, str, strb strh (register extend, scale 2,4,8)
-            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+            result.insThroughput = genIsValidFloatReg(id->idReg1()) &&
+                                           (memAccessKind == PerfScoreMemoryAccessKind::Write) &&
+                                           (id->idOpSize() == EA_16BYTE)
+                                       ? (4.0f / 3.0f)
+                                       : (2.0f / 3.0f);
+            if (genIsValidFloatReg(id->idReg1()))
+            {
+                result.insLatency =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read)
+                        ? (((id->idOpSize() == EA_2BYTE) || (id->idOpSize() == EA_16BYTE)) ? PERFSCORE_LATENCY_6C
+                                                                                           : PERFSCORE_LATENCY_5C)
+                        : PERFSCORE_LATENCY_2C;
+            }
+            else
+            {
+                result.insLatency =
+                    (memAccessKind == PerfScoreMemoryAccessKind::Read) ? PERFSCORE_LATENCY_4C : PERFSCORE_LATENCY_1C;
+            }
             break;
 
         case IF_LS_3B: // ldp, ldpsw, ldnp, stp, stnp  (load/store pair zero offset)
         case IF_LS_3C: // load/store pair with offset pre/post inc
             if (memAccessKind == PerfScoreMemoryAccessKind::Read)
             {
-                // ldp, ldpsw, ldnp
-                result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                if (emitIGisInEpilog(emitCurIG) && (ins == INS_ldp))
+                if (genIsValidFloatReg(id->idReg1()))
                 {
-                    // Reduce latency for ldp instructions in the epilog
-                    //
-                    result.insLatency = PERFSCORE_LATENCY_2C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                    result.insLatency    = ((id->idOpSize() == EA_2BYTE) || (id->idOpSize() == EA_16BYTE))
+                                               ? PERFSCORE_LATENCY_7C
+                                               : PERFSCORE_LATENCY_5C;
                 }
-                else if (id->idOpSize() == EA_8BYTE) // X-form
+                else
                 {
-                    // the X-reg variant has an extra cycle of latency
-                    // and two cycle throughput
-                    result.insLatency += 1.0;
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                    result.insThroughput =
+                        (id->idOpSize() == EA_8BYTE) ? PERFSCORE_THROUGHPUT_1C : PERFSCORE_THROUGHPUT_2X;
+                    result.insLatency = (ins == INS_ldpsw) ? PERFSCORE_LATENCY_5C : PERFSCORE_LATENCY_4C;
                 }
             }
             else // store instructions
             {
                 // stp, stnp
                 assert(memAccessKind == PerfScoreMemoryAccessKind::Write);
-                result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                if (genIsValidFloatReg(id->idReg1()))
+                {
+                    result.insThroughput = (id->idOpSize() == EA_16BYTE) ? PERFSCORE_THROUGHPUT_2C : (2.0f / 3.0f);
+                    result.insLatency    = (id->idOpSize() == EA_16BYTE) ? PERFSCORE_LATENCY_3C : PERFSCORE_LATENCY_2C;
+                }
+                else
+                {
+                    result.insThroughput = (id->idOpSize() == EA_8BYTE) ? PERFSCORE_THROUGHPUT_1C : (2.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_1C;
+                }
             }
             break;
 
         case IF_LS_3D: // stxr, stxrb, stxrh, stlxr, stlxrb, srlxrh
             // Store exclusive register, returning status
             assert(emitInsIsStore(ins));
-            // @ToDo - find out the actual latency
+            // The N1 scheduling model does not cover atomics.
             result.insThroughput = PERFSCORE_THROUGHPUT_2C;
             result.insLatency    = max(PERFSCORE_LATENCY_4C, result.insLatency);
             break;
@@ -15905,279 +15992,134 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         case IF_LS_2D:
         case IF_LS_2E:
         case IF_LS_3F:
+        {
             // Load/Store multiple structures
             // Load single structure and replicate
+            bool isPostIndexed = insFmt != IF_LS_2D;
             switch (ins)
             {
                 case INS_ld1:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                        result.insLatency    = PERFSCORE_LATENCY_3C;
-                    }
-                    else
-                    {
-                        // Q-form
-                        assert(id->idOpSize() == EA_16BYTE);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_4C;
-                    }
+                    result.insThroughput = isPostIndexed ? (2.0f / 3.0f) : PERFSCORE_THROUGHPUT_2X;
+                    result.insLatency    = PERFSCORE_LATENCY_5C;
                     break;
 
                 case INS_ld1_2regs:
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                    result.insLatency    = PERFSCORE_LATENCY_5C;
+                    break;
+
                 case INS_ld2:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_4C;
-                    }
-                    else
-                    {
-                        // Q-form
-                        assert(id->idOpSize() == EA_16BYTE);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_4C;
-                        result.insLatency    = PERFSCORE_LATENCY_6C;
-                    }
+                    result.insThroughput = isPostIndexed ? (5.0f / 3.0f) : (4.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_7C;
                     break;
 
                 case INS_ld1_3regs:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_3C;
-                        result.insLatency    = PERFSCORE_LATENCY_5C;
-                    }
-                    else
-                    {
-                        // Q-form
-                        assert(id->idOpSize() == EA_16BYTE);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_6C;
-                        result.insLatency    = PERFSCORE_LATENCY_8C;
-                    }
+                    result.insThroughput = 1.5f;
+                    result.insLatency    = PERFSCORE_LATENCY_6C;
                     break;
 
                 case INS_ld1_4regs:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_4C;
-                        result.insLatency    = PERFSCORE_LATENCY_6C;
-                    }
-                    else
-                    {
-                        // Q-form
-                        assert(id->idOpSize() == EA_16BYTE);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_8C;
-                        result.insLatency    = PERFSCORE_LATENCY_10C;
-                    }
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                    result.insLatency    = PERFSCORE_LATENCY_6C;
                     break;
 
                 case INS_ld3:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D-form
-                        if (optGetElemsize(id->idInsOpt()) == EA_4BYTE)
-                        {
-                            // S
-                            result.insThroughput = PERFSCORE_THROUGHPUT_3C;
-                            result.insLatency    = PERFSCORE_LATENCY_5C;
-                        }
-                        else
-                        {
-                            // B/H
-                            result.insThroughput = PERFSCORE_THROUGHPUT_4C;
-                            result.insLatency    = PERFSCORE_LATENCY_6C;
-                        }
-                    }
-                    else
-                    {
-                        // Q-form
-                        assert(id->idOpSize() == EA_16BYTE);
-                        if ((optGetElemsize(id->idInsOpt()) == EA_4BYTE) ||
-                            (optGetElemsize(id->idInsOpt()) == EA_8BYTE))
-                        {
-                            // S/D
-                            result.insThroughput = PERFSCORE_THROUGHPUT_6C;
-                            result.insLatency    = PERFSCORE_LATENCY_8C;
-                        }
-                        else
-                        {
-                            // B/H
-                            result.insThroughput = PERFSCORE_THROUGHPUT_7C;
-                            result.insLatency    = PERFSCORE_LATENCY_9C;
-                        }
-                    }
+                    result.insThroughput = isPostIndexed ? (7.0f / 3.0f) : PERFSCORE_THROUGHPUT_2C;
+                    result.insLatency    = PERFSCORE_LATENCY_8C;
                     break;
 
                 case INS_ld4:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D-form
-                        if (optGetElemsize(id->idInsOpt()) == EA_4BYTE)
-                        {
-                            // S
-                            result.insThroughput = PERFSCORE_THROUGHPUT_4C;
-                            result.insLatency    = PERFSCORE_LATENCY_6C;
-                        }
-                        else
-                        {
-                            // B/H
-                            result.insThroughput = PERFSCORE_THROUGHPUT_5C;
-                            result.insLatency    = PERFSCORE_LATENCY_7C;
-                        }
-                    }
-                    else
-                    {
-                        // Q-form
-                        assert(id->idOpSize() == EA_16BYTE);
-                        if ((optGetElemsize(id->idInsOpt()) == EA_4BYTE) ||
-                            (optGetElemsize(id->idInsOpt()) == EA_8BYTE))
-                        {
-                            // S/D
-                            result.insThroughput = PERFSCORE_THROUGHPUT_8C;
-                            result.insLatency    = PERFSCORE_LATENCY_10C;
-                        }
-                        else
-                        {
-                            // B/H
-                            result.insThroughput = PERFSCORE_THROUGHPUT_9C;
-                            result.insLatency    = PERFSCORE_LATENCY_11C;
-                        }
-                    }
+                    result.insThroughput = isPostIndexed
+                                               ? ((id->idOpSize() == EA_8BYTE) ? (8.0f / 3.0f) : 3.0f)
+                                               : ((id->idOpSize() == EA_8BYTE) ? (7.0f / 3.0f) : (8.0f / 3.0f));
+                    result.insLatency    = (id->idOpSize() == EA_8BYTE) ? PERFSCORE_LATENCY_8C : PERFSCORE_LATENCY_10C;
                     break;
 
                 case INS_ld1r:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
+                    result.insThroughput = isPostIndexed ? PERFSCORE_THROUGHPUT_1C : (2.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_7C;
                     break;
 
                 case INS_ld2r:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_4C;
-                    }
-                    else
-                    {
-                        // B/H/S
-                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                        result.insLatency    = PERFSCORE_LATENCY_3C;
-                    }
+                    result.insThroughput = isPostIndexed ? (5.0f / 3.0f) : (4.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_7C;
                     break;
 
                 case INS_ld3r:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D
-                        result.insThroughput = PERFSCORE_THROUGHPUT_3C;
-                        result.insLatency    = PERFSCORE_LATENCY_5C;
-                    }
-                    else
-                    {
-                        // B/H/S
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_4C;
-                    }
+                    result.insThroughput = isPostIndexed ? PERFSCORE_THROUGHPUT_2C : (5.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_7C;
                     break;
 
                 case INS_ld4r:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D
-                        result.insThroughput = PERFSCORE_THROUGHPUT_4C;
-                        result.insLatency    = PERFSCORE_LATENCY_6C;
-                    }
-                    else
-                    {
-                        // B/H/S
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_4C;
-                    }
+                    result.insThroughput = isPostIndexed ? PERFSCORE_THROUGHPUT_3C : (8.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_8C;
                     break;
 
                 case INS_st1:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_1C;
+                    result.insThroughput = isPostIndexed ? PERFSCORE_THROUGHPUT_1C : (2.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
 
                 case INS_st1_2regs:
-                case INS_st2:
                     if (id->idOpSize() == EA_8BYTE)
                     {
-                        // D-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                        result.insLatency    = PERFSCORE_LATENCY_1C;
-                    }
-                    else
-                    {
-                        // Q-form
-                        assert(id->idOpSize() == EA_16BYTE);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_2C;
-                    }
-                    break;
-
-                case INS_st1_3regs:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                        result.insThroughput = isPostIndexed ? (4.0f / 3.0f) : PERFSCORE_THROUGHPUT_1C;
                         result.insLatency    = PERFSCORE_LATENCY_2C;
                     }
                     else
                     {
-                        // Q-form
                         assert(id->idOpSize() == EA_16BYTE);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_3C;
+                        result.insThroughput = isPostIndexed ? (5.0f / 3.0f) : (4.0f / 3.0f);
                         result.insLatency    = PERFSCORE_LATENCY_3C;
                     }
                     break;
 
+                case INS_st2:
+                    result.insThroughput =
+                        isPostIndexed ? ((id->idOpSize() == EA_8BYTE) ? PERFSCORE_THROUGHPUT_1C : (5.0f / 3.0f))
+                                      : ((id->idOpSize() == EA_8BYTE) ? (2.0f / 3.0f) : (4.0f / 3.0f));
+                    result.insLatency = (id->idOpSize() == EA_8BYTE) ? PERFSCORE_LATENCY_4C : PERFSCORE_LATENCY_5C;
+                    break;
+
+                case INS_st1_3regs:
+                    result.insThroughput =
+                        isPostIndexed ? ((id->idOpSize() == EA_8BYTE) ? PERFSCORE_THROUGHPUT_2C : (7.0f / 3.0f))
+                                      : ((id->idOpSize() == EA_8BYTE) ? (5.0f / 3.0f) : PERFSCORE_THROUGHPUT_2C);
+                    result.insLatency = (id->idOpSize() == EA_8BYTE) ? PERFSCORE_LATENCY_3C : PERFSCORE_LATENCY_4C;
+                    break;
+
                 case INS_st1_4regs:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_2C;
-                    }
-                    else
-                    {
-                        // Q-form
-                        assert(id->idOpSize() == EA_16BYTE);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_4C;
-                        result.insLatency    = PERFSCORE_LATENCY_4C;
-                    }
+                    result.insThroughput =
+                        isPostIndexed ? ((id->idOpSize() == EA_8BYTE) ? (5.0f / 3.0f) : PERFSCORE_THROUGHPUT_3C)
+                                      : ((id->idOpSize() == EA_8BYTE) ? (4.0f / 3.0f) : (8.0f / 3.0f));
+                    result.insLatency = (id->idOpSize() == EA_8BYTE) ? PERFSCORE_LATENCY_2C : PERFSCORE_LATENCY_5C;
                     break;
 
                 case INS_st3:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_3C;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
+                    result.insThroughput =
+                        isPostIndexed ? ((id->idOpSize() == EA_8BYTE) ? (5.0f / 3.0f) : (7.0f / 3.0f))
+                                      : ((id->idOpSize() == EA_8BYTE) ? (4.0f / 3.0f) : PERFSCORE_THROUGHPUT_2C);
+                    result.insLatency = (id->idOpSize() == EA_8BYTE) ? PERFSCORE_LATENCY_5C : PERFSCORE_LATENCY_6C;
                     break;
 
                 case INS_st4:
                     if (id->idOpSize() == EA_8BYTE)
                     {
-                        // D-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_3C;
-                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                        result.insThroughput = isPostIndexed ? (7.0f / 3.0f) : PERFSCORE_THROUGHPUT_2C;
+                        result.insLatency    = PERFSCORE_LATENCY_7C;
                     }
                     else
                     {
                         assert(id->idOpSize() == EA_16BYTE);
                         if (optGetElemsize(id->idInsOpt()) == EA_8BYTE)
                         {
-                            // D
-                            result.insThroughput = PERFSCORE_THROUGHPUT_4C;
-                            result.insLatency    = PERFSCORE_LATENCY_4C;
+                            result.insThroughput = isPostIndexed ? PERFSCORE_THROUGHPUT_3C : (8.0f / 3.0f);
+                            result.insLatency    = PERFSCORE_LATENCY_6C;
                         }
                         else
                         {
-                            // B/H/S
-                            result.insThroughput = PERFSCORE_THROUGHPUT_5C;
-                            result.insLatency    = PERFSCORE_LATENCY_5C;
+                            result.insThroughput = isPostIndexed ? (13.0f / 3.0f) : PERFSCORE_THROUGHPUT_4C;
+                            result.insLatency    = PERFSCORE_LATENCY_9C;
                         }
                     }
                     break;
@@ -16186,93 +16128,61 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                     unreached();
             }
             break;
+        }
 
         case IF_LS_2F:
         case IF_LS_2G:
         case IF_LS_3G:
+        {
             // Load/Store single structure
+            bool isPostIndexed = insFmt != IF_LS_2F;
             switch (ins)
             {
                 case INS_ld1:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
+                    result.insThroughput = isPostIndexed ? PERFSCORE_THROUGHPUT_1C : (2.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_7C;
                     break;
 
                 case INS_ld2:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_4C;
-                    }
-                    else
-                    {
-                        // B/H/S
-                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                        result.insLatency    = PERFSCORE_LATENCY_3C;
-                    }
+                    result.insThroughput = isPostIndexed ? (5.0f / 3.0f) : (4.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_7C;
                     break;
 
                 case INS_ld3:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D
-                        result.insThroughput = PERFSCORE_THROUGHPUT_3C;
-                        result.insLatency    = PERFSCORE_LATENCY_5C;
-                    }
-                    else
-                    {
-                        // B/H/S
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_4C;
-                    }
+                    result.insThroughput = isPostIndexed ? PERFSCORE_THROUGHPUT_2C : (5.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_7C;
                     break;
 
                 case INS_ld4:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D
-                        result.insThroughput = PERFSCORE_THROUGHPUT_4C;
-                        result.insLatency    = PERFSCORE_LATENCY_6C;
-                    }
-                    else
-                    {
-                        // B/H/S
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_4C;
-                    }
+                    result.insThroughput = isPostIndexed ? PERFSCORE_THROUGHPUT_3C : (8.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_8C;
                     break;
 
                 case INS_st1:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_1C;
+                    result.insThroughput = isPostIndexed ? PERFSCORE_THROUGHPUT_1C : (2.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_4C;
                     break;
 
                 case INS_st2:
-                    if (id->idOpSize() == EA_8BYTE)
-                    {
-                        // D
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                        result.insLatency    = PERFSCORE_LATENCY_2C;
-                    }
-                    else
-                    {
-                        // B/H/S
-                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                        result.insLatency    = PERFSCORE_LATENCY_1C;
-                    }
+                    result.insThroughput = isPostIndexed ? PERFSCORE_THROUGHPUT_1C : (2.0f / 3.0f);
+                    result.insLatency    = PERFSCORE_LATENCY_4C;
                     break;
 
                 case INS_st3:
+                    result.insThroughput = isPostIndexed ? (7.0f / 3.0f) : PERFSCORE_THROUGHPUT_2C;
+                    result.insLatency    = (id->idOpSize() == EA_8BYTE) ? PERFSCORE_LATENCY_5C : PERFSCORE_LATENCY_4C;
+                    break;
+
                 case INS_st4:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2C;
-                    result.insLatency    = PERFSCORE_LATENCY_2C;
+                    result.insThroughput = isPostIndexed ? (7.0f / 3.0f) : PERFSCORE_THROUGHPUT_2C;
+                    result.insLatency    = (id->idOpSize() == EA_8BYTE) ? PERFSCORE_LATENCY_4C : PERFSCORE_LATENCY_5C;
                     break;
 
                 default:
                     unreached();
             }
             break;
+        }
 
         case IF_PC_0A: // autia1716, autiasp, autib1716, autibsp, autibz, autiaz, pacia1716, paciasp, pacib1716,
                        // pacibsp, pacibz, paciaz, xpaclri
@@ -16295,58 +16205,55 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
 
         case IF_SN_0A: // nop, yield, align
 
-            if (id->idIns() == INS_align)
+            if ((ins == INS_align) && ((id->idInsOpt() == INS_OPTS_NONE) || ((instrDescAlign*)id)->isPlacedAfterJmp))
             {
-                if ((id->idInsOpt() == INS_OPTS_NONE) || ((instrDescAlign*)id)->isPlacedAfterJmp)
-                {
-                    // Either we're not going to generate 'align' instruction, or the 'align'
-                    // instruction is placed immediately after unconditional jmp.
-                    // In both cases, don't count for PerfScore.
+                // Either we're not going to generate 'align' instruction, or the 'align'
+                // instruction is placed immediately after unconditional jmp.
+                // In both cases, don't count for PerfScore.
 
-                    result.insThroughput = PERFSCORE_THROUGHPUT_ZERO;
-                    result.insLatency    = PERFSCORE_LATENCY_ZERO;
-                    break;
-                }
+                result.insThroughput = PERFSCORE_THROUGHPUT_ZERO;
+                result.insLatency    = PERFSCORE_LATENCY_ZERO;
             }
             else if (ins == INS_yield)
             {
-                // @ToDo - find out the actual latency, match x86/x64 for now
-                result.insThroughput = PERFSCORE_THROUGHPUT_140C;
-                result.insLatency    = PERFSCORE_LATENCY_140C;
+                result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                result.insLatency    = PERFSCORE_LATENCY_1C;
             }
-            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-            result.insLatency    = PERFSCORE_LATENCY_ZERO;
+            else
+            {
+                result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                result.insLatency    = PERFSCORE_LATENCY_ZERO;
+            }
             break;
 
         case IF_SI_0B: // dmb, dsb, isb
-            // @ToDo - find out the actual latency
-            result.insThroughput = PERFSCORE_THROUGHPUT_10C;
-            result.insLatency    = PERFSCORE_LATENCY_10C;
+            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+            result.insLatency    = PERFSCORE_LATENCY_1C;
             break;
 
         case IF_DV_2J: // fcvt  Vd Vn
-            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-            result.insLatency    = PERFSCORE_LATENCY_4C;
+            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+            result.insLatency    = PERFSCORE_LATENCY_3C;
             break;
 
         case IF_DV_2K: // fcmp  Vd Vn
             result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-            result.insLatency    = PERFSCORE_LATENCY_1C;
+            result.insLatency    = PERFSCORE_LATENCY_2C;
             break;
 
         case IF_DV_1A: // fmov - immediate (scalar)
             result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-            result.insLatency    = PERFSCORE_LATENCY_1C;
+            result.insLatency    = PERFSCORE_LATENCY_2C;
             break;
 
         case IF_DV_1B: // fmov, orr, bic, movi, mvni  (immediate vector)
             result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-            result.insLatency    = PERFSCORE_LATENCY_1C;
+            result.insLatency    = PERFSCORE_LATENCY_2C;
             break;
 
         case IF_DV_1C: // fcmp vn, #0.0
             result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-            result.insLatency    = PERFSCORE_LATENCY_3C;
+            result.insLatency    = PERFSCORE_LATENCY_2C;
             break;
 
         case IF_DV_2A: // fabs, fneg, fsqrt, fcvtXX, frintX, scvtf, ucvtf, fcmXX (vector)
@@ -16355,22 +16262,34 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_fabs:
                 case INS_fneg:
                     result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency = (id->idOpSize() == EA_8BYTE) ? PERFSCORE_LATENCY_2C : PERFSCORE_LATENCY_3C / 2;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
 
                 case INS_fsqrt:
-                    if ((id->idInsOpt() == INS_OPTS_2S) || (id->idInsOpt() == INS_OPTS_4S))
+                    if (optGetElemsize(id->idInsOpt()) == EA_2BYTE)
                     {
-                        // S-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_3C;
-                        result.insLatency    = PERFSCORE_LATENCY_11C;
+                        if (id->idOpSize() == EA_16BYTE)
+                        {
+                            result.insThroughput = PERFSCORE_THROUGHPUT_10C;
+                            result.insLatency    = PERFSCORE_LATENCY_13C;
+                        }
+                        else
+                        {
+                            assert(id->idOpSize() == EA_8BYTE);
+                            result.insThroughput = PERFSCORE_THROUGHPUT_7C;
+                            result.insLatency    = PERFSCORE_LATENCY_7C;
+                        }
+                    }
+                    else if (optGetElemsize(id->idInsOpt()) == EA_4BYTE)
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_7C;
+                        result.insLatency    = PERFSCORE_LATENCY_10C;
                     }
                     else
                     {
-                        // D-form
-                        assert(id->idInsOpt() == INS_OPTS_2D);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_6C;
-                        result.insLatency    = PERFSCORE_LATENCY_18C;
+                        assert((optGetElemsize(id->idInsOpt()) == EA_8BYTE) && (id->idOpSize() == EA_16BYTE));
+                        result.insThroughput = PERFSCORE_THROUGHPUT_7C;
+                        result.insLatency    = PERFSCORE_LATENCY_17C;
                     }
                     break;
 
@@ -16393,8 +16312,22 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_frintz:
                 case INS_scvtf:
                 case INS_ucvtf:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_4C;
+                    if ((optGetElemsize(id->idInsOpt()) == EA_2BYTE) && (id->idOpSize() == EA_16BYTE))
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_4C;
+                        result.insLatency    = PERFSCORE_LATENCY_6C;
+                    }
+                    else if ((optGetElemsize(id->idInsOpt()) == EA_2BYTE) ||
+                             ((optGetElemsize(id->idInsOpt()) == EA_4BYTE) && (id->idOpSize() == EA_16BYTE)))
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                        result.insLatency    = PERFSCORE_LATENCY_4C;
+                    }
+                    else
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                    }
                     break;
 
                 case INS_fcmeq:
@@ -16402,12 +16335,30 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_fcmgt:
                 case INS_fcmle:
                 case INS_fcmlt:
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
+                    break;
+
                 case INS_frecpe:
                 case INS_frsqrte:
                 case INS_urecpe:
                 case INS_ursqrte:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_2C;
+                    if ((optGetElemsize(id->idInsOpt()) == EA_2BYTE) && (id->idOpSize() == EA_16BYTE))
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_4C;
+                        result.insLatency    = PERFSCORE_LATENCY_6C;
+                    }
+                    else if ((optGetElemsize(id->idInsOpt()) == EA_2BYTE) ||
+                             ((optGetElemsize(id->idInsOpt()) == EA_4BYTE) && (id->idOpSize() == EA_16BYTE)))
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                        result.insLatency    = PERFSCORE_LATENCY_4C;
+                    }
+                    else
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                    }
                     break;
 
                 case INS_fcvtl:
@@ -16416,8 +16367,22 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_fcvtn2:
                 case INS_fcvtxn:
                 case INS_fcvtxn2:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_4C;
+                    if (((ins == INS_fcvtl) || (ins == INS_fcvtl2)) && (optGetElemsize(id->idInsOpt()) == EA_4BYTE))
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                        result.insLatency    = PERFSCORE_LATENCY_4C;
+                    }
+                    else if (((ins == INS_fcvtn) || (ins == INS_fcvtn2)) &&
+                             (optGetElemsize(id->idInsOpt()) == EA_2BYTE))
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                        result.insLatency    = PERFSCORE_LATENCY_4C;
+                    }
+                    else
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                    }
                     break;
 
                 default:
@@ -16433,11 +16398,14 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_fmov:
                     // FP move, vector register
                     result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_1C;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
 
                 case INS_fabs:
                 case INS_fneg:
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
+                    break;
 
                 case INS_fcvtas:
                 case INS_fcvtau:
@@ -16464,8 +16432,8 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                     break;
 
                 case INS_fcvtxn:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_4C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insLatency    = PERFSCORE_LATENCY_3C;
                     break;
 
                 case INS_fcmeq:
@@ -16480,23 +16448,34 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_frecpe:
                 case INS_frecpx:
                 case INS_frsqrte:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_4C;
-                    break;
-
-                case INS_fsqrt:
-                    if (id->idOpSize() == EA_8BYTE)
+                    if (id->idOpSize() == EA_2BYTE)
                     {
-                        // D-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_19C;
-                        result.insLatency    = PERFSCORE_LATENCY_22C;
+                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                        result.insLatency    = PERFSCORE_LATENCY_4C;
                     }
                     else
                     {
-                        // S-form
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                    }
+                    break;
+
+                case INS_fsqrt:
+                    if (id->idOpSize() == EA_2BYTE)
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_7C;
+                        result.insLatency    = PERFSCORE_LATENCY_7C;
+                    }
+                    else if (id->idOpSize() == EA_8BYTE)
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_7C;
+                        result.insLatency    = PERFSCORE_LATENCY_17C;
+                    }
+                    else
+                    {
                         assert(id->idOpSize() == EA_4BYTE);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_9C;
-                        result.insLatency    = PERFSCORE_LATENCY_12C;
+                        result.insThroughput = PERFSCORE_THROUGHPUT_7C;
+                        result.insLatency    = PERFSCORE_LATENCY_10C;
                     }
                     break;
 
@@ -16508,14 +16487,26 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             break;
 
         case IF_DV_2Q: // faddp, fmaxnmp, fmaxp, fminnmp, fminp (scalar)
-        case IF_DV_2R: // fmaxnmv, fmaxv, fminnmv, fminv
             result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-            result.insLatency    = PERFSCORE_LATENCY_4C;
+            result.insLatency    = PERFSCORE_LATENCY_2C;
+            break;
+
+        case IF_DV_2R: // fmaxnmv, fmaxv, fminnmv, fminv
+            if ((optGetElemsize(id->idInsOpt()) == EA_2BYTE) && (id->idOpSize() == EA_16BYTE))
+            {
+                result.insThroughput = PERFSCORE_THROUGHPUT_3C;
+                result.insLatency    = PERFSCORE_LATENCY_8C;
+            }
+            else
+            {
+                result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                result.insLatency    = PERFSCORE_LATENCY_5C;
+            }
             break;
 
         case IF_DV_2S: // addp (scalar)
             result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-            result.insLatency    = PERFSCORE_LATENCY_3C;
+            result.insLatency    = PERFSCORE_LATENCY_2C;
             break;
 
         case IF_DV_3B: // fadd, fsub, fdiv, fmul, fmulx, fmla, fmls, fmin, fminnm, fmax, fmaxnm, fabd, fcmXX
@@ -16529,8 +16520,16 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_fabd:
                 case INS_fadd:
                 case INS_fsub:
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
+                    break;
+
                 case INS_fmul:
                 case INS_fmulx:
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insLatency    = PERFSCORE_LATENCY_3C;
+                    break;
+
                 case INS_fmla:
                 case INS_fmls:
                 case INS_frecps:
@@ -16578,18 +16577,30 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                     break;
 
                 case INS_fdiv:
-                    if ((id->idInsOpt() == INS_OPTS_2S) || (id->idInsOpt() == INS_OPTS_4S))
+                    if (optGetElemsize(id->idInsOpt()) == EA_2BYTE)
                     {
-                        // S-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_10C;
-                        result.insLatency    = PERFSCORE_LATENCY_13C;
+                        if (id->idOpSize() == EA_16BYTE)
+                        {
+                            result.insThroughput = PERFSCORE_THROUGHPUT_10C;
+                            result.insLatency    = PERFSCORE_LATENCY_13C;
+                        }
+                        else
+                        {
+                            assert(id->idOpSize() == EA_8BYTE);
+                            result.insThroughput = PERFSCORE_THROUGHPUT_7C;
+                            result.insLatency    = PERFSCORE_LATENCY_7C;
+                        }
+                    }
+                    else if (optGetElemsize(id->idInsOpt()) == EA_4BYTE)
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_7C;
+                        result.insLatency    = PERFSCORE_LATENCY_10C;
                     }
                     else
                     {
-                        // D-form
-                        assert(id->idInsOpt() == INS_OPTS_2D);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_10C;
-                        result.insLatency    = PERFSCORE_LATENCY_22C;
+                        assert((optGetElemsize(id->idInsOpt()) == EA_8BYTE) && (id->idOpSize() == EA_16BYTE));
+                        result.insThroughput = PERFSCORE_THROUGHPUT_7C;
+                        result.insLatency    = PERFSCORE_LATENCY_15C;
                     }
                     break;
 
@@ -16601,10 +16612,14 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             break;
 
         case IF_DV_3AI: // mul, mla, mls (vector by element)
-        case IF_DV_3BI: // fmul, fmulx, fmla, fmls (vector by element)
         case IF_DV_3EI: // sqdmlal, sqdmlsl, sqdmulh, sqdmull (scalar by element)
             result.insThroughput = PERFSCORE_THROUGHPUT_1C;
             result.insLatency    = PERFSCORE_LATENCY_4C;
+            break;
+
+        case IF_DV_3BI: // fmul, fmulx, fmla, fmls (vector by element)
+            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+            result.insLatency = ((ins == INS_fmul) || (ins == INS_fmulx)) ? PERFSCORE_LATENCY_3C : PERFSCORE_LATENCY_4C;
             break;
 
         case IF_DV_4A: // fmadd, fmsub, fnmadd, fnsub (scalar)
@@ -16620,6 +16635,13 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         case IF_DV_3D: // fadd, fsub, fdiv, fmul, fmulx, fmin, fminnm, fmax, fmaxnm, fabd, fcmXX (scalar)
             switch (ins)
             {
+                case INS_fmul:
+                case INS_fmulx:
+                case INS_fnmul:
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insLatency    = PERFSCORE_LATENCY_3C;
+                    break;
+
                 case INS_fadd:
                 case INS_fsub:
                 case INS_fabd:
@@ -16627,9 +16649,10 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_fmaxnm:
                 case INS_fmin:
                 case INS_fminnm:
-                case INS_fmul:
-                case INS_fmulx:
-                case INS_fnmul:
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
+                    break;
+
                 case INS_frecps:
                 case INS_frsqrts:
                     result.insThroughput = PERFSCORE_THROUGHPUT_2X;
@@ -16646,17 +16669,20 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                     break;
 
                 case INS_fdiv:
-                    if (id->idOpSize() == EA_8BYTE)
+                    if (id->idOpSize() == EA_2BYTE)
                     {
-                        // D-form
-                        result.insThroughput = PERFSCORE_THROUGHPUT_6C;
+                        result.insThroughput = PERFSCORE_THROUGHPUT_7C;
+                        result.insLatency    = PERFSCORE_LATENCY_7C;
+                    }
+                    else if (id->idOpSize() == EA_8BYTE)
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_7C;
                         result.insLatency    = PERFSCORE_LATENCY_15C;
                     }
                     else
                     {
-                        // S-form
                         assert(id->idOpSize() == EA_4BYTE);
-                        result.insThroughput = PERFSCORE_THROUGHPUT_3C;
+                        result.insThroughput = PERFSCORE_THROUGHPUT_7C;
                         result.insLatency    = PERFSCORE_LATENCY_10C;
                     }
                     break;
@@ -16669,10 +16695,16 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             break;
 
         case IF_DV_2H: // fmov, fcvtXX - to general
-            // fmov : FP transfer to general register
-            // fcvtaXX : FP convert from vector to general
-            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-            result.insLatency    = PERFSCORE_LATENCY_3C;
+            if (ins == INS_fmov)
+            {
+                result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                result.insLatency    = PERFSCORE_LATENCY_2C;
+            }
+            else
+            {
+                result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                result.insLatency    = PERFSCORE_LATENCY_4C;
+            }
             break;
 
         case IF_DV_2I: // fmov, Xcvtf - from general
@@ -16680,14 +16712,14 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             {
                 case INS_fmov:
                     // FP transfer from general register
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_2C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                    result.insLatency    = PERFSCORE_LATENCY_3C;
                     break;
 
                 case INS_scvtf:
                 case INS_ucvtf:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_5C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                    result.insLatency    = PERFSCORE_LATENCY_6C;
                     break;
 
                 default:
@@ -16702,41 +16734,32 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             switch (ins)
             {
                 case INS_tbl:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_1C;
-                    break;
                 case INS_tbl_2regs:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_3X;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
                     result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
                 case INS_tbl_3regs:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_4X;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
-                    break;
                 case INS_tbl_4regs:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_3X;
+                    result.insThroughput = (ins == INS_tbl_3regs) ? PERFSCORE_THROUGHPUT_2C : 1.5f;
                     result.insLatency    = PERFSCORE_LATENCY_4C;
                     break;
                 case INS_tbx:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_3X;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
                     result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
                 case INS_tbx_2regs:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_4X;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
-                    break;
-                case INS_tbx_3regs:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_5X;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_2C;
                     result.insLatency    = PERFSCORE_LATENCY_4C;
                     break;
+                case INS_tbx_3regs:
                 case INS_tbx_4regs:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_6X;
-                    result.insLatency    = PERFSCORE_LATENCY_5C;
+                    result.insThroughput = (ins == INS_tbx_3regs) ? 1.5f : 2.5f;
+                    result.insLatency    = PERFSCORE_LATENCY_6C;
                     break;
                 default:
                     // All other instructions
                     result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_1C;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
             }
             break;
@@ -16765,7 +16788,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             else
             {
                 assert((ins == INS_ins) || (ins == INS_mov));
-                result.insLatency = PERFSCORE_LATENCY_2C;
+                result.insLatency = PERFSCORE_LATENCY_5C;
             }
             break;
 
@@ -16786,6 +16809,11 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_cmgt:
                 case INS_cmhi:
                 case INS_cmhs:
+                case INS_addp:
+                case INS_cmtst:
+                case INS_sabd:
+                case INS_sqadd:
+                case INS_sqsub:
                 case INS_shadd:
                 case INS_shsub:
                 case INS_srhadd:
@@ -16799,6 +16827,9 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_umaxp:
                 case INS_umin:
                 case INS_uminp:
+                case INS_uabd:
+                case INS_uqadd:
+                case INS_uqsub:
                 case INS_uhadd:
                 case INS_uhsub:
                 case INS_urhadd:
@@ -16826,17 +16857,17 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                     result.insLatency = PERFSCORE_LATENCY_2C;
                     break;
 
-                case INS_addp:
-                case INS_cmtst:
                 case INS_pmul:
-                case INS_sabd:
-                case INS_sqadd:
-                case INS_sqsub:
-                case INS_uabd:
-                case INS_uqadd:
-                case INS_uqsub:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
+                    if (id->idOpSize() == EA_16BYTE)
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                        result.insLatency    = PERFSCORE_LATENCY_4C;
+                    }
+                    else
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                    }
                     break;
 
                 case INS_mla:
@@ -16844,17 +16875,29 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_mul:
                 case INS_sqdmulh:
                 case INS_sqrdmulh:
+                    if (id->idOpSize() == EA_16BYTE)
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                        result.insLatency    = PERFSCORE_LATENCY_5C;
+                    }
+                    else
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_4C;
+                    }
+                    break;
+
                 case INS_sqrshl:
                 case INS_sqshl:
                 case INS_uqrshl:
                 case INS_uqshl:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
                     result.insLatency    = PERFSCORE_LATENCY_4C;
                     break;
 
                 case INS_saba:
                 case INS_uaba:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
                     result.insLatency    = PERFSCORE_LATENCY_4C;
                     break;
 
@@ -16907,7 +16950,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_sabal2:
                 case INS_uabal:
                 case INS_uabal2:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
                     result.insLatency    = PERFSCORE_LATENCY_4C;
                     break;
 
@@ -16939,8 +16982,16 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_pmull2:
                     if ((id->idInsOpt() == INS_OPTS_8B) || (id->idInsOpt() == INS_OPTS_16B))
                     {
-                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                        if (id->idOpSize() == EA_16BYTE)
+                        {
+                            result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                            result.insLatency    = PERFSCORE_LATENCY_4C;
+                        }
+                        else
+                        {
+                            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                            result.insLatency    = PERFSCORE_LATENCY_3C;
+                        }
                     }
                     else
                     {
@@ -16959,8 +17010,8 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             break;
 
         case IF_DV_3DI: // fmul, fmulx, fmla, fmls (scalar by element)
-            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-            result.insLatency    = PERFSCORE_LATENCY_4C;
+            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+            result.insLatency = ((ins == INS_fmul) || (ins == INS_fmulx)) ? PERFSCORE_LATENCY_3C : PERFSCORE_LATENCY_4C;
             break;
 
         case IF_DV_3E: // add, sub, cmeq, cmge, cmgt, cmhi, cmhs, ctst, (scalar)
@@ -17003,43 +17054,16 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             switch (ins)
             {
                 case INS_abs:
+                case INS_sqabs:
                 case INS_sqneg:
                 case INS_suqadd:
                 case INS_usqadd:
-                    if (id->idOpSize() == EA_16BYTE)
-                    {
-                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    }
-                    else
-                    {
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    }
-
-                    result.insLatency = PERFSCORE_LATENCY_3C;
-                    break;
-
-                case INS_addv:
-                case INS_saddlv:
-                case INS_uaddlv:
                 case INS_cls:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
-                    break;
-
-                case INS_sminv:
-                case INS_smaxv:
-                case INS_uminv:
-                case INS_umaxv:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_4C;
-                    break;
-
                 case INS_cmeq:
                 case INS_cmge:
                 case INS_cmgt:
                 case INS_cmle:
                 case INS_cmlt:
-
                 case INS_clz:
                 case INS_cnt:
                 case INS_rbit:
@@ -17048,28 +17072,48 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_rev64:
                 case INS_xtn:
                 case INS_xtn2:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_2C;
-                    break;
-
                 case INS_mvn:
                 case INS_not:
                 case INS_neg:
                 case INS_shll:
                 case INS_shll2:
                     result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_1C;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
 
-                case INS_sqabs:
                 case INS_sqxtn:
                 case INS_sqxtn2:
                 case INS_sqxtun:
                 case INS_sqxtun2:
                 case INS_uqxtn:
                 case INS_uqxtn2:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
                     result.insLatency    = PERFSCORE_LATENCY_4C;
+                    break;
+
+                case INS_addv:
+                case INS_saddlv:
+                case INS_sminv:
+                case INS_smaxv:
+                case INS_uaddlv:
+                case INS_uminv:
+                case INS_umaxv:
+                    if (optGetElemsize(id->idInsOpt()) == EA_1BYTE)
+                    {
+                        result.insThroughput =
+                            (id->idOpSize() == EA_16BYTE) ? PERFSCORE_THROUGHPUT_2C : PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency = (id->idOpSize() == EA_16BYTE) ? PERFSCORE_LATENCY_6C : PERFSCORE_LATENCY_5C;
+                    }
+                    else if ((optGetElemsize(id->idInsOpt()) == EA_2BYTE) && (id->idOpSize() == EA_16BYTE))
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_5C;
+                    }
+                    else
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                    }
                     break;
 
                 default:
@@ -17093,7 +17137,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_sri:
                 case INS_sshr:
                 case INS_ushr:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                    result.insThroughput = (insFmt == IF_DV_2N) ? PERFSCORE_THROUGHPUT_2X : PERFSCORE_THROUGHPUT_1C;
                     result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
 
@@ -17121,15 +17165,15 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_uqshrn:
                 case INS_uqshrn2:
                 case INS_usra:
-                    if (id->idOpSize() == EA_16BYTE)
+                    if (insFmt == IF_DV_2N)
                     {
-                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                        result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                        result.insLatency    = PERFSCORE_LATENCY_2C;
                     }
                     else
                     {
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_4C;
                     }
                     break;
 
@@ -17150,14 +17194,14 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
                 case INS_uqrshrn:
                 case INS_uqrshrn2:
                 case INS_uqshl:
-                    if (id->idOpSize() == EA_16BYTE)
+                    if ((insFmt == IF_DV_2N) && (ins != INS_sqshl) && (ins != INS_sqshlu) && (ins != INS_uqshl))
                     {
-                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                        result.insLatency    = PERFSCORE_LATENCY_4C;
+                        result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                        result.insLatency    = PERFSCORE_LATENCY_2C;
                     }
                     else
                     {
-                        result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
                         result.insLatency    = PERFSCORE_LATENCY_4C;
                     }
                     break;
@@ -17219,31 +17263,39 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             {
                 case INS_addv:
                 case INS_saddlv:
-                case INS_uaddlv:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
-                    break;
-
                 case INS_smaxv:
                 case INS_sminv:
+                case INS_uaddlv:
                 case INS_umaxv:
                 case INS_uminv:
-                case INS_sha256h2:
-                case INS_sha256su1:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-                    result.insLatency    = PERFSCORE_LATENCY_4C;
+                    if (optGetElemsize(id->idInsOpt()) == EA_1BYTE)
+                    {
+                        result.insThroughput =
+                            (id->idOpSize() == EA_16BYTE) ? PERFSCORE_THROUGHPUT_2C : PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency = (id->idOpSize() == EA_16BYTE) ? PERFSCORE_LATENCY_6C : PERFSCORE_LATENCY_5C;
+                    }
+                    else if ((optGetElemsize(id->idInsOpt()) == EA_2BYTE) && (id->idOpSize() == EA_16BYTE))
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_5C;
+                    }
+                    else
+                    {
+                        result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+                        result.insLatency    = PERFSCORE_LATENCY_3C;
+                    }
                     break;
 
                 case INS_sadalp:
                 case INS_uadalp:
-                    result.insThroughput = PERFSCORE_THROUGHPUT_2C;
+                    result.insThroughput = PERFSCORE_THROUGHPUT_1C;
                     result.insLatency    = PERFSCORE_LATENCY_4C;
                     break;
 
                 case INS_saddlp:
                 case INS_uaddlp:
                     result.insThroughput = PERFSCORE_THROUGHPUT_2X;
-                    result.insLatency    = PERFSCORE_LATENCY_3C;
+                    result.insLatency    = PERFSCORE_LATENCY_2C;
                     break;
 
                 default:

@@ -4377,18 +4377,9 @@ bool CSE_Heuristic::PromotionCheck(CSE_Candidate* candidate)
       we needed to evaluate the def into a register and we can use that
       register as the CSE temp as well.
 
-      If we are unable to enregister the CSE then the cse-use-cost is IND_COST
-      and the cse-def-cost is also IND_COST.
-
-      If we want to be conservative we use IND_COST as the value
-      for both cse-def-cost and cse-use-cost and then we never introduce
-      a CSE that could pessimize the execution time of the method.
-
-      If we want to be more moderate we use (IND_COST_EX + 1) / 2 as the
-      values for both cse-def-cost and cse-use-cost.
-
-      If we want to be aggressive we use 1 as the values for both
-      cse-def-cost and cse-use-cost.
+      If we are unable to enregister the CSE then its definition stores the
+      temporary and each use reloads it. Conservative promotion uses the
+      target- and type-specific memory costs for these operations.
 
       If we believe that the CSE is very valuable in terms of weighted ref counts
       such that it would always be enregistered by the register allocator we choose
@@ -4492,6 +4483,11 @@ bool CSE_Heuristic::PromotionCheck(CSE_Candidate* candidate)
             // Record that we are choosing to use the conservative promotion rules
             //
             candidate->SetConservative();
+
+            var_types cseType = candidate->Expr()->TypeGet();
+            cse_def_cost      = GenTree::GetLocalAccessSize(cseType, true);
+            cse_use_cost      = GenTree::GetLocalAccessSize(cseType, false);
+
             if (largeFrame)
             {
 #ifdef DEBUG
@@ -4500,22 +4496,21 @@ bool CSE_Heuristic::PromotionCheck(CSE_Candidate* candidate)
                     printf("Codesize CSE Promotion (%s frame)\n", hugeFrame ? "huge" : "large");
                 }
 #endif
-#ifdef TARGET_XARCH
-                /* The following formula is good choice when optimizing CSE for SMALL_CODE */
-                cse_def_cost = 6; // mov [EBP-0x00001FC],reg
-                cse_use_cost = 5; //     [EBP-0x00001FC]
-#else                             // TARGET_ARM
-                if (hugeFrame)
-                {
-                    cse_def_cost = 10 + 2; // movw/movt r10 and str reg,[sp+r10]
-                    cse_use_cost = 10 + 2;
-                }
-                else
-                {
-                    cse_def_cost = 6 + 2; // movw r10 and str reg,[sp+r10]
-                    cse_use_cost = 6 + 2;
-                }
+                unsigned frameAdjustment;
+
+#if defined(TARGET_XARCH)
+                frameAdjustment = 3;
+#elif defined(TARGET_ARM)
+                frameAdjustment = hugeFrame ? 10 : 6;
+#elif defined(TARGET_ARM64) || defined(TARGET_LOONGARCH64) || defined(TARGET_RISCV64)
+                frameAdjustment = 4;
+#elif defined(TARGET_WASM)
+                frameAdjustment = 0;
+#else
+#error Unknown target
 #endif
+                cse_def_cost += frameAdjustment;
+                cse_use_cost += frameAdjustment;
             }
             else // small frame
             {
@@ -4525,26 +4520,8 @@ bool CSE_Heuristic::PromotionCheck(CSE_Candidate* candidate)
                     printf("Codesize CSE Promotion (small frame)\n");
                 }
 #endif
-#ifdef TARGET_XARCH
-                /* The following formula is good choice when optimizing CSE for SMALL_CODE */
-                cse_def_cost = 3; // mov [EBP-1C],reg
-                cse_use_cost = 2; //     [EBP-1C]
-
-#else // TARGET_ARM
-
-                cse_def_cost = 2; // str reg,[sp+0x9c]
-                cse_use_cost = 2; // ldr reg,[sp+0x9c]
-#endif
             }
         }
-#ifdef TARGET_XARCH
-        if (varTypeIsFloating(candidate->Expr()->TypeGet()))
-        {
-            // floating point loads/store encode larger
-            cse_def_cost += 2;
-            cse_use_cost += 1;
-        }
-#endif // TARGET_XARCH
     }
     else // not SMALL_CODE ...
     {
@@ -4638,8 +4615,9 @@ bool CSE_Heuristic::PromotionCheck(CSE_Candidate* candidate)
                     printf("Conservative CSE Promotion (%f < %f)\n", cseRefCnt, moderateRefCnt);
                 }
 #endif
-                cse_def_cost = 2;
-                cse_use_cost = 3;
+                var_types cseType = candidate->Expr()->TypeGet();
+                cse_def_cost      = GenTree::GetStoreCost(cseType);
+                cse_use_cost      = GenTree::GetIndirectionCost(cseType);
             }
 
             // If we have maxed out lvaTrackedCount then this CSE may end up as an untracked variable

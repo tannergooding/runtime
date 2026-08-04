@@ -576,6 +576,8 @@ struct HWIntrinsicInfo
 #elif defined(TARGET_ARM64)
     static void lookupImmBounds(
         NamedIntrinsic intrinsic, int simdSize, var_types baseType, int immNumber, int* lowerBound, int* upperBound);
+
+    static int lookupInsLatency(instruction ins, var_types simdBaseType, unsigned simdSize);
 #elif defined(TARGET_WASM)
     static int lookupImmUpperBound(NamedIntrinsic intrinsic, unsigned int simdSize, var_types baseType);
 #else

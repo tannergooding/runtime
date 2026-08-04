@@ -892,8 +892,15 @@ public:
         ExtendKind m_extendKind;
         unsigned   m_extendSrcSize;
 
+        GenIntCastDesc(GenTreeCast* cast, bool castIsLoad);
+
     public:
         GenIntCastDesc(GenTreeCast* cast);
+
+        static GenIntCastDesc CreateForCosting(GenTreeCast* cast)
+        {
+            return GenIntCastDesc(cast, false);
+        }
 
         CheckKind CheckKind() const
         {

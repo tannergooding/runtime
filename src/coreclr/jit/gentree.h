@@ -891,16 +891,32 @@ public:
 
 #define MAX_COST UCHAR_MAX
 
-// execution cost for an indirection
-#define IND_COST_EX 3
-
-#if defined(TARGET_XARCH)
-// floating-point indirections are slightly more expensive
+// Representative L1-load dependency latencies.
+#if defined(TARGET_XARCH) // Intel Skylake
+#define IND_COST_EX     5
 #define FLT_IND_COST_EX 5
+#elif defined(TARGET_ARM64) // Arm Neoverse N1
+#define IND_COST_EX     4
+#define FLT_IND_COST_EX 5
+#elif defined(TARGET_ARM) // Arm Cortex-A57
+#define IND_COST_EX     4
+#define FLT_IND_COST_EX 5
+#elif defined(TARGET_LOONGARCH64) // Loongson LA464
+#define IND_COST_EX     4
+#define FLT_IND_COST_EX 4
+#elif defined(TARGET_RISCV64) // Rocket
+#define IND_COST_EX     3
+#define FLT_IND_COST_EX 2
+#elif defined(TARGET_WASM)
+#define IND_COST_EX     3
+#define FLT_IND_COST_EX 3
 #else
-// TODO-CQ: Determine the appropriate cost of a floating-point indirection on other targets
-#define FLT_IND_COST_EX IND_COST_EX
+#error Unknown target
 #endif
+
+    static int GetIndirectionCost(var_types type);
+    static int GetLocalAccessSize(var_types type, bool isStore);
+    static int GetStoreCost(var_types type);
 
     unsigned char GetCostEx() const
     {
