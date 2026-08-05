@@ -98,6 +98,12 @@ struct Access
     weight_t CountCallArgsWtd       = 0;
     weight_t CountRegCallArgsWtd    = 0;
 
+    // ABI information for a register call arg use of this (struct typed) access.
+    // Used to determine whether an overlapping promoted field maps cleanly onto
+    // a single argument register (free decomposition) or whether it must be
+    // packed together with other fields sharing that register (reassembly cost).
+    const ABIPassingInformation* RegCallArgAbi = nullptr;
+
 #ifdef DEBUG
     // Number of times this access is the source of a store.
     unsigned CountStoreSource = 0;
@@ -347,8 +353,12 @@ public:
     //   flags        - Flags classifying the access
     //   weight       - Weight of the block containing the access
     //
-    void RecordAccess(
-        unsigned offs, var_types accessType, ClassLayout* accessLayout, AccessKindFlags flags, weight_t weight)
+    void RecordAccess(unsigned                     offs,
+                      var_types                    accessType,
+                      ClassLayout*                 accessLayout,
+                      AccessKindFlags              flags,
+                      weight_t                     weight,
+                      const ABIPassingInformation* regCallArgAbi = nullptr)
     {
         Access* access = nullptr;
 
@@ -393,6 +403,11 @@ public:
             {
                 access->CountRegCallArgs++;
                 access->CountRegCallArgsWtd += weight;
+
+                if (regCallArgAbi != nullptr)
+                {
+                    access->RegCallArgAbi = regCallArgAbi;
+                }
             }
         }
 
@@ -654,6 +669,70 @@ public:
     }
 
     //------------------------------------------------------------------------
+    // MapsToRegCallArgRegister:
+    //   Determine whether a promoted field maps cleanly onto a single argument
+    //   register of a register call arg, meaning it can be passed without any
+    //   packing/reassembly of the argument registers.
+    //
+    // Parameters:
+    //   regCallArgAccess - The (struct typed) access that is passed as a
+    //                      register call arg.
+    //   fieldOffset      - Offset of the promoted field within the struct local.
+    //   fieldType        - Type of the promoted field.
+    //
+    // Returns:
+    //   True if the field starts exactly at an argument register boundary (and
+    //   fits within that register), so it can be materialized directly into the
+    //   low bits of the register without packing.
+    //
+    // Remarks:
+    //   A field needs packing/reassembly (e.g. `orr xN, xLo, xHi, LSL #32` on
+    //   arm64) only when it must be combined with another field that shares the
+    //   same argument register. That is precisely the case when the field does
+    //   not start at the register's base offset. A field that starts at the
+    //   register base is materialized directly into the low bits (the high bits
+    //   are either don't-care padding or filled by a separate field that is
+    //   itself charged for its own packing), so it requires no reassembly. In
+    //   particular a trailing sub-register field that is the sole occupant of a
+    //   register (e.g. the 4-byte length of a `ReadOnlySpan` in an 8-byte
+    //   register) maps cleanly and must not be penalized.
+    //
+    static bool MapsToRegCallArgRegister(const Access& regCallArgAccess, unsigned fieldOffset, var_types fieldType)
+    {
+        const ABIPassingInformation* abiInfo = regCallArgAccess.RegCallArgAbi;
+        if (abiInfo == nullptr)
+        {
+            // No ABI information was recorded; conservatively assume the field
+            // does not map cleanly and thus requires a write-back/reassembly.
+            return false;
+        }
+
+        assert(fieldOffset >= regCallArgAccess.Offset);
+        unsigned offsetInArg = fieldOffset - regCallArgAccess.Offset;
+        unsigned size        = genTypeSize(fieldType);
+
+        for (const ABIPassingSegment& seg : abiInfo->Segments())
+        {
+            if (!seg.IsPassedInRegister())
+            {
+                continue;
+            }
+
+            // The field must start exactly at the register segment's base and
+            // fit within it. Such a field is loaded directly into the low bits
+            // of the register with no packing. A field that starts mid-register
+            // must be shifted and combined with the field occupying the low bits
+            // (e.g. via `orr ..., LSL #32`), so it does not map cleanly.
+            if ((seg.Offset == offsetInArg) && ((offsetInArg + size) <= (seg.Offset + seg.Size)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    //------------------------------------------------------------------------
     // EvaluateReplacement:
     //   Evaluate legality and profitability of a single replacement candidate.
     //
@@ -707,6 +786,12 @@ public:
         weight_t countOverlappedCallArgWtd        = 0;
         weight_t countOverlappedStoredFromCallWtd = 0;
 
+        // True if this field overlaps a struct that is passed as a register
+        // call arg but does not map cleanly onto a single argument register.
+        // In that case the field must be packed back together with the other
+        // fields sharing that register for the call.
+        bool misalignedRegCallArg = false;
+
         bool overlap = false;
         for (const Access& otherAccess : m_accesses)
         {
@@ -733,10 +818,22 @@ public:
 
             if (otherAccess.CountRegCallArgs > 0)
             {
-                // The call argument will be decomposed and will not require a
-                // write-back.
-                countOverlappedCallArg -= otherAccess.CountRegCallArgs;
-                countOverlappedCallArgWtd -= otherAccess.CountRegCallArgsWtd;
+                // The call argument will be decomposed into its promoted
+                // fields. If this field maps cleanly onto a single argument
+                // register then passing it requires no write-back. Otherwise
+                // the field only fills part of an argument register and must be
+                // packed together with the other fields sharing that register
+                // (e.g. `orr xN, xLo, xHi, LSL #32` on arm64), which is real
+                // cost we should not assume away.
+                if (MapsToRegCallArgRegister(otherAccess, access.Offset, access.AccessType))
+                {
+                    countOverlappedCallArg -= otherAccess.CountRegCallArgs;
+                    countOverlappedCallArgWtd -= otherAccess.CountRegCallArgsWtd;
+                }
+                else
+                {
+                    misalignedRegCallArg = true;
+                }
             }
         }
 
@@ -778,7 +875,20 @@ public:
         else if (lcl->lvIsParam)
         {
             // For parameters, the backend may be able to map it directly from a register.
-            if (Promotion::MapsToParameterRegister(comp, lclNum, access.Offset, access.AccessType))
+            bool mapsToParamReg =
+                Promotion::MapsToParameterRegister(comp, lclNum, access.Offset, access.AccessType);
+
+            if (mapsToParamReg && misalignedRegCallArg)
+            {
+                // The parameter arrives in a register and is also forwarded to
+                // a call in a register that this field does not fill. Without
+                // promotion it stays in-register end to end: the field is
+                // extracted cheaply (e.g. via lsr/ubfx) while the struct is
+                // forwarded directly to the call. Promotion saves no prolog
+                // store here and instead forces reassembly, so grant no
+                // parameter-register credit (and no read back is required).
+            }
+            else if (mapsToParamReg)
             {
                 // No promotion will result in a store to stack in the prolog.
                 costWithout += COST_STRUCT_ACCESS_CYCLES * comp->fgFirstBB->getBBWeight(comp);
@@ -1090,9 +1200,10 @@ public:
             bool                 isCandidate = Promotion::IsCandidateForPhysicalPromotion(dsc);
             if (isCandidate)
             {
-                var_types       accessType;
-                ClassLayout*    accessLayout;
-                AccessKindFlags accessFlags;
+                var_types                    accessType;
+                ClassLayout*                 accessLayout;
+                AccessKindFlags              accessFlags;
+                const ABIPassingInformation* regCallArgAbi = nullptr;
 
                 if (lcl->OperIs(GT_LCL_ADDR))
                 {
@@ -1113,12 +1224,13 @@ public:
 
                     accessType   = lcl->TypeGet();
                     accessLayout = accessType == TYP_STRUCT ? lcl->GetLayout(m_compiler) : nullptr;
-                    accessFlags  = ClassifyLocalAccess(lcl, effectiveUser);
+                    accessFlags  = ClassifyLocalAccess(lcl, effectiveUser, &regCallArgAbi);
                 }
 
                 LocalUses* uses = GetOrCreateUses(lcl->GetLclNum());
                 unsigned   offs = lcl->GetLclOffs();
-                uses->RecordAccess(offs, accessType, accessLayout, accessFlags, m_curBB->getBBWeight(m_compiler));
+                uses->RecordAccess(offs, accessType, accessLayout, accessFlags,
+                                   m_curBB->getBBWeight(m_compiler), regCallArgAbi);
             }
 
             if (tree->OperIsLocalStore() && tree->TypeIs(TYP_STRUCT))
@@ -1488,9 +1600,13 @@ private:
     // Returns:
     //   Flags classifying the access.
     //
-    AccessKindFlags ClassifyLocalAccess(GenTreeLclVarCommon* lcl, GenTree* user)
+    AccessKindFlags ClassifyLocalAccess(GenTreeLclVarCommon*          lcl,
+                                        GenTree*                      user,
+                                        const ABIPassingInformation** regCallArgAbi)
     {
         assert(lcl->OperIsLocalRead() || lcl->OperIsLocalStore());
+
+        *regCallArgAbi = nullptr;
 
         AccessKindFlags flags = AccessKindFlags::None;
         if (lcl->OperIsLocalStore())
@@ -1528,6 +1644,8 @@ private:
                 if (!arg.AbiInfo.HasAnyStackSegment() && !arg.AbiInfo.IsPassedByReference())
                 {
                     flags |= AccessKindFlags::IsRegCallArg;
+                    *regCallArgAbi = &arg.AbiInfo;
+                    *regCallArgAbi = &arg.AbiInfo;
                 }
 
                 break;
