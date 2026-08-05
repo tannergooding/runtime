@@ -628,7 +628,7 @@ GenTree* Compiler::impNonConstFallback(NamedIntrinsic intrinsic, var_types simdT
             // AdvSimd.ShiftLogical does right-shifts with negative immediates, hence the negation
             if (isRightShift)
             {
-                op2 = gtNewOperNode(GT_NEG, genActualType(op2->TypeGet()), op2);
+                op2 = gtFoldExpr(gtNewOperNode(GT_NEG, genActualType(op2->TypeGet()), op2));
             }
 
             NamedIntrinsic fallbackIntrinsic;
