@@ -916,12 +916,16 @@ Range RangeCheck::GetRangeFromAssertionsWorker(
             }
 
 #if defined(FEATURE_HW_INTRINSICS)
+#if defined(TARGET_WASM)
+            case VNF_HWI_PackedSimd_Bitmask:
+#else
             case VNF_HWI_Vector_ExtractMostSignificantBits:
 #if defined(TARGET_XARCH)
             case VNF_HWI_X86Base_MoveMask:
             case VNF_HWI_AVX_MoveMask:
             case VNF_HWI_AVX2_MoveMask:
             case VNF_HWI_AVX512_MoveMask:
+#endif
 #endif
             {
                 // We have 1 bit per element, remaining upper bits are 0

@@ -382,6 +382,101 @@ static const RelopImplicationRule s_implicationRules[] =
 // clang-format on
 
 //------------------------------------------------------------------------
+// optRelopIsZeroTest: see if a relop is asking whether some value is zero,
+//   possibly via an equivalent formulation.
+//
+// Arguments:
+//   vn         - value number of the relop
+//   baseVN     - [out] the value whose zero-ness the relop is testing
+//   isEqToZero - [out] true if the relop is true when *baseVN is zero
+//
+// Returns:
+//   True if the relop is a zero test.
+//
+// Also recognizes a zero count compared with its operand width, including
+// an unsigned-shifted count.
+//
+bool Compiler::optRelopIsZeroTest(ValueNum vn, ValueNum* baseVN, bool* isEqToZero)
+{
+    VNFuncApp funcApp;
+
+    if (!vnStore->GetVNFunc(vn, &funcApp))
+    {
+        return false;
+    }
+
+    VNFunc const func = funcApp.GetFunc();
+
+    if ((func != VNFunc(GT_EQ)) && (func != VNFunc(GT_NE)))
+    {
+        return false;
+    }
+
+    ValueNum op1VN = funcApp.GetArg(0);
+    ValueNum op2VN = funcApp.GetArg(1);
+
+    if (!vnStore->IsVNConstant(op2VN) || !varTypeIsIntegral(vnStore->TypeOfVN(op2VN)))
+    {
+        return false;
+    }
+
+    int64_t   cns    = vnStore->CoercedConstantValue<int64_t>(op2VN);
+    ValueNum  testVN = op1VN;
+    VNFuncApp op1App;
+
+    if (cns != 0)
+    {
+        if (!vnStore->GetVNFunc(op1VN, &op1App))
+        {
+            return false;
+        }
+
+        // Arm64 scales the extracted bit count down by a constant shift.
+        if (op1App.GetFunc() == VNFunc(GT_RSZ))
+        {
+            ValueNum shiftVN = op1App.GetArg(1);
+
+            if (!vnStore->IsVNInt32Constant(shiftVN))
+            {
+                return false;
+            }
+
+            int32_t shift = vnStore->GetConstantInt32(shiftVN);
+
+            if ((cns < 0) || (cns > 64) || (shift < 0) || (shift > 6))
+            {
+                return false;
+            }
+
+            cns <<= shift;
+            op1VN = op1App.GetArg(0);
+        }
+
+        if (!vnStore->VNIsZeroCount(op1VN, &testVN))
+        {
+            return false;
+        }
+
+        var_types testType = genActualType(vnStore->TypeOfVN(testVN));
+
+        if (cns != (8 * (int64_t)genTypeSize(testType)))
+        {
+            return false;
+        }
+    }
+    else if (vnStore->TypeOfVN(op1VN) != vnStore->TypeOfVN(op2VN))
+    {
+        return false;
+    }
+
+    bool isInverted = false;
+
+    *baseVN     = vnStore->VNForZeroTestOperand(testVN, &isInverted);
+    *isEqToZero = (func == VNFunc(GT_EQ)) != isInverted;
+    return true;
+}
+
+//------------------------------------------------------------------------
 // optRelopImpliesRelop: determine if a dominating relop implies the value
 //   of another relop.
 //
@@ -455,6 +550,28 @@ void Compiler::optRelopImpliesRelop(RelopImplicationInfo* rii)
 #else
     const bool inRange = true;
 #endif
+
+    // The relops may be equivalent zero tests with different representations.
+    if (inRange)
+    {
+        ValueNum domBaseVN;
+        ValueNum treeBaseVN;
+        bool     domIsEqToZero;
+        bool     treeIsEqToZero;
+
+        if (optRelopIsZeroTest(rii->domCmpNormVN, &domBaseVN, &domIsEqToZero) &&
+            optRelopIsZeroTest(rii->treeNormVN, &treeBaseVN, &treeIsEqToZero) && (domBaseVN == treeBaseVN))
+        {
+            rii->canInfer          = true;
+            rii->vnRelation        = ValueNumStore::VN_RELATION_KIND::VRK_Inferred;
+            rii->canInferFromTrue  = true;
+            rii->canInferFromFalse = true;
+            rii->reverseSense      = (domIsEqToZero != treeIsEqToZero);
+
+            JITDUMP("Both relops test whether " FMT_VN " is zero\n", domBaseVN);
+            return;
+        }
+    }
 
     // If the dominating compare has the form R(x,y), see if tree compare has the
     // form R*(x,y) or R*(y,x) where we can infer R* from R.

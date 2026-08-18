@@ -401,63 +401,33 @@ static void optAssertionProp_HWIntrinsic(Compiler* comp, GenTreeHWIntrinsic* tre
                 break;
             }
 
-            switch (id)
+            if (HWIntrinsicInfo::IsScalarBitCount(id))
             {
-#if defined(TARGET_XARCH)
-                case NI_X86Base_MoveMask:
-                case NI_AVX_MoveMask:
-                case NI_AVX2_MoveMask:
-                case NI_AVX512_MoveMask:
-#elif defined(TARGET_WASM)
-                case NI_PackedSimd_Bitmask:
-#endif
-                case NI_Vector_ExtractMostSignificantBits:
+                // The actual range is [0..32] or [0..64]
+                return {SymbolicIntegerValue::Zero, SymbolicIntegerValue::ByteMax};
+            }
+
+            // TODO-SVE: Various intrinsics extract scalars or test patterns and return bool
+
+            if (HWIntrinsicInfo::ReturnsScalarMask(id))
+            {
+                // We have 1 bit per element, remaining upper bits are 0
+
+                size_t elementSize  = genTypeSize(hwintrinsic->GetSimdBaseType());
+                size_t elementCount = hwintrinsic->GetSimdSize() / elementSize;
+
+                if (elementCount <= 8)
                 {
-                    // We have 1 bit per element, remaining upper bits are 0
-
-                    size_t elementSize  = genTypeSize(hwintrinsic->GetSimdBaseType());
-                    size_t elementCount = hwintrinsic->GetSimdSize() / elementSize;
-
-                    if (elementCount <= 8)
-                    {
-                        rangeType = TYP_UBYTE;
-                    }
-                    else if (elementCount <= 16)
-                    {
-                        rangeType = TYP_USHORT;
-                    }
-                    else if ((elementCount == 32) && varTypeIsLong(rangeType))
-                    {
-                        return {SymbolicIntegerValue::Zero, UpperBoundForType(TYP_UINT)};
-                    }
-                    break;
+                    rangeType = TYP_UBYTE;
                 }
-
-#if defined(TARGET_XARCH)
-                case NI_AVX2_LeadingZeroCount:
-                case NI_AVX2_TrailingZeroCount:
-                case NI_AVX2_X64_LeadingZeroCount:
-                case NI_AVX2_X64_TrailingZeroCount:
-                case NI_X86Base_PopCount:
-                case NI_X86Base_X64_PopCount:
-#elif defined(TARGET_ARM64)
-                case NI_ArmBase_LeadingZeroCount:
-                case NI_ArmBase_Arm64_LeadingZeroCount:
-                case NI_ArmBase_Arm64_LeadingSignCount:
-#elif defined(TARGET_WASM)
-                // TODO-WASM: See if we can support CTZ/CLZ ranges here
-#else
-#error Unsupported platform
-#endif
+                else if (elementCount <= 16)
                 {
-                    // The actual range is [0..32] or [0..64]
-                    return {SymbolicIntegerValue::Zero, SymbolicIntegerValue::ByteMax};
+                    rangeType = TYP_USHORT;
                 }
-
-                    // TODO-SVE: Various intrinsics extract scalars or test patterns and return bool
-
-                default:
-                    break;
+                else if ((elementCount == 32) && varTypeIsLong(rangeType))
+                {
+                    return {SymbolicIntegerValue::Zero, UpperBoundForType(TYP_UINT)};
+                }
             }
             break;
         }

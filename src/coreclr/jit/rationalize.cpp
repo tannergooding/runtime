@@ -1385,13 +1385,12 @@ static bool IsZeroCount(GenTree* node)
 {
     if (node->OperIs(GT_INTRINSIC))
     {
-        return (node->AsIntrinsic()->gtIntrinsicName == NI_PRIMITIVE_TrailingZeroCount) ||
-               (node->AsIntrinsic()->gtIntrinsicName == NI_PRIMITIVE_LeadingZeroCount);
+        return HWIntrinsicInfo::IsScalarZeroBitCount(node->AsIntrinsic()->gtIntrinsicName);
     }
 
     if (node->OperIsHWIntrinsic())
     {
-        return node->AsHWIntrinsic()->GetHWIntrinsicId() == NI_ArmBase_LeadingZeroCount;
+        return HWIntrinsicInfo::IsScalarZeroBitCount(node->AsHWIntrinsic()->GetHWIntrinsicId());
     }
 
     return false;
@@ -2291,8 +2290,7 @@ Compiler::fgWalkResult Rationalizer::RewriteNode(GenTree** useEdge, Compiler::Ge
                     node = *useEdge;
                 }
             }
-            else if ((node->AsIntrinsic()->gtIntrinsicName == NI_PRIMITIVE_TrailingZeroCount) ||
-                     (node->AsIntrinsic()->gtIntrinsicName == NI_PRIMITIVE_LeadingZeroCount))
+            else if (HWIntrinsicInfo::IsScalarZeroBitCount(node->AsIntrinsic()->gtIntrinsicName))
             {
                 if (RewriteHWIntrinsicCmpMaskExtractMsbZeroCount(useEdge, parentStack))
                 {

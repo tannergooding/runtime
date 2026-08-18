@@ -1421,7 +1421,12 @@ public:
                                        ValueNum            resultTypeVN);
 
     bool IsVectorPerElementMask(ValueNum vn, var_types simdBaseType, unsigned simdSize);
+    bool IsVectorPerElementMask(ValueNum vn, var_types simdBaseType);
 #endif // FEATURE_HW_INTRINSICS
+
+    ValueNum VNForZeroTestOperand(ValueNum vn, bool* isInverted);
+    bool     VNIsZeroCount(ValueNum vn, ValueNum* operandVN);
+    bool     VNIsComparedWithZero(const VNFuncApp& funcApp, var_types simdBaseType, ValueNum* operandVN);
 
     // Returns "true" iff "vn" represents a function application.
     bool IsVNFunc(ValueNum vn);
@@ -2214,6 +2219,31 @@ private:
         return m_mapSelectWorkCache;
     }
 
+    // Preserve semantics for nodes given unique VNs to prevent CSE.
+    typedef JitHashTable<ValueNum, JitSmallPrimitiveKeyFuncs<ValueNum>, ValueNum> UniqueToModeledVNMap;
+    UniqueToModeledVNMap*                                                         m_uniqueToModeledVNMap = nullptr;
+
+public:
+    void RecordModeledVNForUniqueVN(ValueNum uniqueVN, ValueNum modeledVN)
+    {
+        if (m_uniqueToModeledVNMap == nullptr)
+        {
+            m_uniqueToModeledVNMap = new (m_alloc) UniqueToModeledVNMap(m_alloc);
+        }
+        m_uniqueToModeledVNMap->Set(uniqueVN, modeledVN, UniqueToModeledVNMap::Overwrite);
+    }
+
+    ValueNum GetModeledVNForUniqueVN(ValueNum vn)
+    {
+        ValueNum modeledVN;
+        if ((m_uniqueToModeledVNMap != nullptr) && m_uniqueToModeledVNMap->Lookup(vn, &modeledVN))
+        {
+            return modeledVN;
+        }
+        return vn;
+    }
+
+private:
     // We reserve Chunk 0 for "special" VNs.
     enum SpecialRefConsts
     {

@@ -1003,6 +1003,46 @@ struct HWIntrinsicInfo
         return id == NI_Vector_ToScalar;
     }
 
+    static bool ReturnsScalarMask(NamedIntrinsic id)
+    {
+#if defined(TARGET_XARCH)
+        return (id == NI_Vector_ExtractMostSignificantBits) || (id == NI_X86Base_MoveMask) || (id == NI_AVX_MoveMask) ||
+               (id == NI_AVX2_MoveMask) || (id == NI_AVX512_MoveMask);
+#elif defined(TARGET_WASM)
+        return id == NI_PackedSimd_Bitmask;
+#else
+        return id == NI_Vector_ExtractMostSignificantBits;
+#endif
+    }
+
+    static bool IsScalarZeroBitCount(NamedIntrinsic id)
+    {
+#if defined(TARGET_XARCH)
+        return (id == NI_AVX2_LeadingZeroCount) || (id == NI_AVX2_X64_LeadingZeroCount) ||
+               (id == NI_AVX2_TrailingZeroCount) || (id == NI_AVX2_X64_TrailingZeroCount);
+#elif defined(TARGET_ARM64)
+        return (id == NI_PRIMITIVE_TrailingZeroCount) || (id == NI_ArmBase_LeadingZeroCount) ||
+               (id == NI_ArmBase_Arm64_LeadingZeroCount);
+#elif defined(TARGET_RISCV64) || defined(TARGET_WASM)
+        return (id == NI_PRIMITIVE_LeadingZeroCount) || (id == NI_PRIMITIVE_TrailingZeroCount);
+#else
+        return false;
+#endif
+    }
+
+    static bool IsScalarBitCount(NamedIntrinsic id)
+    {
+#if defined(TARGET_XARCH)
+        return IsScalarZeroBitCount(id) || (id == NI_X86Base_PopCount) || (id == NI_X86Base_X64_PopCount);
+#elif defined(TARGET_ARM64)
+        return IsScalarZeroBitCount(id) || (id == NI_PRIMITIVE_PopCount) || (id == NI_ArmBase_Arm64_LeadingSignCount);
+#elif defined(TARGET_RISCV64) || defined(TARGET_WASM)
+        return IsScalarZeroBitCount(id) || (id == NI_PRIMITIVE_PopCount);
+#else
+        return false;
+#endif
+    }
+
     static bool HasImmediateOperand(NamedIntrinsic id)
     {
 #if defined(TARGET_ARM64) || defined(TARGET_WASM)

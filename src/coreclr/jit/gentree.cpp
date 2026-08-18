@@ -36635,6 +36635,10 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
                         assert(cnsNode == op2);
                         resultNode = otherNode;
                     }
+                    else if ((oper == GT_RSH) && !isScalar && op1->IsVectorPerElementMask(this, simdBaseType, simdSize))
+                    {
+                        resultNode = (cnsNode == op2) ? op1 : gtWrapWithSideEffects(op1, op2, GTF_ALL_EFFECT);
+                    }
                     break;
                 }
 

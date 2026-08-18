@@ -7258,6 +7258,16 @@ bool ValueNumStore::IsVNNeverNegative(ValueNum vn)
                         return VNVisit::Continue;
                     }
                 }
+
+                if (HWIntrinsicInfo::ReturnsScalarMask(id) && ((simdSize / genTypeSize(simdBaseType)) <= 16))
+                {
+                    return VNVisit::Continue;
+                }
+
+                if (HWIntrinsicInfo::IsScalarBitCount(id))
+                {
+                    return VNVisit::Continue;
+                }
             }
 #endif // FEATURE_HW_INTRINSICS
 
@@ -7279,50 +7289,6 @@ bool ValueNumStore::IsVNNeverNegative(ValueNum vn)
                 }
 
 #if defined(FEATURE_HW_INTRINSICS)
-                case VNF_HWI_Vector_ExtractMostSignificantBits:
-#if defined(TARGET_XARCH)
-                case VNF_HWI_X86Base_MoveMask:
-                case VNF_HWI_AVX_MoveMask:
-                case VNF_HWI_AVX2_MoveMask:
-                case VNF_HWI_AVX512_MoveMask:
-#endif
-                {
-                    // We have 1 bit per element, remaining upper bits are 0
-
-                    var_types simdBaseType;
-                    uint32_t  simdSize = GetVNHWIntrinsicSizeAndBaseType(funcApp, &simdBaseType);
-
-                    size_t elementSize  = genTypeSize(simdBaseType);
-                    size_t elementCount = simdSize / elementSize;
-
-                    if (elementCount <= 16)
-                    {
-                        return VNVisit::Continue;
-                    }
-                    break;
-                }
-
-#if defined(TARGET_XARCH) || defined(TARGET_ARM64) // TODO-WASM: Handle popcount /trailing/leading zero count
-#if defined(TARGET_XARCH)
-                case VNF_HWI_X86Base_PopCount:
-                case VNF_HWI_X86Base_X64_PopCount:
-                case VNF_HWI_AVX2_LeadingZeroCount:
-                case VNF_HWI_AVX2_TrailingZeroCount:
-                case VNF_HWI_AVX2_X64_LeadingZeroCount:
-                case VNF_HWI_AVX2_X64_TrailingZeroCount:
-#elif defined(TARGET_ARM64)
-                case VNF_HWI_ArmBase_LeadingZeroCount:
-                case VNF_HWI_ArmBase_Arm64_LeadingZeroCount:
-                case VNF_HWI_ArmBase_Arm64_LeadingSignCount:
-#else
-#error Unsupported platform
-#endif
-                {
-                    // The actual range is [0..32] or [0..64]
-                    return VNVisit::Continue;
-                }
-#endif
-
                     // TODO-SVE: Various intrinsics extract scalars or test patterns and return bool
 
                 case VNF_XOR:
@@ -10104,7 +10070,301 @@ bool ValueNumStore::IsVectorPerElementMask(ValueNum vn, var_types simdBaseType, 
     return false;
 }
 
+bool ValueNumStore::IsVectorPerElementMask(ValueNum vn, var_types simdBaseType)
+{
+    var_types simdType = TypeOfVN(vn);
+    return varTypeIsSIMD(simdType) && IsVectorPerElementMask(vn, simdBaseType, genTypeSize(simdType));
+}
+
 #endif // FEATURE_HW_INTRINSICS
+
+//-------------------------------------------------------------------
+// VNIsZeroCount: check whether a value number counts the leading or trailing
+//    zero bits of an operand.
+//
+// Arguments:
+//    vn        - the value number to check
+//    operandVN - [out] the operand whose zero bits are counted
+//
+// Returns:
+//     True if vn is a leading or trailing zero count.
+//
+bool ValueNumStore::VNIsZeroCount(ValueNum vn, ValueNum* operandVN)
+{
+    VNFuncApp funcApp;
+
+    if (!GetVNFunc(vn, &funcApp))
+    {
+        return false;
+    }
+
+    if ((funcApp.GetFunc() == VNF_LeadingZeroCount) || (funcApp.GetFunc() == VNF_TrailingZeroCount))
+    {
+        *operandVN = funcApp.GetArg(0);
+        return true;
+    }
+
+#if defined(FEATURE_HW_INTRINSICS)
+    NamedIntrinsic intrinsicId;
+    unsigned       simdSize;
+    var_types      simdBaseType;
+
+    if (!IsVNHWIntrinsicFunc(vn, &funcApp, &intrinsicId, &simdSize, &simdBaseType) || (simdSize != 0) ||
+        !HWIntrinsicInfo::IsScalarZeroBitCount(intrinsicId))
+    {
+        return false;
+    }
+
+    *operandVN = funcApp.GetArg(0);
+    return true;
+#else
+    return false;
+#endif
+}
+
+//-------------------------------------------------------------------
+// VNIsComparedWithZero: check whether a vector comparison has zero as one of
+//    its operands, and if so report the other one.
+//
+// Arguments:
+//    funcApp      - the comparison to check
+//    simdBaseType - the base type of the comparison
+//    operandVN    - [out] the operand that is compared against zero
+//
+// Returns:
+//     True if one operand is zero, in which case operandVN is set to the other.
+//
+bool ValueNumStore::VNIsComparedWithZero(const VNFuncApp& funcApp, var_types simdBaseType, ValueNum* operandVN)
+{
+    // Floating-point comparisons do not imply bitwise zero because +0.0 == -0.0.
+    if (!varTypeIsIntegral(simdBaseType))
+    {
+        return false;
+    }
+
+    ValueNum op1VN = GetModeledVNForUniqueVN(funcApp.GetArg(0));
+    ValueNum op2VN = GetModeledVNForUniqueVN(funcApp.GetArg(1));
+
+    if (op2VN == VNZeroForType(TypeOfVN(op1VN)))
+    {
+        *operandVN = op1VN;
+        return true;
+    }
+
+    if (op1VN == VNZeroForType(TypeOfVN(op2VN)))
+    {
+        *operandVN = op2VN;
+        return true;
+    }
+
+    return false;
+}
+
+//-------------------------------------------------------------------
+// VNForZeroTestOperand: given a value number, find the value number whose
+//    zero-ness is equivalent, looking through operations that are zero
+//    exactly when their operand is zero.
+//
+// Arguments:
+//    vn         - the value number to look through
+//    isInverted - [out] set to true if vn is zero exactly when the result is
+//                 non-zero, rather than zero
+//
+// Returns:
+//     A value number whose zero-ness determines that of vn. This is vn itself
+//     if nothing could be looked through.
+//
+ValueNum ValueNumStore::VNForZeroTestOperand(ValueNum vn, bool* isInverted)
+{
+    *isInverted = false;
+
+#if defined(FEATURE_HW_INTRINSICS)
+    while (true)
+    {
+        VNFuncApp      funcApp;
+        NamedIntrinsic intrinsicId;
+        unsigned       simdSize;
+        var_types      simdBaseType;
+
+        vn = GetModeledVNForUniqueVN(vn);
+
+        if (!IsVNHWIntrinsicFunc(vn, &funcApp, &intrinsicId, &simdSize, &simdBaseType))
+        {
+            break;
+        }
+
+        ValueNum operandVN = GetModeledVNForUniqueVN(funcApp.GetArg(0));
+
+#if defined(TARGET_XARCH)
+        const bool isMaskRepack = HWIntrinsicInfo::ReturnsScalarMask(intrinsicId) ||
+                                  (intrinsicId == NI_AVX512_ConvertVectorToMask) ||
+                                  (intrinsicId == NI_AVX512_ConvertMaskToVector);
+#else
+        const bool isMaskRepack = HWIntrinsicInfo::ReturnsScalarMask(intrinsicId);
+#endif
+
+        if (isMaskRepack)
+        {
+            var_types operandType = TypeOfVN(operandVN);
+
+            if (!varTypeIsMask(operandType) && (!varTypeIsSIMD(operandType) || (genTypeSize(operandType) != simdSize) ||
+                                                !IsVectorPerElementMask(operandVN, simdBaseType, simdSize)))
+            {
+                return vn;
+            }
+
+            vn = operandVN;
+            continue;
+        }
+
+        bool       isScalar = false;
+        genTreeOps oper     = GenTreeHWIntrinsic::GetOperForHWIntrinsicId(intrinsicId, simdBaseType, &isScalar);
+
+        if (!isScalar)
+        {
+            switch (oper)
+            {
+                case GT_NE:
+                {
+                    // "v != zero" and v are zero together.
+                    ValueNum comparandVN;
+
+                    if (!VNIsComparedWithZero(funcApp, simdBaseType, &comparandVN))
+                    {
+                        return vn;
+                    }
+
+                    vn = comparandVN;
+                    continue;
+                }
+
+                case GT_NOT:
+                {
+                    // Only the fused "~(v == zero)" is equivalent to testing v.
+                    VNFuncApp      cmpApp;
+                    NamedIntrinsic cmpIntrinsicId;
+                    unsigned       cmpSimdSize;
+                    var_types      cmpSimdBaseType;
+
+                    if (!IsVNHWIntrinsicFunc(operandVN, &cmpApp, &cmpIntrinsicId, &cmpSimdSize, &cmpSimdBaseType))
+                    {
+                        return vn;
+                    }
+
+                    bool     cmpIsScalar = false;
+                    ValueNum comparandVN;
+
+                    if ((GenTreeHWIntrinsic::GetOperForHWIntrinsicId(cmpIntrinsicId, cmpSimdBaseType, &cmpIsScalar) !=
+                         GT_EQ) ||
+                        cmpIsScalar || !VNIsComparedWithZero(cmpApp, cmpSimdBaseType, &comparandVN))
+                    {
+                        return vn;
+                    }
+
+                    vn = comparandVN;
+                    continue;
+                }
+
+                default:
+                {
+                    break;
+                }
+            }
+        }
+
+        switch (intrinsicId)
+        {
+#if defined(TARGET_XARCH)
+            case NI_AVX2_Permute4x64:
+            case NI_AVX512_Permute4x64:
+            {
+                // Only a bijective lane permutation preserves zero-ness.
+                ValueNum controlVN = funcApp.GetArg(1);
+
+                if (!IsVNInt32Constant(controlVN))
+                {
+                    return vn;
+                }
+
+                unsigned control  = static_cast<unsigned>(GetConstantInt32(controlVN));
+                unsigned laneMask = 0;
+
+                for (unsigned lane = 0; lane < 4; lane++)
+                {
+                    laneMask |= 1 << ((control >> (lane * 2)) & 0x3);
+                }
+
+                if (laneMask != 0xF)
+                {
+                    return vn;
+                }
+                break;
+            }
+
+#elif defined(TARGET_ARM64)
+            case NI_AdvSimd_ShiftRightLogicalNarrowingLower:
+            {
+                // For a same-width mask, shifts in [1, width) include bits from both
+                // source halves and preserve zero-ness.
+                if (!IsVectorPerElementMask(operandVN, simdBaseType))
+                {
+                    return vn;
+                }
+
+                ValueNum shiftVN = funcApp.GetArg(1);
+
+                if (!IsVNInt32Constant(shiftVN))
+                {
+                    return vn;
+                }
+
+                unsigned shift = static_cast<unsigned>(GetConstantInt32(shiftVN));
+
+                if ((shift < 1) || (shift >= (8 * genTypeSize(simdBaseType))))
+                {
+                    return vn;
+                }
+                break;
+            }
+#endif // TARGET_ARM64
+
+            case NI_Vector_ToScalar:
+            {
+                // The extracted element must cover the whole vector.
+                if (genTypeSize(TypeOfVN(vn)) != simdSize)
+                {
+                    return vn;
+                }
+                break;
+            }
+
+            case NI_Vector_op_Equality:
+            case NI_Vector_op_Inequality:
+            {
+                ValueNum comparandVN;
+
+                if (!VNIsComparedWithZero(funcApp, simdBaseType, &comparandVN))
+                {
+                    return vn;
+                }
+
+                *isInverted ^= (intrinsicId == NI_Vector_op_Equality);
+                operandVN = comparandVN;
+                break;
+            }
+
+            default:
+            {
+                return vn;
+            }
+        }
+
+        vn = operandVN;
+    }
+#endif // FEATURE_HW_INTRINSICS
+
+    return vn;
+}
 
 ValueNum ValueNumStore::EvalMathFuncUnary(var_types typ, NamedIntrinsic gtMathFN, ValueNum arg0VN)
 {
@@ -14304,6 +14564,10 @@ void Compiler::fgValueNumberHWIntrinsic(GenTreeHWIntrinsic* tree)
     if (makeUnique)
     {
         tree->gtVNPair = vnStore->VNPUniqueWithExc(tree->TypeGet(), excSetPair);
+
+        // Preserve the modeled form for semantic queries.
+        vnStore->RecordModeledVNForUniqueVN(vnStore->VNNormalValue(tree->gtVNPair, VNK_Liberal),
+                                            normalPair.GetLiberal());
     }
     else
     {

@@ -8394,6 +8394,7 @@ public:
     BitVecTraits* optReachableBitVecTraits;
     BitVec        optReachableBitVec;
     void          optRelopImpliesRelop(RelopImplicationInfo* rii);
+    bool          optRelopIsZeroTest(ValueNum vn, ValueNum* baseVN, bool* isEqToZero);
     bool          optRelopTryInferWithOneEqualOperand(const VNFuncApp&      domApp,
                                                       const VNFuncApp&      treeApp,
                                                       RelopImplicationInfo* rii);

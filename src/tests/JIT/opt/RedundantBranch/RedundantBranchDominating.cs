@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Arm;
+using System.Runtime.Intrinsics.X86;
 using Xunit;
 
 // Runtime 126554
@@ -126,6 +130,42 @@ public class RedundantBranchDominating
         return 3;
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.AggressiveOptimization)]
+    private static int SmallVnZeroCounts(ushort[] values)
+    {
+        if (BitOperations.LeadingZeroCount(values[0]) == 16)
+        {
+            if (BitOperations.TrailingZeroCount(values[0]) == 16)
+            {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.AggressiveOptimization)]
+    private static int EquivalentVectorZeroTests(Vector128<byte> left, Vector128<byte> right)
+    {
+        // CHECK-NOT: cmov
+        // CHECK-NOT: csel
+
+        if (!Avx2.IsSupported && !AdvSimd.IsSupported)
+        {
+            return -3;
+        }
+
+        Vector128<byte> matches = Vector128.Equals(left, right);
+
+        if (matches != Vector128<byte>.Zero)
+        {
+            int result = BitOperations.TrailingZeroCount(matches.ExtractMostSignificantBits());
+            return (result != 32) ? result : -1;
+        }
+
+        return -2;
+    }
+
     private static void RunTest(string name, Func<int, int> func, int[] expectedResults, int[] expectedEffects)
     {
         s_effects = 0;
@@ -165,4 +205,16 @@ public class RedundantBranchDominating
     [Fact]
     public static void TestDom05() =>
         RunTest(nameof(Dom_05), Dom_05, new[] { 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1 }, new[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+
+    [Fact]
+    public static void TestSmallVnZeroCounts() => Assert.Equal(0, SmallVnZeroCounts(new ushort[] { 0x8000 }));
+
+    [Fact]
+    public static void TestEquivalentVectorZeroTests()
+    {
+        bool supported = Avx2.IsSupported || AdvSimd.IsSupported;
+        Vector128<byte> value = Vector128.Create((byte)1);
+        Assert.Equal(supported ? 0 : -3, EquivalentVectorZeroTests(value, value));
+        Assert.Equal(supported ? -2 : -3, EquivalentVectorZeroTests(value, Vector128<byte>.Zero));
+    }
 }
