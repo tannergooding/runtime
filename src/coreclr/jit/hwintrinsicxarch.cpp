@@ -2561,6 +2561,37 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             break;
         }
 
+        case NI_AVX512v3_ShuffleBits:
+        {
+            assert(sig->numArgs == 2);
+
+            op2 = impSIMDPopStack(); // control (per-byte bit indices)
+            op1 = impSIMDPopStack(); // value (source qwords)
+
+            retType = TYP_MASK;
+            retNode = gtNewSimdHWIntrinsicNode(retType, op1, op2, NI_AVX512_ShuffleBitsMask, simdBaseType, simdSize);
+            break;
+        }
+
+        case NI_AVX512v3_MaskShuffleBits:
+        {
+            assert(sig->numArgs == 3);
+
+            op3 = impSIMDPopStack(); // control (per-byte bit indices)
+            op2 = impSIMDPopStack(); // value (source qwords)
+            op1 = impSIMDPopStack(); // writemask
+
+            // vpshufbitqmb writes a mask register and supports an embedded zeroing writemask. That
+            // is equivalent to computing the unmasked result and masking it, so we model it as a
+            // ShuffleBitsMask AND'd with the incoming mask to reuse the existing mask infrastructure.
+            GenTree* shuffled =
+                gtNewSimdHWIntrinsicNode(TYP_MASK, op2, op3, NI_AVX512_ShuffleBitsMask, simdBaseType, simdSize);
+            op1     = gtNewSimdCvtVectorToMaskNode(TYP_MASK, op1, simdBaseType, simdSize);
+            retType = TYP_MASK;
+            retNode = gtNewSimdHWIntrinsicNode(retType, shuffled, op1, NI_AVX512_AndMask, simdBaseType, simdSize);
+            break;
+        }
+
         case NI_AVXVNNIINT_MultiplyWideningAndAdd:
         case NI_AVXVNNIINT_MultiplyWideningAndAddSaturate:
         case NI_AVXVNNIINT_V512_MultiplyWideningAndAdd:

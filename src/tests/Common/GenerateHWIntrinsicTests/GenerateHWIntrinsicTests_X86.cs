@@ -209,6 +209,59 @@ const string SimpleBinOpTest_ValidationLogic = @"if ({ValidateFirstResult} && (!
                 }
             }";
 
+const string ShuffleBitsTest_ValidationLogic = @"static {RetBaseType} ShuffleBits({Op1BaseType}[] value, {Op2BaseType}[] control, int index)
+            {
+                ulong qword = (ulong)value[index >> 3];
+                int bitIndex = control[index] & 0x3F;
+                return ({RetBaseType})((((qword >> bitIndex) & 1) != 0) ? -1 : 0);
+            }
+
+            {RetBaseType} ValueByte(int index) => ({RetBaseType})((ulong)left[index >> 3] >> ((index & 7) * 8));
+
+            if ({ValidateFirstResult} && (!mask.HasValue || ((ValueByte(0) != default) && result[0] != mask.Value)))
+            {
+                succeeded = false;
+            }
+            else
+            {
+                for (var i = 1; i < RetElementCount; i++)
+                {
+                    if ({ValidateRemainingResults} && (!mask.HasValue || ((ValueByte(i) != default) && result[i] != mask.Value)))
+                    {
+                        succeeded = false;
+                        break;
+                    }
+                }
+            }";
+
+const string MaskShuffleBitsTest_ValidationLogic = @"static {RetBaseType} MaskShuffleBits({Op1BaseType}[] writemask, {Op2BaseType}[] value, {Op3BaseType}[] control, int index)
+            {
+                if ((writemask[index] & 0x80) == 0)
+                {
+                    return 0;
+                }
+
+                ulong qword = (ulong)value[index >> 3];
+                int bitIndex = control[index] & 0x3F;
+                return ({RetBaseType})((((qword >> bitIndex) & 1) != 0) ? -1 : 0);
+            }
+
+            if ({ValidateFirstResult} && (!mask.HasValue || ((firstOp[0] != default) && result[0] != mask.Value)))
+            {
+                succeeded = false;
+            }
+            else
+            {
+                for (var i = 1; i < RetElementCount; i++)
+                {
+                    if ({ValidateRemainingResults} && (!mask.HasValue || ((firstOp[i] != default) && result[i] != mask.Value)))
+                    {
+                        succeeded = false;
+                        break;
+                    }
+                }
+            }";
+
 const string SimpleTernOpTest_ValidationLogic = @"if ({ValidateFirstResult} && (!mask.HasValue || ((firstOp[0] != default) && result[0] != mask.Value)))
             {
                 succeeded = false;
@@ -236,6 +289,8 @@ const string SimpleTernOpTest_ValidationLogic = @"if ({ValidateFirstResult} && (
     ("_BooleanBinaryOpTestTemplate.template", "BooleanTwoCmpOpTest.template",   new Dictionary<string, string> { ["TemplateName"] = "Boolean",     ["TemplateValidationLogic"] = BooleanTwoCmpTest_ValidationLogic }),
     ("_BooleanUnaryOpTestTemplate.template",  "BooleanUnOpTest.template",       new Dictionary<string, string> { ["TemplateName"] = "Boolean",     ["TemplateValidationLogic"] = BooleanOpTest_ValidationLogic }),
     ("_BinaryOpTestTemplate.template",        "MultiShiftTest.template",        new Dictionary<string, string> { ["TemplateName"] = "MultiShift",  ["TemplateValidationLogic"] = MultiShiftTest_ValidationLogic }),
+    ("_BinaryOpTestTemplate.template",        "ShuffleBitsTest.template",       new Dictionary<string, string> { ["TemplateName"] = "ShuffleBits", ["TemplateValidationLogic"] = ShuffleBitsTest_ValidationLogic }),
+    ("_TernaryOpTestTemplate.template",       "MaskShuffleBitsTest.template",   new Dictionary<string, string> { ["TemplateName"] = "MaskShuffleBits", ["TemplateValidationLogic"] = MaskShuffleBitsTest_ValidationLogic }),
     ("_TernaryOpTestTemplate.template",       "AlternatingTernOpTest.template", new Dictionary<string, string> { ["TemplateName"] = "Alternating", ["TemplateValidationLogic"] = AlternatingTernOpTest_ValidationLogic }),
     ("_TernaryOpTestTemplate.template",       "SimpleTernOpTest.template",      new Dictionary<string, string> { ["TemplateName"] = "Simple",      ["TemplateValidationLogic"] = SimpleTernOpTest_ValidationLogic }),
     ("_UnaryOpTestTemplate.template",         "SimpleUnOpTest.template",        new Dictionary<string, string> { ["TemplateName"] = "Simple",      ["TemplateValidationLogic"] = SimpleUnOpTest_ValidationLogic }),
@@ -3159,6 +3214,66 @@ const string SimpleTernOpTest_ValidationLogic = @"if ({ValidateFirstResult} && (
     ("LoadTernOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vbmi2.VL",     ["LoadIsa"] = "Avx",     ["Method"] = "ExpandLoad",                               ["RetVectorType"] = "Vector256", ["RetBaseType"] = "UInt16", ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "UInt16", ["Op2VectorType"] = "Vector256", ["Op2BaseType"] = "UInt16", ["Op3VectorType"] = "Vector256", ["Op3BaseType"] = "UInt16",                                          ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt16()", ["NextValueOp2"] = "(ushort)(((i & 1) != 0) ? -1 : 0)", ["NextValueOp3"] = "TestLibrary.Generator.GetUInt16()", ["ValidateFirstResult"] = "result[0] != Avx512Verify.Expand(thirdOp, secondOp, firstOp, 0)",                                                                                                                                                                                        ["ValidateRemainingResults"] = "result[i] != Avx512Verify.Expand(thirdOp, secondOp, firstOp, i)"}),
 };
 
+(string templateFileName, Dictionary<string, string> templateData)[] Avx512VpopcntdqInputs = new []
+{
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq",     ["LoadIsa"] = "Avx512F", ["Method"] = "PopCount", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "Int32",  ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "Int32",  ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetInt32()",  ["ValidateFirstResult"] = "result[0] != int.PopCount(firstOp[0])",    ["ValidateRemainingResults"] = "result[i] != int.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq",     ["LoadIsa"] = "Avx512F", ["Method"] = "PopCount", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "UInt32", ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "UInt32", ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt32()", ["ValidateFirstResult"] = "result[0] != uint.PopCount(firstOp[0])",   ["ValidateRemainingResults"] = "result[i] != uint.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq",     ["LoadIsa"] = "Avx512F", ["Method"] = "PopCount", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "Int64",  ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "Int64",  ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetInt64()",  ["ValidateFirstResult"] = "result[0] != long.PopCount(firstOp[0])",   ["ValidateRemainingResults"] = "result[i] != long.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq",     ["LoadIsa"] = "Avx512F", ["Method"] = "PopCount", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "UInt64", ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "UInt64", ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt64()", ["ValidateFirstResult"] = "result[0] != ulong.PopCount(firstOp[0])",  ["ValidateRemainingResults"] = "result[i] != ulong.PopCount(firstOp[i])"}),
+};
+
+(string templateFileName, Dictionary<string, string> templateData)[] Avx512Vpopcntdq_VL_Vector128Inputs = new []
+{
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq.VL",  ["LoadIsa"] = "Sse2",    ["Method"] = "PopCount", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "Int32",  ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "Int32",  ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetInt32()",  ["ValidateFirstResult"] = "result[0] != int.PopCount(firstOp[0])",    ["ValidateRemainingResults"] = "result[i] != int.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq.VL",  ["LoadIsa"] = "Sse2",    ["Method"] = "PopCount", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "UInt32", ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "UInt32", ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt32()", ["ValidateFirstResult"] = "result[0] != uint.PopCount(firstOp[0])",   ["ValidateRemainingResults"] = "result[i] != uint.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq.VL",  ["LoadIsa"] = "Sse2",    ["Method"] = "PopCount", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "Int64",  ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "Int64",  ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetInt64()",  ["ValidateFirstResult"] = "result[0] != long.PopCount(firstOp[0])",   ["ValidateRemainingResults"] = "result[i] != long.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq.VL",  ["LoadIsa"] = "Sse2",    ["Method"] = "PopCount", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "UInt64", ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "UInt64", ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt64()", ["ValidateFirstResult"] = "result[0] != ulong.PopCount(firstOp[0])",  ["ValidateRemainingResults"] = "result[i] != ulong.PopCount(firstOp[i])"}),
+};
+
+(string templateFileName, Dictionary<string, string> templateData)[] Avx512Vpopcntdq_VL_Vector256Inputs = new []
+{
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq.VL",  ["LoadIsa"] = "Avx",     ["Method"] = "PopCount", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "Int32",  ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "Int32",  ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetInt32()",  ["ValidateFirstResult"] = "result[0] != int.PopCount(firstOp[0])",    ["ValidateRemainingResults"] = "result[i] != int.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq.VL",  ["LoadIsa"] = "Avx",     ["Method"] = "PopCount", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "UInt32", ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "UInt32", ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt32()", ["ValidateFirstResult"] = "result[0] != uint.PopCount(firstOp[0])",   ["ValidateRemainingResults"] = "result[i] != uint.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq.VL",  ["LoadIsa"] = "Avx",     ["Method"] = "PopCount", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "Int64",  ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "Int64",  ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetInt64()",  ["ValidateFirstResult"] = "result[0] != long.PopCount(firstOp[0])",   ["ValidateRemainingResults"] = "result[i] != long.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Vpopcntdq.VL",  ["LoadIsa"] = "Avx",     ["Method"] = "PopCount", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "UInt64", ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "UInt64", ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt64()", ["ValidateFirstResult"] = "result[0] != ulong.PopCount(firstOp[0])",  ["ValidateRemainingResults"] = "result[i] != ulong.PopCount(firstOp[i])"}),
+};
+
+(string templateFileName, Dictionary<string, string> templateData)[] Avx512BitalgInputs = new []
+{
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg",        ["LoadIsa"] = "Avx512F", ["Method"] = "PopCount", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "SByte",  ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "SByte",  ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetSByte()",  ["ValidateFirstResult"] = "result[0] != sbyte.PopCount(firstOp[0])",  ["ValidateRemainingResults"] = "result[i] != sbyte.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg",        ["LoadIsa"] = "Avx512F", ["Method"] = "PopCount", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "Byte",   ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "Byte",   ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetByte()",   ["ValidateFirstResult"] = "result[0] != byte.PopCount(firstOp[0])",   ["ValidateRemainingResults"] = "result[i] != byte.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg",        ["LoadIsa"] = "Avx512F", ["Method"] = "PopCount", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "Int16",  ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "Int16",  ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetInt16()",  ["ValidateFirstResult"] = "result[0] != short.PopCount(firstOp[0])",  ["ValidateRemainingResults"] = "result[i] != short.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg",        ["LoadIsa"] = "Avx512F", ["Method"] = "PopCount", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "UInt16", ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "UInt16", ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt16()", ["ValidateFirstResult"] = "result[0] != ushort.PopCount(firstOp[0])", ["ValidateRemainingResults"] = "result[i] != ushort.PopCount(firstOp[i])"}),
+    ("ShuffleBitsTest.template",       new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg",        ["LoadIsa"] = "Avx512F", ["Method"] = "ShuffleBits", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "Byte",  ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "UInt64", ["Op2VectorType"] = "Vector512", ["Op2BaseType"] = "Byte",  ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt64()", ["NextValueOp2"] = "TestLibrary.Generator.GetByte()",  ["ValidateFirstResult"] = "result[0] != ShuffleBits(left, right, 0)", ["ValidateRemainingResults"] = "result[i] != ShuffleBits(left, right, i)"}),
+    ("ShuffleBitsTest.template",       new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg",        ["LoadIsa"] = "Avx512F", ["Method"] = "ShuffleBits", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "SByte", ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "Int64",  ["Op2VectorType"] = "Vector512", ["Op2BaseType"] = "SByte", ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetInt64()",  ["NextValueOp2"] = "TestLibrary.Generator.GetSByte()", ["ValidateFirstResult"] = "result[0] != ShuffleBits(left, right, 0)", ["ValidateRemainingResults"] = "result[i] != ShuffleBits(left, right, i)"}),
+    ("MaskShuffleBitsTest.template",   new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg",        ["LoadIsa"] = "Avx512F", ["Method"] = "MaskShuffleBits", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "Byte",  ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "Byte",  ["Op2VectorType"] = "Vector512", ["Op2BaseType"] = "UInt64", ["Op3VectorType"] = "Vector512", ["Op3BaseType"] = "Byte",  ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetByte()",  ["NextValueOp2"] = "TestLibrary.Generator.GetUInt64()", ["NextValueOp3"] = "TestLibrary.Generator.GetByte()",  ["ValidateFirstResult"] = "result[0] != MaskShuffleBits(firstOp, secondOp, thirdOp, 0)", ["ValidateRemainingResults"] = "result[i] != MaskShuffleBits(firstOp, secondOp, thirdOp, i)"}),
+    ("MaskShuffleBitsTest.template",   new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg",        ["LoadIsa"] = "Avx512F", ["Method"] = "MaskShuffleBits", ["RetVectorType"] = "Vector512", ["RetBaseType"] = "SByte", ["Op1VectorType"] = "Vector512", ["Op1BaseType"] = "SByte", ["Op2VectorType"] = "Vector512", ["Op2BaseType"] = "Int64",  ["Op3VectorType"] = "Vector512", ["Op3BaseType"] = "SByte", ["LargestVectorSize"] = "64", ["NextValueOp1"] = "TestLibrary.Generator.GetSByte()", ["NextValueOp2"] = "TestLibrary.Generator.GetInt64()",  ["NextValueOp3"] = "TestLibrary.Generator.GetSByte()", ["ValidateFirstResult"] = "result[0] != MaskShuffleBits(firstOp, secondOp, thirdOp, 0)", ["ValidateRemainingResults"] = "result[i] != MaskShuffleBits(firstOp, secondOp, thirdOp, i)"}),
+};
+
+(string templateFileName, Dictionary<string, string> templateData)[] Avx512Bitalg_VL_Vector128Inputs = new []
+{
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Sse2",    ["Method"] = "PopCount", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "SByte",  ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "SByte",  ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetSByte()",  ["ValidateFirstResult"] = "result[0] != sbyte.PopCount(firstOp[0])",  ["ValidateRemainingResults"] = "result[i] != sbyte.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Sse2",    ["Method"] = "PopCount", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "Byte",   ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "Byte",   ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetByte()",   ["ValidateFirstResult"] = "result[0] != byte.PopCount(firstOp[0])",   ["ValidateRemainingResults"] = "result[i] != byte.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Sse2",    ["Method"] = "PopCount", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "Int16",  ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "Int16",  ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetInt16()",  ["ValidateFirstResult"] = "result[0] != short.PopCount(firstOp[0])",  ["ValidateRemainingResults"] = "result[i] != short.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Sse2",    ["Method"] = "PopCount", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "UInt16", ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "UInt16", ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt16()", ["ValidateFirstResult"] = "result[0] != ushort.PopCount(firstOp[0])", ["ValidateRemainingResults"] = "result[i] != ushort.PopCount(firstOp[i])"}),
+    ("ShuffleBitsTest.template",       new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Sse2",    ["Method"] = "ShuffleBits", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "Byte",  ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "UInt64", ["Op2VectorType"] = "Vector128", ["Op2BaseType"] = "Byte",  ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt64()", ["NextValueOp2"] = "TestLibrary.Generator.GetByte()",  ["ValidateFirstResult"] = "result[0] != ShuffleBits(left, right, 0)", ["ValidateRemainingResults"] = "result[i] != ShuffleBits(left, right, i)"}),
+    ("ShuffleBitsTest.template",       new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Sse2",    ["Method"] = "ShuffleBits", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "SByte", ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "Int64",  ["Op2VectorType"] = "Vector128", ["Op2BaseType"] = "SByte", ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetInt64()",  ["NextValueOp2"] = "TestLibrary.Generator.GetSByte()", ["ValidateFirstResult"] = "result[0] != ShuffleBits(left, right, 0)", ["ValidateRemainingResults"] = "result[i] != ShuffleBits(left, right, i)"}),
+    ("MaskShuffleBitsTest.template",   new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Sse2",    ["Method"] = "MaskShuffleBits", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "Byte",  ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "Byte",  ["Op2VectorType"] = "Vector128", ["Op2BaseType"] = "UInt64", ["Op3VectorType"] = "Vector128", ["Op3BaseType"] = "Byte",  ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetByte()",  ["NextValueOp2"] = "TestLibrary.Generator.GetUInt64()", ["NextValueOp3"] = "TestLibrary.Generator.GetByte()",  ["ValidateFirstResult"] = "result[0] != MaskShuffleBits(firstOp, secondOp, thirdOp, 0)", ["ValidateRemainingResults"] = "result[i] != MaskShuffleBits(firstOp, secondOp, thirdOp, i)"}),
+    ("MaskShuffleBitsTest.template",   new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Sse2",    ["Method"] = "MaskShuffleBits", ["RetVectorType"] = "Vector128", ["RetBaseType"] = "SByte", ["Op1VectorType"] = "Vector128", ["Op1BaseType"] = "SByte", ["Op2VectorType"] = "Vector128", ["Op2BaseType"] = "Int64",  ["Op3VectorType"] = "Vector128", ["Op3BaseType"] = "SByte", ["LargestVectorSize"] = "16", ["NextValueOp1"] = "TestLibrary.Generator.GetSByte()", ["NextValueOp2"] = "TestLibrary.Generator.GetInt64()",  ["NextValueOp3"] = "TestLibrary.Generator.GetSByte()", ["ValidateFirstResult"] = "result[0] != MaskShuffleBits(firstOp, secondOp, thirdOp, 0)", ["ValidateRemainingResults"] = "result[i] != MaskShuffleBits(firstOp, secondOp, thirdOp, i)"}),
+};
+
+(string templateFileName, Dictionary<string, string> templateData)[] Avx512Bitalg_VL_Vector256Inputs = new []
+{
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Avx",     ["Method"] = "PopCount", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "SByte",  ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "SByte",  ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetSByte()",  ["ValidateFirstResult"] = "result[0] != sbyte.PopCount(firstOp[0])",  ["ValidateRemainingResults"] = "result[i] != sbyte.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Avx",     ["Method"] = "PopCount", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "Byte",   ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "Byte",   ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetByte()",   ["ValidateFirstResult"] = "result[0] != byte.PopCount(firstOp[0])",   ["ValidateRemainingResults"] = "result[i] != byte.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Avx",     ["Method"] = "PopCount", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "Int16",  ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "Int16",  ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetInt16()",  ["ValidateFirstResult"] = "result[0] != short.PopCount(firstOp[0])",  ["ValidateRemainingResults"] = "result[i] != short.PopCount(firstOp[i])"}),
+    ("SimpleUnOpTest.template",        new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Avx",     ["Method"] = "PopCount", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "UInt16", ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "UInt16", ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt16()", ["ValidateFirstResult"] = "result[0] != ushort.PopCount(firstOp[0])", ["ValidateRemainingResults"] = "result[i] != ushort.PopCount(firstOp[i])"}),
+    ("ShuffleBitsTest.template",       new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Avx",     ["Method"] = "ShuffleBits", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "Byte",  ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "UInt64", ["Op2VectorType"] = "Vector256", ["Op2BaseType"] = "Byte",  ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetUInt64()", ["NextValueOp2"] = "TestLibrary.Generator.GetByte()",  ["ValidateFirstResult"] = "result[0] != ShuffleBits(left, right, 0)", ["ValidateRemainingResults"] = "result[i] != ShuffleBits(left, right, i)"}),
+    ("ShuffleBitsTest.template",       new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Avx",     ["Method"] = "ShuffleBits", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "SByte", ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "Int64",  ["Op2VectorType"] = "Vector256", ["Op2BaseType"] = "SByte", ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetInt64()",  ["NextValueOp2"] = "TestLibrary.Generator.GetSByte()", ["ValidateFirstResult"] = "result[0] != ShuffleBits(left, right, 0)", ["ValidateRemainingResults"] = "result[i] != ShuffleBits(left, right, i)"}),
+    ("MaskShuffleBitsTest.template",   new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Avx",     ["Method"] = "MaskShuffleBits", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "Byte",  ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "Byte",  ["Op2VectorType"] = "Vector256", ["Op2BaseType"] = "UInt64", ["Op3VectorType"] = "Vector256", ["Op3BaseType"] = "Byte",  ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetByte()",  ["NextValueOp2"] = "TestLibrary.Generator.GetUInt64()", ["NextValueOp3"] = "TestLibrary.Generator.GetByte()",  ["ValidateFirstResult"] = "result[0] != MaskShuffleBits(firstOp, secondOp, thirdOp, 0)", ["ValidateRemainingResults"] = "result[i] != MaskShuffleBits(firstOp, secondOp, thirdOp, i)"}),
+    ("MaskShuffleBitsTest.template",   new Dictionary<string, string> { ["Isa"] = "Avx512Bitalg.VL",     ["LoadIsa"] = "Avx",     ["Method"] = "MaskShuffleBits", ["RetVectorType"] = "Vector256", ["RetBaseType"] = "SByte", ["Op1VectorType"] = "Vector256", ["Op1BaseType"] = "SByte", ["Op2VectorType"] = "Vector256", ["Op2BaseType"] = "Int64",  ["Op3VectorType"] = "Vector256", ["Op3BaseType"] = "SByte", ["LargestVectorSize"] = "32", ["NextValueOp1"] = "TestLibrary.Generator.GetSByte()", ["NextValueOp2"] = "TestLibrary.Generator.GetInt64()",  ["NextValueOp3"] = "TestLibrary.Generator.GetSByte()", ["ValidateFirstResult"] = "result[0] != MaskShuffleBits(firstOp, secondOp, thirdOp, 0)", ["ValidateRemainingResults"] = "result[i] != MaskShuffleBits(firstOp, secondOp, thirdOp, i)"}),
+};
+
 (string templateFileName, Dictionary<string, string> templateData)[] Avx10v1_ScalarUpperInputs = new []
 {
     // F
@@ -4496,6 +4611,12 @@ ProcessInputs("Avx512Vbmi_VL_Vector256", Avx512Vbmi_VL_Vector256Inputs);
 ProcessInputs("Avx512Vbmi2", Avx512Vbmi2Inputs);
 ProcessInputs("Avx512Vbmi2_VL_Vector128", Avx512Vbmi2_VL_Vector128Inputs);
 ProcessInputs("Avx512Vbmi2_VL_Vector256", Avx512Vbmi2_VL_Vector256Inputs);
+ProcessInputs("Avx512Vpopcntdq", Avx512VpopcntdqInputs);
+ProcessInputs("Avx512Vpopcntdq_VL_Vector128", Avx512Vpopcntdq_VL_Vector128Inputs);
+ProcessInputs("Avx512Vpopcntdq_VL_Vector256", Avx512Vpopcntdq_VL_Vector256Inputs);
+ProcessInputs("Avx512Bitalg", Avx512BitalgInputs);
+ProcessInputs("Avx512Bitalg_VL_Vector128", Avx512Bitalg_VL_Vector128Inputs);
+ProcessInputs("Avx512Bitalg_VL_Vector256", Avx512Bitalg_VL_Vector256Inputs);
 ProcessInputs("Avx10v1_ScalarUpper", Avx10v1_ScalarUpperInputs);
 ProcessInputs("Avx10v1_Vector128", Avx10v1_Vector128Inputs);
 ProcessInputs("Avx10v1_Vector256", Avx10v1_Vector256Inputs);

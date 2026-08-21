@@ -10570,6 +10570,74 @@ namespace System.Runtime.Intrinsics.X86
         }
     }
     [System.CLSCompliantAttribute(false)]
+    public abstract partial class Avx512Bitalg : System.Runtime.Intrinsics.X86.Avx512BW
+    {
+        internal Avx512Bitalg() { }
+        public static new bool IsSupported { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector512<byte> MaskShuffleBits(System.Runtime.Intrinsics.Vector512<byte> mask, System.Runtime.Intrinsics.Vector512<ulong> value, System.Runtime.Intrinsics.Vector512<byte> control) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<sbyte> MaskShuffleBits(System.Runtime.Intrinsics.Vector512<sbyte> mask, System.Runtime.Intrinsics.Vector512<long> value, System.Runtime.Intrinsics.Vector512<sbyte> control) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<byte> PopCount(System.Runtime.Intrinsics.Vector512<byte> value) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<sbyte> PopCount(System.Runtime.Intrinsics.Vector512<sbyte> value) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<short> PopCount(System.Runtime.Intrinsics.Vector512<short> value) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<ushort> PopCount(System.Runtime.Intrinsics.Vector512<ushort> value) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<byte> ShuffleBits(System.Runtime.Intrinsics.Vector512<ulong> value, System.Runtime.Intrinsics.Vector512<byte> control) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<sbyte> ShuffleBits(System.Runtime.Intrinsics.Vector512<long> value, System.Runtime.Intrinsics.Vector512<sbyte> control) { throw null; }
+        public new abstract partial class VL : System.Runtime.Intrinsics.X86.Avx512BW.VL
+        {
+            internal VL() { }
+            public static new bool IsSupported { get { throw null; } }
+            public static System.Runtime.Intrinsics.Vector128<byte> MaskShuffleBits(System.Runtime.Intrinsics.Vector128<byte> mask, System.Runtime.Intrinsics.Vector128<ulong> value, System.Runtime.Intrinsics.Vector128<byte> control) { throw null; }
+            public static System.Runtime.Intrinsics.Vector128<sbyte> MaskShuffleBits(System.Runtime.Intrinsics.Vector128<sbyte> mask, System.Runtime.Intrinsics.Vector128<long> value, System.Runtime.Intrinsics.Vector128<sbyte> control) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<byte> MaskShuffleBits(System.Runtime.Intrinsics.Vector256<byte> mask, System.Runtime.Intrinsics.Vector256<ulong> value, System.Runtime.Intrinsics.Vector256<byte> control) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<sbyte> MaskShuffleBits(System.Runtime.Intrinsics.Vector256<sbyte> mask, System.Runtime.Intrinsics.Vector256<long> value, System.Runtime.Intrinsics.Vector256<sbyte> control) { throw null; }
+            public static System.Runtime.Intrinsics.Vector128<byte> PopCount(System.Runtime.Intrinsics.Vector128<byte> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector128<sbyte> PopCount(System.Runtime.Intrinsics.Vector128<sbyte> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector128<short> PopCount(System.Runtime.Intrinsics.Vector128<short> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector128<ushort> PopCount(System.Runtime.Intrinsics.Vector128<ushort> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<byte> PopCount(System.Runtime.Intrinsics.Vector256<byte> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<sbyte> PopCount(System.Runtime.Intrinsics.Vector256<sbyte> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<short> PopCount(System.Runtime.Intrinsics.Vector256<short> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<ushort> PopCount(System.Runtime.Intrinsics.Vector256<ushort> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector128<byte> ShuffleBits(System.Runtime.Intrinsics.Vector128<ulong> value, System.Runtime.Intrinsics.Vector128<byte> control) { throw null; }
+            public static System.Runtime.Intrinsics.Vector128<sbyte> ShuffleBits(System.Runtime.Intrinsics.Vector128<long> value, System.Runtime.Intrinsics.Vector128<sbyte> control) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<byte> ShuffleBits(System.Runtime.Intrinsics.Vector256<ulong> value, System.Runtime.Intrinsics.Vector256<byte> control) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<sbyte> ShuffleBits(System.Runtime.Intrinsics.Vector256<long> value, System.Runtime.Intrinsics.Vector256<sbyte> control) { throw null; }
+        }
+        public new abstract partial class X64 : System.Runtime.Intrinsics.X86.Avx512BW.X64
+        {
+            internal X64() { }
+            public static new bool IsSupported { get { throw null; } }
+        }
+    }
+    [System.CLSCompliantAttribute(false)]
+    public abstract partial class Avx512Vpopcntdq : System.Runtime.Intrinsics.X86.Avx512DQ
+    {
+        internal Avx512Vpopcntdq() { }
+        public static new bool IsSupported { get { throw null; } }
+        public static System.Runtime.Intrinsics.Vector512<int> PopCount(System.Runtime.Intrinsics.Vector512<int> value) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<long> PopCount(System.Runtime.Intrinsics.Vector512<long> value) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<uint> PopCount(System.Runtime.Intrinsics.Vector512<uint> value) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<ulong> PopCount(System.Runtime.Intrinsics.Vector512<ulong> value) { throw null; }
+        public new abstract partial class VL : System.Runtime.Intrinsics.X86.Avx512DQ.VL
+        {
+            internal VL() { }
+            public static new bool IsSupported { get { throw null; } }
+            public static System.Runtime.Intrinsics.Vector128<int> PopCount(System.Runtime.Intrinsics.Vector128<int> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector128<long> PopCount(System.Runtime.Intrinsics.Vector128<long> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector128<uint> PopCount(System.Runtime.Intrinsics.Vector128<uint> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector128<ulong> PopCount(System.Runtime.Intrinsics.Vector128<ulong> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<int> PopCount(System.Runtime.Intrinsics.Vector256<int> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<long> PopCount(System.Runtime.Intrinsics.Vector256<long> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<uint> PopCount(System.Runtime.Intrinsics.Vector256<uint> value) { throw null; }
+            public static System.Runtime.Intrinsics.Vector256<ulong> PopCount(System.Runtime.Intrinsics.Vector256<ulong> value) { throw null; }
+        }
+        public new abstract partial class X64 : System.Runtime.Intrinsics.X86.Avx512DQ.X64
+        {
+            internal X64() { }
+            public static new bool IsSupported { get { throw null; } }
+        }
+    }
+    [System.CLSCompliantAttribute(false)]
     public abstract class AvxVnni : System.Runtime.Intrinsics.X86.Avx2
     {
         internal AvxVnni() { }

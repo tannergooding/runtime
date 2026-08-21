@@ -80,6 +80,12 @@ namespace IntelHardwareIntrinsicTest.General
                 Convert.ToBoolean(typeof(Avx512Vbmi).GetMethod(issupported).Invoke(null, null)) != Avx512Vbmi.IsSupported ||
                 Convert.ToBoolean(typeof(Avx512Vbmi.VL).GetMethod(issupported).Invoke(null, null)) != Avx512Vbmi.VL.IsSupported ||
                 Convert.ToBoolean(typeof(Avx512Vbmi.X64).GetMethod(issupported).Invoke(null, null)) != Avx512Vbmi.X64.IsSupported ||
+                Convert.ToBoolean(typeof(Avx512Bitalg).GetMethod(issupported).Invoke(null, null)) != Avx512Bitalg.IsSupported ||
+                Convert.ToBoolean(typeof(Avx512Bitalg.VL).GetMethod(issupported).Invoke(null, null)) != Avx512Bitalg.VL.IsSupported ||
+                Convert.ToBoolean(typeof(Avx512Bitalg.X64).GetMethod(issupported).Invoke(null, null)) != Avx512Bitalg.X64.IsSupported ||
+                Convert.ToBoolean(typeof(Avx512Vpopcntdq).GetMethod(issupported).Invoke(null, null)) != Avx512Vpopcntdq.IsSupported ||
+                Convert.ToBoolean(typeof(Avx512Vpopcntdq.VL).GetMethod(issupported).Invoke(null, null)) != Avx512Vpopcntdq.VL.IsSupported ||
+                Convert.ToBoolean(typeof(Avx512Vpopcntdq.X64).GetMethod(issupported).Invoke(null, null)) != Avx512Vpopcntdq.X64.IsSupported ||
                 Convert.ToBoolean(typeof(AvxVnni).GetMethod(issupported).Invoke(null, null)) != AvxVnni.IsSupported ||
                 Convert.ToBoolean(typeof(AvxVnni.X64).GetMethod(issupported).Invoke(null, null)) != AvxVnni.X64.IsSupported ||
                 Convert.ToBoolean(typeof(Fma).GetMethod(issupported).Invoke(null, null)) != Fma.IsSupported ||
