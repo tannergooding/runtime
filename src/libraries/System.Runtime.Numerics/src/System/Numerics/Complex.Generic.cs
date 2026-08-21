@@ -366,31 +366,6 @@ namespace System.Numerics
             return T.Hypot(value.m_real, value.m_imaginary);
         }
 
-        private static T Log1P(T x)
-        {
-            // Compute log(1 + x) without loss of accuracy when x is small.
-
-            // Our only use case so far is for positive values, so this isn't coded to handle negative values.
-            Debug.Assert((x >= T.Zero) || T.IsNaN(x));
-
-            T xp1 = T.One + x;
-            if (xp1 == T.One)
-            {
-                return x;
-            }
-            else if (x < T.CreateChecked(0.75))
-            {
-                // This is accurate to within 5 ulp with any floating-point system that uses a guard digit,
-                // as proven in Theorem 4 of "What Every Computer Scientist Should Know About Floating-Point
-                // Arithmetic" (https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html)
-                return x * T.Log(xp1) / (xp1 - T.One);
-            }
-            else
-            {
-                return T.Log(xp1);
-            }
-        }
-
         public static Complex<T> Conjugate(Complex<T> value)
         {
             // Conjugate of a Complex number: the conjugate of x+i*y is x-i*y
@@ -872,7 +847,7 @@ namespace System.Numerics
                     big = x;
                 }
                 T ratio = small / big;
-                v = s_log2 + T.Log(big) + Log1P(ratio * ratio) / T.CreateChecked(2);
+                v = s_log2 + T.Log(big) + T.LogP1(ratio * ratio) / T.CreateChecked(2);
             }
             else
             {
@@ -912,12 +887,12 @@ namespace System.Numerics
                         // under the square root.
                         T t = (T.One / (r + (x + T.One)) + T.One / (s + (T.One - x))) / T.CreateChecked(2);
                         T am1 = y * y * t;
-                        v = Log1P(am1 + y * T.Sqrt(t * (a + T.One)));
+                        v = T.LogP1(am1 + y * T.Sqrt(t * (a + T.One)));
                     }
                     else
                     {
                         T am1 = (y * y / (r + (x + T.One)) + (s + (x - T.One))) / T.CreateChecked(2);
-                        v = Log1P(am1 + T.Sqrt(am1 * (a + T.One)));
+                        v = T.LogP1(am1 + T.Sqrt(am1 * (a + T.One)));
                     }
                 }
                 else

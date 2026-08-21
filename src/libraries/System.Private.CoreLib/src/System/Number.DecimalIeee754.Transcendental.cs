@@ -230,18 +230,11 @@ internal static partial class Number
         return DiyFp128ToDecimal<TDecimal, TValue>(DiyFp128Exp10M1(argument));
     }
 
-    /// <summary>Accurate binary64 <c>ln(1 + x)</c> (Kahan), avoiding the cancellation in the naive
-    /// <c>Log(1 + x)</c> so the Decimal32 log1p family stays faithful to Intel's binary path.</summary>
+    /// <summary>Accurate binary64 <c>ln(1 + x)</c>, avoiding the cancellation in the naive
+    /// <c>Log(1 + x)</c> so the binary64-backed decimal formats stay faithful to Intel's binary path.</summary>
     private static double DoubleLog1p(double x)
     {
-        double u = 1.0 + x;
-
-        if (u == 1.0)
-        {
-            return x;
-        }
-
-        return double.Log(u) * (x / (u - 1.0));
+        return double.LogP1(x);
     }
 
     /// <summary>

@@ -906,7 +906,391 @@ namespace System
         public static double Log(double x, double newBase) => Math.Log(x, newBase);
 
         /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.LogP1(TSelf)" />
-        public static double LogP1(double x) => Math.Log(x + 1);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double LogP1(double x)
+        {
+            double ax = Abs(x);
+
+            if ((x <= -1.0) || IsNaN(x) || IsPositiveInfinity(x))
+            {
+                return Math.Log(1.0 + x);
+            }
+
+            if (ax < 1.1102230246251565E-16)
+            {
+                return x;
+            }
+
+            if (ax < 0.0625)
+            {
+                return LogP1Small(x);
+            }
+
+            return LogP1General(x);
+        }
+
+        internal static double LogP1Small(double x)
+        {
+            // This code is based on log1p from the CORE-MATH project.
+            // Copyright (c) 2024-2025 Alexei Sibidanov.
+            //
+            // Licensed under the MIT License.
+            // See THIRD-PARTY-NOTICES.TXT for the full license text
+
+            ulong ax = BitConverter.DoubleToUInt64Bits(x) << 1;
+            double high;
+            double low;
+            double error;
+            double x2 = x * x;
+
+            if (ax < 0x7E60_0000_0000_0000)
+            {
+                high = x;
+                error = 7.453889935837843E-20 * x;
+
+                if (ax < 0x7D43_3600_0000_0000)
+                {
+                    low = x2 * (-0.50000000000005163 + (x * 0.33333333333338494));
+                }
+                else
+                {
+                    low = x2 * ((-0.49999999999999983 + (x * 0.33333333333333309))
+                              + (x2 * (-0.25000001241764208 + (x * 0.20000001241526807))));
+                }
+            }
+            else
+            {
+                double x3 = x2 * x;
+                double x4 = x2 * x2;
+                double halfNegativeX = -0.5 * x;
+
+                high = Math.FusedMultiplyAdd(halfNegativeX, x, x);
+                low = Math.FusedMultiplyAdd(halfNegativeX, x, x - high);
+
+                double poly = ((0.33333333333333331 + (x * -0.25))
+                             + (x2 * (0.20000000000001175 + (x * -0.16666666666668725))))
+                            + (x4 * (((0.14285714283910433 + (x * -0.1249999999746985))
+                             + (x2 * (0.11111112429520291 + (x * -0.10000001594045592))))
+                             + (x4 * ((0.090904146827106874 + (x * -0.083327964855293354))
+                             + (x2 * (0.077841308971290935 + (x * -0.072347204516044761)))))));
+
+                low += x3 * poly;
+                error = x3 * 3.5041414214731503E-16;
+            }
+
+            double lower = high + (low - error);
+            double upper = high + (low + error);
+
+            if (lower != upper)
+            {
+                return LogP1SmallRefined(x);
+            }
+
+            return lower;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static double LogP1SmallRefined(double x)
+        {
+            DoubleDouble x2 = DoubleDouble.Multiply(new DoubleDouble(x), new DoubleDouble(x));
+            DoubleDouble poly = DoubleDouble.Reciprocal(79);
+
+            for (int degree = 78; degree >= 3; degree--)
+            {
+                DoubleDouble coefficient = DoubleDouble.Reciprocal(degree);
+
+                if ((degree & 1) == 0)
+                {
+                    coefficient = new DoubleDouble(-coefficient.High, -coefficient.Low);
+                }
+
+                poly = DoubleDouble.Add(DoubleDouble.Multiply(poly, new DoubleDouble(x)), coefficient);
+            }
+
+            DoubleDouble higherTerms = DoubleDouble.Multiply(DoubleDouble.Multiply(x2, new DoubleDouble(x)), poly);
+            double low;
+            double middle = FastSum(-0.5 * x2.High, -0.5 * x2.Low, higherTerms.High, higherTerms.Low, out low);
+            double high = FastTwoSum(x, middle, out middle);
+            middle = FastTwoSum(middle, low, out low);
+            return RoundTriple(high, middle, low);
+        }
+
+        private static double FastTwoSum(double left, double right, out double error)
+        {
+            double sum = left + right;
+            error = right - (sum - left);
+            return sum;
+        }
+
+        private static double FastSum(double leftHigh, double leftLow, double rightHigh, double rightLow, out double error)
+        {
+            double high = FastTwoSum(leftHigh, rightHigh, out double low);
+            error = (leftLow + rightLow) + low;
+            return high;
+        }
+
+        private static double RoundTriple(double high, double middle, double low)
+        {
+            ulong middleBits = BitConverter.DoubleToUInt64Bits(middle);
+
+            if ((middle != 0.0) && ((middleBits & TrailingSignificandMask) == 0))
+            {
+                ulong lowBits = BitConverter.DoubleToUInt64Bits(low);
+                middleBits = (((middleBits ^ lowBits) & SignMask) != 0) ? middleBits - 1 : middleBits + 1;
+                middle = BitConverter.UInt64BitsToDouble(middleBits);
+            }
+
+            return high + middle;
+        }
+
+        private static double LogP1General(double x)
+        {
+            // Preserve the rounding error in 1 + x before reducing the exact sum to [1 / sqrt(2), sqrt(2)].
+            double value = 1.0 + x;
+            double virtualX = value - 1.0;
+            double valueLow = (1.0 - (value - virtualX)) + (x - virtualX);
+            ulong valueBits = BitConverter.DoubleToUInt64Bits(value);
+            int exponent = (int)((valueBits & BiasedExponentMask) >> BiasedExponentShift) - ExponentBias;
+            value = BitConverter.UInt64BitsToDouble((valueBits & TrailingSignificandMask) | (0x3FFUL << BiasedExponentShift));
+            valueLow = Math.ScaleB(valueLow, -exponent);
+
+            if (value > 1.4142135623730951)
+            {
+                value *= 0.5;
+                valueLow *= 0.5;
+                exponent++;
+            }
+
+            double numerator = value - 1.0;
+            double denominator = value + 1.0;
+            double virtualOne = denominator - value;
+            double denominatorLow = (value - (denominator - virtualOne)) + (1.0 - virtualOne) + valueLow;
+            double reducedHigh = numerator / denominator;
+            double remainder = Math.FusedMultiplyAdd(-reducedHigh, denominator, numerator)
+                             + valueLow
+                             - (reducedHigh * denominatorLow);
+            DoubleDouble reduced = new DoubleDouble(reducedHigh, remainder / denominator);
+            double z = reduced.High;
+            double z2 = z * z;
+
+            double poly = Math.FusedMultiplyAdd(0.037037037037037035, z2, 0.04);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.043478260869565216);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.047619047619047616);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.05263157894736842);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.058823529411764705);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.06666666666666667);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.07692307692307693);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.09090909090909091);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.1111111111111111);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.14285714285714285);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.2);
+            poly = Math.FusedMultiplyAdd(poly, z2, 0.3333333333333333);
+
+            double z3 = z * z2;
+            double z3Low = Math.FusedMultiplyAdd(z, z2, -z3);
+            double term = z3 * poly;
+            double termLow = Math.FusedMultiplyAdd(z3, poly, -term) + (z3Low * poly);
+            DoubleDouble logarithm = DoubleDouble.Add(reduced, new DoubleDouble(term, termLow));
+            logarithm = DoubleDouble.Multiply(logarithm, new DoubleDouble(2.0));
+
+            DoubleDouble ln2 = new DoubleDouble(0.6931471805599453, 2.3190468138462996E-17);
+            logarithm = DoubleDouble.Add(logarithm, DoubleDouble.Multiply(new DoubleDouble(exponent), ln2));
+
+            // The wider bound covers the additional error from scaling the low part at large exponents.
+            double error = (int.Abs(exponent) >= 32) ? 6.938893903907228E-18 : 3.469446951953614E-18;
+            double lower = logarithm.High + (logarithm.Low - error);
+            double upper = logarithm.High + (logarithm.Low + error);
+
+            if (lower != upper)
+            {
+                return LogP1HighPrecision(x);
+            }
+
+            return lower;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static double LogP1HighPrecision(double x)
+        {
+            // Inputs whose fast interval straddles a rounding boundary are recomputed with an expansion
+            // that retains three binary64 components through the final rounding.
+            if (Abs(x) < 0.125)
+            {
+                return LogP1SmallRefined(x);
+            }
+
+            DoubleDouble value = DoubleDouble.Add(new DoubleDouble(1.0), new DoubleDouble(x));
+            int exponent = Math.ILogB(value.High);
+            value = DoubleDouble.Multiply(value, new DoubleDouble(Math.ScaleB(1.0, -exponent)));
+
+            if (value.High > 1.4142135623730951)
+            {
+                value = DoubleDouble.Multiply(value, new DoubleDouble(0.5));
+                exponent++;
+            }
+
+            TripleDouble reduced = DivideToTriple(
+                DoubleDouble.Add(value, new DoubleDouble(-1.0)),
+                DoubleDouble.Add(value, new DoubleDouble(1.0)));
+            DoubleDouble reducedHead = new DoubleDouble(reduced.High, reduced.Middle);
+            DoubleDouble squared = DoubleDouble.Multiply(reducedHead, reducedHead);
+            DoubleDouble poly = DoubleDouble.Reciprocal(257);
+
+            for (int odd = 255; odd >= 3; odd -= 2)
+            {
+                poly = DoubleDouble.Add(DoubleDouble.Multiply(poly, squared), DoubleDouble.Reciprocal(odd));
+            }
+
+            DoubleDouble atanh = DoubleDouble.Add(
+                reducedHead,
+                DoubleDouble.Multiply(DoubleDouble.Multiply(reducedHead, squared), poly));
+            double correction = reduced.Low / (1.0 - (reduced.High * reduced.High));
+            TripleDouble logarithm = TripleDouble.Add(
+                new TripleDouble(2.0 * atanh.High, 2.0 * atanh.Low, 2.0 * correction),
+                new TripleDouble(
+                    0.6931471805601177 * exponent,
+                    -1.7239444525615996E-13 * exponent,
+                    1.1612227229362532E-26 * exponent));
+            logarithm = TripleDouble.Add(new TripleDouble(logarithm.High), new TripleDouble(logarithm.Middle, logarithm.Low));
+            return RoundTriple(logarithm.High, logarithm.Middle, logarithm.Low);
+        }
+
+        private static TripleDouble DivideToTriple(DoubleDouble numerator, DoubleDouble denominator)
+        {
+            double high = numerator.High / denominator.High;
+            DoubleDouble remainder = DoubleDouble.Add(
+                numerator,
+                DoubleDouble.Multiply(new DoubleDouble(-high), denominator));
+            double middle = remainder.High / denominator.High;
+            remainder = DoubleDouble.Add(
+                remainder,
+                DoubleDouble.Multiply(new DoubleDouble(-middle), denominator));
+            double low = (remainder.High + remainder.Low) / denominator.High;
+            return TripleDouble.Add(new TripleDouble(high), new TripleDouble(middle, low));
+        }
+
+        private readonly struct TripleDouble
+        {
+            public TripleDouble(double high, double middle = 0.0, double low = 0.0)
+            {
+                High = high;
+                Middle = middle;
+                Low = low;
+            }
+
+            public double High { get; }
+
+            public double Middle { get; }
+
+            public double Low { get; }
+
+            public static TripleDouble Add(TripleDouble left, TripleDouble right)
+            {
+                Span<double> expansion = stackalloc double[6];
+                int length = 0;
+                AddToExpansion(expansion, ref length, left.Low);
+                AddToExpansion(expansion, ref length, left.Middle);
+                AddToExpansion(expansion, ref length, left.High);
+                AddToExpansion(expansion, ref length, right.Low);
+                AddToExpansion(expansion, ref length, right.Middle);
+                AddToExpansion(expansion, ref length, right.High);
+                return FromExpansion(expansion, length);
+            }
+
+            private static void AddToExpansion(Span<double> expansion, ref int length, double value)
+            {
+                double sum = value;
+                int output = 0;
+
+                for (int i = 0; i < length; i++)
+                {
+                    double current = expansion[i];
+                    double next = sum + current;
+                    double virtualCurrent = next - sum;
+                    double error = (sum - (next - virtualCurrent)) + (current - virtualCurrent);
+
+                    if (error != 0.0)
+                    {
+                        expansion[output++] = error;
+                    }
+
+                    sum = next;
+                }
+
+                expansion[output++] = sum;
+                length = output;
+            }
+
+            private static TripleDouble FromExpansion(Span<double> expansion, int length)
+            {
+                double low = 0.0;
+
+                for (int i = 0; i < length - 2; i++)
+                {
+                    low += expansion[i];
+                }
+
+                double middle = (length >= 2) ? expansion[length - 2] : 0.0;
+                double high = expansion[length - 1];
+                return new TripleDouble(high, middle, low);
+            }
+        }
+
+        private readonly struct DoubleDouble
+        {
+            public DoubleDouble(double high, double low = 0.0)
+            {
+                High = high;
+                Low = low;
+            }
+
+            public double High { get; }
+
+            public double Low { get; }
+
+            public static DoubleDouble Add(DoubleDouble left, DoubleDouble right)
+            {
+                double sum = left.High + right.High;
+                double rightVirtual = sum - left.High;
+                double sumError = (left.High - (sum - rightVirtual)) + (right.High - rightVirtual);
+                double tail = sumError + left.Low + right.Low;
+                double high = sum + tail;
+                return new DoubleDouble(high, (sum - high) + tail);
+            }
+
+            public static DoubleDouble Multiply(DoubleDouble left, DoubleDouble right)
+            {
+                double product = left.High * right.High;
+                double productError = Math.FusedMultiplyAdd(left.High, right.High, -product);
+                double tail = productError + (left.High * right.Low) + (left.Low * right.High);
+                double high = product + tail;
+                return new DoubleDouble(high, (product - high) + tail);
+            }
+
+            public static DoubleDouble Divide(DoubleDouble numerator, DoubleDouble denominator)
+            {
+                double quotient = numerator.High / denominator.High;
+                DoubleDouble remainder = Add(numerator, Multiply(new DoubleDouble(-quotient), denominator));
+                double quotientLow = (remainder.High + remainder.Low) / denominator.High;
+                double high = quotient + quotientLow;
+                return new DoubleDouble(high, (quotient - high) + quotientLow);
+            }
+
+            public static DoubleDouble Reciprocal(int value)
+            {
+                double high = 1.0 / value;
+                double low = Math.FusedMultiplyAdd(-high, value, 1.0) / value;
+                return new DoubleDouble(high, low);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static double LogP1Compensated(double x)
+        {
+            double onePlusX = 1.0 + x;
+
+            return Math.Log(onePlusX) - (((onePlusX - 1.0) - x) / onePlusX);
+        }
 
         /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log2P1(TSelf)" />
         public static double Log2P1(double x) => Math.Log2(x + 1);

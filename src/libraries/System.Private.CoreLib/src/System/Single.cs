@@ -903,7 +903,29 @@ namespace System
         public static float Log(float x, float newBase) => MathF.Log(x, newBase);
 
         /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.LogP1(TSelf)" />
-        public static float LogP1(float x) => MathF.Log(x + 1);
+        public static float LogP1(float x)
+        {
+            // AOCL computes log1pf in double precision and rounds only the final result.
+            double dx = x;
+            double ax = double.Abs(dx);
+
+            if (ax >= 0.5)
+            {
+                return (float)Math.Log(1.0 + dx);
+            }
+
+            if (ax < 5.960464477539063E-08)
+            {
+                return x;
+            }
+
+            if ((dx >= -0.06058693718652422) && (dx <= +0.06449445891785943))
+            {
+                return (float)double.LogP1Small(dx);
+            }
+
+            return (float)double.LogP1Compensated(dx);
+        }
 
         /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log10(TSelf)" />
         [Intrinsic]

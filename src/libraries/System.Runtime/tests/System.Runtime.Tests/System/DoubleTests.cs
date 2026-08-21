@@ -1586,8 +1586,10 @@ namespace System.Tests
         [InlineData(-0.50693130860476021,    -0.70710678118654752,     CrossPlatformMachineEpsilon)]       // expected: -(1 / sqrt(2))
         [InlineData(-0.5,                    -0.69314718055994531,     CrossPlatformMachineEpsilon)]       // expected: -(ln(2))
         [InlineData(-0.47092219173226465,    -0.63661977236758134,     CrossPlatformMachineEpsilon)]       // expected: -(2 / pi)
-        [InlineData(-0.0,                     0.0,                     0.0)]
+        [InlineData(-1.23e-20,               -1.23e-20,                0.0)]
+        [InlineData(-0.0,                    -0.0,                     0.0)]
         [InlineData( 0.0,                     0.0,                     0.0)]
+        [InlineData( 1.23e-20,                1.23e-20,                0.0)]
         [InlineData( 0.37480222743935863,     0.31830988618379067,     CrossPlatformMachineEpsilon)]       // expected:  (1 / pi)
         [InlineData( 0.54387344397118114,     0.43429448190325183,     CrossPlatformMachineEpsilon)]       // expected:  (log10(e))
         [InlineData( 0.89008116457222198,     0.63661977236758134,     CrossPlatformMachineEpsilon)]       // expected:  (2 / pi)
@@ -1606,6 +1608,16 @@ namespace System.Tests
         public static void LogP1Test(double value, double expectedResult, double allowedVariance)
         {
             AssertExtensions.Equal(expectedResult, double.LogP1(value), allowedVariance);
+        }
+
+        [Theory]
+        [InlineData( 5.832134775232282e-11,  5.832134775062213e-11)]
+        [InlineData(-0.09077609732265429,   -0.09516389755901396)]
+        [InlineData( 276.58366627903007,     5.626122387849079)]
+        [InlineData( 1.5357759198636645e+23, 53.388492877440775)]
+        public static void LogP1CorrectlyRoundedTest(double value, double expectedResult)
+        {
+            Assert.Equal(expectedResult, double.LogP1(value));
         }
 
         [Theory]

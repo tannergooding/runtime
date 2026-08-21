@@ -23,7 +23,25 @@ namespace System.Numerics
         /// <summary>Computes the natural (<c>base-E</c>) logarithm of a value plus one.</summary>
         /// <param name="x">The value to which one is added before computing the natural logarithm.</param>
         /// <returns><c>log<sub>e</sub>(<paramref name="x" /> + 1)</c></returns>
-        static virtual TSelf LogP1(TSelf x) => TSelf.Log(x + TSelf.One);
+        static virtual TSelf LogP1(TSelf x)
+        {
+            TSelf onePlusX = x + TSelf.One;
+
+            if (onePlusX == TSelf.One)
+            {
+                return x;
+            }
+
+            TSelf result = TSelf.Log(onePlusX);
+            TSelf denominator = onePlusX - TSelf.One;
+
+            if (denominator != x)
+            {
+                result *= x / denominator;
+            }
+
+            return result;
+        }
 
         /// <summary>Computes the base-2 logarithm of a value.</summary>
         /// <param name="x">The value whose base-2 logarithm is to be computed.</param>

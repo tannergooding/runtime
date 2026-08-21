@@ -373,6 +373,68 @@ namespace System.Numerics.Tensors.Tests
 
         protected override T NextRandom() => T.CreateTruncating((Random.NextDouble() * 2) - 1); // For testing purposes, get a mix of negative and positive values.
 
+        [Fact]
+        public void LogP1_PreservesTinyValuesAndSignedZero()
+        {
+            T[] values = new T[129];
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                values[i] = (i % 4) switch
+                {
+                    0 => T.Epsilon,
+                    1 => -T.Epsilon,
+                    2 => T.Zero,
+                    _ => -T.Zero,
+                };
+            }
+
+            T[] destination = new T[values.Length];
+            TensorPrimitives.LogP1(values, destination);
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                AssertEqualTolerance(values[i], destination[i], T.Zero);
+            }
+        }
+
+        [Fact]
+        public void LogP1_MatchesScalar()
+        {
+            T[] values = new T[257];
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                values[i] = (i % 16) switch
+                {
+                    0 => T.Epsilon,
+                    1 => -T.Epsilon,
+                    2 => T.Zero,
+                    3 => T.NegativeZero,
+                    4 => T.CreateChecked(0.03),
+                    5 => T.CreateChecked(-0.03),
+                    6 => T.CreateChecked(0.25),
+                    7 => T.CreateChecked(-0.75),
+                    8 => T.NegativeOne,
+                    9 => T.CreateChecked(-2.0),
+                    10 => T.PositiveInfinity,
+                    11 => T.NaN,
+                    12 => T.CreateChecked(5.832134775232282E-11),
+                    13 => T.CreateChecked(-0.09077609732265429),
+                    14 => T.CreateChecked(276.58366627903007),
+                    _ => T.CreateTruncating(1.5357759198636645E+23),
+                };
+            }
+
+            T[] destination = new T[values.Length];
+            TensorPrimitives.LogP1(values, destination);
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                AssertEqualTolerance(T.LogP1(values[i]), destination[i], T.Zero);
+            }
+        }
+
         protected override IEnumerable<T> GetSpecialValues()
         {
             // NaN
