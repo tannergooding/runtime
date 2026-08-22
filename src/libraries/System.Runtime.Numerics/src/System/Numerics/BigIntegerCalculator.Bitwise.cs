@@ -32,21 +32,23 @@ namespace System.Numerics
         /// The caller is responsible for allocating <paramref name="result"/> with the correct length.
         /// </summary>
         /// <param name="left">Magnitude limbs of the left operand (empty if inline).</param>
-        /// <param name="leftSign">The _sign field of the left operand (carries sign and inline value).</param>
+        /// <param name="leftSign">The _sign field of the left operand; decoded via <see cref="BigInteger.IsNegativeSign"/>.</param>
+        /// <param name="leftOffset">The logical index of the first stored left limb.</param>
         /// <param name="right">Magnitude limbs of the right operand (empty if inline).</param>
-        /// <param name="rightSign">The _sign field of the right operand (carries sign and inline value).</param>
+        /// <param name="rightSign">The _sign field of the right operand; decoded via <see cref="BigInteger.IsNegativeSign"/>.</param>
+        /// <param name="rightOffset">The logical index of the first stored right limb.</param>
         /// <param name="result">Pre-allocated destination span for the result limbs.</param>
         public static void BitwiseOp<TOp>(
-            ReadOnlySpan<nuint> left, int leftSign,
-            ReadOnlySpan<nuint> right, int rightSign,
+            ReadOnlySpan<nuint> left, int leftSign, int leftOffset,
+            ReadOnlySpan<nuint> right, int rightSign, int rightOffset,
             Span<nuint> result)
             where TOp : struct, IBitwiseOp
         {
-            bool leftNeg = leftSign < 0;
-            bool rightNeg = rightSign < 0;
+            bool leftNeg = BigInteger.IsNegativeSign(leftSign);
+            bool rightNeg = BigInteger.IsNegativeSign(rightSign);
 
-            int xLen = left.Length > 0 ? left.Length : 1;
-            int yLen = right.Length > 0 ? right.Length : 1;
+            int xLen = left.Length > 0 ? leftOffset + left.Length : 1;
+            int yLen = right.Length > 0 ? rightOffset + right.Length : 1;
             nuint xInline = (nuint)leftSign;
             nuint yInline = (nuint)rightSign;
 
@@ -56,8 +58,8 @@ namespace System.Numerics
 
             for (int i = 0; i < result.Length; i++)
             {
-                nuint xu = GetTwosComplementLimb(left, xInline, i, xLen, leftNeg, ref xBorrow);
-                nuint yu = GetTwosComplementLimb(right, yInline, i, yLen, rightNeg, ref yBorrow);
+                nuint xu = GetTwosComplementLimb(left, leftOffset, xInline, i, xLen, leftNeg, ref xBorrow);
+                nuint yu = GetTwosComplementLimb(right, rightOffset, yInline, i, yLen, rightNeg, ref yBorrow);
                 result[i] = TOp.Invoke(xu, yu);
             }
         }
@@ -69,18 +71,19 @@ namespace System.Numerics
         /// For negative values, computes ~magnitude + 1 with carry propagation.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static nuint GetTwosComplementLimb(ReadOnlySpan<nuint> bits, nuint inlineValue, int i, int len, bool isNegative, ref nuint borrow)
+        private static nuint GetTwosComplementLimb(ReadOnlySpan<nuint> bits, int offset, nuint inlineValue, int i, int len, bool isNegative, ref nuint borrow)
         {
             // Get the magnitude limb (or sign-extension beyond the value)
             nuint mag;
             if (bits.Length > 0)
             {
-                mag = (uint)i < (uint)bits.Length ? bits[i] : 0;
+                int storedIndex = i - offset;
+                mag = (uint)storedIndex < (uint)bits.Length ? bits[storedIndex] : 0;
             }
             else
             {
-                // Inline value: _sign holds the value directly.
-                // For negative inline: magnitude is Abs(_sign), stored as positive nuint.
+                // Inline value: the sign field holds the value directly, so the magnitude is its
+                // absolute value. This is an inline path, never an encoded array-backed sign.
                 mag = i == 0 ? (isNegative ? NumericsHelpers.Abs((int)inlineValue) : inlineValue) : 0;
             }
 

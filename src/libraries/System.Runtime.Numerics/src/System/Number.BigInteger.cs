@@ -676,7 +676,7 @@ namespace System
                 // Insert leading zeros, e.g. user specified "X5" so we create "0ABCD" instead of "ABCD"
                 sb.Insert(
                     0,
-                    TChar.CastFrom(value._sign >= 0 ? '0' : (format == 'x') ? 'f' : 'F'),
+                    TChar.CastFrom(!BigInteger.IsNegative(value) ? '0' : (format == 'x') ? 'f' : 'F'),
                     digits - sb.Length);
             }
 
@@ -718,7 +718,7 @@ namespace System
 
             byte highByte = bytes[^1];
 
-            int charsInHighByte = 9 - byte.LeadingZeroCount(value._sign >= 0 ? highByte : (byte)~highByte);
+            int charsInHighByte = 9 - byte.LeadingZeroCount(!BigInteger.IsNegative(value) ? highByte : (byte)~highByte);
             long tmpCharCount = charsInHighByte + ((long)(bytes.Length - 1) << 3);
 
             if (tmpCharCount > Array.MaxLength)
@@ -764,7 +764,7 @@ namespace System
 
                 if (digits > charsForBits)
                 {
-                    sb.Append(TChar.CastFrom(value._sign >= 0 ? '0' : '1'), digits - charsForBits);
+                    sb.Append(TChar.CastFrom(!BigInteger.IsNegative(value) ? '0' : '1'), digits - charsForBits);
                 }
 
                 AppendByte(ref sb, highByte, charsInHighByte - 1);
@@ -852,9 +852,9 @@ namespace System
             }
 
             // The Ratio is calculated as: log_{10^9}(2^BitsPerLimb)
-            // value._bits.Length represents the number of digits when considering value
+            // value.LogicalLimbCount represents the number of digits when considering value
             // in base 2^BitsPerLimb. This means it satisfies the inequality:
-            // value._bits.Length - 1 <= log_{2^BitsPerLimb}(value) < value._bits.Length
+            // value.LogicalLimbCount - 1 <= log_{2^BitsPerLimb}(value) < value.LogicalLimbCount
             //
             // When converting value to a decimal string, it is first converted to
             // base 1,000,000,000.
@@ -863,16 +863,26 @@ namespace System
             // multiplying by log_{10^9}(2^BitsPerLimb), and using the base change formula,
             // we get:
             // M - log_{10^9}(2^BitsPerLimb) <= log_{10^9}(value) < M <= Ceiling(M)
-            // where M is log_{10^9}(2^BitsPerLimb)*value._bits.Length.
+            // where M is log_{10^9}(2^BitsPerLimb)*value.LogicalLimbCount.
             // In other words, the number of digits of value in base 1,000,000,000 is at most Ceiling(M).
             double digitRatio = 1.070328873472 * BigIntegerCalculator.BitsPerLimb / 32.0;
             Debug.Assert(BigInteger.MaxLength * digitRatio + 1 < Array.MaxLength); // won't overflow
 
-            int base1E9BufferLength = (int)(value._bits.Length * digitRatio) + 1;
+            int logicalLimbCount = value.LogicalLimbCount;
+            int base1E9BufferLength = (int)(logicalLimbCount * digitRatio) + 1;
             Span<nuint> base1E9Buffer = BigInteger.RentedBuffer.Create(base1E9BufferLength, out BigInteger.RentedBuffer base1E9Rental);
 
+            scoped ReadOnlySpan<nuint> magnitude = value._bits;
+            scoped BigInteger.RentedBuffer magnitudeRental = default;
 
-            BigIntegerToBase1E9(value._bits, base1E9Buffer, out int written);
+            if (magnitude.Length != logicalLimbCount)
+            {
+                Span<nuint> denseMagnitude = BigInteger.RentedBuffer.Create(logicalLimbCount, out magnitudeRental);
+                value.CopyMagnitudeTo(denseMagnitude);
+                magnitude = denseMagnitude;
+            }
+
+            BigIntegerToBase1E9(magnitude, base1E9Buffer, out int written);
             ReadOnlySpan<nuint> base1E9Value = base1E9Buffer[..written];
 
             int valueDigits = (base1E9Value.Length - 1) * PowersOf1e9.MaxPartialDigits + FormattingHelpers.CountDigits(base1E9Value[^1]);
@@ -978,6 +988,7 @@ namespace System
             }
 
             base1E9Rental.Dispose();
+            magnitudeRental.Dispose();
 
             return strResult;
         }

@@ -31,8 +31,6 @@ namespace System.Numerics
         /// <summary>Splits a shift by int.MinValue into two shifts to avoid negation overflow (-int.MinValue overflows int).</summary>
         private const int MinIntSplitShift = int.MaxValue - BitsPerUInt32 + 1;
 
-        // Scanning and slicing starts paying for itself at 32 skipped limbs.
-        private const int AddSubtractZeroLimbThreshold = 32;
         private const int Pow7CombinationThreshold = 128;
 
         /// <summary>
@@ -44,26 +42,198 @@ namespace System.Numerics
         /// <summary>
         /// For values <c>int.MinValue &lt; n &lt;= int.MaxValue</c>, the value is stored in
         /// <see cref="_sign"/> and <see cref="_bits"/> is <see langword="null"/>.
-        /// For all other values, <see cref="_sign"/> is +1 or -1 and the magnitude is in <see cref="_bits"/>.
+        /// For all other values, the remaining magnitude is in <see cref="_bits"/> and
+        /// <see cref="_sign"/> encodes the sign in bit 31 (<see cref="SignBit"/>) and the count of
+        /// omitted low zero limbs in bits 0-30 (<see cref="OffsetMask"/>).
         /// </summary>
         /// <remarks>
+        /// <para>
+        /// A positive array-backed value with no omitted limbs has a zero <see cref="_sign"/>.
+        /// <see cref="_bits"/> distinguishes it from zero. The sign bit and all remaining bits can
+        /// therefore be interpreted independently without biasing the omitted-limb count.
+        /// </para>
+        /// <para>
         /// This field is <see langword="int"/> rather than <see langword="nint"/> by design.
         /// Using <see langword="nint"/> would allow values up to <see cref="long.MaxValue"/> to be stored
         /// inline on 64-bit, avoiding an array allocation. However, that would regress the common
         /// case of values in the <see cref="int"/> range by requiring wider comparisons and branches
         /// everywhere <see cref="_sign"/> is used.
+        /// </para>
         /// </remarks>
         internal readonly int _sign; // Do not rename (binary serialization)
+        // Magnitude arrays are immutable and may be shared between instances.
         internal readonly nuint[]? _bits; // Do not rename (binary serialization)
+
+        /// <summary>Bit of <see cref="_sign"/> holding the sign of an array-backed magnitude.</summary>
+        private const int SignBit = int.MinValue;
+
+        /// <summary>Bits of <see cref="_sign"/> holding the omitted low zero limb count of an array-backed magnitude.</summary>
+        private const int OffsetMask = int.MaxValue;
+
+        /// <summary>Tests whether a <see cref="_sign"/> value represents zero. Valid for both representations.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsZeroSign(nuint[]? bits, int sign) => sign == 0 && bits is null;
+
+        /// <summary>Gets the normalized sign for a value in either representation.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetSign(nuint[]? bits, int sign) =>
+            sign < 0 ? -1 :
+            sign != 0 || bits is not null ? 1 :
+            0;
+
+        /// <summary>Tests the polarity of a <see cref="_sign"/> value. Valid for both representations.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsNegativeSign(int sign) => sign < 0;
+
+        /// <summary>Tests the polarity of a <see cref="_sign"/> value. Valid for both representations.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsPositiveSign(int sign) => sign >= 0;
+
+        /// <summary>Tests whether two <see cref="_sign"/> values have opposite polarity. Valid for both representations.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool HaveDifferentPolarity(int left, int right) => (left ^ right) < 0;
+
+        /// <summary>Tests whether a <see cref="_sign"/> value and a signed integer have opposite polarity.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool HaveDifferentPolarity(int left, long right) => ((long)left ^ right) < 0;
+
+        /// <summary>Extracts the omitted low zero limb count from an array-backed <see cref="_sign"/> value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int DecodeLimbOffset(int sign) => sign & OffsetMask;
+
+        /// <summary>Extracts the omitted low zero limb count for a magnitude that may be inline.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetLimbOffset(nuint[]? bits, int sign) => bits is null ? 0 : DecodeLimbOffset(sign);
+
+        /// <summary>Extracts the omitted low zero limb count for a magnitude that may be inline.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetLimbOffset(ReadOnlySpan<nuint> bits, int sign) => bits.IsEmpty ? 0 : DecodeLimbOffset(sign);
+
+        /// <summary>Builds the <see cref="_sign"/> value for an array-backed magnitude.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int CreateEncodedSign(int limbOffset, bool negative)
+        {
+            Debug.Assert((uint)limbOffset <= OffsetMask);
+            return negative ? limbOffset | SignBit : limbOffset;
+        }
+
+        /// <summary>Clears the polarity of an array-backed <see cref="_sign"/> value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int AbsSign(int sign) => sign & ~SignBit;
+
+        /// <summary>Flips the polarity of an array-backed <see cref="_sign"/> value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int NegateSign(int sign) => sign ^ SignBit;
+
+        /// <summary>Flips the polarity of a <see cref="_sign"/> value belonging to <paramref name="bits"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int NegateSign(nuint[]? bits, int sign) => bits is null ? -sign : NegateSign(sign);
+
+        /// <summary>Gets the polarity of this value. Valid for both representations.</summary>
+        private bool HasNegativeSign
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => IsNegativeSign(_sign);
+        }
+
+        /// <summary>Gets the count of low zero limbs omitted from <see cref="_bits"/>.</summary>
+        private int LimbOffset
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => GetLimbOffset(_bits, _sign);
+        }
+
+        internal int LogicalLimbCount
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (_bits?.Length ?? 0) + LimbOffset;
+        }
+
+        internal void CopyMagnitudeTo(Span<nuint> destination)
+        {
+            Debug.Assert(_bits is not null);
+            Debug.Assert(destination.Length >= LogicalLimbCount);
+
+            destination[..LimbOffset].Clear();
+            _bits.CopyTo(destination[LimbOffset..]);
+        }
+
+        private nuint[] ToDenseMagnitude()
+        {
+            return ToDenseMagnitude(0);
+        }
+
+        private nuint[] ToDenseMagnitude(int removedLowLimbs)
+        {
+            Debug.Assert(_bits is not null);
+            Debug.Assert((uint)removedLowLimbs <= (uint)LimbOffset);
+
+            int remainingOffset = LimbOffset - removedLowLimbs;
+            nuint[] result = new nuint[remainingOffset + _bits.Length];
+            _bits.CopyTo(result.AsSpan(remainingOffset));
+            return result;
+        }
+
+        private nuint GetLimb(int index)
+        {
+            Debug.Assert(_bits is not null);
+            Debug.Assert((uint)index < (uint)LogicalLimbCount);
+
+            int storedIndex = index - LimbOffset;
+            return storedIndex < 0 ? 0 : _bits[storedIndex];
+        }
 
         /// <summary>
         /// Cached representation of <see cref="int.MinValue"/> as a BigInteger. Uses the large
-        /// representation (sign=-1, bits=[0x80000000]) so that negation is symmetric.
+        /// representation (negative, offset 0, bits=[0x80000000]) so that negation is symmetric.
         /// </summary>
-        private static readonly BigInteger s_int32MinValue = new(-1, [UInt32HighBit]);
+        private static readonly BigInteger s_int32MinValue = new([(nuint)UInt32HighBit], CreateEncodedSign(0, negative: true));
         private static readonly BigInteger s_one = new(1);
         private static readonly BigInteger s_zero = new(0);
         private static readonly BigInteger s_minusOne = new(-1);
+
+        private static class PowerOfTwoLimbCache
+        {
+            internal static readonly nuint[][] Values = Create();
+
+            private static nuint[][] Create()
+            {
+                nuint[][] values = new nuint[BigIntegerCalculator.BitsPerLimb][];
+                for (int i = 0; i < values.Length; i++)
+                {
+                    values[i] = [(nuint)1 << i];
+                }
+
+                return values;
+            }
+        }
+
+        private static nuint[] GetPowerOfTwoLimb(nuint value)
+        {
+            Debug.Assert(BitOperations.IsPow2(value));
+
+            return PowerOfTwoLimbCache.Values[BitOperations.TrailingZeroCount(value)];
+        }
+
+        private static BigInteger CreatePowerOfTwo(int exponent, bool negative)
+        {
+            Debug.Assert(exponent >= 0);
+
+            if (exponent < 31)
+            {
+                int value = 1 << exponent;
+                return new BigInteger(negative ? -value : value, null);
+            }
+
+            int limbOffset = Math.DivRem(exponent, BigIntegerCalculator.BitsPerLimb, out int bitOffset);
+            if (limbOffset >= MaxLength)
+            {
+                ThrowHelper.ThrowOverflowException();
+            }
+
+            nuint[] bits = GetPowerOfTwoLimb((nuint)1 << bitOffset);
+            return new BigInteger(bits, CreateEncodedSign(limbOffset, negative));
+        }
 
         public BigInteger(int value)
         {
@@ -88,9 +258,13 @@ namespace System.Numerics
                 _sign = (int)value;
                 _bits = null;
             }
+            else if (BitOperations.IsPow2(value))
+            {
+                this = CreatePowerOfTwo(BitOperations.TrailingZeroCount(value), negative: false);
+            }
             else
             {
-                _sign = +1;
+                _sign = CreateEncodedSign(0, negative: false);
                 _bits = [value];
             }
 
@@ -114,21 +288,27 @@ namespace System.Numerics
                 if (value < 0)
                 {
                     x = (ulong)-value;
-                    _sign = -1;
+                    _sign = CreateEncodedSign(0, negative: true);
                 }
                 else
                 {
                     x = (ulong)value;
-                    _sign = +1;
+                    _sign = CreateEncodedSign(0, negative: false);
                 }
 
-                if (nint.Size == 8)
+                if (BitOperations.IsPow2(x))
+                {
+                    this = CreatePowerOfTwo(BitOperations.TrailingZeroCount(x), value < 0);
+                }
+                else if (nint.Size == 8)
                 {
                     _bits = [(nuint)x];
+                    this = new BigInteger(_bits, value < 0);
                 }
                 else
                 {
                     _bits = x <= uint.MaxValue ? [((uint)x)] : [(uint)x, (uint)(x >> BitsPerUInt32)];
+                    this = new BigInteger(_bits, value < 0);
                 }
             }
 
@@ -145,15 +325,27 @@ namespace System.Numerics
             }
             else
             {
-                _sign = +1;
-                if (nint.Size == 8)
+                if (BitOperations.IsPow2(value))
                 {
-                    _bits = [(nuint)value];
+                    this = CreatePowerOfTwo(BitOperations.TrailingZeroCount(value), negative: false);
                 }
                 else
                 {
-                    _bits = value <= uint.MaxValue ? [((uint)value)] : [(uint)value, (uint)(value >> BitsPerUInt32)];
+                    _sign = CreateEncodedSign(0, negative: false);
+                    if (nint.Size == 8)
+                    {
+                        _bits = [(nuint)value];
+                    }
+                    else
+                    {
+                        _bits = value <= uint.MaxValue ? [((uint)value)] : [(uint)value, (uint)(value >> BitsPerUInt32)];
+                    }
                 }
+            }
+
+            if (_bits is not null && !BitOperations.IsPow2(value))
+            {
+                this = new BigInteger(_bits, negative: false);
             }
 
             AssertValid();
@@ -196,7 +388,7 @@ namespace System.Numerics
                 this = man >> -exp;
                 if (sign < 0)
                 {
-                    _sign = -_sign;
+                    _sign = NegateSign(_bits, _sign);
                 }
             }
             else if (exp <= 11)
@@ -206,7 +398,7 @@ namespace System.Numerics
                 this = man << exp;
                 if (sign < 0)
                 {
-                    _sign = -_sign;
+                    _sign = NegateSign(_bits, _sign);
                 }
             }
             else
@@ -224,30 +416,42 @@ namespace System.Numerics
                 Debug.Assert(0 <= cbit && cbit < bitsPerLimb);
                 Debug.Assert(cu >= 1);
 
-                // Populate the limbs.
+                Span<nuint> bits = stackalloc nuint[3];
+                int limbOffset;
+                int length;
+
                 if (nint.Size == 8)
                 {
-                    // 64-bit: mantissa (64 bits) fits in 1-2 nuint limbs
-                    _bits = new nuint[cu + 1];
-                    _bits[cu] = (nuint)(man >> cbit);
+                    limbOffset = cu;
+                    bits[0] = (nuint)(man >> cbit);
+                    length = 1;
+
                     if (cbit > 0)
                     {
-                        _bits[cu - 1] = (nuint)(man << (64 - cbit));
+                        bits[1] = bits[0];
+                        bits[0] = (nuint)(man << (64 - cbit));
+                        limbOffset--;
+                        length++;
                     }
                 }
                 else
                 {
-                    // 32-bit: mantissa (64 bits) spans 2-3 nuint limbs
-                    _bits = new nuint[cu + 2];
-                    _bits[cu + 1] = (uint)(man >> (cbit + BitsPerUInt32));
-                    _bits[cu] = (uint)(man >> cbit);
+                    limbOffset = cu;
+                    bits[0] = (uint)(man >> cbit);
+                    bits[1] = (uint)(man >> (cbit + BitsPerUInt32));
+                    length = 2;
+
                     if (cbit > 0)
                     {
-                        _bits[cu - 1] = (nuint)(uint)man << (BitsPerUInt32 - cbit);
+                        bits[2] = bits[1];
+                        bits[1] = bits[0];
+                        bits[0] = (nuint)(uint)man << (BitsPerUInt32 - cbit);
+                        limbOffset--;
+                        length++;
                     }
                 }
 
-                _sign = sign;
+                this = new BigInteger(bits[..length], sign < 0, limbOffset);
             }
 
             AssertValid();
@@ -311,13 +515,17 @@ namespace System.Numerics
                     }
                 }
 
-                _sign = ((bits[3] & SignMask) != 0) ? -1 : +1;
+                bool negative = (bits[3] & SignMask) != 0;
 
                 // Canonicalize: single-limb values that fit in int should be stored inline
                 if (_bits.Length is 1 && _bits[0] <= int.MaxValue)
                 {
-                    _sign = _sign < 0 ? -(int)_bits[0] : (int)_bits[0];
+                    _sign = negative ? -(int)_bits[0] : (int)_bits[0];
                     _bits = null;
+                }
+                else
+                {
+                    this = new BigInteger(_bits, negative);
                 }
             }
 
@@ -397,10 +605,9 @@ namespace System.Numerics
                 {
                     // int overflow: unsigned value overflows into the int sign bit
                     _bits = [(uint)_sign];
-                    _sign = +1;
+                    _sign = CreateEncodedSign(0, negative: false);
                 }
-
-                if (_sign == int.MinValue)
+                else if (_sign == int.MinValue)
                 {
                     this = s_int32MinValue;
                 }
@@ -470,45 +677,12 @@ namespace System.Numerics
                 {
                     NumericsHelpers.DangerousMakeTwosComplement(val); // Mutates val
 
-                    // Pack _bits to remove any wasted space after the twos complement
                     int len = val.AsSpan().LastIndexOfAnyExcept(0u) + 1;
-
-                    if (len == 1)
-                    {
-                        if (val[0] == 1) // abs(-1)
-                        {
-                            this = s_minusOne;
-                            return;
-                        }
-                        else if (val[0] == UInt32HighBit) // abs(int.MinValue)
-                        {
-                            this = s_int32MinValue;
-                            return;
-                        }
-                        else if (val[0] < UInt32HighBit) // fits in int as negative
-                        {
-                            _sign = -(int)val[0];
-                            _bits = null;
-                            AssertValid();
-                            return;
-                        }
-                    }
-
-                    if (len != val.Length)
-                    {
-                        _sign = -1;
-                        _bits = val.AsSpan(0, len).ToArray();
-                    }
-                    else
-                    {
-                        _sign = -1;
-                        _bits = val;
-                    }
+                    this = new BigInteger(val.AsSpan(0, len), negative: true);
                 }
                 else
                 {
-                    _sign = +1;
-                    _bits = val;
+                    this = new BigInteger(val, negative: false);
                 }
             }
 
@@ -526,10 +700,52 @@ namespace System.Numerics
             // Runtime check is converted to assertions because only one call from TryParseBigIntegerHexOrBinaryNumberStyle may fail the length check.
             // Validation in TryParseBigIntegerHexOrBinaryNumberStyle is also added in the accompanying PR.
 
+            if (bits is null)
+            {
+                _sign = sign;
+                _bits = null;
+            }
+            else
+            {
+                this = new BigInteger(bits, sign < 0);
+            }
+
+            AssertValid();
+        }
+
+        /// <summary>
+        /// Creates a BigInteger directly from an already-canonical magnitude array and an
+        /// encoded <see cref="_sign"/> value. See <see cref="CreateEncodedSign(int, bool)"/>.
+        /// </summary>
+        private BigInteger(nuint[] bits, int sign)
+        {
             _sign = sign;
             _bits = bits;
 
             AssertValid();
+        }
+
+        private BigInteger(nuint[] value, bool negative)
+        {
+            int length = value.AsSpan().LastIndexOfAnyExcept(0u) + 1;
+            if (length == 0)
+            {
+                this = default;
+                return;
+            }
+
+            if (length == value.Length
+                && value[0] != 0
+                && (value.Length != 1 || value[0] > int.MaxValue)
+                && (value.Length != 1 || !BitOperations.IsPow2(value[0])))
+            {
+                _sign = CreateEncodedSign(0, negative);
+                _bits = value;
+                AssertValid();
+                return;
+            }
+
+            this = new BigInteger(value.AsSpan(0, length), negative);
         }
 
         /// <summary>
@@ -539,14 +755,24 @@ namespace System.Numerics
         /// <param name="value">The absolute value of the number</param>
         /// <param name="negative">The bool indicating the sign of the value.</param>
         internal BigInteger(ReadOnlySpan<nuint> value, bool negative)
+            : this(value, negative, 0)
         {
-            // Try to conserve space as much as possible by checking for wasted leading span entries
-            // sometimes the span has leading zeros from bit manipulation operations & and ^
+        }
 
+        private BigInteger(ReadOnlySpan<nuint> value, bool negative, int limbOffset)
+        {
             int length = value.LastIndexOfAnyExcept(0u) + 1;
             value = value[..length];
 
-            if (value.Length > MaxLength)
+            if (!value.IsEmpty && value[0] == 0)
+            {
+                int firstNonZero = value.IndexOfAnyExcept(0u);
+                Debug.Assert(firstNonZero >= 0);
+                value = value[firstNonZero..];
+                limbOffset = checked(limbOffset + firstNonZero);
+            }
+
+            if (limbOffset > MaxLength - value.Length)
             {
                 ThrowHelper.ThrowOverflowException();
             }
@@ -555,19 +781,25 @@ namespace System.Numerics
             {
                 this = default;
             }
-            else if (value.Length == 1 && value[0] < UInt32HighBit)
+            else if (limbOffset == 0 && value.Length == 1 && value[0] < UInt32HighBit)
             {
                 _sign = negative ? -(int)value[0] : (int)value[0];
                 _bits = null;
             }
-            else if (value.Length == 1 && negative && value[0] == UInt32HighBit)
+            else if (limbOffset == 0 && value.Length == 1 && negative && value[0] == UInt32HighBit)
             {
                 // Although int.MinValue fits in _sign, we represent this case differently for negate
                 this = s_int32MinValue;
             }
+            else if (value.Length == 1 && BitOperations.IsPow2(value[0]))
+            {
+                int exponent = checked((limbOffset * BigIntegerCalculator.BitsPerLimb)
+                    + BitOperations.TrailingZeroCount(value[0]));
+                this = CreatePowerOfTwo(exponent, negative);
+            }
             else
             {
-                _sign = negative ? -1 : +1;
+                _sign = CreateEncodedSign(limbOffset, negative);
                 _bits = value.ToArray();
             }
 
@@ -643,21 +875,21 @@ namespace System.Numerics
                         else if (nint.Size == 8)
                         {
                             // On 64-bit, check if multi-uint magnitude fits in one nuint
-                            _sign = -1;
+                            _sign = CreateEncodedSign(0, negative: true);
                             int trimLen = value.LastIndexOfAnyExcept(0u) + 1;
                             _bits = trimLen == 1 ? [magnitude] : value[..trimLen].ToArray();
                         }
                         else
                         {
                             // On 32-bit, magnitude > int.MaxValue always needs _bits
-                            _sign = -1;
+                            _sign = CreateEncodedSign(0, negative: true);
                             _bits = [magnitude];
                         }
                     }
                 }
                 else if (value[0] >= UInt32HighBit)
                 {
-                    _sign = +1;
+                    _sign = CreateEncodedSign(0, negative: false);
                     _bits = [value[0]];
                 }
                 else
@@ -675,15 +907,15 @@ namespace System.Numerics
                     // Retrim any leading zeros carried from the sign
                     length = value.LastIndexOfAnyExcept(0u) + 1;
                     value = value[..length];
-
-                    _sign = -1;
-                }
-                else
-                {
-                    _sign = +1;
                 }
 
-                _bits = value.ToArray();
+                this = new BigInteger(value, isNegative);
+                return;
+            }
+
+            if (_bits is not null)
+            {
+                this = new BigInteger(_bits, isNegative);
             }
 
             AssertValid();
@@ -698,28 +930,31 @@ namespace System.Numerics
         {
             ArgumentNullException.ThrowIfNull(info);
 
-            _sign = info.GetInt32("_sign");
+            int sign = info.GetInt32("_sign");
             uint[]? bits32 = (uint[]?)info.GetValue("_bits", typeof(uint[]));
 
             if (bits32 is null)
             {
-                _bits = null;
+                this = new BigInteger(sign);
             }
             else if (nint.Size == 4)
             {
-                _bits = new nuint[bits32.Length];
-                Buffer.BlockCopy(bits32, 0, _bits, 0, bits32.Length * sizeof(uint));
+                nuint[] bits = new nuint[bits32.Length];
+                Buffer.BlockCopy(bits32, 0, bits, 0, bits32.Length * sizeof(uint));
+                this = new BigInteger(bits, sign < 0);
             }
             else
             {
                 int nuintLen = (bits32.Length + 1) / 2;
-                _bits = new nuint[nuintLen];
+                nuint[] bits = new nuint[nuintLen];
                 for (int i = 0; i < bits32.Length; i += 2)
                 {
                     ulong lo = bits32[i];
                     ulong hi = (i + 1 < bits32.Length) ? bits32[i + 1] : 0;
-                    _bits[i / 2] = (nuint)(lo | (hi << 32));
+                    bits[i / 2] = (nuint)(lo | (hi << 32));
                 }
+
+                this = new BigInteger(bits, sign < 0);
             }
 
             AssertValid();
@@ -733,19 +968,20 @@ namespace System.Numerics
         void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
         {
             ArgumentNullException.ThrowIfNull(info);
-            info.AddValue("_sign", _sign);
+            info.AddValue("_sign", _bits is null ? _sign : Sign);
 
             uint[]? bits32 = null;
             if (_bits is not null)
             {
                 if (nint.Size == 4)
                 {
-                    bits32 = new uint[_bits.Length];
-                    Buffer.BlockCopy(_bits, 0, bits32, 0, _bits.Length * sizeof(uint));
+                    bits32 = new uint[LogicalLimbCount];
+                    Buffer.BlockCopy(_bits, 0, bits32, LimbOffset * sizeof(uint), _bits.Length * sizeof(uint));
                 }
                 else
                 {
-                    int len = _bits.Length * 2;
+                    int uintOffset = checked(LimbOffset * 2);
+                    int len = checked(LogicalLimbCount * 2);
                     if ((uint)(_bits[^1] >> 32) == 0)
                     {
                         len--;
@@ -754,10 +990,11 @@ namespace System.Numerics
                     bits32 = new uint[len];
                     for (int i = 0; i < _bits.Length; i++)
                     {
-                        bits32[i * 2] = (uint)_bits[i];
-                        if (i * 2 + 1 < len)
+                        int index = uintOffset + (i * 2);
+                        bits32[index] = (uint)_bits[i];
+                        if (index + 1 < len)
                         {
-                            bits32[i * 2 + 1] = (uint)(_bits[i] >> 32);
+                            bits32[index + 1] = (uint)(_bits[i] >> 32);
                         }
                     }
                 }
@@ -781,7 +1018,7 @@ namespace System.Numerics
                     return BitOperations.IsPow2(_sign);
                 }
 
-                if (_sign != 1)
+                if (HasNegativeSign)
                 {
                     return false;
                 }
@@ -791,13 +1028,13 @@ namespace System.Numerics
             }
         }
 
-        public bool IsZero => _sign == 0;
+        public bool IsZero => IsZeroSign(_bits, _sign);
 
-        public bool IsOne => _sign == 1 && _bits is null;
+        public bool IsOne => _bits is null && _sign == 1;
 
-        public bool IsEven => _bits is null ? (_sign & 1) == 0 : (_bits[0] & 1) == 0;
+        public bool IsEven => _bits is null ? (_sign & 1) == 0 : LimbOffset != 0 || (_bits[0] & 1) == 0;
 
-        public int Sign => (_sign >> 31) - (-_sign >> 31);
+        public int Sign => GetSign(_bits, _sign);
 
         public static BigInteger Parse(string value)
         {
@@ -885,7 +1122,9 @@ namespace System.Numerics
 
         public static BigInteger Abs(BigInteger value)
         {
-            return new BigInteger((int)NumericsHelpers.Abs(value._sign), value._bits);
+            return value._bits is null
+                ? new BigInteger((int)NumericsHelpers.Abs(value._sign), null)
+                : new BigInteger(value._bits, AbsSign(value._sign));
         }
 
         public static BigInteger Add(BigInteger left, BigInteger right)
@@ -938,19 +1177,26 @@ namespace System.Numerics
 
             if (trivialDivisor)
             {
-                int size = dividend._bits.Length;
+                if (dividend.LimbOffset != 0 && TryDivideCompressedScalar(dividend, divisor._sign, out BigInteger compressedQuotient))
+                {
+                    remainder = s_zero;
+                    return compressedQuotient;
+                }
+
+                nuint[]? denseScalarDividend = dividend.LimbOffset == 0 ? null : dividend.ToDenseMagnitude();
+                ReadOnlySpan<nuint> scalarDividendBits = denseScalarDividend ?? dividend._bits;
+                int size = scalarDividendBits.Length;
                 Span<nuint> quotient = RentedBuffer.Create(size, out RentedBuffer quotientBuffer);
                 using var _ = quotientBuffer;
 
                 // may throw DivideByZeroException
-                BigIntegerCalculator.Divide(dividend._bits, NumericsHelpers.Abs(divisor._sign), quotient, out nuint rest);
+                BigIntegerCalculator.Divide(scalarDividendBits, NumericsHelpers.Abs(divisor._sign), quotient, out nuint rest);
 
-                remainder = dividend._sign < 0 ? -(long)rest : (long)rest;
-                return new BigInteger(quotient, (dividend._sign < 0) ^ (divisor._sign < 0));
+                remainder = dividend.HasNegativeSign ? -(long)rest : (long)rest;
+                return new BigInteger(quotient, HaveDifferentPolarity(dividend._sign, divisor._sign));
             }
 
             Debug.Assert(divisor._bits is not null);
-
             if (TryGetPowerOfTwoExponent(divisor, out int powerOfTwoExponent))
             {
                 BigInteger quotient = DivideByPowerOfTwo(dividend, divisor, powerOfTwoExponent);
@@ -958,11 +1204,11 @@ namespace System.Numerics
                 return quotient;
             }
 
-            int commonOffset = dividend._bits[0] == 0 && divisor._bits[0] == 0
-                ? BigIntegerCalculator.GetCommonLimbOffset(dividend._bits, divisor._bits)
-                : 0;
-            ReadOnlySpan<nuint> dividendBits = dividend._bits.AsSpan(commonOffset);
-            ReadOnlySpan<nuint> divisorBits = divisor._bits.AsSpan(commonOffset);
+            int commonOffset = Math.Min(dividend.LimbOffset, divisor.LimbOffset);
+            nuint[]? denseDividend = dividend.LimbOffset == commonOffset ? null : dividend.ToDenseMagnitude(commonOffset);
+            nuint[]? denseDivisor = divisor.LimbOffset == commonOffset ? null : divisor.ToDenseMagnitude(commonOffset);
+            ReadOnlySpan<nuint> dividendBits = denseDividend ?? dividend._bits;
+            ReadOnlySpan<nuint> divisorBits = denseDivisor ?? divisor._bits;
 
             if (dividendBits.Length < divisorBits.Length)
             {
@@ -971,24 +1217,23 @@ namespace System.Numerics
             }
             else
             {
-                int size = dividend._bits.Length;
+                int size = dividendBits.Length;
                 Span<nuint> rest = RentedBuffer.Create(size, out RentedBuffer restBuffer);
 
                 size = dividendBits.Length - divisorBits.Length + 1;
                 Span<nuint> quotient = RentedBuffer.Create(size, out RentedBuffer quotientBuffer);
 
-                Span<nuint> remainderBits = rest.Slice(commonOffset, dividendBits.Length);
                 if (ShouldUseSpecialDivision(dividendBits, divisorBits))
                 {
-                    BigIntegerCalculator.DivideSpecial(dividendBits, divisorBits, quotient, remainderBits);
+                    BigIntegerCalculator.DivideSpecial(dividendBits, divisorBits, quotient, rest);
                 }
                 else
                 {
-                    BigIntegerCalculator.Divide(dividendBits, divisorBits, quotient, remainderBits);
+                    BigIntegerCalculator.Divide(dividendBits, divisorBits, quotient, rest);
                 }
 
-                remainder = new(rest, dividend._sign < 0);
-                BigInteger result = new(quotient, (dividend._sign < 0) ^ (divisor._sign < 0));
+                remainder = new BigInteger(rest, dividend.HasNegativeSign, commonOffset);
+                BigInteger result = new(quotient, HaveDifferentPolarity(dividend._sign, divisor._sign));
 
                 restBuffer.Dispose();
                 quotientBuffer.Dispose();
@@ -1009,7 +1254,7 @@ namespace System.Numerics
 
         public static double Log(BigInteger value, double baseValue)
         {
-            if (value._sign < 0 || baseValue == 1.0D)
+            if (value.HasNegativeSign || baseValue == 1.0D)
             {
                 return double.NaN;
             }
@@ -1040,7 +1285,7 @@ namespace System.Numerics
                 m = value._bits.Length > 1 ? value._bits[^2] : 0;
 
                 c = BitOperations.LeadingZeroCount(h);
-                b = (long)value._bits.Length * 64 - c;
+                b = (long)value.LogicalLimbCount * 64 - c;
 
                 // Extract most significant 64 bits
                 x = c == 0 ? h : (h << c) | (m >> (64 - c));
@@ -1053,7 +1298,7 @@ namespace System.Numerics
 
                 // Measure the exact bit count
                 c = BitOperations.LeadingZeroCount((uint)h);
-                b = (long)value._bits.Length * 32 - c;
+                b = (long)value.LogicalLimbCount * 32 - c;
 
                 // Extract most significant bits
                 x = (h << 32 + c) | (m << c) | (l >> 32 - c);
@@ -1103,37 +1348,29 @@ namespace System.Numerics
             {
                 Debug.Assert(right._bits is not null);
                 return left._sign != 0
-                    ? BigIntegerCalculator.Gcd(right._bits, NumericsHelpers.Abs(left._sign))
-                    : new BigInteger(+1, right._bits);
+                    ? BigIntegerCalculator.Gcd(NumericsHelpers.Abs(left._sign), Remainder(right, NumericsHelpers.Abs(left._sign)))
+                    : Abs(right);
             }
 
             if (trivialRight)
             {
                 Debug.Assert(left._bits is not null);
                 return right._sign != 0
-                    ? BigIntegerCalculator.Gcd(left._bits, NumericsHelpers.Abs(right._sign))
-                    : new BigInteger(+1, left._bits);
+                    ? BigIntegerCalculator.Gcd(NumericsHelpers.Abs(right._sign), Remainder(left, NumericsHelpers.Abs(right._sign)))
+                    : Abs(left);
             }
 
             Debug.Assert(left._bits is not null && right._bits is not null);
-            return GreatestCommonDivisor(left._bits, right._bits);
+            int commonOffset = Math.Min(left.LimbOffset, right.LimbOffset);
+            nuint[] leftMagnitude = left.LimbOffset == commonOffset ? left._bits : left.ToDenseMagnitude(commonOffset);
+            nuint[] rightMagnitude = right.LimbOffset == commonOffset ? right._bits : right.ToDenseMagnitude(commonOffset);
+
+            return BigIntegerCalculator.Compare(leftMagnitude, rightMagnitude) < 0
+                ? GreatestCommonDivisor(rightMagnitude, leftMagnitude, commonOffset)
+                : GreatestCommonDivisor(leftMagnitude, rightMagnitude, commonOffset);
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static BigInteger GreatestCommonDivisor(nuint[] leftBits, nuint[] rightBits)
-        {
-            int commonOffset = leftBits[0] == 0 && rightBits[0] == 0
-                ? BigIntegerCalculator.GetCommonLimbOffset(leftBits, rightBits)
-                : 0;
-            ReadOnlySpan<nuint> reducedLeft = leftBits.AsSpan(commonOffset);
-            ReadOnlySpan<nuint> reducedRight = rightBits.AsSpan(commonOffset);
-
-            return BigIntegerCalculator.Compare(reducedLeft, reducedRight) < 0
-                ? GreatestCommonDivisor(reducedRight, reducedLeft, commonOffset)
-                : GreatestCommonDivisor(reducedLeft, reducedRight, commonOffset);
-        }
-
-        private static BigInteger GreatestCommonDivisor(ReadOnlySpan<nuint> leftBits, ReadOnlySpan<nuint> rightBits, int resultOffset)
+        private static BigInteger GreatestCommonDivisor(ReadOnlySpan<nuint> leftBits, ReadOnlySpan<nuint> rightBits, int limbOffset)
         {
             Debug.Assert(BigIntegerCalculator.Compare(leftBits, rightBits) >= 0);
 
@@ -1159,21 +1396,159 @@ namespace System.Numerics
             }
             else
             {
-                Span<nuint> bits = RentedBuffer.Create(leftBits.Length + resultOffset, out RentedBuffer bitsBuffer);
+                Span<nuint> bits = RentedBuffer.Create(leftBits.Length, out RentedBuffer bitsBuffer);
 
-                BigIntegerCalculator.Gcd(leftBits, rightBits, bits[resultOffset..]);
-                result = new BigInteger(bits, negative: false);
+                BigIntegerCalculator.Gcd(leftBits, rightBits, bits);
+                result = new BigInteger(bits, negative: false, limbOffset);
                 bitsBuffer.Dispose();
+                return result;
+            }
+
+            return result << checked(limbOffset * BigIntegerCalculator.BitsPerLimb);
+        }
+
+        private static nuint Remainder(BigInteger value, nuint divisor)
+        {
+            Debug.Assert(value._bits is not null);
+
+            nuint remainder = BigIntegerCalculator.Remainder(value._bits, divisor);
+            if (remainder == 0 || value.LimbOffset == 0)
+            {
+                return remainder;
+            }
+
+            if (value.LimbOffset <= 16)
+            {
+                nuint result = remainder;
+                for (int i = 0; i < value.LimbOffset; i++)
+                {
+                    BigIntegerCalculator.DivRem(result, 0, divisor, out result);
+                }
 
                 return result;
             }
 
-            if (resultOffset != 0)
+            nuint limbBase = nint.Size == 8
+                ? (nuint)(((UInt128)1 << 64) % divisor)
+                : (nuint)((1UL << 32) % divisor);
+            nuint factor = BigIntegerCalculator.Pow(limbBase, (nuint)value.LimbOffset, divisor);
+
+            return MultiplyMod(remainder, factor, divisor);
+        }
+
+        private static nuint MultiplyMod(nuint left, nuint right, nuint modulus)
+        {
+            return nint.Size == 8
+                ? (nuint)(((UInt128)left * right) % modulus)
+                : (nuint)(((ulong)left * right) % modulus);
+        }
+
+        private static bool TryDivideCompressedScalar(BigInteger dividend, int divisor, out BigInteger quotient)
+        {
+            Debug.Assert(dividend._bits is not null && dividend.LimbOffset != 0);
+
+            nuint divisorMagnitude = NumericsHelpers.Abs(divisor);
+            if (divisorMagnitude == 0)
             {
-                result <<= checked(resultOffset * BigIntegerCalculator.BitsPerLimb);
+                quotient = default;
+                return false;
             }
 
-            return result;
+            if (divisorMagnitude == 1)
+            {
+                quotient = divisor < 0 ? -dividend : dividend;
+                return true;
+            }
+
+            int shift = BitOperations.TrailingZeroCount(divisorMagnitude);
+            nuint oddDivisor = divisorMagnitude >> shift;
+            bool negative = HaveDifferentPolarity(dividend._sign, divisor);
+
+            if (oddDivisor == 1)
+            {
+                quotient = CreateCompressedScalarQuotient(dividend._bits, negative, dividend.LimbOffset, shift);
+            }
+            else if (dividend._bits.Length == 1)
+            {
+                nuint quotientLimb = dividend._bits[0] / oddDivisor;
+                if (quotientLimb * oddDivisor != dividend._bits[0])
+                {
+                    quotient = default;
+                    return false;
+                }
+
+                quotient = CreateCompressedScalarQuotient(quotientLimb, negative, dividend.LimbOffset, shift);
+            }
+            else
+            {
+                Span<nuint> bits = RentedBuffer.Create(dividend._bits.Length, out RentedBuffer bitsBuffer);
+                BigIntegerCalculator.Divide(dividend._bits, oddDivisor, bits, out nuint remainder);
+
+                if (remainder != 0)
+                {
+                    quotient = default;
+                    bitsBuffer.Dispose();
+                    return false;
+                }
+
+                quotient = CreateCompressedScalarQuotient(bits, negative, dividend.LimbOffset, shift);
+                bitsBuffer.Dispose();
+            }
+
+            return true;
+        }
+
+        private static BigInteger CreateCompressedScalarQuotient(nuint value, bool negative, int limbOffset, int shift)
+        {
+            if (shift == 0)
+            {
+                return new BigInteger(
+                    BitOperations.IsPow2(value) ? GetPowerOfTwoLimb(value) : [value],
+                    CreateEncodedSign(limbOffset, negative));
+            }
+
+            nuint low = value << (BigIntegerCalculator.BitsPerLimb - shift);
+            nuint high = value >> shift;
+
+            if (low == 0)
+            {
+                return new BigInteger(
+                    BitOperations.IsPow2(high) ? GetPowerOfTwoLimb(high) : [high],
+                    CreateEncodedSign(limbOffset, negative));
+            }
+
+            int resultOffset = limbOffset - 1;
+            if (high != 0)
+            {
+                return new BigInteger([low, high], CreateEncodedSign(resultOffset, negative));
+            }
+
+            if (resultOffset != 0 || low >= UInt32HighBit)
+            {
+                return new BigInteger(
+                    BitOperations.IsPow2(low) ? GetPowerOfTwoLimb(low) : [low],
+                    CreateEncodedSign(resultOffset, negative));
+            }
+
+            int sign = (int)low;
+            return new BigInteger(negative ? -sign : sign, null);
+        }
+
+        private static BigInteger CreateCompressedScalarQuotient(ReadOnlySpan<nuint> bits, bool negative, int limbOffset, int shift)
+        {
+            if (shift == 0)
+            {
+                return new BigInteger(bits, negative, limbOffset);
+            }
+
+            Span<nuint> shiftedBits = RentedBuffer.Create(bits.Length + 1, out RentedBuffer shiftedBitsBuffer);
+            bits.CopyTo(shiftedBits);
+            BigIntegerCalculator.LeftShiftSelf(shiftedBits[..bits.Length], BigIntegerCalculator.BitsPerLimb - shift, out nuint carry);
+            shiftedBits[^1] = carry;
+            BigInteger quotient = new(shiftedBits, negative, limbOffset - 1);
+            shiftedBitsBuffer.Dispose();
+
+            return quotient;
         }
 
         public static BigInteger Max(BigInteger left, BigInteger right)
@@ -1203,47 +1578,24 @@ namespace System.Numerics
             }
 
             ReadOnlySpan<nuint> bits = value._bits;
+            int topIndex = bits.Length - 1;
+            nuint top = bits[topIndex];
 
-            if (bits[0] != 0)
-            {
-                if (bits.Length == 1 && BitOperations.IsPow2(bits[0]))
-                {
-                    exponent = BitOperations.TrailingZeroCount(bits[0]);
-                    return true;
-                }
-
-                exponent = 0;
-                return false;
-            }
-
-            if (!BitOperations.IsPow2(bits[^1]))
+            if (!BitOperations.IsPow2(top) || bits[..topIndex].ContainsAnyExcept(0u))
             {
                 exponent = 0;
                 return false;
             }
 
-            int nonZeroIndex = bits.IndexOfAnyExcept((nuint)0);
-            if (nonZeroIndex != bits.Length - 1)
-            {
-                exponent = 0;
-                return false;
-            }
-
-            exponent = checked((nonZeroIndex * BigIntegerCalculator.BitsPerLimb)
-                + BitOperations.TrailingZeroCount(bits[^1]));
+            exponent = checked(((value.LimbOffset + topIndex) * BigIntegerCalculator.BitsPerLimb)
+                + BitOperations.TrailingZeroCount(top));
             return true;
-        }
-
-        private static BigInteger CreatePowerOfTwo(int exponent, bool negative)
-        {
-            BigInteger result = s_one << exponent;
-            return negative ? -result : result;
         }
 
         private static BigInteger DivideByPowerOfTwo(BigInteger dividend, BigInteger divisor, int exponent)
         {
-            bool negative = (dividend._sign < 0) != (divisor._sign < 0);
-            BigInteger magnitude = dividend._sign < 0 ? -dividend : dividend;
+            bool negative = HaveDifferentPolarity(dividend._sign, divisor._sign);
+            BigInteger magnitude = dividend.HasNegativeSign ? -dividend : dividend;
             BigInteger quotient = magnitude >> exponent;
             return negative ? -quotient : quotient;
         }
@@ -1257,25 +1609,31 @@ namespace System.Numerics
                 return s_zero;
             }
 
-            ReadOnlySpan<nuint> dividendBits = dividend._bits;
             int bitsPerLimb = BigIntegerCalculator.BitsPerLimb;
-            int topBits = bitsPerLimb - BitOperations.LeadingZeroCount(dividendBits[^1]);
-            long bitLength = ((long)dividendBits.Length - 1) * bitsPerLimb + topBits;
+            long offsetBits = (long)dividend.LimbOffset * bitsPerLimb;
+            if (exponent <= offsetBits)
+            {
+                return s_zero;
+            }
+
+            int topBits = bitsPerLimb - BitOperations.LeadingZeroCount(dividend._bits[^1]);
+            long bitLength = ((long)dividend.LogicalLimbCount - 1) * bitsPerLimb + topBits;
             if (exponent >= bitLength)
             {
                 return dividend;
             }
 
-            int limbCount = Math.DivRem(exponent, bitsPerLimb, out int partialBits);
+            int storedBitCount = checked((int)(exponent - offsetBits));
+            int storedLimbCount = Math.DivRem(storedBitCount, bitsPerLimb, out int partialBits);
             if (partialBits == 0)
             {
-                return new BigInteger(dividendBits[..limbCount], dividend._sign < 0);
+                return new BigInteger(dividend._bits.AsSpan(0, storedLimbCount), dividend.HasNegativeSign, dividend.LimbOffset);
             }
 
-            Span<nuint> bits = RentedBuffer.Create(limbCount + 1, out RentedBuffer bitsBuffer);
-            dividendBits[..(limbCount + 1)].CopyTo(bits);
+            Span<nuint> bits = RentedBuffer.Create(storedLimbCount + 1, out RentedBuffer bitsBuffer);
+            dividend._bits.AsSpan(0, storedLimbCount + 1).CopyTo(bits);
             bits[^1] &= nuint.MaxValue >> (bitsPerLimb - partialBits);
-            BigInteger remainder = new(bits, dividend._sign < 0);
+            BigInteger remainder = new(bits, dividend.HasNegativeSign, dividend.LimbOffset);
             bitsBuffer.Dispose();
             return remainder;
         }
@@ -1318,7 +1676,7 @@ namespace System.Numerics
 
                 if (valueExponent == 0)
                 {
-                    return value._sign < 0 && !exponent.IsEven ? s_minusOne : s_one;
+                    return value.HasNegativeSign && !exponent.IsEven ? s_minusOne : s_one;
                 }
 
                 int maximumExponent = (modulusExponent - 1) / valueExponent;
@@ -1328,49 +1686,52 @@ namespace System.Numerics
                 }
 
                 int resultExponent = valueExponent * (int)exponent;
-                return CreatePowerOfTwo(resultExponent, value._sign < 0 && !exponent.IsEven);
+                return CreatePowerOfTwo(resultExponent, value.HasNegativeSign && !exponent.IsEven);
             }
 
             bool trivialValue = value._bits is null;
             bool trivialExponent = exponent._bits is null;
             bool trivialModulus = modulus._bits is null;
+            nuint[]? valueBits = trivialValue || (trivialExponent && trivialModulus) ? null : value.LimbOffset == 0 ? value._bits : value.ToDenseMagnitude();
+            nuint[]? exponentBits = trivialExponent ? null : exponent.LimbOffset == 0 ? exponent._bits : exponent.ToDenseMagnitude();
+            nuint[]? modulusBits = trivialModulus ? null : modulus.LimbOffset == 0 ? modulus._bits : modulus.ToDenseMagnitude();
 
             BigInteger result;
 
             if (trivialModulus)
             {
                 nuint bitsResult = trivialValue && trivialExponent ? BigIntegerCalculator.Pow(NumericsHelpers.Abs(value._sign), NumericsHelpers.Abs(exponent._sign), NumericsHelpers.Abs(modulus._sign)) :
-                    trivialValue ? BigIntegerCalculator.Pow(NumericsHelpers.Abs(value._sign), exponent._bits!, NumericsHelpers.Abs(modulus._sign)) :
-                    trivialExponent ? BigIntegerCalculator.Pow(value._bits!, NumericsHelpers.Abs(exponent._sign), NumericsHelpers.Abs(modulus._sign)) :
-                    BigIntegerCalculator.Pow(value._bits!, exponent._bits!, NumericsHelpers.Abs(modulus._sign));
+                    trivialValue ? BigIntegerCalculator.Pow(NumericsHelpers.Abs(value._sign), exponentBits, NumericsHelpers.Abs(modulus._sign)) :
+                    trivialExponent ? BigIntegerCalculator.Pow(Remainder(value, NumericsHelpers.Abs(modulus._sign)), NumericsHelpers.Abs(exponent._sign), NumericsHelpers.Abs(modulus._sign)) :
+                    BigIntegerCalculator.Pow(valueBits, exponentBits, NumericsHelpers.Abs(modulus._sign));
 
-                result = value._sign < 0 && !exponent.IsEven ? -(long)bitsResult : (long)bitsResult;
+                result = value.HasNegativeSign && !exponent.IsEven ? -(long)bitsResult : (long)bitsResult;
             }
             else
             {
-                int size = (modulus._bits?.Length ?? 1) << 1;
+                int size = (modulusBits?.Length ?? 1) << 1;
                 Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
                 if (trivialValue)
                 {
                     if (trivialExponent)
                     {
-                        BigIntegerCalculator.Pow(NumericsHelpers.Abs(value._sign), NumericsHelpers.Abs(exponent._sign), modulus._bits!, bits);
+                        BigIntegerCalculator.Pow(NumericsHelpers.Abs(value._sign), NumericsHelpers.Abs(exponent._sign), modulusBits, bits);
                     }
                     else
                     {
-                        BigIntegerCalculator.Pow(NumericsHelpers.Abs(value._sign), exponent._bits!, modulus._bits!, bits);
+                        BigIntegerCalculator.Pow(NumericsHelpers.Abs(value._sign), exponentBits, modulusBits, bits);
                     }
                 }
                 else if (trivialExponent)
                 {
-                    BigIntegerCalculator.Pow(value._bits!, NumericsHelpers.Abs(exponent._sign), modulus._bits!, bits);
+                    BigIntegerCalculator.Pow(valueBits, NumericsHelpers.Abs(exponent._sign), modulusBits, bits);
                 }
                 else
                 {
-                    BigIntegerCalculator.Pow(value._bits!, exponent._bits!, modulus._bits!, bits);
+                    BigIntegerCalculator.Pow(valueBits, exponentBits, modulusBits, bits);
                 }
 
-                result = new BigInteger(bits, value._sign < 0 && !exponent.IsEven);
+                result = new BigInteger(bits, value.HasNegativeSign && !exponent.IsEven);
 
                 bitsBuffer.Dispose();
             }
@@ -1395,7 +1756,7 @@ namespace System.Numerics
             if (TryGetPowerOfTwoExponent(value, out int powerOfTwoExponent))
             {
                 int resultExponent = checked(powerOfTwoExponent * exponent);
-                return CreatePowerOfTwo(resultExponent, value._sign < 0 && (exponent & 1) != 0);
+                return CreatePowerOfTwo(resultExponent, value.HasNegativeSign && (exponent & 1) != 0);
             }
 
             if (value.IsZero)
@@ -1442,7 +1803,7 @@ namespace System.Numerics
                     Span<nuint> genericBits = RentedBuffer.Create(genericSize, out RentedBuffer genericBuffer);
 
                     BigIntegerCalculator.Pow(magnitude, power, genericBits);
-                    result = new BigInteger(genericBits, value._sign < 0 && (exponent & 1) != 0);
+                    result = new BigInteger(genericBits, value.HasNegativeSign && (exponent & 1) != 0);
                     genericBuffer.Dispose();
                     return result;
                 }
@@ -1527,7 +1888,7 @@ namespace System.Numerics
                             exactPower <<= checked(shift * exponent);
                         }
 
-                        return value._sign < 0 && (exponent & 1) != 0 ? -exactPower : exactPower;
+                        return value.HasNegativeSign && (exponent & 1) != 0 ? -exactPower : exactPower;
                     }
                 }
 
@@ -1657,7 +2018,7 @@ namespace System.Numerics
                     BigIntegerCalculator.Pow(magnitude, power, bits);
                 }
 
-                result = new BigInteger(bits, value._sign < 0 && (exponent & 1) != 0);
+                result = new BigInteger(bits, value.HasNegativeSign && (exponent & 1) != 0);
                 bitsBuffer.Dispose();
             }
             else
@@ -1666,7 +2027,8 @@ namespace System.Numerics
                 Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
 
                 BigIntegerCalculator.Pow(value._bits, power, bits);
-                result = new BigInteger(bits, value._sign < 0 && (exponent & 1) != 0);
+                int limbOffset = checked(value.LimbOffset * exponent);
+                result = new BigInteger(bits, value.HasNegativeSign && (exponent & 1) != 0, limbOffset);
                 bitsBuffer.Dispose();
             }
 
@@ -1700,7 +2062,7 @@ namespace System.Numerics
 
             int cu;
             int maxLimbs = sizeof(long) / nint.Size;
-            if ((_sign ^ other) < 0 || (cu = _bits.Length) > maxLimbs)
+            if (HaveDifferentPolarity(_sign, other) || (cu = LogicalLimbCount) > maxLimbs)
             {
                 return false;
             }
@@ -1709,20 +2071,20 @@ namespace System.Numerics
 
             if (nint.Size == 8)
             {
-                return _bits[0] == uu;
+                return GetLimb(0) == uu;
             }
             else
             {
                 return cu == 1
-                    ? (uint)_bits[0] == uu
-                    : ((ulong)(uint)_bits[1] << 32 | (uint)_bits[0]) == uu;
+                    ? (uint)GetLimb(0) == uu
+                    : ((ulong)(uint)GetLimb(1) << 32 | (uint)GetLimb(0)) == uu;
             }
         }
 
         [CLSCompliant(false)]
         public bool Equals(ulong other)
         {
-            if (_sign < 0)
+            if (HasNegativeSign)
             {
                 return false;
             }
@@ -1732,7 +2094,7 @@ namespace System.Numerics
                 return (ulong)_sign == other;
             }
 
-            int cu = _bits.Length;
+            int cu = LogicalLimbCount;
             int maxLimbs = sizeof(long) / nint.Size;
             if (cu > maxLimbs)
             {
@@ -1741,13 +2103,13 @@ namespace System.Numerics
 
             if (nint.Size == 8)
             {
-                return _bits[0] == other;
+                return GetLimb(0) == other;
             }
             else
             {
                 return cu == 1
-                    ? (uint)_bits[0] == other
-                    : ((ulong)(uint)_bits[1] << 32 | (uint)_bits[0]) == other;
+                    ? (uint)GetLimb(0) == other
+                    : ((ulong)(uint)GetLimb(1) << 32 | (uint)GetLimb(0)) == other;
             }
         }
 
@@ -1765,9 +2127,9 @@ namespace System.Numerics
 
             int cu;
             int maxLimbs = sizeof(long) / nint.Size;
-            if ((_sign ^ other) < 0 || (cu = _bits.Length) > maxLimbs)
+            if (HaveDifferentPolarity(_sign, other) || (cu = LogicalLimbCount) > maxLimbs)
             {
-                return _sign;
+                return HasNegativeSign ? -1 : +1;
             }
 
             ulong uu = other < 0 ? (ulong)-other : (ulong)other;
@@ -1775,22 +2137,23 @@ namespace System.Numerics
 
             if (nint.Size == 8)
             {
-                uuTmp = _bits[0];
+                uuTmp = GetLimb(0);
             }
             else
             {
                 uuTmp = cu == 2
-                    ? ((ulong)(uint)_bits[1] << 32 | (uint)_bits[0])
-                    : (uint)_bits[0];
+                    ? ((ulong)(uint)GetLimb(1) << 32 | (uint)GetLimb(0))
+                    : (uint)GetLimb(0);
             }
 
-            return _sign * uuTmp.CompareTo(uu);
+            int result = uuTmp.CompareTo(uu);
+            return HasNegativeSign ? -result : result;
         }
 
         [CLSCompliant(false)]
         public int CompareTo(ulong other)
         {
-            if (_sign < 0)
+            if (HasNegativeSign)
             {
                 return -1;
             }
@@ -1800,7 +2163,7 @@ namespace System.Numerics
                 return ((ulong)(uint)_sign).CompareTo(other);
             }
 
-            int cu = _bits.Length;
+            int cu = LogicalLimbCount;
             int maxLimbs = sizeof(long) / nint.Size;
             if (cu > maxLimbs)
             {
@@ -1811,13 +2174,13 @@ namespace System.Numerics
 
             if (nint.Size == 8)
             {
-                uuTmp = _bits[0];
+                uuTmp = GetLimb(0);
             }
             else
             {
                 uuTmp = cu == 2
-                    ? ((ulong)(uint)_bits[1] << 32 | (uint)_bits[0])
-                    : (uint)_bits[0];
+                    ? ((ulong)(uint)GetLimb(1) << 32 | (uint)GetLimb(0))
+                    : (uint)GetLimb(0);
             }
 
             return uuTmp.CompareTo(other);
@@ -1825,17 +2188,17 @@ namespace System.Numerics
 
         public int CompareTo(BigInteger other)
         {
-            if ((_sign ^ other._sign) < 0)
+            if (HaveDifferentPolarity(_sign, other._sign))
             {
                 // Different signs, so the comparison is easy.
-                return _sign < 0 ? -1 : +1;
+                return HasNegativeSign ? -1 : +1;
             }
 
             // Same signs
             if (_bits is null)
             {
                 return
-                    other._bits is not null ? -other._sign :
+                    other._bits is not null ? (other.HasNegativeSign ? +1 : -1) :
                     _sign < other._sign ? -1 :
                     _sign > other._sign ? +1 :
                     0;
@@ -1843,11 +2206,44 @@ namespace System.Numerics
 
             if (other._bits is null)
             {
-                return _sign;
+                return HasNegativeSign ? -1 : +1;
             }
 
-            int bitsResult = BigIntegerCalculator.Compare(_bits, other._bits);
-            return _sign < 0 ? -bitsResult : bitsResult;
+            int bitsResult = CompareMagnitude(this, other);
+            return HasNegativeSign ? -bitsResult : bitsResult;
+        }
+
+        private static int CompareMagnitude(BigInteger left, BigInteger right)
+        {
+            Debug.Assert(left._bits is not null && right._bits is not null);
+
+            if (DecodeLimbOffset(left._sign) == 0 && DecodeLimbOffset(right._sign) == 0)
+            {
+                return BigIntegerCalculator.Compare(left._bits, right._bits);
+            }
+
+            int lengthResult = left.LogicalLimbCount.CompareTo(right.LogicalLimbCount);
+            if (lengthResult != 0)
+            {
+                return lengthResult;
+            }
+
+            if (left.LimbOffset == right.LimbOffset)
+            {
+                return BigIntegerCalculator.Compare(left._bits, right._bits);
+            }
+
+            int firstLimb = Math.Min(left.LimbOffset, right.LimbOffset);
+            for (int i = left.LogicalLimbCount - 1; i >= firstLimb; i--)
+            {
+                int limbResult = left.GetLimb(i).CompareTo(right.GetLimb(i));
+                if (limbResult != 0)
+                {
+                    return limbResult;
+                }
+            }
+
+            return 0;
         }
 
         public int CompareTo(object? obj)
@@ -1978,7 +2374,8 @@ namespace System.Numerics
             Debug.Assert(mode == GetBytesMode.Span || destination.IsEmpty, $"If we're not in span mode, we shouldn't have been passed a destination.");
 
             int sign = _sign;
-            if (sign == 0)
+            nuint[]? bits = _bits;
+            if (IsZeroSign(bits, sign))
             {
                 switch (mode)
                 {
@@ -2001,7 +2398,7 @@ namespace System.Numerics
                 }
             }
 
-            if (isUnsigned && sign < 0)
+            if (isUnsigned && IsNegativeSign(sign))
             {
                 throw new OverflowException(SR.Overflow_Negative_Unsigned);
             }
@@ -2010,17 +2407,16 @@ namespace System.Numerics
             byte highByte;
             int nonZeroLimbIndex = 0;
             nuint highLimb;
-            nuint[]? bits = _bits;
             if (bits is null)
             {
                 highByte = (byte)((sign < 0) ? 0xff : 0x00);
                 highLimb = (nuint)sign;
             }
-            else if (sign == -1)
+            else if (IsNegativeSign(sign))
             {
                 highByte = 0xff;
 
-                // If sign is -1, we will need to two's complement bits.
+                // For a negative value, we will need to two's complement bits.
                 // Previously this was accomplished via NumericsHelpers.DangerousMakeTwosComplement(),
                 // however, we can do the two's complement on the stack so as to avoid
                 // creating a temporary copy of bits just to hold the two's complement.
@@ -2031,10 +2427,10 @@ namespace System.Numerics
                 // would be encoded as _bits = null and _sign = 0.
                 Debug.Assert(bits.Length > 0);
                 Debug.Assert(bits[^1] != 0);
-                nonZeroLimbIndex = ((ReadOnlySpan<nuint>)bits).IndexOfAnyExcept(0u);
+                nonZeroLimbIndex = LimbOffset;
 
                 highLimb = ~bits[^1];
-                if (bits.Length - 1 == nonZeroLimbIndex)
+                if (LogicalLimbCount - 1 == nonZeroLimbIndex)
                 {
                     // This will not overflow because highLimb is less than or equal to nuint.MaxValue - 1.
                     Debug.Assert(highLimb <= nuint.MaxValue - 1);
@@ -2043,7 +2439,6 @@ namespace System.Numerics
             }
             else
             {
-                Debug.Assert(sign == 1);
                 highByte = 0x00;
                 highLimb = bits[^1];
             }
@@ -2072,7 +2467,7 @@ namespace System.Numerics
             int length = msbIndex + 1 + (needExtraByte ? 1 : 0);
             if (bits is not null)
             {
-                length = checked(bytesPerLimb * (bits.Length - 1) + length);
+                length = checked(bytesPerLimb * (LogicalLimbCount - 1) + length);
             }
 
             byte[] array;
@@ -2102,30 +2497,42 @@ namespace System.Numerics
 
             if (bits is not null)
             {
-                if (BitConverter.IsLittleEndian && sign > 0)
+                if (BitConverter.IsLittleEndian && !IsNegativeSign(sign))
                 {
+                    int offsetBytes = checked(LimbOffset * bytesPerLimb);
                     ReadOnlySpan<byte> srcBytes = MemoryMarshal.AsBytes(bits.AsSpan(..^1));
 
                     if (isBigEndian)
                     {
-                        curByte = length - srcBytes.Length;
+                        if (mode == GetBytesMode.Span)
+                        {
+                            destination.Slice(length - offsetBytes, offsetBytes).Clear();
+                        }
+
+                        curByte = length - offsetBytes - srcBytes.Length;
                         Span<byte> destBytes = destination.Slice(curByte, srcBytes.Length);
                         srcBytes.CopyTo(destBytes);
                         destBytes.Reverse();
                     }
                     else
                     {
-                        srcBytes.CopyTo(destination);
-                        curByte = srcBytes.Length;
+                        if (mode == GetBytesMode.Span)
+                        {
+                            destination[..offsetBytes].Clear();
+                        }
+
+                        srcBytes.CopyTo(destination[offsetBytes..]);
+                        curByte = offsetBytes + srcBytes.Length;
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < bits.Length - 1; i++)
+                    int logicalLimbCount = LogicalLimbCount;
+                    for (int i = 0; i < logicalLimbCount - 1; i++)
                     {
-                        nuint limb = bits[i];
+                        nuint limb = GetLimb(i);
 
-                        if (sign == -1)
+                        if (IsNegativeSign(sign))
                         {
                             limb = ~limb;
                             if (i <= nonZeroLimbIndex)
@@ -2186,20 +2593,20 @@ namespace System.Numerics
         /// <returns>The actual number of copied elements.</returns>
         private int WriteTo(Span<nuint> buffer)
         {
-            Debug.Assert(_bits is null || _sign == 0 ? buffer.Length == 2 : buffer.Length >= _bits.Length + 1);
+            Debug.Assert(_bits is null ? buffer.Length == 2 : buffer.Length >= LogicalLimbCount + 1);
 
             nuint highLimb;
 
             if (_bits is null)
             {
                 buffer[0] = (nuint)_sign;
-                highLimb = (_sign < 0) ? nuint.MaxValue : 0;
+                highLimb = HasNegativeSign ? nuint.MaxValue : 0;
             }
             else
             {
-                _bits.CopyTo(buffer);
-                buffer = buffer.Slice(0, _bits.Length + 1);
-                if (_sign == -1)
+                buffer = buffer.Slice(0, LogicalLimbCount + 1);
+                CopyMagnitudeTo(buffer);
+                if (HasNegativeSign)
                 {
                     NumericsHelpers.DangerousMakeTwosComplement(buffer.Slice(0, buffer.Length - 1));  // Mutates limbs
                     highLimb = nuint.MaxValue;
@@ -2261,7 +2668,7 @@ namespace System.Numerics
 
                 // Use ToString for small values
 
-                if ((_bits is null) || (_bits.Length <= 4))
+                if ((_bits is null) || (LogicalLimbCount <= 4))
                 {
                     return ToString();
                 }
@@ -2277,12 +2684,12 @@ namespace System.Numerics
                 if (nint.Size == 8)
                 {
                     highBits = _bits[^1];
-                    lowBitsCount = _bits.Length - 1;
+                    lowBitsCount = LogicalLimbCount - 1;
                 }
                 else
                 {
-                    highBits = ((ulong)_bits[^1] << BitsPerUInt32) + (uint)_bits[^2];
-                    lowBitsCount = _bits.Length - 2;
+                    highBits = ((ulong)_bits[^1] << BitsPerUInt32) + (_bits.Length > 1 ? (uint)_bits[^2] : 0);
+                    lowBitsCount = LogicalLimbCount - 2;
                 }
 
                 double exponentLow = lowBitsCount * bitsPerLimb * Log10Of2;
@@ -2312,7 +2719,7 @@ namespace System.Numerics
                     exponent++;
                 }
 
-                string signStr = _sign < 0 ? NumberFormatInfo.CurrentInfo.NegativeSign : "";
+                string signStr = HasNegativeSign ? NumberFormatInfo.CurrentInfo.NegativeSign : "";
 
                 // Use about a half of the precision of double
                 return $"{signStr}{significand:F8}e+{exponent}";
@@ -2331,66 +2738,56 @@ namespace System.Numerics
 
         private static BigInteger Add(ReadOnlySpan<nuint> leftBits, int leftSign, ReadOnlySpan<nuint> rightBits, int rightSign)
         {
-            bool trivialLeft = leftBits.IsEmpty;
-            bool trivialRight = rightBits.IsEmpty;
+            int leftOffset = GetLimbOffset(leftBits, leftSign);
+            int rightOffset = GetLimbOffset(rightBits, rightSign);
+            int resultOffset = Math.Min(leftOffset, rightOffset);
 
-            Debug.Assert(!(trivialLeft && trivialRight), "Trivial cases should be handled on the caller operator");
-
-            if (leftBits.Length > AddSubtractZeroLimbThreshold
-                && rightBits.Length > AddSubtractZeroLimbThreshold
-                && leftBits[0] == 0
-                && rightBits[0] == 0
-                && TryAddWithCommonLimbOffset(leftBits, leftSign, rightBits, out BigInteger fastResult))
+            if (leftOffset == rightOffset)
             {
+                int fastSize = Math.Max(leftBits.Length, rightBits.Length) + 1;
+                Span<nuint> fastBits = RentedBuffer.Create(fastSize, out RentedBuffer fastBitsBuffer);
+
+                if (leftBits.IsEmpty)
+                {
+                    BigIntegerCalculator.Add(rightBits, NumericsHelpers.Abs(leftSign), fastBits);
+                }
+                else if (rightBits.IsEmpty)
+                {
+                    BigIntegerCalculator.Add(leftBits, NumericsHelpers.Abs(rightSign), fastBits);
+                }
+                else if (leftBits.Length < rightBits.Length)
+                {
+                    BigIntegerCalculator.Add(rightBits, leftBits, fastBits);
+                }
+                else
+                {
+                    BigIntegerCalculator.Add(leftBits, rightBits, fastBits);
+                }
+
+                BigInteger fastResult = new(fastBits, IsNegativeSign(leftSign), resultOffset);
+                fastBitsBuffer.Dispose();
                 return fastResult;
             }
 
-            BigInteger result;
+            int logicalLength = Math.Max(GetLogicalLimbCount(leftBits, leftSign), GetLogicalLimbCount(rightBits, rightSign));
+            int size = checked(logicalLength - resultOffset + 1);
+            Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
 
-            if (trivialLeft)
+            nuint carry = 0;
+            for (int i = resultOffset; i < logicalLength; i++)
             {
-                Debug.Assert(!rightBits.IsEmpty);
-
-                int size = rightBits.Length + 1;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Add(rightBits, NumericsHelpers.Abs(leftSign), bits);
-                result = new BigInteger(bits, leftSign < 0);
-                bitsBuffer.Dispose();
+                nuint left = GetLimbAtOffset(leftBits, leftSign, leftOffset, i);
+                nuint right = GetLimbAtOffset(rightBits, rightSign, rightOffset, i);
+                nuint sum = left + carry;
+                carry = sum < left ? 1u : 0u;
+                sum += right;
+                carry |= sum < right ? 1u : 0u;
+                bits[i - resultOffset] = sum;
             }
-            else if (trivialRight)
-            {
-                Debug.Assert(!leftBits.IsEmpty);
 
-                int size = leftBits.Length + 1;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Add(leftBits, NumericsHelpers.Abs(rightSign), bits);
-                result = new BigInteger(bits, leftSign < 0);
-                bitsBuffer.Dispose();
-            }
-            else if (leftBits.Length < rightBits.Length)
-            {
-                Debug.Assert(!leftBits.IsEmpty && !rightBits.IsEmpty);
-
-                int size = rightBits.Length + 1;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Add(rightBits, leftBits, bits);
-                result = new BigInteger(bits, leftSign < 0);
-                bitsBuffer.Dispose();
-            }
-            else
-            {
-                Debug.Assert(!leftBits.IsEmpty && !rightBits.IsEmpty);
-
-                int size = leftBits.Length + 1;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Add(leftBits, rightBits, bits);
-                result = new BigInteger(bits, leftSign < 0);
-                bitsBuffer.Dispose();
-            }
+            bits[^1] = carry;
+            BigInteger result = new BigInteger(bits, IsNegativeSign(leftSign), resultOffset);
+            bitsBuffer.Dispose();
 
             return result;
         }
@@ -2402,134 +2799,148 @@ namespace System.Numerics
                 return (long)left._sign - right._sign;
             }
 
-            return left._sign < 0 != right._sign < 0
-                ? Add(left._bits, left._sign, right._bits, -right._sign)
+            return HaveDifferentPolarity(left._sign, right._sign)
+                ? Add(left._bits, left._sign, right._bits, NegateSign(right._bits, right._sign))
                 : Subtract(left._bits, left._sign, right._bits, right._sign);
         }
 
         private static BigInteger Subtract(ReadOnlySpan<nuint> leftBits, int leftSign, ReadOnlySpan<nuint> rightBits, int rightSign)
         {
-            bool trivialLeft = leftBits.IsEmpty;
-            bool trivialRight = rightBits.IsEmpty;
+            int leftOffset = GetLimbOffset(leftBits, leftSign);
+            int rightOffset = GetLimbOffset(rightBits, rightSign);
 
-            Debug.Assert(!(trivialLeft && trivialRight), "Trivial cases should be handled on the caller operator");
-
-            if (leftBits.Length > AddSubtractZeroLimbThreshold
-                && rightBits.Length > AddSubtractZeroLimbThreshold
-                && leftBits[0] == 0
-                && rightBits[0] == 0
-                && TrySubtractWithCommonLimbOffset(leftBits, leftSign, rightBits, out BigInteger fastResult))
+            if (leftOffset == rightOffset)
             {
-                return fastResult;
+                bool trivialLeft = leftBits.IsEmpty;
+                bool trivialRight = rightBits.IsEmpty;
+
+                if (trivialLeft)
+                {
+                    Span<nuint> fastBits = RentedBuffer.Create(rightBits.Length, out RentedBuffer fastBitsBuffer);
+                    BigIntegerCalculator.Subtract(rightBits, NumericsHelpers.Abs(leftSign), fastBits);
+                    BigInteger fastResult = new(fastBits, IsPositiveSign(leftSign), leftOffset);
+                    fastBitsBuffer.Dispose();
+                    return fastResult;
+                }
+
+                if (trivialRight)
+                {
+                    Span<nuint> fastBits = RentedBuffer.Create(leftBits.Length, out RentedBuffer fastBitsBuffer);
+                    BigIntegerCalculator.Subtract(leftBits, NumericsHelpers.Abs(rightSign), fastBits);
+                    BigInteger fastResult = new(fastBits, IsNegativeSign(leftSign), leftOffset);
+                    fastBitsBuffer.Dispose();
+                    return fastResult;
+                }
+
+                if (BigIntegerCalculator.Compare(leftBits, rightBits) < 0)
+                {
+                    Span<nuint> fastBits = RentedBuffer.Create(rightBits.Length, out RentedBuffer fastBitsBuffer);
+                    BigIntegerCalculator.Subtract(rightBits, leftBits, fastBits);
+                    BigInteger fastResult = new(fastBits, IsPositiveSign(leftSign), leftOffset);
+                    fastBitsBuffer.Dispose();
+                    return fastResult;
+                }
+                else
+                {
+                    Span<nuint> fastBits = RentedBuffer.Create(leftBits.Length, out RentedBuffer fastBitsBuffer);
+                    BigIntegerCalculator.Subtract(leftBits, rightBits, fastBits);
+                    BigInteger fastResult = new(fastBits, IsNegativeSign(leftSign), leftOffset);
+                    fastBitsBuffer.Dispose();
+                    return fastResult;
+                }
             }
 
-            BigInteger result;
+            int compare = CompareMagnitude(leftBits, leftSign, rightBits, rightSign);
+            ReadOnlySpan<nuint> largeBits = compare >= 0 ? leftBits : rightBits;
+            int largeSign = compare >= 0 ? leftSign : rightSign;
+            ReadOnlySpan<nuint> smallBits = compare >= 0 ? rightBits : leftBits;
+            int smallSign = compare >= 0 ? rightSign : leftSign;
 
-            if (trivialLeft)
+            int largeOffset = GetLimbOffset(largeBits, largeSign);
+            int smallOffset = GetLimbOffset(smallBits, smallSign);
+            int resultOffset = Math.Min(largeOffset, smallOffset);
+            int logicalLength = GetLogicalLimbCount(largeBits, largeSign);
+            int size = logicalLength - resultOffset;
+            Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
+
+            nuint borrow = 0;
+            for (int i = resultOffset; i < logicalLength; i++)
             {
-                Debug.Assert(!rightBits.IsEmpty);
-
-                int size = rightBits.Length;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Subtract(rightBits, NumericsHelpers.Abs(leftSign), bits);
-                result = new BigInteger(bits, leftSign >= 0);
-                bitsBuffer.Dispose();
+                nuint large = GetLimbAtOffset(largeBits, largeSign, largeOffset, i);
+                nuint small = GetLimbAtOffset(smallBits, smallSign, smallOffset, i);
+                nuint difference = large - small;
+                nuint nextBorrow = large < small ? 1u : 0u;
+                nuint resultLimb = difference - borrow;
+                nextBorrow |= difference < borrow ? 1u : 0u;
+                bits[i - resultOffset] = resultLimb;
+                borrow = nextBorrow;
             }
-            else if (trivialRight)
-            {
-                Debug.Assert(!leftBits.IsEmpty);
 
-                int size = leftBits.Length;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Subtract(leftBits, NumericsHelpers.Abs(rightSign), bits);
-                result = new BigInteger(bits, leftSign < 0);
-                bitsBuffer.Dispose();
-            }
-            else if (BigIntegerCalculator.Compare(leftBits, rightBits) < 0)
-            {
-                int size = rightBits.Length;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Subtract(rightBits, leftBits, bits);
-                result = new BigInteger(bits, leftSign >= 0);
-                bitsBuffer.Dispose();
-            }
-            else
-            {
-                Debug.Assert(!leftBits.IsEmpty && !rightBits.IsEmpty);
-
-                int size = leftBits.Length;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Subtract(leftBits, rightBits, bits);
-                result = new BigInteger(bits, leftSign < 0);
-                bitsBuffer.Dispose();
-            }
+            Debug.Assert(borrow == 0);
+            bool negative = compare >= 0 ? IsNegativeSign(leftSign) : IsPositiveSign(leftSign);
+            BigInteger result = new BigInteger(bits, negative, resultOffset);
+            bitsBuffer.Dispose();
 
             return result;
         }
 
-        private static bool TryAddWithCommonLimbOffset(
-            ReadOnlySpan<nuint> leftBits,
-            int leftSign,
-            ReadOnlySpan<nuint> rightBits,
-            out BigInteger result)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetLogicalLimbCount(ReadOnlySpan<nuint> bits, int sign)
         {
-            int commonOffset = BigIntegerCalculator.GetCommonLimbOffset(leftBits, rightBits);
-            if (commonOffset < AddSubtractZeroLimbThreshold)
-            {
-                result = default;
-                return false;
-            }
-
-            ReadOnlySpan<nuint> reducedLeft = leftBits[commonOffset..];
-            ReadOnlySpan<nuint> reducedRight = rightBits[commonOffset..];
-            int size = Math.Max(leftBits.Length, rightBits.Length) + 1;
-            Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-            Span<nuint> reducedBits = bits[commonOffset..];
-
-            if (reducedLeft.Length < reducedRight.Length)
-            {
-                BigIntegerCalculator.Add(reducedRight, reducedLeft, reducedBits);
-            }
-            else
-            {
-                BigIntegerCalculator.Add(reducedLeft, reducedRight, reducedBits);
-            }
-
-            result = new BigInteger(bits, leftSign < 0);
-            bitsBuffer.Dispose();
-            return true;
+            return bits.IsEmpty ? 1 : checked(bits.Length + GetLimbOffset(bits, sign));
         }
 
-        private static bool TrySubtractWithCommonLimbOffset(
-            ReadOnlySpan<nuint> leftBits,
-            int leftSign,
-            ReadOnlySpan<nuint> rightBits,
-            out BigInteger result)
+        private static nuint GetLimb(ReadOnlySpan<nuint> bits, int sign, int index)
         {
-            int commonOffset = BigIntegerCalculator.GetCommonLimbOffset(leftBits, rightBits);
-            if (commonOffset < AddSubtractZeroLimbThreshold)
+            if (bits.IsEmpty)
             {
-                result = default;
-                return false;
+                return index == 0 ? NumericsHelpers.Abs(sign) : 0;
             }
 
-            ReadOnlySpan<nuint> reducedLeft = leftBits[commonOffset..];
-            ReadOnlySpan<nuint> reducedRight = rightBits[commonOffset..];
-            int compare = BigIntegerCalculator.Compare(reducedLeft, reducedRight);
-            ReadOnlySpan<nuint> large = compare < 0 ? reducedRight : reducedLeft;
-            ReadOnlySpan<nuint> small = compare < 0 ? reducedLeft : reducedRight;
-            int size = Math.Max(leftBits.Length, rightBits.Length);
-            Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
+            return GetLimbAtOffset(bits, GetLimbOffset(bits, sign), index);
+        }
 
-            BigIntegerCalculator.Subtract(large, small, bits.Slice(commonOffset, large.Length));
+        private static nuint GetLimbAtOffset(ReadOnlySpan<nuint> bits, int limbOffset, int index)
+        {
+            int storedIndex = index - limbOffset;
+            return (uint)storedIndex < (uint)bits.Length ? bits[storedIndex] : 0;
+        }
 
-            result = new BigInteger(bits, compare < 0 ? leftSign >= 0 : leftSign < 0);
-            bitsBuffer.Dispose();
-            return true;
+        private static nuint GetLimbAtOffset(ReadOnlySpan<nuint> bits, int sign, int limbOffset, int index)
+        {
+            return bits.IsEmpty
+                ? index == 0 ? NumericsHelpers.Abs(sign) : 0
+                : GetLimbAtOffset(bits, limbOffset, index);
+        }
+
+        private static int CompareMagnitude(ReadOnlySpan<nuint> leftBits, int leftSign, ReadOnlySpan<nuint> rightBits, int rightSign)
+        {
+            int leftLength = GetLogicalLimbCount(leftBits, leftSign);
+            int rightLength = GetLogicalLimbCount(rightBits, rightSign);
+            int lengthResult = leftLength.CompareTo(rightLength);
+            if (lengthResult != 0)
+            {
+                return lengthResult;
+            }
+
+            int leftOffset = GetLimbOffset(leftBits, leftSign);
+            int rightOffset = GetLimbOffset(rightBits, rightSign);
+
+            if (leftOffset == rightOffset && !leftBits.IsEmpty && !rightBits.IsEmpty)
+            {
+                return BigIntegerCalculator.Compare(leftBits, rightBits);
+            }
+
+            int firstLimb = Math.Min(leftOffset, rightOffset);
+            for (int i = leftLength - 1; i >= firstLimb; i--)
+            {
+                int limbResult = GetLimbAtOffset(leftBits, leftSign, leftOffset, i).CompareTo(GetLimbAtOffset(rightBits, rightSign, rightOffset, i));
+                if (limbResult != 0)
+                {
+                    return limbResult;
+                }
+            }
+            return 0;
         }
 
         //
@@ -2567,10 +2978,10 @@ namespace System.Numerics
             // rounded ulong -> double conversion, which the hardware handles far more cheaply than
             // the general limb scan below. Anything wider falls through to that scan, which stays
             // cheap until the lower limbs actually have to be examined for rounding.
-            if (bits.Length <= 64 / BigIntegerCalculator.BitsPerLimb)
+            if (value.LogicalLimbCount <= 64 / BigIntegerCalculator.BitsPerLimb)
             {
-                double result = (double)ToUInt64(bits);
-                return sign < 0 ? -result : result;
+                double result = (double)ToUInt64(value);
+                return IsNegativeSign(sign) ? -result : result;
             }
 
             return ConvertToDouble(value, precision: 53);
@@ -2596,7 +3007,7 @@ namespace System.Numerics
                 return sign;
             }
 
-            int length = bits.Length;
+            int length = value.LogicalLimbCount;
             int bitsPerLimb = BigIntegerCalculator.BitsPerLimb;
 
             // The maximum exponent for doubles is 1023, which corresponds to a limb bit length of 1024.
@@ -2605,7 +3016,7 @@ namespace System.Numerics
 
             if (length > infinityLength)
             {
-                return sign == 1 ? double.PositiveInfinity : double.NegativeInfinity;
+                return IsNegativeSign(sign) ? double.NegativeInfinity : double.PositiveInfinity;
             }
 
             // Gather the top 64 significant bits of the magnitude into `man`, with the most
@@ -2623,8 +3034,8 @@ namespace System.Numerics
 
             if (nint.Size == 8)
             {
-                ulong h = bits[length - 1];
-                ulong m = length > 1 ? bits[length - 2] : 0;
+                ulong h = bits[^1];
+                ulong m = bits.Length > 1 ? bits[^2] : 0;
 
                 int z = BitOperations.LeadingZeroCount(h);
                 topBit = (length - 1) * 64 + (63 - z);
@@ -2633,13 +3044,13 @@ namespace System.Numerics
                 // Any bits of `m` not captured in `man` are sticky; lower limbs are scanned later.
                 ulong mLow = z == 0 ? m : (m & ((1UL << (64 - z)) - 1));
                 sticky = mLow != 0;
-                lowerLimbCount = length - 2;
+                lowerLimbCount = bits.Length - 2;
             }
             else
             {
-                ulong h = (uint)bits[length - 1];
-                ulong m = length > 1 ? (uint)bits[length - 2] : 0;
-                ulong l = length > 2 ? (uint)bits[length - 3] : 0;
+                ulong h = (uint)bits[^1];
+                ulong m = bits.Length > 1 ? (uint)bits[^2] : 0;
+                ulong l = bits.Length > 2 ? (uint)bits[^3] : 0;
 
                 int z = BitOperations.LeadingZeroCount((uint)h);
                 topBit = (length - 1) * 32 + (31 - z);
@@ -2648,7 +3059,7 @@ namespace System.Numerics
                 // Any bits of `l` not captured in `man` are sticky; lower limbs are scanned later.
                 ulong lLow = l & ((1UL << (32 - z)) - 1);
                 sticky = lLow != 0;
-                lowerLimbCount = length - 3;
+                lowerLimbCount = bits.Length - 3;
             }
 
             // `man` holds 64 bits with the leading 1 at bit 63. Keep the top `precision` bits as the
@@ -2684,7 +3095,7 @@ namespace System.Numerics
             if (biasedExp >= 0x7FF)
             {
                 // The rounded value is too large to represent as a finite double.
-                return sign == 1 ? double.PositiveInfinity : double.NegativeInfinity;
+                return IsNegativeSign(sign) ? double.NegativeInfinity : double.PositiveInfinity;
             }
 
             // `mantissa` holds `precision` significant bits with the leading 1 at bit `precision - 1`.
@@ -2703,15 +3114,16 @@ namespace System.Numerics
 
         // Reconstructs the unsigned magnitude of a bits[]-backed BigInteger that is known to fit in
         // 64 bits (a single 64-bit limb, or at most two 32-bit limbs).
-        private static ulong ToUInt64(nuint[] bits)
+        private static ulong ToUInt64(BigInteger value)
         {
-            Debug.Assert((uint)bits.Length <= 64 / BigIntegerCalculator.BitsPerLimb);
+            Debug.Assert(value._bits is not null);
+            Debug.Assert((uint)value.LogicalLimbCount <= 64 / BigIntegerCalculator.BitsPerLimb);
 
-            ulong result = bits[0];
+            ulong result = value.GetLimb(0);
 
-            if (BigIntegerCalculator.BitsPerLimb == 32 && bits.Length > 1)
+            if (BigIntegerCalculator.BitsPerLimb == 32 && value.LogicalLimbCount > 1)
             {
-                result |= (ulong)bits[1] << 32;
+                result |= (ulong)value.GetLimb(1) << 32;
             }
 
             return result;
@@ -2733,7 +3145,7 @@ namespace System.Numerics
             // Every bits[]-backed magnitude is at least 2^31, which is far outside Half's finite
             // range, so the result is always an infinity carrying the value's sign. There is no
             // finite Half to round to, so skip the limb scan entirely.
-            return sign < 0 ? Half.NegativeInfinity : Half.PositiveInfinity;
+            return IsNegativeSign(sign) ? Half.NegativeInfinity : Half.PositiveInfinity;
         }
 
         /// <summary>Explicitly converts a big integer to a <see cref="BFloat16" /> value.</summary>
@@ -2752,10 +3164,10 @@ namespace System.Numerics
             // Magnitudes up to 64 bits convert directly through the correctly rounded ulong ->
             // BFloat16 conversion. Wider magnitudes round directly at BFloat16's 8-bit significand,
             // so the narrowing cast is exact and cannot double round.
-            if (bits.Length <= 64 / BigIntegerCalculator.BitsPerLimb)
+            if (value.LogicalLimbCount <= 64 / BigIntegerCalculator.BitsPerLimb)
             {
-                BFloat16 result = (BFloat16)ToUInt64(bits);
-                return sign < 0 ? -result : result;
+                BFloat16 result = (BFloat16)ToUInt64(value);
+                return IsNegativeSign(sign) ? -result : result;
             }
 
             return (BFloat16)ConvertToDouble(value, precision: 8);
@@ -2770,24 +3182,24 @@ namespace System.Numerics
                 return value._sign;
             }
 
-            if (value._bits.Length > 1)
+            if (value.LogicalLimbCount > 1)
             {
                 // More than one limb
                 throw new OverflowException(SR.Overflow_Int32);
             }
 
-            if (value._sign > 0)
+            if (!IsNegativeSign(value._sign))
             {
-                return checked((int)value._bits[0]);
+                return checked((int)value.GetLimb(0));
             }
 
-            if (value._bits[0] > UInt32HighBit)
+            if (value.GetLimb(0) > UInt32HighBit)
             {
                 // Value > Int32.MinValue
                 throw new OverflowException(SR.Overflow_Int32);
             }
 
-            return -(int)value._bits[0];
+            return -(int)value.GetLimb(0);
         }
 
         public static explicit operator long(BigInteger value)
@@ -2797,7 +3209,7 @@ namespace System.Numerics
                 return value._sign;
             }
 
-            int len = value._bits.Length;
+            int len = value.LogicalLimbCount;
             int maxLimbs = sizeof(long) / nint.Size;
             if (len > maxLimbs)
             {
@@ -2808,17 +3220,18 @@ namespace System.Numerics
 
             if (nint.Size == 8)
             {
-                uu = value._bits[0];
+                uu = value.GetLimb(0);
             }
             else
             {
                 uu = len > 1
-                    ? ((ulong)(uint)value._bits[1] << 32 | (uint)value._bits[0])
-                    : (uint)value._bits[0];
+                    ? ((ulong)(uint)value.GetLimb(1) << 32 | (uint)value.GetLimb(0))
+                    : (uint)value.GetLimb(0);
             }
 
-            long ll = value._sign > 0 ? (long)uu : -(long)uu;
-            if ((ll > 0 && value._sign > 0) || (ll < 0 && value._sign < 0))
+            bool negative = IsNegativeSign(value._sign);
+            long ll = negative ? -(long)uu : (long)uu;
+            if ((ll > 0 && !negative) || (ll < 0 && negative))
             {
                 // Signs match, no overflow
                 return ll;
@@ -2837,7 +3250,7 @@ namespace System.Numerics
                 return value._sign;
             }
 
-            int len = value._bits.Length;
+            int len = value.LogicalLimbCount;
             int maxLimbs = 16 / nint.Size;
 
             if (len > maxLimbs)
@@ -2849,25 +3262,26 @@ namespace System.Numerics
 
             if (nint.Size == 8)
             {
-                uu = len > 1 ? new UInt128(value._bits[1], value._bits[0]) : (UInt128)(ulong)value._bits[0];
+                uu = len > 1 ? new UInt128(value.GetLimb(1), value.GetLimb(0)) : (UInt128)(ulong)value.GetLimb(0);
             }
             else if (len > 2)
             {
                 uu = new UInt128(
-                    ((ulong)((len > 3) ? (uint)value._bits[3] : 0) << 32 | (uint)value._bits[2]),
-                    ((ulong)(uint)value._bits[1] << 32 | (uint)value._bits[0])
+                    ((ulong)((len > 3) ? (uint)value.GetLimb(3) : 0) << 32 | (uint)value.GetLimb(2)),
+                    ((ulong)(uint)value.GetLimb(1) << 32 | (uint)value.GetLimb(0))
                 );
             }
             else
             {
                 uu = len > 1
-                    ? (UInt128)((ulong)(uint)value._bits[1] << 32 | (uint)value._bits[0])
-                    : (UInt128)(uint)value._bits[0];
+                    ? (UInt128)((ulong)(uint)value.GetLimb(1) << 32 | (uint)value.GetLimb(0))
+                    : (UInt128)(uint)value.GetLimb(0);
             }
 
-            Int128 ll = (value._sign > 0) ? (Int128)uu : -(Int128)uu;
+            bool negative = IsNegativeSign(value._sign);
+            Int128 ll = negative ? -(Int128)uu : (Int128)uu;
 
-            if (((ll > 0) && (value._sign > 0)) || ((ll < 0) && (value._sign < 0)))
+            if (((ll > 0) && !negative) || ((ll < 0) && negative))
             {
                 // Signs match, no overflow
                 return ll;
@@ -2899,10 +3313,10 @@ namespace System.Numerics
             // conversion. Wider magnitudes round directly at float's 24-bit significand, so the
             // narrowing cast is exact and cannot double round. Mono routes ulong -> float through
             // double, which double rounds, so it is excluded and always rounds directly below.
-            if (bits.Length <= 64 / BigIntegerCalculator.BitsPerLimb)
+            if (value.LogicalLimbCount <= 64 / BigIntegerCalculator.BitsPerLimb)
             {
-                float result = (float)ToUInt64(bits);
-                return sign < 0 ? -result : result;
+                float result = (float)ToUInt64(value);
+                return IsNegativeSign(sign) ? -result : result;
             }
 #endif
 
@@ -2923,8 +3337,8 @@ namespace System.Numerics
             }
             else
             {
-                return value._bits.Length <= 1 && value._sign >= 0
-                    ? checked((uint)value._bits[0])
+                return value.LogicalLimbCount <= 1 && !value.HasNegativeSign
+                    ? checked((uint)value.GetLimb(0))
                     : throw new OverflowException(SR.Overflow_UInt32);
             }
         }
@@ -2937,21 +3351,21 @@ namespace System.Numerics
                 return checked((ulong)value._sign);
             }
 
-            int len = value._bits.Length;
+            int len = value.LogicalLimbCount;
             int maxLimbs = sizeof(long) / nint.Size;
-            if (len > maxLimbs || value._sign < 0)
+            if (len > maxLimbs || value.HasNegativeSign)
             {
                 throw new OverflowException(SR.Overflow_UInt64);
             }
 
             if (nint.Size == 8)
             {
-                return value._bits[0];
+                return value.GetLimb(0);
             }
 
             return len > 1
-                ? ((ulong)(uint)value._bits[1] << 32 | (uint)value._bits[0])
-                : (uint)value._bits[0];
+                ? ((ulong)(uint)value.GetLimb(1) << 32 | (uint)value.GetLimb(0))
+                : (uint)value.GetLimb(0);
         }
 
         /// <summary>Explicitly converts a big integer to a <see cref="UInt128" /> value.</summary>
@@ -2965,10 +3379,10 @@ namespace System.Numerics
                 return checked((UInt128)value._sign);
             }
 
-            int len = value._bits.Length;
+            int len = value.LogicalLimbCount;
             int maxLimbs = 16 / nint.Size;
 
-            if ((len > maxLimbs) || (value._sign < 0))
+            if ((len > maxLimbs) || value.HasNegativeSign)
             {
                 throw new OverflowException(SR.Overflow_UInt128);
             }
@@ -2976,22 +3390,22 @@ namespace System.Numerics
             if (nint.Size == 8)
             {
                 return len > 1
-                    ? new UInt128(value._bits[1], value._bits[0])
-                    : (UInt128)(ulong)value._bits[0];
+                    ? new UInt128(value.GetLimb(1), value.GetLimb(0))
+                    : (UInt128)(ulong)value.GetLimb(0);
             }
             else if (len > 2)
             {
                 return new UInt128(
-                    ((ulong)((len > 3) ? (uint)value._bits[3] : 0) << 32 | (uint)value._bits[2]),
-                    ((ulong)(uint)value._bits[1] << 32 | (uint)value._bits[0])
+                    ((ulong)((len > 3) ? (uint)value.GetLimb(3) : 0) << 32 | (uint)value.GetLimb(2)),
+                    ((ulong)(uint)value.GetLimb(1) << 32 | (uint)value.GetLimb(0))
                 );
             }
             else if (len > 1)
             {
-                return ((ulong)(uint)value._bits[1] << 32 | (uint)value._bits[0]);
+                return ((ulong)(uint)value.GetLimb(1) << 32 | (uint)value.GetLimb(0));
             }
 
-            return (uint)value._bits[0];
+            return (uint)value.GetLimb(0);
         }
 
         /// <summary>Explicitly converts a big integer to a <see cref="UIntPtr" /> value.</summary>
@@ -3226,14 +3640,14 @@ namespace System.Numerics
         /// </summary>
         private static BigInteger BitwiseAnd(ref readonly BigInteger left, ref readonly BigInteger right)
         {
-            int xLen = left._bits?.Length ?? 1;
-            int yLen = right._bits?.Length ?? 1;
+            int xLen = left._bits is null ? 1 : left.LogicalLimbCount;
+            int yLen = right._bits is null ? 1 : right.LogicalLimbCount;
 
             // AND result length: for positive operands, min length suffices (AND with 0 = 0),
             // plus 1 for sign extension so the two's complement constructor doesn't
             // misinterpret a high bit in the top limb as a negative sign.
             // For negative operands (sign-extended with 1s), we need max length + 1 for sign.
-            int zLen = (left._sign < 0 || right._sign < 0)
+            int zLen = (left.HasNegativeSign || right.HasNegativeSign)
                 ? Math.Max(xLen, yLen) + 1
                 : Math.Min(xLen, yLen) + 1;
 
@@ -3245,8 +3659,8 @@ namespace System.Numerics
         /// </summary>
         private static BigInteger BitwiseOr(ref readonly BigInteger left, ref readonly BigInteger right)
         {
-            int xLen = left._bits?.Length ?? 1;
-            int yLen = right._bits?.Length ?? 1;
+            int xLen = left._bits is null ? 1 : left.LogicalLimbCount;
+            int yLen = right._bits is null ? 1 : right.LogicalLimbCount;
             return BitwiseOp<BigIntegerCalculator.BitwiseOrOp>(in left, in right, Math.Max(xLen, yLen) + 1);
         }
 
@@ -3255,8 +3669,8 @@ namespace System.Numerics
         /// </summary>
         private static BigInteger BitwiseXor(ref readonly BigInteger left, ref readonly BigInteger right)
         {
-            int xLen = left._bits?.Length ?? 1;
-            int yLen = right._bits?.Length ?? 1;
+            int xLen = left._bits is null ? 1 : left.LogicalLimbCount;
+            int yLen = right._bits is null ? 1 : right.LogicalLimbCount;
             return BitwiseOp<BigIntegerCalculator.BitwiseXorOp>(in left, in right, Math.Max(xLen, yLen) + 1);
         }
 
@@ -3266,8 +3680,8 @@ namespace System.Numerics
             Span<nuint> z = RentedBuffer.Create(zLen, out RentedBuffer zBuffer);
 
             BigIntegerCalculator.BitwiseOp<TOp>(
-                left._bits, left._sign,
-                right._bits, right._sign,
+                left._bits, left._sign, left.LimbOffset,
+                right._bits, right._sign, right.LimbOffset,
                 z);
 
             BigInteger result = new(z);
@@ -3301,6 +3715,11 @@ namespace System.Numerics
                 return LeftShift(value._sign, digitShift, smallShift);
             }
 
+            if (TryGetPowerOfTwoExponent(value, out int exponent))
+            {
+                return CreatePowerOfTwo(checked(exponent + shift), value.HasNegativeSign);
+            }
+
 
             ReadOnlySpan<nuint> bits = value._bits;
 
@@ -3312,12 +3731,7 @@ namespace System.Numerics
                 : bits[^1] >> (BigIntegerCalculator.BitsPerLimb - smallShift);
 
             nuint[] z;
-            if (digitShift > MaxLength - bits.Length)
-            {
-                ThrowHelper.ThrowOverflowException();
-            }
-
-            int zLength = bits.Length + digitShift;
+            int zLength = bits.Length;
             if (over != 0)
             {
                 if (zLength == MaxLength)
@@ -3333,7 +3747,7 @@ namespace System.Numerics
                 z = new nuint[zLength];
             }
 
-            Span<nuint> zd = z.AsSpan(digitShift, bits.Length);
+            Span<nuint> zd = z.AsSpan(0, bits.Length);
 
             bits.CopyTo(zd);
 
@@ -3342,7 +3756,18 @@ namespace System.Numerics
             Debug.Assert(carry == over);
             Debug.Assert(z[^1] != 0);
 
-            return new BigInteger(value._sign, z);
+            int limbOffset = checked(value.LimbOffset + digitShift);
+            if (limbOffset > MaxLength - z.Length)
+            {
+                ThrowHelper.ThrowOverflowException();
+            }
+
+            if (z[0] == 0)
+            {
+                return new BigInteger(z, value.HasNegativeSign, limbOffset);
+            }
+
+            return new BigInteger(z, CreateEncodedSign(limbOffset, value.HasNegativeSign));
         }
 
         private static BigInteger LeftShift(int value, int digitShift, int smallShift)
@@ -3354,41 +3779,47 @@ namespace System.Numerics
 
             nuint m = NumericsHelpers.Abs(value);
 
+            if (BitOperations.IsPow2(m))
+            {
+                int exponent = checked(BitOperations.TrailingZeroCount(m)
+                    + (digitShift * BigIntegerCalculator.BitsPerLimb)
+                    + smallShift);
+                return CreatePowerOfTwo(exponent, value < 0);
+            }
+
             nuint r = m << smallShift;
             nuint over = smallShift == 0
                 ? 0
                 : m >> (BigIntegerCalculator.BitsPerLimb - smallShift);
 
-            nuint[] rgu;
+            if (digitShift == 0 && over == 0 && r <= int.MaxValue)
+            {
+                return new BigInteger(value >= 0 ? (int)r : -(int)r, null);
+            }
+
+            nuint[] bits;
+            int limbOffset = digitShift;
 
             if (over == 0)
             {
-                if (digitShift == 0 && r <= int.MaxValue)
-                {
-                    return new BigInteger(value >= 0 ? (int)r : -(int)r, null);
-                }
-
-                if (digitShift >= MaxLength)
-                {
-                    ThrowHelper.ThrowOverflowException();
-                }
-
-                rgu = new nuint[digitShift + 1];
+                bits = [r];
+            }
+            else if (r == 0)
+            {
+                bits = [over];
+                limbOffset++;
             }
             else
             {
-                if (digitShift >= MaxLength - 1)
-                {
-                    ThrowHelper.ThrowOverflowException();
-                }
-
-                rgu = new nuint[digitShift + 2];
-                rgu[^1] = over;
+                bits = [r, over];
             }
 
-            rgu[digitShift] = r;
+            if (limbOffset > MaxLength - bits.Length)
+            {
+                ThrowHelper.ThrowOverflowException();
+            }
 
-            return new BigInteger(value > 0 ? 1 : -1, rgu);
+            return new BigInteger(bits, CreateEncodedSign(limbOffset, value < 0));
         }
 
         public static BigInteger operator >>(BigInteger value, int shift)
@@ -3427,11 +3858,30 @@ namespace System.Numerics
 
             Debug.Assert(bits.Length > 0);
 
+            int limbOffset = value.LimbOffset;
+            if (digitShift < limbOffset)
+            {
+                int remainingOffset = limbOffset - digitShift;
+                if (smallShift == 0)
+                {
+                    return new BigInteger(value._bits, CreateEncodedSign(remainingOffset, value.HasNegativeSign));
+                }
+
+                Span<nuint> shifted = RentedBuffer.Create(bits.Length + 1, out RentedBuffer shiftedBuffer);
+                bits.CopyTo(shifted);
+                BigIntegerCalculator.LeftShiftSelf(shifted, BigIntegerCalculator.BitsPerLimb - smallShift, out _);
+
+                BigInteger shiftedResult = new(shifted, value.HasNegativeSign, remainingOffset - 1);
+                shiftedBuffer.Dispose();
+                return shiftedResult;
+            }
+
+            digitShift -= limbOffset;
             int zLength = bits.Length - digitShift + 1;
 
             if (zLength <= 1)
             {
-                return new BigInteger(value._sign >> 31, null);
+                return new BigInteger(value.HasNegativeSign ? -1 : 0, null);
             }
 
             Span<nuint> zd = RentedBuffer.Create(zLength, out RentedBuffer zdBuffer);
@@ -3441,7 +3891,7 @@ namespace System.Numerics
 
             BigIntegerCalculator.RightShiftSelf(zd, smallShift, out nuint carry);
 
-            bool neg = value._sign < 0;
+            bool neg = value.HasNegativeSign;
             if (neg && (carry != 0 || bits.Slice(0, digitShift).ContainsAnyExcept(0u)))
             {
                 // Since right shift rounds towards zero, rounding up is performed
@@ -3461,39 +3911,68 @@ namespace System.Numerics
 
         public static BigInteger operator ~(BigInteger value)
         {
-            value.AssertValid();
-
             if (value._bits is null)
             {
-                return ~value._sign; // implicit int -> BigInteger handles int.MinValue
+                return ~value._sign;
             }
 
-            BigInteger result;
-
-            if (value._sign >= 0)
+            if (value.LimbOffset != 0)
             {
-                // ~positive = -(positive + 1): add 1 to magnitude, negate
-                int size = value._bits.Length + 1;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
+                return OnesComplementCompressed(value);
+            }
 
+            int size = value._bits.Length + (value.HasNegativeSign ? 0 : 1);
+            Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
+
+            if (!value.HasNegativeSign)
+            {
                 BigIntegerCalculator.Add(value._bits, 1, bits);
-                result = new BigInteger(bits, negative: true);
-                bitsBuffer.Dispose();
             }
             else
             {
-                // ~negative = |negative| - 1: subtract 1 from magnitude
-                Span<nuint> bits = RentedBuffer.Create(value._bits.Length, out RentedBuffer bitsBuffer);
-
                 BigIntegerCalculator.Subtract(value._bits, 1, bits);
-                result = new BigInteger(bits, negative: false);
-                bitsBuffer.Dispose();
             }
 
+            BigInteger result = new(bits, !value.HasNegativeSign);
+            bitsBuffer.Dispose();
             return result;
         }
 
-        public static BigInteger operator -(BigInteger value) => new BigInteger(-value._sign, value._bits);
+        private static BigInteger OnesComplementCompressed(BigInteger value)
+        {
+            Debug.Assert(value._bits is not null && value.LimbOffset != 0);
+
+            int offset = value.LimbOffset;
+            if (value.HasNegativeSign && value._bits.Length == 1 && value._bits[0] == 1)
+            {
+                nuint[] powerResult = new nuint[offset];
+                powerResult.AsSpan().Fill(nuint.MaxValue);
+                return new BigInteger(powerResult, negative: false);
+            }
+
+            nuint[] bits = new nuint[value.LogicalLimbCount];
+            if (!value.HasNegativeSign)
+            {
+                bits[0] = 1;
+            }
+            else
+            {
+                bits.AsSpan(0, offset).Fill(nuint.MaxValue);
+            }
+
+            value._bits.CopyTo(bits.AsSpan(offset));
+            if (value.HasNegativeSign)
+            {
+                bits[offset]--;
+            }
+
+            return new BigInteger(bits, !value.HasNegativeSign);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static BigInteger operator -(BigInteger value) => value._bits is null
+            ? new BigInteger(-value._sign, null)
+            : new BigInteger(value._bits, NegateSign(value._sign));
 
         public static BigInteger operator +(BigInteger value) => value;
 
@@ -3504,27 +3983,7 @@ namespace System.Numerics
                 return (long)value._sign + 1;
             }
 
-            BigInteger result;
-
-            if (value._sign >= 0)
-            {
-                int size = value._bits.Length + 1;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Add(value._bits, 1, bits);
-                result = new BigInteger(bits, negative: false);
-                bitsBuffer.Dispose();
-            }
-            else
-            {
-                Span<nuint> bits = RentedBuffer.Create(value._bits.Length, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Subtract(value._bits, 1, bits);
-                result = new BigInteger(bits, negative: true);
-                bitsBuffer.Dispose();
-            }
-
-            return result;
+            return value + One;
         }
 
         public static BigInteger operator --(BigInteger value)
@@ -3534,27 +3993,7 @@ namespace System.Numerics
                 return (long)value._sign - 1;
             }
 
-            BigInteger result;
-
-            if (value._sign >= 0)
-            {
-                Span<nuint> bits = RentedBuffer.Create(value._bits.Length, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Subtract(value._bits, 1, bits);
-                result = new BigInteger(bits, negative: false);
-                bitsBuffer.Dispose();
-            }
-            else
-            {
-                int size = value._bits.Length + 1;
-                Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
-
-                BigIntegerCalculator.Add(value._bits, 1, bits);
-                result = new BigInteger(bits, negative: true);
-                bitsBuffer.Dispose();
-            }
-
-            return result;
+            return value - One;
         }
 
         public static BigInteger operator +(BigInteger left, BigInteger right)
@@ -3564,8 +4003,8 @@ namespace System.Numerics
                 return (long)left._sign + right._sign;
             }
 
-            return left._sign < 0 != right._sign < 0
-                ? Subtract(left._bits, left._sign, right._bits, -right._sign)
+            return HaveDifferentPolarity(left._sign, right._sign)
+                ? Subtract(left._bits, left._sign, right._bits, NegateSign(right._bits, right._sign))
                 : Add(left._bits, left._sign, right._bits, right._sign);
         }
 
@@ -3579,13 +4018,13 @@ namespace System.Numerics
             if (TryGetPowerOfTwoExponent(left, out int exponent))
             {
                 BigInteger result = right << exponent;
-                return left._sign < 0 ? -result : result;
+                return left.HasNegativeSign ? -result : result;
             }
 
             if (TryGetPowerOfTwoExponent(right, out exponent))
             {
                 BigInteger result = left << exponent;
-                return right._sign < 0 ? -result : result;
+                return right.HasNegativeSign ? -result : result;
             }
 
             return Multiply(left._bits, left._sign, right._bits, right._sign);
@@ -3608,7 +4047,7 @@ namespace System.Numerics
                 Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
 
                 BigIntegerCalculator.Multiply(right, NumericsHelpers.Abs(leftSign), bits);
-                result = new BigInteger(bits, (leftSign < 0) ^ (rightSign < 0));
+                result = new BigInteger(bits, HaveDifferentPolarity(leftSign, rightSign), GetLimbOffset(right, rightSign));
                 bitsBuffer.Dispose();
             }
             else if (trivialRight)
@@ -3619,16 +4058,16 @@ namespace System.Numerics
                 Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
 
                 BigIntegerCalculator.Multiply(left, NumericsHelpers.Abs(rightSign), bits);
-                result = new BigInteger(bits, (leftSign < 0) ^ (rightSign < 0));
+                result = new BigInteger(bits, HaveDifferentPolarity(leftSign, rightSign), GetLimbOffset(left, leftSign));
                 bitsBuffer.Dispose();
             }
-            else if (left == right)
+            else if (left == right && GetLimbOffset(left, leftSign) == GetLimbOffset(right, rightSign))
             {
                 int size = left.Length + right.Length;
                 Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
 
                 BigIntegerCalculator.Square(left, bits);
-                result = new BigInteger(bits, (leftSign < 0) ^ (rightSign < 0));
+                result = new BigInteger(bits, HaveDifferentPolarity(leftSign, rightSign), checked(GetLimbOffset(left, leftSign) * 2));
                 bitsBuffer.Dispose();
             }
             else
@@ -3639,7 +4078,8 @@ namespace System.Numerics
                 Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
 
                 BigIntegerCalculator.Multiply(left, right, bits);
-                result = new BigInteger(bits, (leftSign < 0) ^ (rightSign < 0));
+                int limbOffset = checked(GetLimbOffset(left, leftSign) + GetLimbOffset(right, rightSign));
+                result = new BigInteger(bits, HaveDifferentPolarity(leftSign, rightSign), limbOffset);
                 bitsBuffer.Dispose();
             }
 
@@ -3666,14 +4106,21 @@ namespace System.Numerics
             if (trivialDivisor)
             {
                 Debug.Assert(dividend._bits is not null);
+                if (dividend.LimbOffset != 0 && TryDivideCompressedScalar(dividend, divisor._sign, out BigInteger compressedQuotient))
+                {
+                    return compressedQuotient;
+                }
 
-                int size = dividend._bits.Length;
+                nuint[]? denseDividend = dividend.LimbOffset == 0 ? null : dividend.ToDenseMagnitude();
+                ReadOnlySpan<nuint> dividendBits = denseDividend ?? dividend._bits;
+
+                int size = dividendBits.Length;
                 Span<nuint> quotient = RentedBuffer.Create(size, out RentedBuffer quotientBuffer);
 
                 //may throw DivideByZeroException
-                BigIntegerCalculator.Divide(dividend._bits, NumericsHelpers.Abs(divisor._sign), quotient);
+                BigIntegerCalculator.Divide(dividendBits, NumericsHelpers.Abs(divisor._sign), quotient);
 
-                BigInteger result = new BigInteger(quotient, (dividend._sign < 0) ^ (divisor._sign < 0));
+                BigInteger result = new BigInteger(quotient, HaveDifferentPolarity(dividend._sign, divisor._sign));
 
                 quotientBuffer.Dispose();
 
@@ -3681,36 +4128,35 @@ namespace System.Numerics
             }
 
             Debug.Assert(dividend._bits is not null && divisor._bits is not null);
-
             if (TryGetPowerOfTwoExponent(divisor, out int powerOfTwoExponent))
             {
                 return DivideByPowerOfTwo(dividend, divisor, powerOfTwoExponent);
             }
 
-            int commonOffset = dividend._bits[0] == 0 && divisor._bits[0] == 0
-                ? BigIntegerCalculator.GetCommonLimbOffset(dividend._bits, divisor._bits)
-                : 0;
-            ReadOnlySpan<nuint> dividendBits = dividend._bits.AsSpan(commonOffset);
-            ReadOnlySpan<nuint> divisorBits = divisor._bits.AsSpan(commonOffset);
+            int commonOffset = Math.Min(dividend.LimbOffset, divisor.LimbOffset);
+            nuint[]? denseDividendBits = dividend.LimbOffset == commonOffset ? null : dividend.ToDenseMagnitude(commonOffset);
+            nuint[]? denseDivisorBits = divisor.LimbOffset == commonOffset ? null : divisor.ToDenseMagnitude(commonOffset);
+            ReadOnlySpan<nuint> dividendBitsSpan = denseDividendBits ?? dividend._bits;
+            ReadOnlySpan<nuint> divisorBitsSpan = denseDivisorBits ?? divisor._bits;
 
-            if (dividendBits.Length < divisorBits.Length)
+            if (dividendBitsSpan.Length < divisorBitsSpan.Length)
             {
                 return s_zero;
             }
             else
             {
-                int size = dividendBits.Length - divisorBits.Length + 1;
+                int size = dividendBitsSpan.Length - divisorBitsSpan.Length + 1;
                 Span<nuint> quotient = RentedBuffer.Create(size, out RentedBuffer quotientBuffer);
 
-                if (ShouldUseSpecialDivision(dividendBits, divisorBits))
+                if (ShouldUseSpecialDivision(dividendBitsSpan, divisorBitsSpan))
                 {
-                    BigIntegerCalculator.DivideSpecial(dividendBits, divisorBits, quotient);
+                    BigIntegerCalculator.DivideSpecial(dividendBitsSpan, divisorBitsSpan, quotient);
                 }
                 else
                 {
-                    BigIntegerCalculator.Divide(dividendBits, divisorBits, quotient);
+                    BigIntegerCalculator.Divide(dividendBitsSpan, divisorBitsSpan, quotient);
                 }
-                BigInteger result = new(quotient, (dividend._sign < 0) ^ (divisor._sign < 0));
+                BigInteger result = new(quotient, HaveDifferentPolarity(dividend._sign, divisor._sign));
 
                 quotientBuffer.Dispose();
 
@@ -3738,41 +4184,39 @@ namespace System.Numerics
             if (trivialDivisor)
             {
                 Debug.Assert(dividend._bits is not null);
-                nuint remainder = BigIntegerCalculator.Remainder(dividend._bits, NumericsHelpers.Abs(divisor._sign));
-                return dividend._sign < 0 ? -(long)remainder : (long)remainder;
+                nuint remainder = Remainder(dividend, NumericsHelpers.Abs(divisor._sign));
+                return dividend.HasNegativeSign ? -(long)remainder : (long)remainder;
             }
 
             Debug.Assert(dividend._bits is not null && divisor._bits is not null);
-
             if (TryGetPowerOfTwoExponent(divisor, out int powerOfTwoExponent))
             {
                 return RemainderByPowerOfTwo(dividend, powerOfTwoExponent);
             }
 
-            int commonOffset = dividend._bits[0] == 0 && divisor._bits[0] == 0
-                ? BigIntegerCalculator.GetCommonLimbOffset(dividend._bits, divisor._bits)
-                : 0;
-            ReadOnlySpan<nuint> dividendBits = dividend._bits.AsSpan(commonOffset);
-            ReadOnlySpan<nuint> divisorBits = divisor._bits.AsSpan(commonOffset);
+            int commonOffset = Math.Min(dividend.LimbOffset, divisor.LimbOffset);
+            nuint[]? denseDividendBits = dividend.LimbOffset == commonOffset ? null : dividend.ToDenseMagnitude(commonOffset);
+            nuint[]? denseDivisorBits = divisor.LimbOffset == commonOffset ? null : divisor.ToDenseMagnitude(commonOffset);
+            ReadOnlySpan<nuint> dividendBitsSpan = denseDividendBits ?? dividend._bits;
+            ReadOnlySpan<nuint> divisorBitsSpan = denseDivisorBits ?? divisor._bits;
 
-            if (dividendBits.Length < divisorBits.Length)
+            if (dividendBitsSpan.Length < divisorBitsSpan.Length)
             {
                 return dividend;
             }
 
-            int size = dividend._bits.Length;
+            int size = dividendBitsSpan.Length;
             Span<nuint> bits = RentedBuffer.Create(size, out RentedBuffer bitsBuffer);
 
-            Span<nuint> remainderBits = bits.Slice(commonOffset, dividendBits.Length);
-            if (ShouldUseSpecialDivision(dividendBits, divisorBits))
+            if (ShouldUseSpecialDivision(dividendBitsSpan, divisorBitsSpan))
             {
-                BigIntegerCalculator.RemainderSpecial(dividendBits, divisorBits, remainderBits);
+                BigIntegerCalculator.RemainderSpecial(dividendBitsSpan, divisorBitsSpan, bits);
             }
             else
             {
-                BigIntegerCalculator.Remainder(dividendBits, divisorBits, remainderBits);
+                BigIntegerCalculator.Remainder(dividendBitsSpan, divisorBitsSpan, bits);
             }
-            BigInteger result = new(bits, dividend._sign < 0);
+            BigInteger result = new(bits, dividend.HasNegativeSign, commonOffset);
 
             bitsBuffer.Dispose();
 
@@ -3873,14 +4317,14 @@ namespace System.Numerics
             }
             else
             {
-                bitsArrayLength = bits.Length;
-                highValue = bits[bitsArrayLength - 1];
+                bitsArrayLength = LogicalLimbCount;
+                highValue = bits[^1];
             }
 
             long bitLength = (long)bitsArrayLength * BigIntegerCalculator.BitsPerLimb -
                 BitOperations.LeadingZeroCount(highValue);
 
-            if (sign >= 0)
+            if (IsPositiveSign(sign))
             {
                 return bitLength;
             }
@@ -3894,7 +4338,7 @@ namespace System.Numerics
             }
 
             // Check the rest of the bits (if present)
-            return bits.AsSpan(0, bitsArrayLength - 1).ContainsAnyExcept(0u) ? bitLength : bitLength - 1;
+            return bits is not null && bits.AsSpan(0, bits.Length - 1).ContainsAnyExcept(0u) ? bitLength : bitLength - 1;
         }
 
         [Conditional("DEBUG")]
@@ -3902,16 +4346,16 @@ namespace System.Numerics
         {
             if (_bits is not null)
             {
-                // _sign must be +1 or -1 when _bits is non-null
-                Debug.Assert(_sign is 1 or -1);
                 // _bits must contain at least 1 element or be null
                 Debug.Assert(_bits.Length > 0);
+                // Wasted space: low zero limbs should be encoded in _sign
+                Debug.Assert(_bits[0] != 0);
                 // Wasted space: _bits[0] could have been packed into _sign
-                Debug.Assert(_bits.Length > 1 || _bits[0] > int.MaxValue);
+                Debug.Assert(LimbOffset != 0 || _bits.Length > 1 || _bits[0] > int.MaxValue);
                 // Wasted space: leading zeros could have been truncated
                 Debug.Assert(_bits[^1] != 0);
                 // Arrays larger than this can't fit into a Span<byte>
-                Debug.Assert(_bits.Length <= MaxLength);
+                Debug.Assert(LogicalLimbCount <= MaxLength);
             }
             else
             {
@@ -3979,7 +4423,7 @@ namespace System.Numerics
             }
 
             // When negative, two's complement has infinite sign-extension of 1-bits, so LZC is always 0.
-            if (value._sign < 0)
+            if (value.HasNegativeSign)
             {
                 return 0;
             }
@@ -4000,7 +4444,7 @@ namespace System.Numerics
 
             ulong result = 0;
 
-            if (value._sign >= 0)
+            if (!value.HasNegativeSign)
             {
                 // When the value is positive, we simply need to do a popcount for all bits
 
@@ -4053,7 +4497,7 @@ namespace System.Numerics
                 return value;
             }
 
-            bool neg = value._sign < 0;
+            bool neg = value.HasNegativeSign;
 
             if (value._bits is null)
             {
@@ -4063,7 +4507,7 @@ namespace System.Numerics
                     : new BigInteger(rs);
             }
 
-            return Rotate(value._bits, neg, rotateAmount);
+            return Rotate(value._bits, value.LimbOffset, neg, rotateAmount);
         }
 
         /// <inheritdoc cref="IBinaryInteger{TSelf}.RotateRight(TSelf, int)" />
@@ -4074,7 +4518,7 @@ namespace System.Numerics
                 return value;
             }
 
-            bool neg = value._sign < 0;
+            bool neg = value.HasNegativeSign;
 
             if (value._bits is null)
             {
@@ -4084,10 +4528,10 @@ namespace System.Numerics
                     : new BigInteger(rs);
             }
 
-            return Rotate(value._bits, neg, -(long)rotateAmount);
+            return Rotate(value._bits, value.LimbOffset, neg, -(long)rotateAmount);
         }
 
-        private static BigInteger Rotate(ReadOnlySpan<nuint> bits, bool negative, long rotateLeftAmount)
+        private static BigInteger Rotate(ReadOnlySpan<nuint> bits, int limbOffset, bool negative, long rotateLeftAmount)
         {
             Debug.Assert(bits.Length > 0);
             Debug.Assert(Math.Abs(rotateLeftAmount) <= 0x80000000);
@@ -4096,7 +4540,7 @@ namespace System.Numerics
             {
                 // On 32-bit, nuint and uint are the same width so the standard nuint
                 // rotation algorithm (with BitsPerLimb = 32) is directly correct.
-                return RotateNuint(bits, negative, rotateLeftAmount);
+                return RotateNuint(bits, limbOffset, negative, rotateLeftAmount);
             }
 
             // On 64-bit, each nuint limb is 64 bits, but the rotation ring width must
@@ -4104,13 +4548,14 @@ namespace System.Numerics
             // may hold only one significant 32-bit word (upper 32 bits zero).
 
             // Count effective 32-bit words.
-            int wordCount = bits.Length * 2;
+            int logicalLimbCount = limbOffset + bits.Length;
+            int wordCount = logicalLimbCount * 2;
             bool halfLimb = (uint)(bits[^1] >> BitsPerUInt32) == 0;
             if (halfLimb) wordCount--;
 
             // Determine if sign extension adds a 32-bit word.
             int zWordCount = wordCount;
-            int firstNonZeroLimb = negative ? bits.IndexOfAnyExcept((nuint)0) : 0;
+            int firstNonZeroLimb = negative ? limbOffset : 0;
 
             if (negative)
             {
@@ -4123,8 +4568,8 @@ namespace System.Numerics
                 {
                     // Sign extension needed unless value is exactly -2^(wordCount*32-1).
                     bool isMinValue = halfLimb
-                        ? ((uint)bits[^1] == UInt32HighBit && firstNonZeroLimb == bits.Length - 1)
-                        : (bits[^1] == ((nuint)UInt32HighBit << BitsPerUInt32) && firstNonZeroLimb == bits.Length - 1);
+                        ? ((uint)bits[^1] == UInt32HighBit && firstNonZeroLimb == logicalLimbCount - 1)
+                        : (bits[^1] == ((nuint)UInt32HighBit << BitsPerUInt32) && firstNonZeroLimb == logicalLimbCount - 1);
 
                     if (!isMinValue)
                         ++zWordCount;
@@ -4136,8 +4581,7 @@ namespace System.Numerics
             bool resultHalfLimb = (zWordCount & 1) != 0;
 
             Span<nuint> zd = RentedBuffer.Create(zLimbCount, out RentedBuffer zdBuffer);
-            zd.Slice(bits.Length).Clear();
-            bits.CopyTo(zd);
+            bits.CopyTo(zd[limbOffset..]);
 
             // Two's complement conversion at nuint level.
             if (negative)
@@ -4299,23 +4743,22 @@ namespace System.Numerics
         /// Rotation using the standard nuint algorithm. Only correct on 32-bit where
         /// nuint and uint have the same width (BitsPerLimb = 32).
         /// </summary>
-        private static BigInteger RotateNuint(ReadOnlySpan<nuint> bits, bool negative, long rotateLeftAmount)
+        private static BigInteger RotateNuint(ReadOnlySpan<nuint> bits, int limbOffset, bool negative, long rotateLeftAmount)
         {
             Debug.Assert(!Environment.Is64BitProcess);
 
-            int zLength = bits.Length;
-            int leadingZeroCount = negative ? bits.IndexOfAnyExcept((nuint)0) : 0;
+            int zLength = limbOffset + bits.Length;
+            int leadingZeroCount = negative ? limbOffset : 0;
 
             if (negative && (nint)bits[^1] < 0
-                && (leadingZeroCount != bits.Length - 1 || bits[^1] != ((nuint)1 << (BigIntegerCalculator.BitsPerLimb - 1))))
+                && (leadingZeroCount != zLength - 1 || bits[^1] != ((nuint)1 << (BigIntegerCalculator.BitsPerLimb - 1))))
             {
                 ++zLength;
             }
 
             Span<nuint> zd = RentedBuffer.Create(zLength, out RentedBuffer zdBuffer);
 
-            zd[^1] = 0;
-            bits.CopyTo(zd);
+            bits.CopyTo(zd[limbOffset..]);
 
             if (negative)
             {
@@ -4359,17 +4802,8 @@ namespace System.Numerics
             // Both positive values and their two's-complement negative representation will share the same TrailingZeroCount,
             // so the sign of value does not matter and both cases can be handled in the same way
 
-            nuint part = value._bits[0];
-            int zeroLimbCount = 0;
-
-            for (int i = 1; (part == 0) && (i < value._bits.Length); i++)
-            {
-                part = value._bits[i];
-                zeroLimbCount++;
-            }
-
-            return checked((zeroLimbCount * BigIntegerCalculator.BitsPerLimb)
-                + BitOperations.TrailingZeroCount(part));
+            return checked((value.LimbOffset * BigIntegerCalculator.BitsPerLimb)
+                + BitOperations.TrailingZeroCount(value._bits[0]));
         }
 
         /// <inheritdoc cref="IBinaryInteger{TSelf}.TryReadBigEndian(ReadOnlySpan{byte}, bool, out TSelf)" />
@@ -4398,9 +4832,9 @@ namespace System.Numerics
                 return value >= 0 ? 32 - BitOperations.LeadingZeroCount((uint)value) : 33 - BitOperations.LeadingZeroCount(~(uint)value);
             }
 
-            int result = (bits.Length - 1) * BigIntegerCalculator.BitsPerLimb;
+            int result = (LogicalLimbCount - 1) * BigIntegerCalculator.BitsPerLimb;
 
-            if (_sign >= 0)
+            if (!HasNegativeSign)
             {
                 result += BigIntegerCalculator.BitsPerLimb - BitOperations.LeadingZeroCount(bits[^1]);
             }
@@ -4430,6 +4864,10 @@ namespace System.Numerics
         bool IBinaryInteger<BigInteger>.TryWriteBigEndian(Span<byte> destination, out int bytesWritten)
         {
             nuint[]? bits = _bits;
+            if (LimbOffset != 0)
+            {
+                bits = ToDenseMagnitude();
+            }
 
             int byteCount = GetGenericMathByteCount();
 
@@ -4439,7 +4877,7 @@ namespace System.Numerics
                 {
                     BinaryPrimitives.WriteIntPtrBigEndian(destination, _sign);
                 }
-                else if (_sign >= 0)
+                else if (!HasNegativeSign)
                 {
                     // When the value is positive, we simply need to copy all bits as big endian
 
@@ -4508,6 +4946,10 @@ namespace System.Numerics
         bool IBinaryInteger<BigInteger>.TryWriteLittleEndian(Span<byte> destination, out int bytesWritten)
         {
             nuint[]? bits = _bits;
+            if (LimbOffset != 0)
+            {
+                bits = ToDenseMagnitude();
+            }
 
             int byteCount = GetGenericMathByteCount();
 
@@ -4517,7 +4959,7 @@ namespace System.Numerics
                 {
                     BinaryPrimitives.WriteIntPtrLittleEndian(destination, _sign);
                 }
-                else if (_sign >= 0)
+                else if (!HasNegativeSign)
                 {
                     // When the value is positive, we simply need to copy all bits as little endian
 
@@ -4589,9 +5031,9 @@ namespace System.Numerics
                 return nint.Size;
             }
 
-            int result = bits.Length * nint.Size;
+            int result = LogicalLimbCount * nint.Size;
 
-            if (_sign < 0)
+            if (HasNegativeSign)
             {
                 nuint part = ~bits[^1] + 1;
 
@@ -4635,7 +5077,7 @@ namespace System.Numerics
 
             return value._bits is null
                 ? (BigInteger)((BigIntegerCalculator.BitsPerLimb - 1) ^ BitOperations.LeadingZeroCount((nuint)value._sign | 1))
-                : (BigInteger)(((long)value._bits.Length * BigIntegerCalculator.BitsPerLimb - 1) ^ BitOperations.LeadingZeroCount(value._bits[^1]));
+                : (BigInteger)(((long)value.LogicalLimbCount * BigIntegerCalculator.BitsPerLimb - 1) ^ BitOperations.LeadingZeroCount(value._bits[^1]));
         }
 
         //
@@ -4678,21 +5120,7 @@ namespace System.Numerics
         /// <inheritdoc cref="INumber{TSelf}.CopySign(TSelf, TSelf)" />
         public static BigInteger CopySign(BigInteger value, BigInteger sign)
         {
-            nint currentSign = value._sign;
-
-            if (value._bits is null)
-            {
-                currentSign = (currentSign >= 0) ? 1 : -1;
-            }
-
-            nint targetSign = sign._sign;
-
-            if (sign._bits is null)
-            {
-                targetSign = (targetSign >= 0) ? 1 : -1;
-            }
-
-            return (currentSign == targetSign) ? value : -value;
+            return value.HasNegativeSign == sign.HasNegativeSign ? value : -value;
         }
 
         /// <inheritdoc cref="INumber{TSelf}.MaxNumber(TSelf, TSelf)" />
@@ -4704,9 +5132,7 @@ namespace System.Numerics
         /// <inheritdoc cref="INumber{TSelf}.Sign(TSelf)" />
         static int INumber<BigInteger>.Sign(BigInteger value)
         {
-            return value._bits is null
-                ? value._sign > 0 ? 1
-                : (value._sign < 0 ? -1 : 0) : value._sign;
+            return value.Sign;
         }
 
         //
@@ -4784,7 +5210,7 @@ namespace System.Numerics
         {
             return value._bits is null
                 ? (value._sign & 1) == 0
-                : (value._bits[0] & 1) == 0;
+                : value.LimbOffset != 0 || (value._bits[0] & 1) == 0;
         }
 
         /// <inheritdoc cref="INumberBase{TSelf}.IsFinite(TSelf)" />
@@ -4805,7 +5231,7 @@ namespace System.Numerics
         /// <inheritdoc cref="INumberBase{TSelf}.IsNegative(TSelf)" />
         public static bool IsNegative(BigInteger value)
         {
-            return value._sign < 0;
+            return value.HasNegativeSign;
         }
 
         /// <inheritdoc cref="INumberBase{TSelf}.IsNegativeInfinity(TSelf)" />
@@ -4819,13 +5245,13 @@ namespace System.Numerics
         {
             return value._bits is null
                 ? (value._sign & 1) != 0
-                : (value._bits[0] & 1) != 0;
+                : value.LimbOffset == 0 && (value._bits[0] & 1) != 0;
         }
 
         /// <inheritdoc cref="INumberBase{TSelf}.IsPositive(TSelf)" />
         public static bool IsPositive(BigInteger value)
         {
-            return value._sign >= 0;
+            return !value.HasNegativeSign;
         }
 
         /// <inheritdoc cref="INumberBase{TSelf}.IsPositiveInfinity(TSelf)" />
@@ -4840,7 +5266,7 @@ namespace System.Numerics
         /// <inheritdoc cref="INumberBase{TSelf}.IsZero(TSelf)" />
         static bool INumberBase<BigInteger>.IsZero(BigInteger value)
         {
-            return value._sign == 0;
+            return value.IsZero;
         }
 
         /// <inheritdoc cref="INumberBase{TSelf}.MaxMagnitude(TSelf, TSelf)" />
@@ -5569,7 +5995,7 @@ namespace System.Numerics
 
                 if (value._bits is not null)
                 {
-                    nuint bits = value._bits[0];
+                    nuint bits = value.GetLimb(0);
 
                     if (IsNegative(value))
                     {
@@ -5592,7 +6018,7 @@ namespace System.Numerics
 
                 if (value._bits is not null)
                 {
-                    nuint bits = value._bits[0];
+                    nuint bits = value.GetLimb(0);
 
                     if (IsNegative(value))
                     {
@@ -5640,7 +6066,8 @@ namespace System.Numerics
 
                 if (value._bits is not null)
                 {
-                    actualResult = IsNegative(value) ? (short)(~value._bits[0] + 1) : (short)value._bits[0];
+                    nuint bits = value.GetLimb(0);
+                    actualResult = IsNegative(value) ? (short)(~bits + 1) : (short)bits;
                 }
                 else
                 {
@@ -5656,7 +6083,8 @@ namespace System.Numerics
 
                 if (value._bits is not null)
                 {
-                    actualResult = IsNegative(value) ? (int)(~value._bits[0] + 1) : (int)value._bits[0];
+                    nuint bits = value.GetLimb(0);
+                    actualResult = IsNegative(value) ? (int)(~bits + 1) : (int)bits;
                 }
                 else
                 {
@@ -5676,19 +6104,19 @@ namespace System.Numerics
 
                     if (nint.Size == 8)
                     {
-                        bits = value._bits[0];
+                        bits = value.GetLimb(0);
                     }
                     else
                     {
                         bits = 0;
 
-                        if (value._bits.Length >= 2)
+                        if (value.LogicalLimbCount >= 2)
                         {
-                            bits = value._bits[1];
+                            bits = value.GetLimb(1);
                             bits <<= 32;
                         }
 
-                        bits |= value._bits[0];
+                        bits |= value.GetLimb(0);
                     }
 
                     if (IsNegative(value))
@@ -5717,33 +6145,33 @@ namespace System.Numerics
 
                     if (nint.Size == 8)
                     {
-                        lowerBits = value._bits[0];
+                        lowerBits = value.GetLimb(0);
 
-                        if (value._bits.Length >= 2)
+                        if (value.LogicalLimbCount >= 2)
                         {
-                            upperBits = value._bits[1];
+                            upperBits = value.GetLimb(1);
                         }
                     }
                     else
                     {
-                        if (value._bits.Length >= 4)
+                        if (value.LogicalLimbCount >= 4)
                         {
-                            upperBits = value._bits[3];
+                            upperBits = value.GetLimb(3);
                             upperBits <<= 32;
                         }
 
-                        if (value._bits.Length >= 3)
+                        if (value.LogicalLimbCount >= 3)
                         {
-                            upperBits |= value._bits[2];
+                            upperBits |= value.GetLimb(2);
                         }
 
-                        if (value._bits.Length >= 2)
+                        if (value.LogicalLimbCount >= 2)
                         {
-                            lowerBits = value._bits[1];
+                            lowerBits = value.GetLimb(1);
                             lowerBits <<= 32;
                         }
 
-                        lowerBits |= value._bits[0];
+                        lowerBits |= value.GetLimb(0);
                     }
 
                     UInt128 bits = new(upperBits, lowerBits);
@@ -5769,7 +6197,7 @@ namespace System.Numerics
 
                 if (value._bits is not null)
                 {
-                    nuint bits = value._bits[0];
+                    nuint bits = value.GetLimb(0);
 
                     if (IsNegative(value))
                     {
@@ -5798,7 +6226,8 @@ namespace System.Numerics
 
                 if (value._bits is not null)
                 {
-                    actualResult = IsNegative(value) ? (sbyte)(~value._bits[0] + 1) : (sbyte)value._bits[0];
+                    nuint bits = value.GetLimb(0);
+                    actualResult = IsNegative(value) ? (sbyte)(~bits + 1) : (sbyte)bits;
                 }
                 else
                 {
@@ -5820,7 +6249,7 @@ namespace System.Numerics
 
                 if (value._bits is not null)
                 {
-                    nuint bits = value._bits[0];
+                    nuint bits = value.GetLimb(0);
 
                     if (IsNegative(value))
                     {
@@ -5843,7 +6272,7 @@ namespace System.Numerics
 
                 if (value._bits is not null)
                 {
-                    uint bits = (uint)value._bits[0];
+                    uint bits = (uint)value.GetLimb(0);
 
                     if (IsNegative(value))
                     {
@@ -5870,19 +6299,19 @@ namespace System.Numerics
 
                     if (nint.Size == 8)
                     {
-                        bits = value._bits[0];
+                        bits = value.GetLimb(0);
                     }
                     else
                     {
                         bits = 0;
 
-                        if (value._bits.Length >= 2)
+                        if (value.LogicalLimbCount >= 2)
                         {
-                            bits = value._bits[1];
+                            bits = value.GetLimb(1);
                             bits <<= 32;
                         }
 
-                        bits |= value._bits[0];
+                        bits |= value.GetLimb(0);
                     }
 
                     if (IsNegative(value))
@@ -5911,33 +6340,33 @@ namespace System.Numerics
 
                     if (nint.Size == 8)
                     {
-                        lowerBits = value._bits[0];
+                        lowerBits = value.GetLimb(0);
 
-                        if (value._bits.Length >= 2)
+                        if (value.LogicalLimbCount >= 2)
                         {
-                            upperBits = value._bits[1];
+                            upperBits = value.GetLimb(1);
                         }
                     }
                     else
                     {
-                        if (value._bits.Length >= 4)
+                        if (value.LogicalLimbCount >= 4)
                         {
-                            upperBits = value._bits[3];
+                            upperBits = value.GetLimb(3);
                             upperBits <<= 32;
                         }
 
-                        if (value._bits.Length >= 3)
+                        if (value.LogicalLimbCount >= 3)
                         {
-                            upperBits |= value._bits[2];
+                            upperBits |= value.GetLimb(2);
                         }
 
-                        if (value._bits.Length >= 2)
+                        if (value.LogicalLimbCount >= 2)
                         {
-                            lowerBits = value._bits[1];
+                            lowerBits = value.GetLimb(1);
                             lowerBits <<= 32;
                         }
 
-                        lowerBits |= value._bits[0];
+                        lowerBits |= value.GetLimb(0);
                     }
 
                     UInt128 bits = new(upperBits, lowerBits);
@@ -5963,7 +6392,7 @@ namespace System.Numerics
 
                 if (value._bits is not null)
                 {
-                    nuint bits = value._bits[0];
+                    nuint bits = value.GetLimb(0);
 
                     if (IsNegative(value))
                     {
@@ -6016,6 +6445,11 @@ namespace System.Numerics
                 return value << -shiftAmount;
             }
 
+            if (!value.HasNegativeSign)
+            {
+                return value >> shiftAmount;
+            }
+
             (int digitShift, int smallShift) = Math.DivRem(shiftAmount, BigIntegerCalculator.BitsPerLimb);
 
             if (value._bits is null)
@@ -6030,7 +6464,7 @@ namespace System.Numerics
                 return new BigInteger((nint)value._sign >>> smallShift);
             }
 
-            ReadOnlySpan<nuint> bits = value._bits;
+            ReadOnlySpan<nuint> bits = value.LimbOffset == 0 ? value._bits : value.ToDenseMagnitude();
 
             Debug.Assert(bits.Length > 0);
 
@@ -6041,7 +6475,7 @@ namespace System.Numerics
                 goto Excess;
             }
 
-            bool neg = value._sign < 0;
+            bool neg = value.HasNegativeSign;
             int negLeadingZeroCount = neg ? bits.IndexOfAnyExcept(0u) : 0;
             Debug.Assert(negLeadingZeroCount >= 0);
 
@@ -6128,7 +6562,7 @@ namespace System.Numerics
             return result;
         Excess:
             // Return -1 if the value is negative; otherwise, return 0.
-            return new BigInteger(value._sign >> 31, null);
+            return new BigInteger(value.HasNegativeSign ? -1 : 0, null);
         }
 
         //

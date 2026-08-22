@@ -331,44 +331,18 @@ namespace System.Numerics.Tests
             Assert.Equal(maxBitLength - 1, bigInt.GetBitLength());
             Assert.Equal(-1, bigInt.Sign);
 
-            // Validate internal representation.
-            // At this point, bigInt should be a 1 followed by maxBitLength - 1 zeros.
-            // Given this, bigInt._bits is expected to be structured as follows:
-            // - _bits.Length == ceil(maxBitLength / bitsPerElement)
-            // - First (_bits.Length - 1) elements: 0
-            // - Last element: 1 << (bitsPerElement - 1)
-
-            Assert.Equal((maxBitLength + (bitsPerElement - 1)) / bitsPerElement, bigInt._bits.Length);
-
-            int i = 0;
-            for (; i < bigInt._bits.Length - 1; i++)
-            {
-                Assert.Equal((nuint)0, bigInt._bits[i]);
-            }
-
-            Assert.Equal((nuint)1 << (bitsPerElement - 1), bigInt._bits[i]);
+            Assert.Single(bigInt._bits);
+            Assert.Equal(int.MinValue | ((maxBitLength / bitsPerElement) - 1), bigInt._sign);
+            Assert.Equal((nuint)1 << (bitsPerElement - 1), bigInt._bits[0]);
 
             // Right shift the BigInteger
             BigInteger shiftedBigInt = bigInt >> 1;
             Assert.Equal(maxBitLength - 2, shiftedBigInt.GetBitLength());
             Assert.Equal(-1, shiftedBigInt.Sign);
 
-            // Validate internal representation.
-            // At this point, shiftedBigInt should be a 1 followed by maxBitLength - 2 zeros.
-            // Given this, shiftedBigInt._bits is expected to be structured as follows:
-            // - _bits.Length == ceil((maxBitLength - 1) / bitsPerElement)
-            // - First (_bits.Length - 1) elements: 0
-            // - Last element: 1 << (bitsPerElement - 2)
-
-            Assert.Equal(((maxBitLength - 1) + (bitsPerElement - 1)) / bitsPerElement, shiftedBigInt._bits.Length);
-
-            i = 0;
-            for (; i < shiftedBigInt._bits.Length - 1; i++)
-            {
-                Assert.Equal((nuint)0, shiftedBigInt._bits[i]);
-            }
-
-            Assert.Equal((nuint)1 << (bitsPerElement - 2), shiftedBigInt._bits[i]);
+            Assert.Single(shiftedBigInt._bits);
+            Assert.Equal(int.MinValue | ((maxBitLength / bitsPerElement) - 1), shiftedBigInt._sign);
+            Assert.Equal((nuint)1 << (bitsPerElement - 2), shiftedBigInt._bits[0]);
         }
     }
 

@@ -3,6 +3,8 @@
 
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
+using System.Runtime.Serialization;
 using Xunit;
 
 namespace System.Numerics.Tests
@@ -39,13 +41,23 @@ namespace System.Numerics.Tests
         private static BigInteger MakeRandom(int byteCount, int seed) =>
             MakeRandom(byteCount, new Random(seed));
 
+        /// <summary>Mirrors <c>BigInteger.LimbOffset</c>: the raw omitted low zero limb count.</summary>
+        private static int LimbOffsetOf(BigInteger value) =>
+            value._bits is null ? 0 : value._sign & int.MaxValue;
+
+        /// <summary>Mirrors <c>BigInteger.CreateEncodedSign</c>: bit 31 is the sign and bits 0-30 are the omitted limb count.</summary>
+        private static int EncodedSign(int limbOffset, bool negative) =>
+            negative ? limbOffset | int.MinValue : limbOffset;
+
         private static BigInteger MakeRandom(int byteCount, Random rng)
         {
             byte[] bytes = new byte[byteCount + 1]; // +1 for sign byte
             rng.NextBytes(bytes);
             bytes[^1] = 0; // ensure positive
             if (bytes.Length > 1 && bytes[^2] == 0)
+            {
                 bytes[^2] = 1; // ensure non-zero high byte
+            }
             return new BigInteger(bytes);
         }
 
@@ -95,7 +107,10 @@ namespace System.Numerics.Tests
             {
                 BigInteger dividend = MakeRandom(byteCount, rng);
                 BigInteger divisor = MakeRandom(Math.Max(1, byteCount / 2), rng);
-                if (divisor.IsZero) divisor = BigInteger.One;
+                if (divisor.IsZero)
+                {
+                    divisor = BigInteger.One;
+                }
 
                 var (quotient, remainder) = BigInteger.DivRem(dividend, divisor);
 
@@ -120,7 +135,10 @@ namespace System.Numerics.Tests
             {
                 BigInteger a = MakeRandom(byteCount, rng);
                 BigInteger b = MakeRandom(Math.Max(1, byteCount / 2), rng);
-                if (b.IsZero) b = BigInteger.One;
+                if (b.IsZero)
+                {
+                    b = BigInteger.One;
+                }
 
                 BigInteger product = a * b;
                 Assert.Equal(a, product / b);
@@ -188,6 +206,532 @@ namespace System.Numerics.Tests
                     Assert.Equal(a, (a << shift) >> shift);
                 }
             }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void LowZeroLimbsAreCompressed(bool negative)
+        {
+            int bitsPerLimb = nint.Size * 8;
+            BigInteger value = new BigInteger(6) << (3 * bitsPerLimb);
+
+            if (negative)
+            {
+                value = -value;
+            }
+
+            Assert.Single(value._bits);
+            Assert.Equal((nuint)6, value._bits[0]);
+            Assert.Equal(EncodedSign(3, negative), value._sign);
+            Assert.True(BigInteger.IsEvenInteger(value));
+            Assert.False(BigInteger.IsOddInteger(value));
+
+            Assert.Equal(value, BigInteger.Parse(value.ToString()));
+            Assert.Equal(value, new BigInteger(value.ToByteArray()));
+            Assert.Equal(value * value, BigInteger.Pow(value, 2));
+
+            BigInteger shifted = value >> (nint.Size * 8);
+            BigInteger expectedProduct = new BigInteger(36) << (5 * nint.Size * 8);
+            Assert.Equal(expectedProduct, BigInteger.Abs(value * shifted));
+        }
+
+        [Fact]
+        public void CompressionUsesNativeLimbWidth()
+        {
+            BigInteger value = BigInteger.One << 32;
+
+            Assert.Single(value._bits);
+            Assert.Equal(1L << 32, (long)value);
+            Assert.Equal(1UL << 32, (ulong)value);
+
+            if (nint.Size == 4)
+            {
+                Assert.Equal((nuint)1, value._bits[0]);
+                Assert.Equal(EncodedSign(1, negative: false), value._sign);
+            }
+            else
+            {
+                Assert.Equal(unchecked((nuint)(1UL << 32)), value._bits[0]);
+                Assert.Equal(EncodedSign(0, negative: false), value._sign);
+            }
+        }
+
+        [Fact]
+        public void ArrayBackedValueWithNoOmittedLimbsUsesBitsToDisambiguateZero()
+        {
+            int bitsPerLimb = nint.Size * 8;
+
+            // 2^bitsPerLimb - 1 needs an array (it exceeds int.MaxValue) but omits no low limbs,
+            // so only the polarity bit distinguishes its encoded signs.
+            BigInteger positive = (BigInteger.One << bitsPerLimb) - 1;
+            BigInteger negative = -positive;
+
+            Assert.NotNull(positive._bits);
+            Assert.Equal(0, positive._sign);
+            Assert.Equal(int.MinValue, negative._sign);
+            Assert.Same(positive._bits, negative._bits);
+
+            Assert.True(negative._sign < 0);
+
+            Assert.False(positive.IsZero);
+            Assert.False(negative.IsZero);
+            Assert.Equal(1, positive.Sign);
+            Assert.Equal(-1, negative.Sign);
+            Assert.True(BigInteger.IsPositive(positive));
+            Assert.True(BigInteger.IsNegative(negative));
+
+            Assert.NotEqual(BigInteger.Zero, positive);
+            Assert.NotEqual(BigInteger.Zero, negative);
+            Assert.NotEqual(positive, negative);
+            Assert.Equal(positive, BigInteger.Abs(negative));
+            Assert.Equal(positive, -negative);
+        }
+
+        [Theory]
+        [MemberData(nameof(ZeroOffsetMagnitudeKinds))]
+        public void SignBitMatchesNegativePolarity(int kind)
+        {
+            int bitsPerLimb = nint.Size * 8;
+
+            BigInteger[] values =
+            [
+                BigInteger.Zero,
+                default,
+                BigInteger.One,
+                BigInteger.MinusOne,
+                int.MaxValue,
+                new BigInteger(int.MinValue),
+                CreateZeroOffsetMagnitude(kind),
+                -CreateZeroOffsetMagnitude(kind),
+                new BigInteger(17) << (5 * bitsPerLimb),
+                new BigInteger(-17) << (5 * bitsPerLimb),
+            ];
+
+            foreach (BigInteger value in values)
+            {
+                Assert.Equal(value.Sign < 0, value._sign < 0);
+            }
+        }
+
+        [Fact]
+        public void DefaultAndZeroShareTheOnlyZeroEncoding()
+        {
+            BigInteger zero = default;
+
+            Assert.Null(zero._bits);
+            Assert.Equal(0, zero._sign);
+            Assert.True(zero.IsZero);
+            Assert.Equal(0, zero.Sign);
+            Assert.Equal(BigInteger.Zero, zero);
+            Assert.Equal(BigInteger.Zero.GetHashCode(), zero.GetHashCode());
+            Assert.Equal(new byte[] { 0 }, zero.ToByteArray());
+            Assert.Equal(1, zero.GetByteCount());
+        }
+
+        [Fact]
+        public void Int32MinValueUsesArrayBackedNegativeZeroOffset()
+        {
+            BigInteger value = new BigInteger(int.MinValue);
+
+            Assert.NotNull(value._bits);
+            Assert.Equal(int.MinValue, value._sign);
+            Assert.Equal(0, LimbOffsetOf(value));
+            Assert.False(value.IsZero);
+            Assert.Equal(-1, value.Sign);
+            Assert.Equal(int.MinValue, (int)value);
+            Assert.Equal((long)int.MinValue, (long)value);
+            Assert.Equal((double)int.MinValue, (double)value);
+            Assert.Equal(BigInteger.One << 31, -value);
+        }
+
+        public static IEnumerable<object[]> ZeroOffsetMagnitudeKinds => new object[][]
+        {
+            new object[] { 0 },  // 2^31, the smallest magnitude that cannot be stored inline
+            new object[] { 1 },  // a full single limb of ones
+            new object[] { 2 },  // four full limbs of ones
+            new object[] { 3 },  // a sparse multi-limb magnitude with a non-zero low limb
+        };
+
+        private static BigInteger CreateZeroOffsetMagnitude(int kind)
+        {
+            int bitsPerLimb = nint.Size * 8;
+
+            return kind switch
+            {
+                0 => BigInteger.One << 31,
+                1 => (BigInteger.One << bitsPerLimb) - 1,
+                2 => (BigInteger.One << (4 * bitsPerLimb)) - 1,
+                _ => ((BigInteger.One << (3 * bitsPerLimb)) + 1) * 7,
+            };
+        }
+
+        [Theory]
+        [MemberData(nameof(ZeroOffsetMagnitudeKinds))]
+        public void ZeroOffsetMagnitudesRoundTripThroughEveryRepresentation(int kind)
+        {
+            BigInteger magnitude = CreateZeroOffsetMagnitude(kind);
+
+            Assert.NotNull(magnitude._bits);
+            Assert.Equal(0, LimbOffsetOf(magnitude));
+
+            foreach (BigInteger value in new[] { magnitude, -magnitude })
+            {
+                bool negative = value.Sign < 0;
+
+                Assert.Equal(EncodedSign(0, negative), value._sign);
+                Assert.False(value.IsZero);
+                Assert.Equal(negative ? -1 : 1, value.Sign);
+
+                Assert.Equal(value, new BigInteger(value.ToByteArray()));
+                Assert.Equal(value, BigInteger.Parse(value.ToString()));
+                Assert.Equal(value, value + BigInteger.Zero);
+                Assert.Equal(value, value * BigInteger.One);
+                Assert.Equal(BigInteger.Zero, value - value);
+                Assert.Equal(BigInteger.One, value / value);
+                Assert.Equal(magnitude, BigInteger.Abs(value));
+                Assert.Equal(0, value.CompareTo(value));
+                Assert.True(value.Equals(value));
+                Assert.Equal(value.GetHashCode(), BigInteger.Parse(value.ToString()).GetHashCode());
+                Assert.Equal(negative, BigInteger.IsNegative(value));
+                Assert.Equal(!negative, BigInteger.IsPositive(value));
+                Assert.Equal(magnitude.GetBitLength() - (negative && magnitude.IsPowerOfTwo ? 1 : 0), value.GetBitLength());
+
+                double asDouble = (double)value;
+                Assert.Equal(negative, asDouble < 0);
+                Assert.Equal((double)magnitude, Math.Abs(asDouble));
+            }
+        }
+
+        [Fact]
+        public void NegationPreservesOmittedLimbCountAndSharesMagnitude()
+        {
+            int bitsPerLimb = nint.Size * 8;
+            BigInteger value = new BigInteger(17) << (5 * bitsPerLimb);
+            BigInteger negated = -value;
+
+            Assert.Same(value._bits, negated._bits);
+            Assert.Equal(5, LimbOffsetOf(value));
+            Assert.Equal(5, LimbOffsetOf(negated));
+            Assert.Equal(value._sign ^ int.MinValue, negated._sign);
+            Assert.Equal(value, -negated);
+        }
+
+        [Fact]
+        public void PowerOfTwoMagnitudesShareTheCachedLimbArray()
+        {
+            int bitsPerLimb = nint.Size * 8;
+            BigInteger first = BigInteger.One << bitsPerLimb;
+            BigInteger second = BigInteger.One << (3 * bitsPerLimb);
+
+            Assert.Same(first._bits, second._bits);
+            Assert.Same(first._bits, (-second)._bits);
+            Assert.Equal(EncodedSign(1, negative: false), first._sign);
+            Assert.Equal(EncodedSign(3, negative: false), second._sign);
+            Assert.Equal(EncodedSign(3, negative: true), (-second)._sign);
+        }
+
+        [Fact]
+        public void CompressedMagnitudeClearsLittleEndianDestinationPrefix()
+        {
+            int offsetBytes = 3 * nint.Size;
+            BigInteger value = new BigInteger(17) << (offsetBytes * 8);
+            byte[] destination = new byte[value.GetByteCount() + 1];
+            Array.Fill(destination, byte.MaxValue);
+
+            Assert.True(value.TryWriteBytes(destination, out int bytesWritten));
+            Assert.Equal(offsetBytes + 1, bytesWritten);
+            Assert.All(destination.AsSpan(0, offsetBytes).ToArray(), b => Assert.Equal(0, b));
+            Assert.Equal(17, destination[offsetBytes]);
+            Assert.Equal(byte.MaxValue, destination[^1]);
+        }
+
+        [Theory]
+        [InlineData(12345)]
+        [InlineData(-12345)]
+        public void SerializationPreservesInlineSign(int expected)
+        {
+#pragma warning disable SYSLIB0050
+            SerializationInfo info = new(typeof(BigInteger), new FormatterConverter());
+#pragma warning restore SYSLIB0050
+
+            ((ISerializable)new BigInteger(expected)).GetObjectData(info, default);
+
+            Assert.Equal(expected, info.GetInt32("_sign"));
+            Assert.Null((uint[]?)info.GetValue("_bits", typeof(uint[])));
+        }
+
+        [Fact]
+        public void DeserializationCanonicalizesLegacyInt32MinValue()
+        {
+#pragma warning disable SYSLIB0050
+            SerializationInfo info = new(typeof(BigInteger), new FormatterConverter());
+#pragma warning restore SYSLIB0050
+            info.AddValue("_sign", int.MinValue);
+            info.AddValue("_bits", null, typeof(uint[]));
+
+            ConstructorInfo constructor = typeof(BigInteger).GetConstructor(
+                BindingFlags.Instance | BindingFlags.NonPublic,
+                binder: null,
+                [typeof(SerializationInfo), typeof(StreamingContext)],
+                modifiers: null) ?? throw new InvalidOperationException();
+
+            BigInteger value = (BigInteger)constructor.Invoke([info, default(StreamingContext)]);
+
+            Assert.Equal(new BigInteger(int.MinValue), value);
+            Assert.NotNull(value._bits);
+            Assert.Equal(int.MinValue, value._sign);
+            Assert.Equal(BigInteger.One << 31, -value);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void SerializationExpandsCompressedMagnitude(bool negative)
+        {
+            int limbOffset = 3;
+            BigInteger value = new BigInteger(17) << (limbOffset * nint.Size * 8);
+            if (negative)
+            {
+                value = -value;
+            }
+
+#pragma warning disable SYSLIB0050
+            SerializationInfo info = new(typeof(BigInteger), new FormatterConverter());
+#pragma warning restore SYSLIB0050
+
+            ((ISerializable)value).GetObjectData(info, default);
+
+            Assert.Equal(negative ? -1 : 1, info.GetInt32("_sign"));
+            uint[] bits = (uint[])info.GetValue("_bits", typeof(uint[]));
+            Assert.Equal((limbOffset * nint.Size / sizeof(uint)) + 1, bits.Length);
+            Assert.All(bits.AsSpan(0, bits.Length - 1).ToArray(), b => Assert.Equal(0u, b));
+            Assert.Equal(17u, bits[^1]);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ScalarRemainderConsumesCompressedOffset(bool negative)
+        {
+            int shift = 1_000 * nint.Size * 8;
+            BigInteger value = new BigInteger(3) << shift;
+            if (negative)
+            {
+                value = -value;
+            }
+
+            BigInteger expected = (3 * BigInteger.ModPow(2, shift, 97)) % 97;
+            if (negative)
+            {
+                expected = -expected;
+            }
+
+            Assert.Equal(expected, value % 97);
+            Assert.Equal(BigInteger.One, BigInteger.GreatestCommonDivisor(value, 97));
+            Assert.Equal(BigInteger.ModPow(expected, 13, 97), BigInteger.ModPow(value, 13, 97));
+        }
+
+        [Theory]
+        [InlineData(3)]
+        [InlineData(-3)]
+        [InlineData(6)]
+        [InlineData(-6)]
+        [InlineData(1)]
+        [InlineData(-1)]
+        public void ExactScalarDivisionPreservesCompressedOffset(int divisor)
+        {
+            int shift = 1_000 * nint.Size * 8;
+            BigInteger value = new BigInteger(3) << shift;
+            BigInteger expected = divisor switch
+            {
+                3 => BigInteger.One << shift,
+                -3 => -BigInteger.One << shift,
+                6 => BigInteger.One << (shift - 1),
+                -6 => -BigInteger.One << (shift - 1),
+                1 => new BigInteger(3) << shift,
+                _ => -new BigInteger(3) << shift,
+            };
+
+            Assert.Equal(expected, value / divisor);
+
+            BigInteger quotient = BigInteger.DivRem(value, divisor, out BigInteger remainder);
+            Assert.Equal(expected, quotient);
+            Assert.Equal(BigInteger.Zero, remainder);
+            Assert.Single(quotient._bits);
+        }
+
+        [Theory]
+        [InlineData(1, 0)]
+        [InlineData(1, 9)]
+        [InlineData(16, 0)]
+        [InlineData(16, 9)]
+        public void ExactScalarDivisionPreservesPartialLowZeroLimb(int limbOffset, int partialBits)
+        {
+            int shift = (limbOffset * nint.Size * 8) + partialBits;
+            BigInteger value = new BigInteger(3) << shift;
+
+            BigInteger quotient = BigInteger.DivRem(value, 6, out BigInteger remainder);
+
+            Assert.Equal(BigInteger.One << (shift - 1), quotient);
+            Assert.Equal(BigInteger.Zero, remainder);
+            Assert.Single(quotient._bits);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(9)]
+        [InlineData(31)]
+        [InlineData(63)]
+        public void PartialLowZeroLimbIsNotOmitted(int trailingZeroBits)
+        {
+            int bitsPerLimb = nint.Size * 8;
+            trailingZeroBits %= bitsPerLimb;
+
+            BigInteger value = ((BigInteger.One << (bitsPerLimb + 1)) + 3) << trailingZeroBits;
+
+            Assert.Equal(0, LimbOffsetOf(value));
+            Assert.Equal(trailingZeroBits, (int)BigInteger.TrailingZeroCount(value));
+            Assert.Equal(value, (value / 3) * 3 + (value % 3));
+        }
+
+        [Theory]
+        [InlineData(31)]
+        [InlineData(32)]
+        [InlineData(63)]
+        [InlineData(64)]
+        [InlineData(65)]
+        [InlineData(73)]
+        [InlineData(1_024)]
+        public void PowerOfTwoMagnitudesAreShared(int exponent)
+        {
+            BigInteger shifted = BigInteger.One << exponent;
+            BigInteger parsed = BigInteger.Parse(shifted.ToString());
+            BigInteger powered = BigInteger.Pow(2, exponent);
+
+            Assert.Same(shifted._bits, (-shifted)._bits);
+            Assert.Same(shifted._bits, parsed._bits);
+            Assert.Same(shifted._bits, powered._bits);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void CompressedCompareToReturnsNormalizedResult(bool negative)
+        {
+            BigInteger value = BigInteger.One << (3 * nint.Size * 8);
+            if (negative)
+            {
+                value = -value;
+            }
+
+            int expected = negative ? -1 : +1;
+            Assert.Equal(expected, value.CompareTo(0L));
+            Assert.Equal(expected, value.CompareTo(BigInteger.Zero));
+            Assert.Equal(-expected, BigInteger.Zero.CompareTo(value));
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void CompressedMagnitudeWritesBigEndian(bool negative)
+        {
+            int shift = (3 * nint.Size * 8) + 9;
+            BigInteger value = new BigInteger(5) << shift;
+            if (negative)
+            {
+                value = -value;
+            }
+
+            byte[] expected = value.ToByteArray();
+            Array.Reverse(expected);
+            byte[] actual = value.ToByteArray(isUnsigned: false, isBigEndian: true);
+            Assert.Equal(expected, actual);
+
+            byte[] destination = new byte[actual.Length + 1];
+            destination[^1] = byte.MaxValue;
+            Assert.True(value.TryWriteBytes(destination, out int bytesWritten, isUnsigned: false, isBigEndian: true));
+            Assert.Equal(actual.Length, bytesWritten);
+            Assert.Equal(actual, destination.AsSpan(0, bytesWritten).ToArray());
+            Assert.Equal(byte.MaxValue, destination[^1]);
+        }
+
+        [Fact]
+        public void BitwiseOperationsDoNotRequireStoredLowZeroLimbs()
+        {
+            int shift = 10_000 * nint.Size * 8;
+            BigInteger value = new BigInteger(5) << shift;
+
+            Assert.Equal(BigInteger.Zero, value & 1);
+            Assert.Equal(value + 1, value | 1);
+            Assert.Equal(value + 1, value ^ 1);
+            Assert.Equal(-value - 1, ~value);
+        }
+
+        [Theory]
+        [InlineData(64)]
+        [InlineData(73)]
+        [InlineData(1_024)]
+        public void CompressedRotateAndUnsignedShiftPreserveSemantics(int shift)
+        {
+            BigInteger value = new BigInteger(5) << shift;
+
+            Assert.Equal(value >> 3, value >>> 3);
+            Assert.Equal(value, BigInteger.RotateRight(BigInteger.RotateLeft(value, 17), 17));
+            Assert.Equal(-value, BigInteger.RotateRight(BigInteger.RotateLeft(-value, 17), 17));
+        }
+
+        [Fact]
+        public void CompressedOperandsPreserveBitwiseAndGcdSemantics()
+        {
+            int bitsPerLimb = nint.Size * 8;
+            BigInteger left = new BigInteger(18) << (3 * bitsPerLimb);
+            BigInteger right = new BigInteger(24) << (2 * bitsPerLimb);
+
+            Assert.Equal(new BigInteger(24) << (2 * bitsPerLimb), BigInteger.GreatestCommonDivisor(left, right));
+            Assert.Equal(BigInteger.Zero, left & 5);
+            Assert.Equal(left + 5, left | 5);
+            Assert.Equal(left + 5, left ^ 5);
+            Assert.Equal(-left - 1, ~left);
+        }
+
+        [Fact]
+        public void ExtremeCompressedValueConversionsDoNotRequireDenseMagnitude()
+        {
+            BigInteger value = BigInteger.One << (10_000 * nint.Size * 8);
+
+            Assert.Equal(double.PositiveInfinity, (double)value);
+            Assert.Equal(double.NegativeInfinity, (double)-value);
+            Assert.Throws<OverflowException>(() => (long)value);
+            Assert.Throws<OverflowException>(() => (ulong)value);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ArithmeticPreservesCompressedLowZeroLimbs(bool negative)
+        {
+            int bitsPerLimb = nint.Size * 8;
+            BigInteger left = new BigInteger(17) << (3 * bitsPerLimb);
+            BigInteger right = new BigInteger(5) << (2 * bitsPerLimb);
+
+            if (negative)
+            {
+                left = -left;
+            }
+
+            BigInteger sum = left + right;
+            BigInteger difference = left - right;
+            BigInteger product = left * right;
+            BigInteger quotient = BigInteger.DivRem(left, right, out BigInteger remainder);
+
+            Assert.Equal(left, quotient * right + remainder);
+            Assert.Equal(2, LimbOffsetOf(sum));
+            Assert.Equal(2, LimbOffsetOf(difference));
+            Assert.Equal(5, LimbOffsetOf(product));
+            Assert.Equal(0, LimbOffsetOf(quotient));
+            Assert.Equal(2, LimbOffsetOf(remainder));
         }
 
         [Theory]
@@ -1649,6 +2193,27 @@ namespace System.Numerics.Tests
             // Zero value
             Assert.Equal(BigInteger.Zero, BigInteger.CopySign(BigInteger.Zero, large));
             Assert.Equal(BigInteger.Zero, BigInteger.CopySign(BigInteger.Zero, -large));
+        }
+
+        [Fact]
+        public void CopySignCompressedOperands()
+        {
+            int bitsPerLimb = nint.Size * 8;
+            BigInteger value = BigInteger.One << (3 * bitsPerLimb);
+            BigInteger sign = BigInteger.One << bitsPerLimb;
+
+            Assert.Equal(value, BigInteger.CopySign(value, sign));
+            Assert.Equal(-value, BigInteger.CopySign(value, -sign));
+            Assert.Equal(value, BigInteger.CopySign(-value, sign));
+            Assert.Equal(-value, BigInteger.CopySign(-value, -sign));
+            Assert.Equal(value, BigInteger.CopySign(value, BigInteger.Zero));
+        }
+
+        [Fact]
+        public void LeftShiftRejectsValuesExceedingMaxLength()
+        {
+            Assert.Throws<OverflowException>(() => BigInteger.One << int.MaxValue);
+            Assert.Throws<OverflowException>(() => (BigInteger.One << BigIntegerCalculator.BitsPerLimb) << int.MaxValue);
         }
 
         // --- Explicit conversions at boundaries ---
