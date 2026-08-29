@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace JIT.HardwareIntrinsics.X86._Avx512Bitalg_VL_Vector256
+namespace JIT.HardwareIntrinsics.X86._Avx512BitAlg_VL_Vector128
 {
     public static partial class Program
     {

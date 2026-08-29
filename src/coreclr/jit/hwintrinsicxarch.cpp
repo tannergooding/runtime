@@ -216,7 +216,7 @@ CORINFO_InstructionSet Compiler::lookupInstructionSet(const char* className)
             {
                 if (className[6] == 'B')
                 {
-                    if (strcmp(className + 7, "italg") == 0)
+                    if (strcmp(className + 7, "itAlg") == 0)
                     {
                         return InstructionSet_AVX512v3;
                     }
@@ -261,15 +261,15 @@ CORINFO_InstructionSet Compiler::lookupInstructionSet(const char* className)
                             return InstructionSet_AVX512v3;
                         }
                     }
+                    else if ((className[7] == 'P') && (strcmp(className + 8, "opcntDQ") == 0))
+                    {
+                        return InstructionSet_AVX512v3;
+                    }
                     else if (className[7] == 'p')
                     {
                         if (strcmp(className + 8, "p2intersect") == 0)
                         {
                             return InstructionSet_AVX512VP2INTERSECT;
-                        }
-                        else if (strcmp(className + 8, "opcntdq") == 0)
-                        {
-                            return InstructionSet_AVX512v3;
                         }
                     }
                 }

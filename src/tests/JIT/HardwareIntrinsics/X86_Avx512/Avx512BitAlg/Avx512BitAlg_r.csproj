@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyName>X86_Avx512Vpopcntdq_ro</AssemblyName>
+    <AssemblyName>X86_Avx512BitAlg_r</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <DebugType>Embedded</DebugType>
-    <Optimize>True</Optimize>
+    <Optimize />
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Program.Avx512Vpopcntdq.cs" />
+    <Compile Include="Program.Avx512BitAlg.cs" />
     <Compile Include="..\..\X86\Shared\Program.cs" />
   </ItemGroup>
 </Project>

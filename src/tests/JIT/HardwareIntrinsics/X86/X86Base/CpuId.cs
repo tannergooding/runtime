@@ -229,7 +229,7 @@ namespace XarchHardwareIntrinsicTest._CpuId
             {
                 // AVX512-BITALG, AVX512-VBMI2, AVX512-VNNI, AVX512-VPOPCNTDQ are paired
 
-                if (IsBitIncorrect(ecx, 12, typeof(Avx512Bitalg), Avx512Bitalg.IsSupported, "AVX512v3", ref isHierarchyDisabled))
+                if (IsBitIncorrect(ecx, 12, typeof(Avx512BitAlg), Avx512BitAlg.IsSupported, "AVX512v3", ref isHierarchyDisabled))
                 {
                     testResult = Fail;
                 }
@@ -244,7 +244,7 @@ namespace XarchHardwareIntrinsicTest._CpuId
                     testResult = Fail;
                 }
 
-                if (IsBitIncorrect(ecx, 14, typeof(Avx512Vpopcntdq), Avx512Vpopcntdq.IsSupported, "AVX512v3", ref isHierarchyDisabled))
+                if (IsBitIncorrect(ecx, 14, typeof(Avx512VPopcntDQ), Avx512VPopcntDQ.IsSupported, "AVX512v3", ref isHierarchyDisabled))
                 {
                     testResult = Fail;
                 }

@@ -1225,13 +1225,13 @@ namespace Internal.JitInterface
                     yield return new InstructionSetInfo("avx512v2", "", InstructionSet.X64_AVX512v2, true);
                     yield return new InstructionSetInfo("avx512v2", "Avx512Vbmi", InstructionSet.X64_AVX512v2, true);
                     yield return new InstructionSetInfo("avx512v2", "Avx512Vbmi_VL", InstructionSet.X64_AVX512v2, true);
-                    yield return new InstructionSetInfo("avx512v3", "", InstructionSet.X64_AVX512v3, true);
-                    yield return new InstructionSetInfo("avx512v3", "", InstructionSet.X64_AVX512v3, true);
+                    yield return new InstructionSetInfo("avx512v3", "Avx512BitAlg", InstructionSet.X64_AVX512v3, true);
+                    yield return new InstructionSetInfo("avx512v3", "Avx512BitAlg_VL", InstructionSet.X64_AVX512v3, true);
                     yield return new InstructionSetInfo("avx512v3", "Avx512Vbmi2", InstructionSet.X64_AVX512v3, true);
                     yield return new InstructionSetInfo("avx512v3", "Avx512Vbmi2_VL", InstructionSet.X64_AVX512v3, true);
                     yield return new InstructionSetInfo("avx512v3", "AvxVnni_V512", InstructionSet.X64_AVX512v3, true);
-                    yield return new InstructionSetInfo("avx512v3", "", InstructionSet.X64_AVX512v3, true);
-                    yield return new InstructionSetInfo("avx512v3", "", InstructionSet.X64_AVX512v3, true);
+                    yield return new InstructionSetInfo("avx512v3", "Avx512VPopcntDQ", InstructionSet.X64_AVX512v3, true);
+                    yield return new InstructionSetInfo("avx512v3", "Avx512VPopcntDQ_VL", InstructionSet.X64_AVX512v3, true);
                     yield return new InstructionSetInfo("avx10v1", "", InstructionSet.X64_AVX10v1, true);
                     yield return new InstructionSetInfo("avx10v1", "", InstructionSet.X64_AVX10v1, true);
                     yield return new InstructionSetInfo("avx10v1", "", InstructionSet.X64_AVX10v1, true);
@@ -1299,13 +1299,13 @@ namespace Internal.JitInterface
                     yield return new InstructionSetInfo("avx512v2", "", InstructionSet.X86_AVX512v2, true);
                     yield return new InstructionSetInfo("avx512v2", "Avx512Vbmi", InstructionSet.X86_AVX512v2, true);
                     yield return new InstructionSetInfo("avx512v2", "Avx512Vbmi_VL", InstructionSet.X86_AVX512v2, true);
-                    yield return new InstructionSetInfo("avx512v3", "", InstructionSet.X86_AVX512v3, true);
-                    yield return new InstructionSetInfo("avx512v3", "", InstructionSet.X86_AVX512v3, true);
+                    yield return new InstructionSetInfo("avx512v3", "Avx512BitAlg", InstructionSet.X86_AVX512v3, true);
+                    yield return new InstructionSetInfo("avx512v3", "Avx512BitAlg_VL", InstructionSet.X86_AVX512v3, true);
                     yield return new InstructionSetInfo("avx512v3", "Avx512Vbmi2", InstructionSet.X86_AVX512v3, true);
                     yield return new InstructionSetInfo("avx512v3", "Avx512Vbmi2_VL", InstructionSet.X86_AVX512v3, true);
                     yield return new InstructionSetInfo("avx512v3", "AvxVnni_V512", InstructionSet.X86_AVX512v3, true);
-                    yield return new InstructionSetInfo("avx512v3", "", InstructionSet.X86_AVX512v3, true);
-                    yield return new InstructionSetInfo("avx512v3", "", InstructionSet.X86_AVX512v3, true);
+                    yield return new InstructionSetInfo("avx512v3", "Avx512VPopcntDQ", InstructionSet.X86_AVX512v3, true);
+                    yield return new InstructionSetInfo("avx512v3", "Avx512VPopcntDQ_VL", InstructionSet.X86_AVX512v3, true);
                     yield return new InstructionSetInfo("avx10v1", "", InstructionSet.X86_AVX10v1, true);
                     yield return new InstructionSetInfo("avx10v1", "", InstructionSet.X86_AVX10v1, true);
                     yield return new InstructionSetInfo("avx10v1", "", InstructionSet.X86_AVX10v1, true);
@@ -1813,7 +1813,31 @@ namespace Internal.JitInterface
                                     else
                                         return InstructionSet.X64_AVX512v2;
 
+                        case "Avx512BitAlg":
+                            if (nestedTypeName == "X64")
+                                return InstructionSet.X64_AVX512v3_X64;
+                            else
+                                if (nestedTypeName == "VL_X64")
+                                    return InstructionSet.X64_AVX512v3_X64;
+                                else
+                                    if (nestedTypeName == "VL")
+                                        return InstructionSet.X64_AVX512v3;
+                                    else
+                                        return InstructionSet.X64_AVX512v3;
+
                         case "Avx512Vbmi2":
+                            if (nestedTypeName == "X64")
+                                return InstructionSet.X64_AVX512v3_X64;
+                            else
+                                if (nestedTypeName == "VL_X64")
+                                    return InstructionSet.X64_AVX512v3_X64;
+                                else
+                                    if (nestedTypeName == "VL")
+                                        return InstructionSet.X64_AVX512v3;
+                                    else
+                                        return InstructionSet.X64_AVX512v3;
+
+                        case "Avx512VPopcntDQ":
                             if (nestedTypeName == "X64")
                                 return InstructionSet.X64_AVX512v3_X64;
                             else
@@ -1990,7 +2014,19 @@ namespace Internal.JitInterface
                             else
                                 return InstructionSet.X86_AVX512v2;
 
+                        case "Avx512BitAlg":
+                            if (nestedTypeName == "VL")
+                                return InstructionSet.X86_AVX512v3;
+                            else
+                                return InstructionSet.X86_AVX512v3;
+
                         case "Avx512Vbmi2":
+                            if (nestedTypeName == "VL")
+                                return InstructionSet.X86_AVX512v3;
+                            else
+                                return InstructionSet.X86_AVX512v3;
+
+                        case "Avx512VPopcntDQ":
                             if (nestedTypeName == "VL")
                                 return InstructionSet.X86_AVX512v3;
                             else
@@ -2777,6 +2813,41 @@ namespace Internal.JitInterface
                 case (InstructionSet.X64_AVX512v3, TargetArchitecture.X64):
                 case (InstructionSet.X64_AVX512v3_X64, TargetArchitecture.X64):
                 {
+                    var type = context.SystemModule.GetType("System.Runtime.Intrinsics.X86"u8, "Avx512BitAlg"u8, false);
+                    if (type != null)
+                    {
+                        yield return type;
+                        if (instructionSet == InstructionSet.X64_AVX512v3_X64)
+                        {
+                            var nestedType = type.GetNestedType("X64"u8);
+                            if (nestedType != null)
+                            {
+                                yield return nestedType;
+                            }
+                        }
+                    }
+                }
+                {
+                    var parentType = context.SystemModule.GetType("System.Runtime.Intrinsics.X86"u8, "Avx512BitAlg"u8, false);
+                    if (parentType != null)
+                    {
+                        yield return parentType;
+                        var nestedType = parentType.GetNestedType("VL"u8);
+                        if (nestedType != null)
+                        {
+                            yield return nestedType;
+                            if (instructionSet == InstructionSet.X64_AVX512v3_X64)
+                            {
+                                var nestedType64 = parentType.GetNestedType("VL_X64"u8);
+                                if (nestedType64 != null)
+                                {
+                                    yield return nestedType64;
+                                }
+                            }
+                        }
+                    }
+                }
+                {
                     var type = context.SystemModule.GetType("System.Runtime.Intrinsics.X86"u8, "Avx512Vbmi2"u8, false);
                     if (type != null)
                     {
@@ -2823,6 +2894,41 @@ namespace Internal.JitInterface
                             if (instructionSet == InstructionSet.X64_AVX512v3_X64)
                             {
                                 var nestedType64 = parentType.GetNestedType("V512_X64"u8);
+                                if (nestedType64 != null)
+                                {
+                                    yield return nestedType64;
+                                }
+                            }
+                        }
+                    }
+                }
+                {
+                    var type = context.SystemModule.GetType("System.Runtime.Intrinsics.X86"u8, "Avx512VPopcntDQ"u8, false);
+                    if (type != null)
+                    {
+                        yield return type;
+                        if (instructionSet == InstructionSet.X64_AVX512v3_X64)
+                        {
+                            var nestedType = type.GetNestedType("X64"u8);
+                            if (nestedType != null)
+                            {
+                                yield return nestedType;
+                            }
+                        }
+                    }
+                }
+                {
+                    var parentType = context.SystemModule.GetType("System.Runtime.Intrinsics.X86"u8, "Avx512VPopcntDQ"u8, false);
+                    if (parentType != null)
+                    {
+                        yield return parentType;
+                        var nestedType = parentType.GetNestedType("VL"u8);
+                        if (nestedType != null)
+                        {
+                            yield return nestedType;
+                            if (instructionSet == InstructionSet.X64_AVX512v3_X64)
+                            {
+                                var nestedType64 = parentType.GetNestedType("VL_X64"u8);
                                 if (nestedType64 != null)
                                 {
                                     yield return nestedType64;
@@ -3326,6 +3432,25 @@ namespace Internal.JitInterface
 
                 case (InstructionSet.X86_AVX512v3, TargetArchitecture.X86):
                 {
+                    var type = context.SystemModule.GetType("System.Runtime.Intrinsics.X86"u8, "Avx512BitAlg"u8, false);
+                    if (type != null)
+                    {
+                        yield return type;
+                    }
+                }
+                {
+                    var parentType = context.SystemModule.GetType("System.Runtime.Intrinsics.X86"u8, "Avx512BitAlg"u8, false);
+                    if (parentType != null)
+                    {
+                        yield return parentType;
+                        var nestedType = parentType.GetNestedType("VL"u8);
+                        if (nestedType != null)
+                        {
+                            yield return nestedType;
+                        }
+                    }
+                }
+                {
                     var type = context.SystemModule.GetType("System.Runtime.Intrinsics.X86"u8, "Avx512Vbmi2"u8, false);
                     if (type != null)
                     {
@@ -3350,6 +3475,25 @@ namespace Internal.JitInterface
                     {
                         yield return parentType;
                         var nestedType = parentType.GetNestedType("V512"u8);
+                        if (nestedType != null)
+                        {
+                            yield return nestedType;
+                        }
+                    }
+                }
+                {
+                    var type = context.SystemModule.GetType("System.Runtime.Intrinsics.X86"u8, "Avx512VPopcntDQ"u8, false);
+                    if (type != null)
+                    {
+                        yield return type;
+                    }
+                }
+                {
+                    var parentType = context.SystemModule.GetType("System.Runtime.Intrinsics.X86"u8, "Avx512VPopcntDQ"u8, false);
+                    if (parentType != null)
+                    {
+                        yield return parentType;
+                        var nestedType = parentType.GetNestedType("VL"u8);
                         if (nestedType != null)
                         {
                             yield return nestedType;
