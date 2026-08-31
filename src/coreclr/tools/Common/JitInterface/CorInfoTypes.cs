@@ -550,6 +550,14 @@ namespace Internal.JitInterface
         CLASSID_ARGUMENT_HANDLE,
         CLASSID_RUNTIME_TYPE,
     }
+
+    public enum CorInfoBitwiseEquatable
+    {
+        CORINFO_BITWISE_EQUATABLE_FALSE,
+        CORINFO_BITWISE_EQUATABLE_TRUE,
+        CORINFO_BITWISE_EQUATABLE_WITH_METHOD,
+    }
+
     public enum CorInfoInline
     {
         INLINE_PASS = 0,   // Inlining OK

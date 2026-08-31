@@ -940,6 +940,13 @@ enum CorInfoClassId
     CLASSID_RUNTIME_TYPE,
 };
 
+enum CorInfoBitwiseEquatable
+{
+    CORINFO_BITWISE_EQUATABLE_FALSE,
+    CORINFO_BITWISE_EQUATABLE_TRUE,
+    CORINFO_BITWISE_EQUATABLE_WITH_METHOD,
+};
+
 enum CorInfoInline
 {
     INLINE_PASS                     = 0,    // Inlining OK
@@ -3565,6 +3572,12 @@ public:
         ) = 0;
 
     virtual CORINFO_METHOD_HANDLE getSpecialCopyHelper(CORINFO_CLASS_HANDLE type) = 0;
+
+    virtual CorInfoBitwiseEquatable getBitwiseEquatableInfo(
+        CORINFO_CLASS_HANDLE   type,
+        CORINFO_METHOD_HANDLE* equalsMethod,
+        CORINFO_METHOD_HANDLE* comparerGetDefault,
+        CORINFO_METHOD_HANDLE* comparerEquals) = 0;
 };
 
 /**********************************************************************************/

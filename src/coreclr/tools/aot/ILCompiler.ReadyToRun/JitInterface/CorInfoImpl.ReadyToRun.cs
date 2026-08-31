@@ -803,7 +803,7 @@ namespace Internal.JitInterface
                         logger.Writer.WriteLine($"Info: Method `{MethodBeingCompiled}` was not compiled because it has an non version resilient signature.");
                     return;
                 }
-                MethodIL methodIL = GetMethodILForJit(MethodBeingCompiled);
+                MethodIL methodIL = _compilation.GetMethodIL(MethodBeingCompiled);
                 if (methodIL == null)
                 {
                     if (logger.IsVerbose)

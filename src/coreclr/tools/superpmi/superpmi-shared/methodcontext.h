@@ -930,6 +930,19 @@ public:
     void dmpGetSpecialCopyHelper(DWORDLONG key, DWORDLONG value);
     CORINFO_METHOD_HANDLE repGetSpecialCopyHelper(CORINFO_CLASS_HANDLE type);
 
+    void recGetBitwiseEquatableInfo(
+        CORINFO_CLASS_HANDLE   type,
+        CORINFO_METHOD_HANDLE* equalsMethod,
+        CORINFO_METHOD_HANDLE* comparerGetDefault,
+        CORINFO_METHOD_HANDLE* comparerEquals,
+        CorInfoBitwiseEquatable result);
+    void dmpGetBitwiseEquatableInfo(DWORDLONG key, const Agnostic_BitwiseEquatableInfo& value);
+    CorInfoBitwiseEquatable repGetBitwiseEquatableInfo(
+        CORINFO_CLASS_HANDLE   type,
+        CORINFO_METHOD_HANDLE* equalsMethod,
+        CORINFO_METHOD_HANDLE* comparerGetDefault,
+        CORINFO_METHOD_HANDLE* comparerEquals);
+
     void recGetWasmTypeSymbol(CorInfoWasmType* types, size_t typesSize, CORINFO_WASM_TYPE_SYMBOL_HANDLE result);
     void dmpGetWasmTypeSymbol(const Agnostic_GetWasmTypeSymbol& key, DWORDLONG value);
     CORINFO_WASM_TYPE_SYMBOL_HANDLE repGetWasmTypeSymbol(CorInfoWasmType* types, size_t typesSize);
@@ -1244,6 +1257,7 @@ enum mcPackets
     Packet_GetWasmWellKnownGlobals = 240,
     Packet_CanValueClassInstancePointerEscape = 241,
     Packet_GetAwaitAwaiterInContinuationCall = 242,
+    Packet_GetBitwiseEquatableInfo = 243,
 };
 
 void SetDebugDumpVariables();
