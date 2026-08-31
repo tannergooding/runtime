@@ -2819,8 +2819,7 @@ void Lowering::ContainCheckBinary(GenTreeOp* node)
     GenTree* op2 = node->gtGetOp2();
 
 #ifdef TARGET_ARM64
-    // adc/sbc (GT_ADD_HI/GT_SUB_HI) have no immediate, shifted-register, or extended-register
-    // form, so neither operand can be contained. Keep both as plain registers.
+    // adc/sbc only support register operands.
     if (node->OperIs(GT_ADD_HI, GT_SUB_HI))
     {
         return;

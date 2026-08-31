@@ -1095,7 +1095,7 @@ void CodeGen::genCodeForBinary(GenTreeOp* treeNode)
     assert(!varTypeIsFloating(treeNode));
 
     // try to use an inc or dec
-    if (oper == GT_ADD && src->isContainedIntOrIImmed() && !treeNode->gtOverflowEx())
+    if (oper == GT_ADD && src->isContainedIntOrIImmed() && !treeNode->gtOverflowEx() && !treeNode->gtSetFlags())
     {
         if (src->IsIntegralConst(1))
         {
@@ -4573,10 +4573,6 @@ instruction CodeGen::genGetInsForOper(genTreeOps oper, var_types type)
         case GT_XOR:
             ins = INS_xor;
             break;
-        // GT_ADD_HI/GT_SUB_HI are the add-with-carry/subtract-with-borrow half of a
-        // carry chain. On 64-bit they are produced by the carry-pattern recognition in
-        // lowering; on 32-bit they are also produced by long decomposition (along with
-        // the GT_ADD_LO/GT_SUB_LO and shift variants below).
         case GT_ADD_HI:
             ins = INS_adc;
             break;

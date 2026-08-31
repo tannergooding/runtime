@@ -417,10 +417,12 @@ private:
                                                const LoadStoreCoalescingData& prevData);
     GenTree* LowerAdd(GenTreeOp* node);
 #if defined(TARGET_AMD64) || defined(TARGET_ARM64)
-    bool     TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next);
+    bool     TryLowerAddSubWithCarry(GenTreeOp* node);
     bool     TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond);
     bool     TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next);
-    GenTree* GetSingleDefLocalStore(GenTree* lclUse);
+    bool     AreSameLocalValues(GenTree* left, GenTree* right);
+    GenTree* GetReachingLocalStore(GenTree* lclUse);
+    GenTree* GetCarryProducer(GenTree* sum, GenTree* operand);
     bool     IsCarryLocalSingleUse(GenTree* lclUse);
     bool     AreFlagsPreservedToConsumer(GenTree* flagsDef, GenTree* consumer, ArrayStack<GenTree*>& ignoreNodes);
 #endif // TARGET_AMD64 || TARGET_ARM64

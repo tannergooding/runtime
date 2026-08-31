@@ -163,13 +163,7 @@ GTNODE(COLON            , GenTreeColon       ,0,1,GTK_BINOP|DBK_NOTLIR)
 GTNODE(INDEX_ADDR       , GenTreeIndexAddr   ,0,0,GTK_BINOP|GTK_EXOP)   // Address of SZ-array-element.
 GTNODE(LEA              , GenTreeAddrMode    ,0,0,GTK_BINOP|GTK_EXOP|DBK_NOTHIR)
 
-// The high operators of a 64-bit operation that requires a carry/borrow, named
-// GT_XXX_HI for consistency. GT_ADD_HI lowers to add-with-carry (adc) and GT_SUB_HI
-// to subtract-with-borrow (sbb/sbc). They consume the CPU flags produced by the
-// immediately-preceding GTF_SET_FLAGS-marked low operation. On 32-bit these are
-// produced by long decomposition; on 64-bit they are produced by the add-with-carry
-// pattern recognition in lowering (recognizing multi-word carry chains such as
-// Int128/UInt128 and BigInteger limb loops).
+// Add/subtract with carry, consuming flags from a preceding GTF_SET_FLAGS node.
 GTNODE(ADD_HI           , GenTreeOp          ,1,0,GTK_BINOP|DBK_NOTHIR)
 GTNODE(SUB_HI           , GenTreeOp          ,0,0,GTK_BINOP|DBK_NOTHIR)
 

@@ -398,11 +398,10 @@ GenTree* Lowering::LowerNode(GenTree* node)
             {
                 GenTree* nextNode = nullptr;
 #if defined(TARGET_AMD64) || defined(TARGET_ARM64)
-                if (node->OperIs(GT_SUB) && TryLowerAddSubWithCarry(node->AsOp(), &nextNode))
+                if (node->OperIs(GT_SUB) && TryLowerAddSubWithCarry(node->AsOp()))
                 {
-                    return nextNode;
+                    return node;
                 }
-                assert(nextNode == nullptr);
 #endif // TARGET_AMD64 || TARGET_ARM64
 
                 if (node->OperIs(GT_AND) && TryLowerAndNegativeOne(node->AsOp(), &nextNode))
@@ -7943,19 +7942,57 @@ bool Lowering::TryCreateAddrMode(GenTree* addr, bool isContainable, GenTree* par
 
 #if defined(TARGET_AMD64) || defined(TARGET_ARM64)
 //------------------------------------------------------------------------
-// GetSingleDefLocalStore: If 'lclUse' is a GT_LCL_VAR use of a non-address-exposed
-//    local, find the nearest preceding STORE_LCL_VAR to the same local within the
-//    current block. Because LIR within a block is linear, the nearest preceding store
-//    is the reaching definition for the use.
+// AreSameLocalValues: Determine whether two local reads refer to the same stable value.
+//
+bool Lowering::AreSameLocalValues(GenTree* left, GenTree* right)
+{
+    if (!left->OperIs(GT_LCL_VAR) || !right->OperIs(GT_LCL_VAR))
+    {
+        return false;
+    }
+
+    GenTreeLclVar* leftLcl  = left->AsLclVar();
+    GenTreeLclVar* rightLcl = right->AsLclVar();
+
+    if ((leftLcl->GetLclNum() != rightLcl->GetLclNum()) || !leftLcl->HasSsaName() ||
+        (leftLcl->GetSsaNum() != rightLcl->GetSsaNum()) || m_compiler->lvaGetDesc(leftLcl)->IsAddressExposed())
+    {
+        return false;
+    }
+
+    // SSA names remain in LIR after SSA validity ends, so also reject intervening stores.
+    for (int reverse = 0; reverse < 2; reverse++)
+    {
+        GenTree* first  = (reverse == 0) ? left : right;
+        GenTree* second = (reverse == 0) ? right : left;
+        for (GenTree* cur = first->gtNext; cur != nullptr; cur = cur->gtNext)
+        {
+            if (cur == second)
+            {
+                return true;
+            }
+
+            if (cur->OperIs(GT_STORE_LCL_VAR, GT_STORE_LCL_FLD) &&
+                (cur->AsLclVarCommon()->GetLclNum() == leftLcl->GetLclNum()))
+            {
+                return false;
+            }
+        }
+    }
+
+    return false;
+}
+
+//------------------------------------------------------------------------
+// GetReachingLocalStore: Find the in-block store reaching a local use.
 //
 // Arguments:
 //    lclUse - a candidate node
 //
 // Returns:
-//    The defining GT_STORE_LCL_VAR node, or nullptr if 'lclUse' is not a suitable
-//    single-def local use with an in-block definition.
+//    The reaching GT_STORE_LCL_VAR, or nullptr if it cannot be determined.
 //
-GenTree* Lowering::GetSingleDefLocalStore(GenTree* lclUse)
+GenTree* Lowering::GetReachingLocalStore(GenTree* lclUse)
 {
     if (!lclUse->OperIs(GT_LCL_VAR))
     {
@@ -7970,12 +8007,11 @@ GenTree* Lowering::GetSingleDefLocalStore(GenTree* lclUse)
         return nullptr;
     }
 
-    // The nearest preceding store in the (linear) block range is the reaching definition.
     for (GenTree* cur = lclUse->gtPrev; cur != nullptr; cur = cur->gtPrev)
     {
-        if (cur->OperIs(GT_STORE_LCL_VAR) && (cur->AsLclVar()->GetLclNum() == lclNum))
+        if (cur->OperIs(GT_STORE_LCL_VAR, GT_STORE_LCL_FLD) && (cur->AsLclVarCommon()->GetLclNum() == lclNum))
         {
-            return cur;
+            return cur->OperIs(GT_STORE_LCL_VAR) ? cur : nullptr;
         }
     }
 
@@ -7983,26 +8019,71 @@ GenTree* Lowering::GetSingleDefLocalStore(GenTree* lclUse)
 }
 
 //------------------------------------------------------------------------
-// IsCarryLocalSingleUse: Determine whether 'lclUse' is the only GT_LCL_VAR read of its
-//    local within the current block, so the carry temp's definition can be safely
-//    deleted along with the compare.
+// GetCarryProducer: Find the add/sub producing a carry-tested sum.
 //
 // Arguments:
-//    lclUse - a GT_LCL_VAR node
+//    sum     - a local read of the add/sub result
+//    operand - the compared addend or minuend
 //
 // Returns:
-//    True if 'lclUse' is the sole read of its local in the block.
+//    The producing GT_ADD/GT_SUB, or nullptr if the nodes do not form a carry/borrow test.
+//
+GenTree* Lowering::GetCarryProducer(GenTree* sum, GenTree* operand)
+{
+    GenTree* store = GetReachingLocalStore(sum);
+    if (store == nullptr)
+    {
+        return nullptr;
+    }
+
+    GenTree* producer = store->AsLclVar()->Data();
+    if (!producer->OperIs(GT_ADD, GT_SUB) || producer->gtOverflow() || !producer->TypeIs(sum->TypeGet()))
+    {
+        return nullptr;
+    }
+
+    GenTree* op1 = producer->AsOp()->gtGetOp1();
+    GenTree* op2 = producer->AsOp()->gtGetOp2();
+
+    // A contained multiply emits as madd/msub on Arm64, which cannot set flags.
+    if ((op1->OperIs(GT_MUL) && op1->isContained()) || (op2->OperIs(GT_MUL) && op2->isContained()))
+    {
+        return nullptr;
+    }
+
+    if (!AreSameLocalValues(op1, operand) && (producer->OperIs(GT_SUB) || !AreSameLocalValues(op2, operand)))
+    {
+        return nullptr;
+    }
+
+    return producer;
+}
+
+//------------------------------------------------------------------------
+// IsCarryLocalSingleUse: Determine whether a carry local can be removed.
+//
+// Arguments:
+//    lclUse - the candidate GT_LCL_VAR use
+//
+// Returns:
+//    True if no other read of the local exists.
 //
 bool Lowering::IsCarryLocalSingleUse(GenTree* lclUse)
 {
     assert(lclUse->OperIs(GT_LCL_VAR));
     unsigned lclNum = lclUse->AsLclVar()->GetLclNum();
 
-    for (GenTree* cur : BlockRange())
+    for (BasicBlock* block : m_compiler->Blocks())
     {
-        if ((cur != lclUse) && cur->OperIs(GT_LCL_VAR) && (cur->AsLclVar()->GetLclNum() == lclNum))
+        assert(block->IsLIR());
+
+        for (GenTree* cur : LIR::AsRange(block))
         {
-            return false;
+            if ((cur != lclUse) && cur->OperIs(GT_LCL_VAR, GT_LCL_FLD) &&
+                (cur->AsLclVarCommon()->GetLclNum() == lclNum))
+            {
+                return false;
+            }
         }
     }
 
@@ -8010,20 +8091,15 @@ bool Lowering::IsCarryLocalSingleUse(GenTree* lclUse)
 }
 
 //------------------------------------------------------------------------
-// AreFlagsPreservedToConsumer: Verify that the CPU integer flags set by 'flagsDef' are
-//    still live when 'consumer' executes, i.e. no node strictly between them clobbers
-//    the flags. Nodes in 'ignoreNodes' are treated as already deleted (they are about
-//    to be removed as part of the transform) and are skipped, as are contained nodes
-//    (which emit no standalone instruction) and a conservative allowlist of flag-neutral
-//    opers. Anything else is assumed to clobber the flags.
+// AreFlagsPreservedToConsumer: Determine whether integer flags reach a consumer.
 //
 // Arguments:
 //    flagsDef    - the flag-setting node (earlier in the block)
 //    consumer    - the flag-consuming node (later in the block)
-//    ignoreNodes - nodes that will be deleted and can be skipped
+//    ignoreNodes - nodes removed by the pending transformation
 //
 // Returns:
-//    True if the flags are guaranteed to be preserved from 'flagsDef' to 'consumer'.
+//    True if no intervening emitted node may clobber the flags.
 //
 bool Lowering::AreFlagsPreservedToConsumer(GenTree* flagsDef, GenTree* consumer, ArrayStack<GenTree*>& ignoreNodes)
 {
@@ -8045,15 +8121,12 @@ bool Lowering::AreFlagsPreservedToConsumer(GenTree* flagsDef, GenTree* consumer,
             continue;
         }
 
-        // Contained nodes emit no standalone instruction, so they cannot clobber flags.
         if (cur->isContained())
         {
             continue;
         }
 
-        // Only a conservative allowlist of opers is known to be flag-neutral at codegen
-        // (loads, stores to registers/stack, constants and address computations). Anything
-        // else (arithmetic, calls, memory-RMW stores, etc.) may clobber the integer flags.
+        // Unknown nodes are conservatively treated as clobbering integer flags.
         switch (cur->OperGet())
         {
             case GT_LCL_VAR:
@@ -8079,36 +8152,25 @@ bool Lowering::AreFlagsPreservedToConsumer(GenTree* flagsDef, GenTree* consumer,
 
 //------------------------------------------------------------------------
 // TryLowerAddSubWithCarry: Recognize the add-with-carry / subtract-with-borrow idiom
-//    and fold the redundant carry/borrow compare into an adc/sbb.
+//    and fold the carry/borrow compare into an adc/sbb.
 //
 //    Add:
 //        lo    = a + b;
-//        carry = (lo < a) ? 1 : 0;   // unsigned; == carry-out of the low add
+//        carry = (lo < a) ? 1 : 0;
 //        hi    = c + d + carry;
 //
 //    Sub:
 //        lo     = a - b;
-//        borrow = (lo > a) ? 1 : 0;  // unsigned; == borrow-out of the low sub
+//        borrow = (lo > a) ? 1 : 0;
 //        hi     = c - d - borrow;
-//
-//    The unsigned compare is exactly the carry/borrow out of the low op, so the sequence
-//    can collapse from 'add; cmp; setb; ...; add; add' to 'add; adc' (and the subtract
-//    analogue to 'sub; sbb'). We mark the low op as flag-setting (GTF_SET_FLAGS, which
-//    also forces a real 'add'/'sub' rather than a 'lea') and rewrite the high op into a
-//    flags-consuming GT_ADD_HI/GT_SUB_HI, absorbing the inner 'c +/- d' op into it. The
-//    compare/cast are deleted.
-//
-//    This is correct for both signed and unsigned integers: the carry/borrow-out identity
-//    of the low op does not depend on the signedness of the high op.
 //
 // Arguments:
 //    node - the outer GT_ADD/GT_SUB forming 'hi'
-//    next - [out] the next node to lower when the pattern is recognized
 //
 // Returns:
 //    True if the pattern was recognized and rewritten.
 //
-bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
+bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node)
 {
     assert(node->OperIs(GT_ADD, GT_SUB));
 
@@ -8117,31 +8179,26 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
         return false;
     }
 
-    // adc/sbb operate on the full-width integer result; only 32/64-bit integers apply.
     if (!node->TypeIs(TYP_INT, TYP_LONG) || node->gtOverflow())
     {
         return false;
     }
 
     const bool       isSub   = node->OperIs(GT_SUB);
-    const genTreeOps loOper  = isSub ? GT_SUB : GT_ADD;       // low op producing 'lo'
-    const genTreeOps relOper = isSub ? GT_GT : GT_LT;         // unsigned borrow/carry compare
-    const genTreeOps hiOper  = isSub ? GT_SUB_HI : GT_ADD_HI; // flags-consuming high op
+    const genTreeOps loOper  = isSub ? GT_SUB : GT_ADD;
+    const genTreeOps relOper = isSub ? GT_GT : GT_LT;
+    const genTreeOps hiOper  = isSub ? GT_SUB_HI : GT_ADD_HI;
 
     GenTree* op1 = node->gtGetOp1();
     GenTree* op2 = node->gtGetOp2();
 
-    // One operand is the high partial result 'c +/- d' that the adc/sbb will absorb; the
-    // other is the carry/borrow (a 0/1 value from an unsigned relop). ADD is commutative so
-    // the carry may be on either side; SUB is not, so the borrow is always op2.
+    // ADD is commutative, so its carry may be either operand.
     const int swapCount = isSub ? 1 : 2;
     for (int swap = 0; swap < swapCount; swap++)
     {
         GenTree* hiSum = (swap == 0) ? op1 : op2;
         GenTree* carry = (swap == 0) ? op2 : op1;
 
-        // The high partial result must be a plain, single-use op of the two high words so
-        // that its operands can become the operands of the adc/sbb.
         if (!hiSum->OperIs(loOper) || hiSum->gtOverflow() || !hiSum->TypeIs(node->TypeGet()))
         {
             continue;
@@ -8153,16 +8210,14 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
             continue;
         }
 
-        // Resolve the carry/borrow to its defining unsigned relop, peeling an optional
-        // single-def local and an optional widening cast of the 0/1 result.
-        GenTree* carryLcl   = nullptr; // optional GT_LCL_VAR use to delete
-        GenTree* carryStore = nullptr; // optional GT_STORE_LCL_VAR to delete
-        GenTree* castNode   = nullptr; // optional GT_CAST to delete
+        GenTree* carryLcl   = nullptr;
+        GenTree* carryStore = nullptr;
+        GenTree* castNode   = nullptr;
         GenTree* relop      = carry;
 
         if (relop->OperIs(GT_LCL_VAR))
         {
-            GenTree* store = GetSingleDefLocalStore(relop);
+            GenTree* store = GetReachingLocalStore(relop);
             if ((store == nullptr) || !IsCarryLocalSingleUse(relop))
             {
                 continue;
@@ -8183,58 +8238,19 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
             relop    = cast->CastOp();
         }
 
-        // The carry/borrow is the unsigned 'lo < a' (add) or 'lo > a' (sub) compare.
         if (!relop->OperIs(relOper) || ((relop->gtFlags & GTF_UNSIGNED) == 0))
         {
             continue;
         }
 
-        GenTree* cmpSum = relop->AsOp()->gtGetOp1(); // 'lo'
-        GenTree* cmpA   = relop->AsOp()->gtGetOp2(); // 'a'
-
-        // 'lo' must be threaded through a single-def local whose definition is the low op.
-        GenTree* loStore = GetSingleDefLocalStore(cmpSum);
-        if (loStore == nullptr)
+        GenTree* cmpSum = relop->AsOp()->gtGetOp1();
+        GenTree* cmpA   = relop->AsOp()->gtGetOp2();
+        GenTree* loAdd  = GetCarryProducer(cmpSum, cmpA);
+        if ((loAdd == nullptr) || !loAdd->OperIs(loOper))
         {
             continue;
         }
 
-        GenTree* loAdd = loStore->AsLclVar()->Data();
-        if (!loAdd->OperIs(loOper) || loAdd->gtOverflow() || !loAdd->TypeIs(cmpSum->TypeGet()))
-        {
-            continue;
-        }
-
-        // 'a' must be a non-address-exposed local so its value is stable between the low op
-        // and the compare.
-        if (!cmpA->OperIs(GT_LCL_VAR) || m_compiler->lvaGetDesc(cmpA->AsLclVar())->IsAddressExposed())
-        {
-            continue;
-        }
-
-        GenTree* loAddOp1 = loAdd->AsOp()->gtGetOp1();
-        GenTree* loAddOp2 = loAdd->AsOp()->gtGetOp2();
-
-        // A low op whose other operand is a contained GT_MUL would be emitted as an Arm64
-        // 'madd'/'msub', which cannot also set the CPU flags. Don't fold such a low op.
-        if ((loAddOp1->OperIs(GT_MUL) && loAddOp1->isContained()) ||
-            (loAddOp2->OperIs(GT_MUL) && loAddOp2->isContained()))
-        {
-            continue;
-        }
-
-        // For add (commutative) 'a' may be either addend; for sub it must be the minuend
-        // (op1), since the borrow-out identity '(a - b) > a' only holds for the minuend.
-        unsigned aLclNum   = cmpA->AsLclVar()->GetLclNum();
-        bool     matchesLo = (loAddOp1->OperIs(GT_LCL_VAR) && (loAddOp1->AsLclVar()->GetLclNum() == aLclNum)) ||
-                         (!isSub && loAddOp2->OperIs(GT_LCL_VAR) && (loAddOp2->AsLclVar()->GetLclNum() == aLclNum));
-        if (!matchesLo)
-        {
-            continue;
-        }
-
-        // Verify the CPU flags set by the low op survive to the adc/sbb, ignoring the nodes
-        // that this transform is about to delete.
         ArrayStack<GenTree*> ignoreNodes(m_compiler->getAllocator(CMK_ArrayStack));
         ignoreNodes.Push(hiSum);
         ignoreNodes.Push(relop);
@@ -8255,16 +8271,12 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
             continue;
         }
 
-        // Recognized. Rewrite the sequence into 'add; adc' or 'sub; sbb'.
         JITDUMP("Recognized %s pattern at [%06u]; folding compare [%06u] into %s\n",
                 isSub ? "subtract-with-borrow" : "add-with-carry", node->gtTreeID, relop->gtTreeID,
                 isSub ? "sbb" : "adc");
 
-        // 1) The low op now sets the CPU flags (this also forces a real 'add'/'sub' instead
-        //    of a 'lea').
         loAdd->gtFlags |= GTF_SET_FLAGS;
 
-        // 2) Turn the outer op into a flags-consuming adc/sbb that absorbs the inner high op.
         GenTree* hiA = hiSum->AsOp()->gtGetOp1();
         GenTree* hiB = hiSum->AsOp()->gtGetOp2();
 
@@ -8281,7 +8293,6 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
         node->gtOp2 = hiB;
         node->SetOper(hiOper);
 
-        // 3) Delete the now-dead carry/borrow computation and the absorbed inner op.
         BlockRange().Remove(cmpSum);
         BlockRange().Remove(cmpA);
         BlockRange().Remove(relop);
@@ -8299,8 +8310,6 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
         JITDUMP("After add/sub-with-carry rewrite:\n");
         DISPTREERANGE(BlockRange(), node);
 
-        // Re-lower the rewritten node (now GT_ADD_HI/GT_SUB_HI) for containment.
-        *next = node;
         return true;
     }
 
@@ -8309,28 +8318,16 @@ bool Lowering::TryLowerAddSubWithCarry(GenTreeOp* node, GenTree** next)
 
 //------------------------------------------------------------------------
 // TryLowerCarryToJcc: Recognize an unsigned carry/borrow compare that feeds a branch and
-//    fold it into the flags produced by the low add/sub, eliding the compare.
+//    fold it into the flags produced by the low add/sub.
 //
 //        lo = a + b;
-//        if (lo < a) { ... }   // unsigned; == carry-out of the low add
+//        if (lo < a) { ... }
 //
 //        lo = a - b;
-//        if (lo > a) { ... }   // unsigned; == borrow-out of the low sub
-//
-//    The unsigned 'lo < a' / 'lo > a' is exactly the carry/borrow out of the low op, so it
-//    is redundant with the flags that op already computes. We mark the low op as flag-setting
-//    (GTF_SET_FLAGS, which also forces a real 'add'/'sub' rather than a 'lea'), delete the
-//    compare, and rewrite the consuming GT_JTRUE into a flags-consuming GT_JCC. This turns
-//    'add; cmp; jb' into 'add; jc' (x64) / 'adds; b.hs' (Arm64).
+//        if (lo > a) { ... }
 //
 //    The compare may have been reversed and/or had its operands swapped by earlier phases
-//    (e.g. 'lo < a' becomes 'lo >= a' when the branch is laid out to fall through the
-//    common path), so all four orderings are recognized and mapped to the branch condition:
-//
-//        add : lo <  a (carry set)     => C           lo >= a (carry clear)     => NC
-//        sub : lo >  a (borrow set)    => C  / NC*    lo <= a (borrow clear)    => NC / C*
-//                                          (* Arm64: 'subs' sets C = NOT borrow, so borrow
-//                                             is the NC/C mirror of x64)
+//    and is normalized below.
 //
 // Arguments:
 //    jtrue - the GT_JTRUE node being lowered
@@ -8348,7 +8345,6 @@ bool Lowering::TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond)
         return false;
     }
 
-    // Only the unsigned relational compares can encode a carry/borrow-out.
     if (!cond->OperIs(GT_LT, GT_LE, GT_GT, GT_GE) || ((cond->gtFlags & GTF_UNSIGNED) == 0))
     {
         return false;
@@ -8362,9 +8358,6 @@ bool Lowering::TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond)
         return false;
     }
 
-    // One operand is 'lo' (the low add/sub result, threaded through a single-def local) and the
-    // other is 'a' (a low operand of that op). Try both assignments; if 'lo' is condOp2 the
-    // effective compare direction is swapped (lo < a  <=>  a > lo).
     GenTree*   loSum   = nullptr;
     GenTree*   loAdd   = nullptr;
     genTreeOps effOper = GT_NONE; // compare oper normalized to 'lo <effOper> a'
@@ -8373,69 +8366,15 @@ bool Lowering::TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond)
         GenTree* sumCand = (swap == 0) ? condOp1 : condOp2;
         GenTree* aCand   = (swap == 0) ? condOp2 : condOp1;
 
-        GenTree* loStore = GetSingleDefLocalStore(sumCand);
-        if (loStore == nullptr)
-        {
-            continue;
-        }
-
-        GenTree* def = loStore->AsLclVar()->Data();
-        if (!def->OperIs(GT_ADD, GT_SUB) || def->gtOverflow() || !def->TypeIs(sumCand->TypeGet()))
-        {
-            continue;
-        }
-
-        // 'a' must be a non-address-exposed local so its value is stable to the compare.
-        if (!aCand->OperIs(GT_LCL_VAR) || m_compiler->lvaGetDesc(aCand->AsLclVar())->IsAddressExposed())
-        {
-            continue;
-        }
-
-        const bool defIsSub = def->OperIs(GT_SUB);
-        GenTree*   defOp1   = def->AsOp()->gtGetOp1();
-        GenTree*   defOp2   = def->AsOp()->gtGetOp2();
-
-        // A low op whose other operand is a contained GT_MUL would be emitted as an Arm64
-        // 'madd'/'msub', which cannot also set the CPU flags. Don't fold such a low op.
-        if ((defOp1->OperIs(GT_MUL) && defOp1->isContained()) || (defOp2->OperIs(GT_MUL) && defOp2->isContained()))
-        {
-            continue;
-        }
-
-        // For add (commutative) 'a' may be either addend; for sub it must be the minuend (op1),
-        // since the borrow-out identity '(a - b) > a' only holds for the minuend.
-        unsigned aLclNum = aCand->AsLclVar()->GetLclNum();
-        bool     matches = (defOp1->OperIs(GT_LCL_VAR) && (defOp1->AsLclVar()->GetLclNum() == aLclNum)) ||
-                       (!defIsSub && defOp2->OperIs(GT_LCL_VAR) && (defOp2->AsLclVar()->GetLclNum() == aLclNum));
-        if (!matches)
+        GenTree* def = GetCarryProducer(sumCand, aCand);
+        if (def == nullptr)
         {
             continue;
         }
 
         loSum   = sumCand;
         loAdd   = def;
-        effOper = cond->OperGet();
-        if (swap == 1)
-        {
-            // Operands are (a, lo); mirror the compare so it reads 'lo <effOper> a'.
-            switch (effOper)
-            {
-                case GT_LT:
-                    effOper = GT_GT;
-                    break;
-                case GT_GT:
-                    effOper = GT_LT;
-                    break;
-                case GT_LE:
-                    effOper = GT_GE;
-                    break;
-                case GT_GE:
-                    effOper = GT_LE;
-                    break;
-                default:
-                    unreached();
-            }
-        }
+        effOper = (swap == 0) ? cond->OperGet() : GenTree::SwapRelop(cond->OperGet());
         break;
     }
 
@@ -8446,45 +8385,13 @@ bool Lowering::TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond)
 
     const bool isSub = loAdd->OperIs(GT_SUB);
 
-    // Map the normalized 'lo <effOper> a' to the branch condition. Carry-out of an add is
-    // 'lo < a'; borrow-out of a sub is 'lo > a'. The complementary compare (>= / <=) is the
-    // carry/borrow-clear branch.
-    //
-    // carry/borrow set  => x64: C  ; Arm64 add: C, Arm64 sub: NC (subs sets C = NOT borrow)
-    // carry/borrow clear => the mirror of the above.
-    bool branchOnSet; // does the branch condition select "carry/borrow set"?
-    if (!isSub)
+    const genTreeOps setOper   = isSub ? GT_GT : GT_LT;
+    const genTreeOps clearOper = isSub ? GT_LE : GT_GE;
+    if ((effOper != setOper) && (effOper != clearOper))
     {
-        // add: 'lo < a' is carry-set; 'lo >= a' is carry-clear.
-        if (effOper == GT_LT)
-        {
-            branchOnSet = true;
-        }
-        else if (effOper == GT_GE)
-        {
-            branchOnSet = false;
-        }
-        else
-        {
-            return false;
-        }
+        return false;
     }
-    else
-    {
-        // sub: 'lo > a' is borrow-set; 'lo <= a' is borrow-clear.
-        if (effOper == GT_GT)
-        {
-            branchOnSet = true;
-        }
-        else if (effOper == GT_LE)
-        {
-            branchOnSet = false;
-        }
-        else
-        {
-            return false;
-        }
-    }
+    const bool branchOnSet = effOper == setOper;
 
 #ifdef TARGET_ARM64
     // Arm64 'subs' sets C = NOT borrow, so a set borrow is C clear (NC).
@@ -8495,8 +8402,6 @@ bool Lowering::TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond)
 
     GenCondition::Code ccCode = (branchOnSet == setIsCarryFlag) ? GenCondition::C : GenCondition::NC;
 
-    // Verify the CPU flags set by the low op survive to the compare, ignoring the compare's own
-    // operands (which this transform deletes).
     GenTree*             aNode = (loSum == condOp1) ? condOp2 : condOp1;
     ArrayStack<GenTree*> ignoreNodes(m_compiler->getAllocator(CMK_ArrayStack));
     ignoreNodes.Push(loSum);
@@ -8506,11 +8411,9 @@ bool Lowering::TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond)
         return false;
     }
 
-    // Recognized. Rewrite 'add; cmp; jcc' into 'add; jc/jnc' (Arm64 'adds; b.hs/b.lo').
     JITDUMP("Recognized carry-to-branch pattern; folding compare [%06u] into the %s flags\n", cond->gtTreeID,
             isSub ? "sub" : "add");
 
-    // The low op now sets the CPU flags (this also forces a real 'add'/'sub' instead of a 'lea').
     loAdd->gtFlags |= GTF_SET_FLAGS;
 
     BlockRange().Remove(loSum);
@@ -8526,25 +8429,16 @@ bool Lowering::TryLowerCarryToJcc(GenTreeOp* jtrue, GenTree* cond)
 
 //------------------------------------------------------------------------
 // TryLowerSignedOverflowToJcc: Recognize a hand-rolled signed add/sub overflow check that
-//    feeds a branch and fold it into the overflow (OF/V) flag produced by the add/sub.
+//    feeds a branch and use the overflow flag produced by the add/sub.
 //
 //        sum = a + b;
-//        if (((sum ^ a) & ~(a ^ b)) < 0) { ... }   // signed add overflow
+//        if (((sum ^ a) & ~(a ^ b)) < 0) { ... }
 //
 //        dif = a - b;
-//        if (((dif ^ a) & (a ^ b)) < 0) { ... }     // signed sub overflow
-//
-//    The '... < 0' tests the sign bit of the canonical signed-overflow expression, which is
-//    exactly the overflow flag the add/sub already computes (OF on x64, V on Arm64, same
-//    polarity for both add and sub). The expression is therefore redundant with a flag the
-//    hardware already has. We mark the add/sub as flag-setting, delete the whole
-//    overflow-computing subtree and the compare, and rewrite the consuming GT_JTRUE into a
-//    flags-consuming GT_JCC. This turns 'add; xor; xor; and; js' (BMI: 'add; xor; xor; andn;
-//    js') into 'add; jo' (x64) / 'adds; b.vs' (Arm64).
+//        if (((dif ^ a) & (a ^ b)) < 0) { ... }
 //
 //    We hook the GT_AND before target-specific lowering (which would otherwise rewrite
-//    'x & ~y' into an 'andn'/'bic' HWINTRINSIC), so the tree is still a plain
-//    GT_AND(GT_XOR, GT_XOR)  (sub) or GT_AND(GT_XOR, GT_NOT(GT_XOR))  (add).
+//    'x & ~y' into an 'andn'/'bic' HWINTRINSIC).
 //
 // Arguments:
 //    andNode - the GT_AND node being lowered
@@ -8567,7 +8461,6 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
         return false;
     }
 
-    // The AND must feed a signed compare against zero that in turn feeds a GT_JTRUE.
     LIR::Use andUse;
     if (!BlockRange().TryGetUse(andNode, &andUse))
     {
@@ -8583,9 +8476,7 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
     GenTree* cmpOp1 = cmp->AsOp()->gtGetOp1();
     GenTree* cmpOp2 = cmp->AsOp()->gtGetOp2();
 
-    // One side is the AND, the other must be the integer constant zero. Normalize the compare
-    // so it reads 'and <effOper> 0'; only the strict sign tests ('< 0' / '>= 0') are pure
-    // overflow-flag tests ('<= 0' / '> 0' additionally depend on the zero/equal case).
+    // Only strict sign tests are pure overflow tests; <= and > also depend on zero.
     GenTree*   zeroOp;
     genTreeOps effOper = cmp->OperGet();
     if (cmpOp1 == andNode)
@@ -8594,24 +8485,8 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
     }
     else
     {
-        zeroOp = cmpOp1;
-        switch (effOper)
-        {
-            case GT_LT:
-                effOper = GT_GT;
-                break;
-            case GT_GT:
-                effOper = GT_LT;
-                break;
-            case GT_LE:
-                effOper = GT_GE;
-                break;
-            case GT_GE:
-                effOper = GT_LE;
-                break;
-            default:
-                unreached();
-        }
+        zeroOp  = cmpOp1;
+        effOper = GenTree::SwapRelop(effOper);
     }
 
     if (!zeroOp->IsIntegralConst(0))
@@ -8619,19 +8494,11 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
         return false;
     }
 
-    bool overflowSet; // does the branch's taken edge correspond to "overflow"?
-    if (effOper == GT_LT)
-    {
-        overflowSet = true; // and < 0
-    }
-    else if (effOper == GT_GE)
-    {
-        overflowSet = false; // and >= 0
-    }
-    else
+    if ((effOper != GT_LT) && (effOper != GT_GE))
     {
         return false;
     }
+    const bool overflowSet = effOper == GT_LT;
 
     LIR::Use cmpUse;
     if (!BlockRange().TryGetUse(cmp, &cmpUse))
@@ -8645,9 +8512,7 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
         return false;
     }
 
-    // Decompose 'AND(resXor, opXor)'. One leg is 'res ^ x' where 'res' is the add/sub result
-    // (threaded through a single-def local) and 'x' is one of its operands; the other leg is
-    // 'a ^ b' (sub) or '~(a ^ b)' (add), i.e. the two operands of the same add/sub.
+    // Match either ordering of (result ^ operand) and [~](left ^ right).
     GenTree* andL = andNode->gtGetOp1();
     GenTree* andR = andNode->gtGetOp2();
 
@@ -8670,7 +8535,7 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
             GenTree* resCand = (rswap == 0) ? rx1 : rx2;
             GenTree* xCand   = (rswap == 0) ? rx2 : rx1;
 
-            GenTree* store = GetSingleDefLocalStore(resCand);
+            GenTree* store = GetReachingLocalStore(resCand);
             if (store == nullptr)
             {
                 continue;
@@ -8693,29 +8558,14 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
                 continue;
             }
 
-            if (m_compiler->lvaGetDesc(aDef->AsLclVar())->IsAddressExposed() ||
-                m_compiler->lvaGetDesc(bDef->AsLclVar())->IsAddressExposed())
+            const bool defIsSub = defCand->OperIs(GT_SUB, GT_SUB_HI);
+
+            if (defIsSub ? !AreSameLocalValues(xCand, aDef)
+                         : !AreSameLocalValues(xCand, aDef) && !AreSameLocalValues(xCand, bDef))
             {
                 continue;
             }
 
-            const unsigned aNum     = aDef->AsLclVar()->GetLclNum();
-            const unsigned bNum     = bDef->AsLclVar()->GetLclNum();
-            const bool     defIsSub = defCand->OperIs(GT_SUB, GT_SUB_HI);
-
-            // 'x' in 'res ^ x' must be an operand of the add/sub. For sub it must be the
-            // minuend (op1), since the identity is '(a - b) ^ a'; for add either operand works.
-            if (!xCand->OperIs(GT_LCL_VAR))
-            {
-                continue;
-            }
-            const unsigned xNum = xCand->AsLclVar()->GetLclNum();
-            if (defIsSub ? (xNum != aNum) : ((xNum != aNum) && (xNum != bNum)))
-            {
-                continue;
-            }
-
-            // The other leg is 'a ^ b' for sub and '~(a ^ b)' for add.
             GenTree* xorAB   = othLeg;
             bool     negated = false;
             if (xorAB->OperIs(GT_NOT))
@@ -8734,13 +8584,8 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
 
             GenTree* ab1 = xorAB->AsOp()->gtGetOp1();
             GenTree* ab2 = xorAB->AsOp()->gtGetOp2();
-            if (!ab1->OperIs(GT_LCL_VAR) || !ab2->OperIs(GT_LCL_VAR))
-            {
-                continue;
-            }
-            const unsigned ab1n = ab1->AsLclVar()->GetLclNum();
-            const unsigned ab2n = ab2->AsLclVar()->GetLclNum();
-            if (!(((ab1n == aNum) && (ab2n == bNum)) || ((ab1n == bNum) && (ab2n == aNum))))
+            if (!((AreSameLocalValues(ab1, aDef) && AreSameLocalValues(ab2, bDef)) ||
+                  (AreSameLocalValues(ab1, bDef) && AreSameLocalValues(ab2, aDef))))
             {
                 continue;
             }
@@ -8754,10 +8599,7 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
         return false;
     }
 
-    // Collect every node of the overflow-computing subtree (the AND and all its descendants:
-    // both XORs, the optional NOT, and their leaf reads). These are pure, single-use nodes
-    // that will be deleted; they are also passed as 'ignore' to the flags-liveness check since
-    // they are the nodes that would otherwise clobber the overflow flag before the branch.
+    // The matched subtree is removed and therefore ignored by the flags-liveness check.
     ArrayStack<GenTree*> subtree(m_compiler->getAllocator(CMK_ArrayStack));
     ArrayStack<GenTree*> work(m_compiler->getAllocator(CMK_ArrayStack));
     work.Push(andNode);
@@ -8771,8 +8613,6 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
         });
     }
 
-    // Verify the overflow flag set by the add/sub survives to the compare, ignoring the
-    // subtree we are about to delete.
     if (!AreFlagsPreservedToConsumer(def, cmp, subtree))
     {
         return false;
@@ -8781,7 +8621,6 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
     JITDUMP("Recognized signed-overflow-to-branch pattern; folding overflow check [%06u] into the %s flags\n",
             andNode->gtTreeID, def->OperIs(GT_SUB, GT_SUB_HI) ? "sub" : "add");
 
-    // The add/sub now sets the CPU flags (this also forces a real 'add'/'sub' instead of a 'lea').
     def->gtFlags |= GTF_SET_FLAGS;
 
     for (int i = 0; i < subtree.Height(); i++)
@@ -8814,12 +8653,9 @@ bool Lowering::TryLowerSignedOverflowToJcc(GenTreeOp* andNode, GenTree** next)
 GenTree* Lowering::LowerAdd(GenTreeOp* node)
 {
 #if defined(TARGET_AMD64) || defined(TARGET_ARM64)
+    if (TryLowerAddSubWithCarry(node))
     {
-        GenTree* next;
-        if (TryLowerAddSubWithCarry(node, &next))
-        {
-            return next;
-        }
+        return node;
     }
 #endif // TARGET_AMD64 || TARGET_ARM64
 
