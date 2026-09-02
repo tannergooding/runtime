@@ -64,52 +64,40 @@ namespace System.Numerics
         // Magnitude arrays are immutable and may be shared between instances.
         internal readonly nuint[]? _bits; // Do not rename (binary serialization)
 
-        /// <summary>Bit of <see cref="_sign"/> holding the sign of an array-backed magnitude.</summary>
         private const int SignBit = int.MinValue;
 
-        /// <summary>Bits of <see cref="_sign"/> holding the omitted low zero limb count of an array-backed magnitude.</summary>
         private const int OffsetMask = int.MaxValue;
 
-        /// <summary>Tests whether a <see cref="_sign"/> value represents zero. Valid for both representations.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsZeroSign(nuint[]? bits, int sign) => sign == 0 && bits is null;
 
-        /// <summary>Gets the normalized sign for a value in either representation.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetSign(nuint[]? bits, int sign) =>
             sign < 0 ? -1 :
             sign != 0 || bits is not null ? 1 :
             0;
 
-        /// <summary>Tests the polarity of a <see cref="_sign"/> value. Valid for both representations.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool IsNegativeSign(int sign) => sign < 0;
 
-        /// <summary>Tests the polarity of a <see cref="_sign"/> value. Valid for both representations.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsPositiveSign(int sign) => sign >= 0;
 
-        /// <summary>Tests whether two <see cref="_sign"/> values have opposite polarity. Valid for both representations.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool HaveDifferentPolarity(int left, int right) => (left ^ right) < 0;
 
-        /// <summary>Tests whether a <see cref="_sign"/> value and a signed integer have opposite polarity.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool HaveDifferentPolarity(int left, long right) => ((long)left ^ right) < 0;
 
-        /// <summary>Extracts the omitted low zero limb count from an array-backed <see cref="_sign"/> value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int DecodeLimbOffset(int sign) => sign & OffsetMask;
 
-        /// <summary>Extracts the omitted low zero limb count for a magnitude that may be inline.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetLimbOffset(nuint[]? bits, int sign) => bits is null ? 0 : DecodeLimbOffset(sign);
 
-        /// <summary>Extracts the omitted low zero limb count for a magnitude that may be inline.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetLimbOffset(ReadOnlySpan<nuint> bits, int sign) => bits.IsEmpty ? 0 : DecodeLimbOffset(sign);
 
-        /// <summary>Builds the <see cref="_sign"/> value for an array-backed magnitude.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int CreateEncodedSign(int limbOffset, bool negative)
         {
@@ -117,26 +105,18 @@ namespace System.Numerics
             return negative ? limbOffset | SignBit : limbOffset;
         }
 
-        /// <summary>Clears the polarity of an array-backed <see cref="_sign"/> value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int AbsSign(int sign) => sign & ~SignBit;
 
-        /// <summary>Flips the polarity of an array-backed <see cref="_sign"/> value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int NegateSign(int sign) => sign ^ SignBit;
+        private static int NegateSign(nuint[]? bits, int sign) => bits is null ? -sign : sign ^ SignBit;
 
-        /// <summary>Flips the polarity of a <see cref="_sign"/> value belonging to <paramref name="bits"/>.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int NegateSign(nuint[]? bits, int sign) => bits is null ? -sign : NegateSign(sign);
-
-        /// <summary>Gets the polarity of this value. Valid for both representations.</summary>
         private bool HasNegativeSign
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => IsNegativeSign(_sign);
         }
 
-        /// <summary>Gets the count of low zero limbs omitted from <see cref="_bits"/>.</summary>
         private int LimbOffset
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -284,31 +264,19 @@ namespace System.Numerics
             }
             else
             {
-                ulong x;
-                if (value < 0)
-                {
-                    x = (ulong)-value;
-                    _sign = CreateEncodedSign(0, negative: true);
-                }
-                else
-                {
-                    x = (ulong)value;
-                    _sign = CreateEncodedSign(0, negative: false);
-                }
+                bool negative = value < 0;
+                ulong x = negative ? (ulong)-value : (ulong)value;
 
                 if (BitOperations.IsPow2(x))
                 {
-                    this = CreatePowerOfTwo(BitOperations.TrailingZeroCount(x), value < 0);
-                }
-                else if (nint.Size == 8)
-                {
-                    _bits = [(nuint)x];
-                    this = new BigInteger(_bits, value < 0);
+                    this = CreatePowerOfTwo(BitOperations.TrailingZeroCount(x), negative);
                 }
                 else
                 {
-                    _bits = x <= uint.MaxValue ? [((uint)x)] : [(uint)x, (uint)(x >> BitsPerUInt32)];
-                    this = new BigInteger(_bits, value < 0);
+                    nuint[] bits = nint.Size == 8
+                        ? [(nuint)x]
+                        : x <= uint.MaxValue ? [((uint)x)] : [(uint)x, (uint)(x >> BitsPerUInt32)];
+                    this = new BigInteger(bits, negative);
                 }
             }
 
@@ -323,29 +291,16 @@ namespace System.Numerics
                 _sign = (int)value;
                 _bits = null;
             }
+            else if (BitOperations.IsPow2(value))
+            {
+                this = CreatePowerOfTwo(BitOperations.TrailingZeroCount(value), negative: false);
+            }
             else
             {
-                if (BitOperations.IsPow2(value))
-                {
-                    this = CreatePowerOfTwo(BitOperations.TrailingZeroCount(value), negative: false);
-                }
-                else
-                {
-                    _sign = CreateEncodedSign(0, negative: false);
-                    if (nint.Size == 8)
-                    {
-                        _bits = [(nuint)value];
-                    }
-                    else
-                    {
-                        _bits = value <= uint.MaxValue ? [((uint)value)] : [(uint)value, (uint)(value >> BitsPerUInt32)];
-                    }
-                }
-            }
-
-            if (_bits is not null && !BitOperations.IsPow2(value))
-            {
-                this = new BigInteger(_bits, negative: false);
+                nuint[] bits = nint.Size == 8
+                    ? [(nuint)value]
+                    : value <= uint.MaxValue ? [((uint)value)] : [(uint)value, (uint)(value >> BitsPerUInt32)];
+                this = new BigInteger(bits, negative: false);
             }
 
             AssertValid();
@@ -2190,11 +2145,9 @@ namespace System.Numerics
         {
             if (HaveDifferentPolarity(_sign, other._sign))
             {
-                // Different signs, so the comparison is easy.
                 return HasNegativeSign ? -1 : +1;
             }
 
-            // Same signs
             if (_bits is null)
             {
                 return
@@ -2416,15 +2369,8 @@ namespace System.Numerics
             {
                 highByte = 0xff;
 
-                // For a negative value, we will need to two's complement bits.
-                // Previously this was accomplished via NumericsHelpers.DangerousMakeTwosComplement(),
-                // however, we can do the two's complement on the stack so as to avoid
-                // creating a temporary copy of bits just to hold the two's complement.
-                // One special case in DangerousMakeTwosComplement() is that if the array
-                // is all zeros, then it would allocate a new array with the high-order
-                // limb set to 1 (for the carry). In our usage, we will not hit this case
-                // because a bits array of all zeros would represent 0, and this case
-                // would be encoded as _bits = null and _sign = 0.
+                // Compute the two's complement while writing to avoid a temporary magnitude copy.
+                // Canonical magnitudes are nonzero, so carry cannot require another limb.
                 Debug.Assert(bits.Length > 0);
                 Debug.Assert(bits[^1] != 0);
                 nonZeroLimbIndex = LimbOffset;
@@ -2888,16 +2834,6 @@ namespace System.Numerics
         private static int GetLogicalLimbCount(ReadOnlySpan<nuint> bits, int sign)
         {
             return bits.IsEmpty ? 1 : checked(bits.Length + GetLimbOffset(bits, sign));
-        }
-
-        private static nuint GetLimb(ReadOnlySpan<nuint> bits, int sign, int index)
-        {
-            if (bits.IsEmpty)
-            {
-                return index == 0 ? NumericsHelpers.Abs(sign) : 0;
-            }
-
-            return GetLimbAtOffset(bits, GetLimbOffset(bits, sign), index);
         }
 
         private static nuint GetLimbAtOffset(ReadOnlySpan<nuint> bits, int limbOffset, int index)
@@ -3972,7 +3908,7 @@ namespace System.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BigInteger operator -(BigInteger value) => value._bits is null
             ? new BigInteger(-value._sign, null)
-            : new BigInteger(value._bits, NegateSign(value._sign));
+            : new BigInteger(value._bits, NegateSign(value._bits, value._sign));
 
         public static BigInteger operator +(BigInteger value) => value;
 
@@ -4348,7 +4284,6 @@ namespace System.Numerics
             {
                 // _bits must contain at least 1 element or be null
                 Debug.Assert(_bits.Length > 0);
-                // Wasted space: low zero limbs should be encoded in _sign
                 Debug.Assert(_bits[0] != 0);
                 // Wasted space: _bits[0] could have been packed into _sign
                 Debug.Assert(LimbOffset != 0 || _bits.Length > 1 || _bits[0] > int.MaxValue);

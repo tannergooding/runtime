@@ -41,11 +41,9 @@ namespace System.Numerics.Tests
         private static BigInteger MakeRandom(int byteCount, int seed) =>
             MakeRandom(byteCount, new Random(seed));
 
-        /// <summary>Mirrors <c>BigInteger.LimbOffset</c>: the raw omitted low zero limb count.</summary>
         private static int LimbOffsetOf(BigInteger value) =>
             value._bits is null ? 0 : value._sign & int.MaxValue;
 
-        /// <summary>Mirrors <c>BigInteger.CreateEncodedSign</c>: bit 31 is the sign and bits 0-30 are the omitted limb count.</summary>
         private static int EncodedSign(int limbOffset, bool negative) =>
             negative ? limbOffset | int.MinValue : limbOffset;
 
@@ -257,37 +255,6 @@ namespace System.Numerics.Tests
             }
         }
 
-        [Fact]
-        public void ArrayBackedValueWithNoOmittedLimbsUsesBitsToDisambiguateZero()
-        {
-            int bitsPerLimb = nint.Size * 8;
-
-            // 2^bitsPerLimb - 1 needs an array (it exceeds int.MaxValue) but omits no low limbs,
-            // so only the polarity bit distinguishes its encoded signs.
-            BigInteger positive = (BigInteger.One << bitsPerLimb) - 1;
-            BigInteger negative = -positive;
-
-            Assert.NotNull(positive._bits);
-            Assert.Equal(0, positive._sign);
-            Assert.Equal(int.MinValue, negative._sign);
-            Assert.Same(positive._bits, negative._bits);
-
-            Assert.True(negative._sign < 0);
-
-            Assert.False(positive.IsZero);
-            Assert.False(negative.IsZero);
-            Assert.Equal(1, positive.Sign);
-            Assert.Equal(-1, negative.Sign);
-            Assert.True(BigInteger.IsPositive(positive));
-            Assert.True(BigInteger.IsNegative(negative));
-
-            Assert.NotEqual(BigInteger.Zero, positive);
-            Assert.NotEqual(BigInteger.Zero, negative);
-            Assert.NotEqual(positive, negative);
-            Assert.Equal(positive, BigInteger.Abs(negative));
-            Assert.Equal(positive, -negative);
-        }
-
         [Theory]
         [MemberData(nameof(ZeroOffsetMagnitudeKinds))]
         public void SignBitMatchesNegativePolarity(int kind)
@@ -380,6 +347,7 @@ namespace System.Numerics.Tests
                 bool negative = value.Sign < 0;
 
                 Assert.Equal(EncodedSign(0, negative), value._sign);
+                Assert.Same(magnitude._bits, value._bits);
                 Assert.False(value.IsZero);
                 Assert.Equal(negative ? -1 : 1, value.Sign);
 
@@ -415,20 +383,6 @@ namespace System.Numerics.Tests
             Assert.Equal(5, LimbOffsetOf(negated));
             Assert.Equal(value._sign ^ int.MinValue, negated._sign);
             Assert.Equal(value, -negated);
-        }
-
-        [Fact]
-        public void PowerOfTwoMagnitudesShareTheCachedLimbArray()
-        {
-            int bitsPerLimb = nint.Size * 8;
-            BigInteger first = BigInteger.One << bitsPerLimb;
-            BigInteger second = BigInteger.One << (3 * bitsPerLimb);
-
-            Assert.Same(first._bits, second._bits);
-            Assert.Same(first._bits, (-second)._bits);
-            Assert.Equal(EncodedSign(1, negative: false), first._sign);
-            Assert.Equal(EncodedSign(3, negative: false), second._sign);
-            Assert.Equal(EncodedSign(3, negative: true), (-second)._sign);
         }
 
         [Fact]
@@ -606,10 +560,14 @@ namespace System.Numerics.Tests
         [InlineData(1_024)]
         public void PowerOfTwoMagnitudesAreShared(int exponent)
         {
+            int bitsPerLimb = nint.Size * 8;
             BigInteger shifted = BigInteger.One << exponent;
+            BigInteger shiftedByLimb = BigInteger.One << (exponent + bitsPerLimb);
             BigInteger parsed = BigInteger.Parse(shifted.ToString());
             BigInteger powered = BigInteger.Pow(2, exponent);
 
+            Assert.Equal(EncodedSign(exponent / bitsPerLimb, negative: false), shifted._sign);
+            Assert.Same(shifted._bits, shiftedByLimb._bits);
             Assert.Same(shifted._bits, (-shifted)._bits);
             Assert.Same(shifted._bits, parsed._bits);
             Assert.Same(shifted._bits, powered._bits);
