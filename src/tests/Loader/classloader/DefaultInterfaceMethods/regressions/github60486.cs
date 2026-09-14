@@ -129,9 +129,13 @@ public class Program : ProgramBase<InputData>, TestItf2<InputData>
         {
             Assert.Equal(nameof(ValidateCurrentMethod), MethodBase.GetCurrentMethod().Name);
             Assert.Equal(nameof(GetCurrentMethodInlineable), GetCurrentMethodInlineable().Name);
+            Assert.Equal(nameof(GetCurrentMethodAggressiveInlineable), GetCurrentMethodAggressiveInlineable().Name);
             MethodBase genericMethod = GetCurrentMethodGeneric<string>();
             Assert.Equal(nameof(GetCurrentMethodGeneric), genericMethod.Name);
             Assert.True(genericMethod.IsGenericMethodDefinition);
+            MethodBase aggressiveGenericMethod = GetCurrentMethodAggressiveGeneric<string>();
+            Assert.Equal(nameof(GetCurrentMethodAggressiveGeneric), aggressiveGenericMethod.Name);
+            Assert.True(aggressiveGenericMethod.IsGenericMethodDefinition);
             Assert.Equal(typeof(Program).Assembly, Assembly.GetExecutingAssembly());
             Assert.Equal(typeof(Program).Assembly, Assembly.GetCallingAssembly());
             ValidateRecursiveCurrentMethod(3);
@@ -144,6 +148,12 @@ public class Program : ProgramBase<InputData>, TestItf2<InputData>
     private static MethodBase GetCurrentMethodInlineable() => MethodBase.GetCurrentMethod();
 
     private static MethodBase GetCurrentMethodGeneric<T>() => MethodBase.GetCurrentMethod();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static MethodBase GetCurrentMethodAggressiveInlineable() => MethodBase.GetCurrentMethod();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static MethodBase GetCurrentMethodAggressiveGeneric<T>() => MethodBase.GetCurrentMethod();
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void ValidateTransitionRoots(InputData value, ref InputData byref, (InputData, InputData) pair)
