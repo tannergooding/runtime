@@ -5567,7 +5567,7 @@ namespace System.Threading.Tasks
             // For Boolean, we cache all possible values.
             if (typeof(TResult) == typeof(bool)) // only the relevant branches are kept for each value-type generic instantiation
             {
-                Task<bool> task = *(bool*)&result ? TaskCache.s_trueTask : TaskCache.s_falseTask;
+                Task<bool> task = *(bool*)&result ? TaskCache.Boolean.s_trueTask : TaskCache.Boolean.s_falseTask;
                 return *(Task<TResult>*)&task;
             }
 
@@ -5578,7 +5578,7 @@ namespace System.Threading.Tasks
                 int value = *(int*)&result;
                 if ((uint)(value - TaskCache.InclusiveInt32Min) < (TaskCache.ExclusiveInt32Max - TaskCache.InclusiveInt32Min))
                 {
-                    Task<int> task = TaskCache.s_int32Tasks[value - TaskCache.InclusiveInt32Min];
+                    Task<int> task = TaskCache.Int32.s_tasks[value - TaskCache.InclusiveInt32Min];
                     return *(Task<TResult>*)&task;
                 }
             }

@@ -366,8 +366,12 @@ namespace System.Threading.Tasks.Tests
         }
 
         [Theory]
+        [InlineData(-2, false)]
+        [InlineData(-1, true)]
         [InlineData(0, true)]
         [InlineData(5, true)]
+        [InlineData(8, true)]
+        [InlineData(9, false)]
         [InlineData(-5, false)]
         [InlineData(42, false)]
         public static void TaskMethodBuilderInt32_UsesCompletedCache(int result, bool shouldBeCached)

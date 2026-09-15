@@ -9,12 +9,6 @@ namespace System.Threading.Tasks
     /// <summary>Provides a cache of tasks for async methods.</summary>
     internal static class TaskCache
     {
-        /// <summary>A cached Task{Boolean}.Result == true.</summary>
-        internal static readonly Task<bool> s_trueTask = CreateCacheableTask(result: true);
-        /// <summary>A cached Task{Boolean}.Result == false.</summary>
-        internal static readonly Task<bool> s_falseTask = CreateCacheableTask(result: false);
-        /// <summary>The cache of Task{Int32}.</summary>
-        internal static readonly Task<int>[] s_int32Tasks = CreateInt32Tasks();
         /// <summary>The minimum value, inclusive, for which we want a cached task.</summary>
         internal const int InclusiveInt32Min = -1;
         /// <summary>The maximum value, exclusive, for which we want a cached task.</summary>
@@ -27,18 +21,32 @@ namespace System.Threading.Tasks
         internal static Task<TResult> CreateCacheableTask<TResult>(TResult? result) =>
             new Task<TResult>(false, result, (TaskCreationOptions)InternalTaskOptions.DoNotDispose, default);
 
-        /// <summary>Creates an array of cached tasks for the values in the range [INCLUSIVE_MIN,EXCLUSIVE_MAX).</summary>
-        private static Task<int>[] CreateInt32Tasks()
+        internal static class Boolean
         {
-            Debug.Assert(ExclusiveInt32Max >= InclusiveInt32Min, "Expected max to be at least min");
+            /// <summary>A cached Task{Boolean}.Result == true.</summary>
+            internal static readonly Task<bool> s_trueTask = CreateCacheableTask(result: true);
+            /// <summary>A cached Task{Boolean}.Result == false.</summary>
+            internal static readonly Task<bool> s_falseTask = CreateCacheableTask(result: false);
+        }
 
-            var tasks = new Task<int>[ExclusiveInt32Max - InclusiveInt32Min];
-            for (int i = 0; i < tasks.Length; i++)
+        internal static class Int32
+        {
+            /// <summary>The cache of Task{Int32}.</summary>
+            internal static readonly Task<int>[] s_tasks = CreateInt32Tasks();
+
+            /// <summary>Creates an array of cached tasks for the values in the range [INCLUSIVE_MIN,EXCLUSIVE_MAX).</summary>
+            private static Task<int>[] CreateInt32Tasks()
             {
-                tasks[i] = CreateCacheableTask(i + InclusiveInt32Min);
-            }
+                Debug.Assert(ExclusiveInt32Max >= InclusiveInt32Min, "Expected max to be at least min");
 
-            return tasks;
+                var tasks = new Task<int>[ExclusiveInt32Max - InclusiveInt32Min];
+                for (int i = 0; i < tasks.Length; i++)
+                {
+                    tasks[i] = CreateCacheableTask(i + InclusiveInt32Min);
+                }
+
+                return tasks;
+            }
         }
     }
 }
