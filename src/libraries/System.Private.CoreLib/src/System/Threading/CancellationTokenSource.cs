@@ -30,8 +30,12 @@ namespace System.Threading
         /// <summary>A <see cref="CancellationTokenSource"/> that's never canceled.  This isn't enforced programmatically, only by usage.  Do not cancel!</summary>
         internal static readonly CancellationTokenSource s_neverCanceledSource = new CancellationTokenSource();
 
-        /// <summary>Delegate used with <see cref="Timer"/> to trigger cancellation of a <see cref="CancellationTokenSource"/>.</summary>
-        private static readonly TimerCallback s_timerCallback = TimerCallback;
+        private static class TimerCallbackHolder
+        {
+            // Non-timer sources should not root the timer's cancellation callback.
+            internal static readonly TimerCallback s_callback = TimerCallback;
+        }
+
         private static void TimerCallback(object? state) => // separated out into a named method to improve Timer diagnostics in a debugger
             ((CancellationTokenSource)state!).NotifyCancellation(throwOnFirstException: false); // skip ThrowIfDisposed() check in Cancel()
 
@@ -211,13 +215,13 @@ namespace System.Threading
             {
                 if (timeProvider == TimeProvider.System)
                 {
-                    _timer = new TimerQueueTimer(s_timerCallback, this, millisecondsDelay, Timeout.InfiniteTimeSpan, flowExecutionContext: false);
+                    _timer = new TimerQueueTimer(TimerCallbackHolder.s_callback, this, millisecondsDelay, Timeout.InfiniteTimeSpan, flowExecutionContext: false);
                 }
                 else
                 {
                     using (ExecutionContext.SuppressFlow())
                     {
-                        _timer = timeProvider.CreateTimer(s_timerCallback, this, millisecondsDelay, Timeout.InfiniteTimeSpan);
+                        _timer = timeProvider.CreateTimer(TimerCallbackHolder.s_callback, this, millisecondsDelay, Timeout.InfiniteTimeSpan);
                     }
                 }
                 // The timer roots this CTS instance while it's scheduled.  That is by design, so
@@ -444,7 +448,7 @@ namespace System.Threading
                 // Initially set to "never go off" because we don't want to take a
                 // chance on a timer "losing" the initialization and then
                 // cancelling the token before it (the timer) can be disposed.
-                timer = new TimerQueueTimer(s_timerCallback, this, Timeout.UnsignedInfinite, Timeout.UnsignedInfinite, flowExecutionContext: false);
+                timer = new TimerQueueTimer(TimerCallbackHolder.s_callback, this, Timeout.UnsignedInfinite, Timeout.UnsignedInfinite, flowExecutionContext: false);
                 ITimer? currentTimer = Interlocked.CompareExchange(ref _timer, timer, null);
                 if (currentTimer != null)
                 {
