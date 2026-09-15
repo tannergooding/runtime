@@ -11,6 +11,29 @@ namespace System.Text.Tests
 {
     public class EncodingGetEncodingTest
     {
+        [Theory]
+        [InlineData(1200, "utf-16", new byte[] { 0xFF, 0xFE })]
+        [InlineData(1201, "utf-16BE", new byte[] { 0xFE, 0xFF })]
+        [InlineData(12000, "utf-32", new byte[] { 0xFF, 0xFE, 0x00, 0x00 })]
+        [InlineData(12001, "utf-32BE", new byte[] { 0x00, 0x00, 0xFE, 0xFF })]
+        public void GetEncoding_EndianSingleton(int codePage, string name, byte[] preamble)
+        {
+            Encoding encoding = codePage switch
+            {
+                1200 => Encoding.Unicode,
+                1201 => Encoding.BigEndianUnicode,
+                12000 => Encoding.UTF32,
+                _ => Encoding.GetEncoding(codePage),
+            };
+
+            Assert.Same(encoding, Encoding.GetEncoding(codePage));
+            Assert.Same(encoding, Encoding.GetEncoding(name));
+            Assert.True(encoding.IsReadOnly);
+            Assert.Equal(preamble, encoding.GetPreamble());
+            Assert.Equal("\uFFFD", Assert.IsType<EncoderReplacementFallback>(encoding.EncoderFallback).DefaultString);
+            Assert.Equal("\uFFFD", Assert.IsType<DecoderReplacementFallback>(encoding.DecoderFallback).DefaultString);
+        }
+
         [Fact]
         public void GetEncoding_String_Invalid()
         {

@@ -1016,7 +1016,7 @@ namespace System.Text
         // It will use little endian byte order, but will detect
         // input in big endian if it finds a byte order mark per Unicode 2.0.
 
-        public static Encoding Unicode => UnicodeEncoding.s_littleEndianDefault;
+        public static Encoding Unicode => UnicodeEncoding.LittleEndianHolder.s_default;
 
         // Returns an encoding for Unicode format. The returned encoding will be
         // an instance of the UnicodeEncoding class.
@@ -1024,7 +1024,7 @@ namespace System.Text
         // It will use big endian byte order, but will detect
         // input in little endian if it finds a byte order mark per Unicode 2.0.
 
-        public static Encoding BigEndianUnicode => UnicodeEncoding.s_bigEndianDefault;
+        public static Encoding BigEndianUnicode => UnicodeEncoding.BigEndianHolder.s_default;
 
         // Returns an encoding for the UTF-7 format. The returned encoding will be
         // an instance of the UTF7Encoding class.
@@ -1040,14 +1040,14 @@ namespace System.Text
         // Returns an encoding for the UTF-32 format. The returned encoding will be
         // an instance of the UTF32Encoding class.
 
-        public static Encoding UTF32 => UTF32Encoding.s_default;
+        public static Encoding UTF32 => UTF32Encoding.LittleEndianHolder.s_default;
 
         // Returns an encoding for the UTF-32 format. The returned encoding will be
         // an instance of the UTF32Encoding class.
         //
         // It will use big endian byte order.
 
-        private static Encoding BigEndianUTF32 => UTF32Encoding.s_bigEndianDefault;
+        private static Encoding BigEndianUTF32 => UTF32Encoding.BigEndianHolder.s_default;
 
         public override bool Equals([NotNullWhen(true)] object? value) =>
             value is Encoding that &&

@@ -18,10 +18,15 @@ namespace System.Text
 {
     public class UnicodeEncoding : Encoding
     {
-        // Used by Encoding.BigEndianUnicode/Unicode for lazy initialization
-        // The initialization code will not be run until a static member of the class is referenced
-        internal static readonly UnicodeEncoding s_bigEndianDefault = new UnicodeEncoding(bigEndian: true, byteOrderMark: true);
-        internal static readonly UnicodeEncoding s_littleEndianDefault = new UnicodeEncoding(bigEndian: false, byteOrderMark: true);
+        internal static class BigEndianHolder
+        {
+            internal static readonly UnicodeEncoding s_default = new UnicodeEncoding(bigEndian: true, byteOrderMark: true);
+        }
+
+        internal static class LittleEndianHolder
+        {
+            internal static readonly UnicodeEncoding s_default = new UnicodeEncoding(bigEndian: false, byteOrderMark: true);
+        }
 
         private readonly bool isThrowException;
 
