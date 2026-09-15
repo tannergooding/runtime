@@ -141,19 +141,33 @@ namespace System
 
         private const int DEFAULT_ALL_DATETIMES_SIZE = 132;
 
-        internal static readonly DateTimeFormatInfo InvariantFormatInfo = CultureInfo.InvariantCulture.DateTimeFormat;
-        private static readonly string[] s_invariantAbbreviatedMonthNames = InvariantFormatInfo.AbbreviatedMonthNames;
-        private static readonly string[] s_invariantAbbreviatedDayNames = InvariantFormatInfo.AbbreviatedDayNames;
+        internal static DateTimeFormatInfo InvariantFormatInfo => InvariantInfo.s_value;
+        internal static string[] fixedNumberFormats => FractionFormats.s_values;
 
-        internal static readonly string[] fixedNumberFormats = [
-            "0",
-            "00",
-            "000",
-            "0000",
-            "00000",
-            "000000",
-            "0000000",
-        ];
+        // Keep numeric formatting and invariant format information independent of the RFC1123 name tables.
+        private static class InvariantInfo
+        {
+            internal static readonly DateTimeFormatInfo s_value = CultureInfo.InvariantCulture.DateTimeFormat;
+        }
+
+        private static class Rfc1123Names
+        {
+            internal static readonly string[] s_months = InvariantFormatInfo.AbbreviatedMonthNames;
+            internal static readonly string[] s_days = InvariantFormatInfo.AbbreviatedDayNames;
+        }
+
+        private static class FractionFormats
+        {
+            internal static readonly string[] s_values = [
+                "0",
+                "00",
+                "000",
+                "0000",
+                "00000",
+                "000000",
+                "0000000",
+            ];
+        }
 
         /// <summary>Format the positive integer value to a string and prefix with assigned length of leading zero.</summary>
         /// <typeparam name="TChar">The type of the character.</typeparam>
@@ -1471,10 +1485,10 @@ namespace System
             charsWritten = 16;
             (int year, int month, int day) = value;
 
-            string dayAbbrev = s_invariantAbbreviatedDayNames[(int)value.DayOfWeek];
+            string dayAbbrev = Rfc1123Names.s_days[(int)value.DayOfWeek];
             Debug.Assert(dayAbbrev.Length == 3);
 
-            string monthAbbrev = s_invariantAbbreviatedMonthNames[month - 1];
+            string monthAbbrev = Rfc1123Names.s_months[month - 1];
             Debug.Assert(monthAbbrev.Length == 3);
 
             char c = dayAbbrev[2]; // remove bounds checks on remaining dayAbbrev accesses
@@ -1671,10 +1685,10 @@ namespace System
 
             dateTime.GetDate(out int year, out int month, out int day);
 
-            string dayAbbrev = s_invariantAbbreviatedDayNames[(int)dateTime.DayOfWeek];
+            string dayAbbrev = Rfc1123Names.s_days[(int)dateTime.DayOfWeek];
             Debug.Assert(dayAbbrev.Length == 3);
 
-            string monthAbbrev = s_invariantAbbreviatedMonthNames[month - 1];
+            string monthAbbrev = Rfc1123Names.s_months[month - 1];
             Debug.Assert(monthAbbrev.Length == 3);
 
             char c = dayAbbrev[2]; // remove bounds checks on remaining dayAbbrev accesses

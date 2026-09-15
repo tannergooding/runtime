@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.DotNet.RemoteExecutor;
 using Microsoft.DotNet.XUnitExtensions;
 using Xunit;
@@ -35,6 +36,60 @@ namespace System.Tests
         private static bool s_localSupportsDST;
 
         private static readonly int s_sydneyOffsetLastWeekOfMarch2006;
+
+        [ConditionalTheory(typeof(PlatformDetection), nameof(PlatformDetection.IsNotBuiltWithAggressiveTrimming))]
+        [InlineData(false)]
+        [InlineData(true)]
+        public static void TransitionCache_InitializedOnDemand(bool hasAdjustmentRules)
+        {
+            TimeZoneInfo.AdjustmentRule[] rules = hasAdjustmentRules ? new[] { CreateTransitionCacheTestRule(2026, 2026) } : Array.Empty<TimeZoneInfo.AdjustmentRule>();
+            TimeZoneInfo zone = TimeZoneInfo.CreateCustomTimeZone(
+                "TransitionCache", TimeSpan.FromHours(2), "TransitionCache", "Standard", "Daylight", rules);
+            FieldInfo cacheField = typeof(TimeZoneInfo).GetField("_transitionCache", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            Assert.NotNull(cacheField);
+            Assert.Null(cacheField.GetValue(zone));
+            Assert.Equal(TimeSpan.FromHours(hasAdjustmentRules ? 3 : 2), zone.GetUtcOffset(new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc)));
+
+            object cache = cacheField.GetValue(zone);
+            if (hasAdjustmentRules)
+            {
+                Assert.NotNull(cache);
+            }
+            else
+            {
+                Assert.Null(cache);
+            }
+
+            Assert.Equal(TimeSpan.FromHours(2), zone.GetUtcOffset(new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc)));
+            Assert.Equal(TimeSpan.FromHours(2), zone.GetUtcOffset(new DateTime(2027, 7, 1, 0, 0, 0, DateTimeKind.Utc)));
+            Assert.Same(cache, cacheField.GetValue(zone));
+        }
+
+        [ConditionalFact(typeof(PlatformDetection), nameof(PlatformDetection.IsMultithreadingSupported))]
+        public static void TransitionCache_ConcurrentInitializationAndGrowth()
+        {
+            TimeZoneInfo zone = TimeZoneInfo.CreateCustomTimeZone(
+                "TransitionCache", TimeSpan.FromHours(2), "TransitionCache", "Standard", "Daylight",
+                new[] { CreateTransitionCacheTestRule() });
+
+            Parallel.For(0, 128, i =>
+            {
+                int year = 2000 + i % 32;
+                Assert.Equal(TimeSpan.FromHours(3), zone.GetUtcOffset(new DateTime(year, 7, 1, 0, 0, 0, DateTimeKind.Utc)));
+                Assert.Equal(TimeSpan.FromHours(2), zone.GetUtcOffset(new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc)));
+                Assert.True(zone.IsInvalidTime(new DateTime(year, 3, 15, 2, 30, 0)));
+                Assert.True(zone.IsAmbiguousTime(new DateTime(year, 10, 15, 1, 30, 0)));
+                Assert.Equal(new[] { TimeSpan.FromHours(2), TimeSpan.FromHours(3) },
+                    zone.GetAmbiguousTimeOffsets(new DateTime(year, 10, 15, 1, 30, 0)));
+            });
+        }
+
+        private static TimeZoneInfo.AdjustmentRule CreateTransitionCacheTestRule(int firstYear = 1, int lastYear = 9999) =>
+            TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+                new DateTime(firstYear, 1, 1), new DateTime(lastYear, 12, 31), TimeSpan.FromHours(1),
+                TimeZoneInfo.TransitionTime.CreateFixedDateRule(new DateTime(1, 1, 1, 2, 0, 0), 3, 15),
+                TimeZoneInfo.TransitionTime.CreateFixedDateRule(new DateTime(1, 1, 1, 2, 0, 0), 10, 15));
 
         static TimeZoneInfoTests()
         {

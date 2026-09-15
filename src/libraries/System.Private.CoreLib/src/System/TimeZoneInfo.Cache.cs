@@ -63,7 +63,9 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace System
 {
@@ -99,11 +101,11 @@ namespace System
                 return dateTimeNowCache;
             }
 
-            if (TryGetTransitionsForYear(utcNow.Year, out (int index, int count) transitionInfo))
+            if (TryGetTransitionsForYear(utcNow.Year, out (int index, int count) transitionInfo, out TransitionCache? cache))
             {
-                TimeTransition[] transitions = _yearsTransitions;
+                TimeTransition[] transitions = cache.Transitions;
                 int boundary = transitionInfo.index + transitionInfo.count;
-                Debug.Assert(boundary <= _yearsTransitionsCount && transitions is not null);
+                Debug.Assert(boundary <= cache.Count && transitions is not null);
                 long utcNowTicks = utcNow.Ticks;
 
                 // Find the next transition after utcNow
@@ -202,15 +204,15 @@ namespace System
         /// <returns>True if the specified local date and time is ambiguous; otherwise, false.</returns>
         private bool IsAmbiguousLocalTime(DateTime localDateTime, Span<TimeSpan> offsets = default)
         {
-            if (!TryGetTransitionsForYear(localDateTime.Year, out (int index, int count) transitionInfo))
+            if (!TryGetTransitionsForYear(localDateTime.Year, out (int index, int count) transitionInfo, out TransitionCache? cache))
             {
                 return false;
             }
 
-            TimeTransition[] transitions = _yearsTransitions;
+            TimeTransition[] transitions = cache.Transitions;
             int boundary = transitionInfo.index + transitionInfo.count;
 
-            Debug.Assert(boundary <= _yearsTransitionsCount && transitions is not null);
+            Debug.Assert(boundary <= cache.Count && transitions is not null);
 
             int encountered = 0;
             long ticks = localDateTime.Ticks - _baseUtcOffset.Ticks;
@@ -244,15 +246,15 @@ namespace System
 
         private bool IsDaylightSavingOn(DateTime localDateTime)
         {
-            if (!TryGetTransitionsForYear(localDateTime.Year, out (int index, int count) transitionInfo))
+            if (!TryGetTransitionsForYear(localDateTime.Year, out (int index, int count) transitionInfo, out TransitionCache? cache))
             {
                 return false;
             }
 
-            TimeTransition[] transitions = _yearsTransitions;
+            TimeTransition[] transitions = cache.Transitions;
             int boundary = transitionInfo.index + transitionInfo.count;
 
-            Debug.Assert(boundary <= _yearsTransitionsCount && transitions is not null);
+            Debug.Assert(boundary <= cache.Count && transitions is not null);
 
             long ticks = localDateTime.Ticks - _baseUtcOffset.Ticks;
 
@@ -314,12 +316,12 @@ namespace System
         /// <returns>The UTC offset for the specified UTC date and time.</returns>
         private TimeSpan GetOffsetForUtcDate(DateTime utcDateTime, out bool isDaylightSavingTime)
         {
-            if (TryGetTransitionsForYear(utcDateTime.Year, out (int index, int count) transitionInfo))
+            if (TryGetTransitionsForYear(utcDateTime.Year, out (int index, int count) transitionInfo, out TransitionCache? cache))
             {
-                TimeTransition[] transitions = _yearsTransitions;
+                TimeTransition[] transitions = cache.Transitions;
                 int boundary = transitionInfo.index + transitionInfo.count;
 
-                Debug.Assert(boundary <= _yearsTransitionsCount && transitions is not null);
+                Debug.Assert(boundary <= cache.Count && transitions is not null);
 
                 for (int i = transitionInfo.index; i < boundary; i++)
                 {
@@ -382,16 +384,16 @@ namespace System
         /// </remarks>
         private bool TryGetUtcOffset(DateTime localDateTime, out TimeSpan offset)
         {
-            if (!TryGetTransitionsForYear(localDateTime.Year, out (int index, int count) transitionInfo))
+            if (!TryGetTransitionsForYear(localDateTime.Year, out (int index, int count) transitionInfo, out TransitionCache? cache))
             {
                 offset = _baseUtcOffset;
                 return true;
             }
 
-            TimeTransition[] transitions = _yearsTransitions;
+            TimeTransition[] transitions = cache.Transitions;
             int boundary = transitionInfo.index + transitionInfo.count;
 
-            Debug.Assert(boundary <= _yearsTransitionsCount && transitions is not null);
+            Debug.Assert(boundary <= cache.Count && transitions is not null);
 
             for (int i = transitionInfo.index; i < boundary; i++)
             {
@@ -426,12 +428,16 @@ namespace System
         /// </summary>
         /// <param name="year">The year to get transitions for.</param>
         /// <param name="transitionInfo">A tuple containing the index and count of transitions.</param>
+        /// <param name="cache">The cache containing the transitions.</param>
         /// <returns>True if transitions are found; otherwise, false.</returns>
-        private bool TryGetTransitionsForYear(int year, out (int index, int count) transitionInfo)
+        private bool TryGetTransitionsForYear(int year, out (int index, int count) transitionInfo, [NotNullWhen(true)] out TransitionCache? cache)
         {
+            cache = null;
             if (_supportsDaylightSavingTime && _adjustmentRules is AdjustmentRule[] { Length: > 0 })
             {
-                if (_transitionCache.TryGetValue(year, out int transitionData))
+                cache = Volatile.Read(ref _transitionCache) ?? InitializeTransitionCache();
+
+                if (cache.Years.TryGetValue(year, out int transitionData))
                 {
                     if (transitionData == 0)
                     {
@@ -443,12 +449,19 @@ namespace System
                     return true;
                 }
 
-                transitionInfo = CacheTransitionsForYear(year);
+                transitionInfo = CacheTransitionsForYear(year, cache);
                 return transitionInfo != (0, 0);
             }
 
             transitionInfo = (0, 0);
             return false;
+        }
+
+        private TransitionCache InitializeTransitionCache()
+        {
+            var cache = new TransitionCache();
+
+            return Interlocked.CompareExchange(ref _transitionCache, cache, null) ?? cache;
         }
 
         /// <summary>
@@ -631,8 +644,9 @@ namespace System
         /// Caches the time zone transitions for a specific year.
         /// </summary>
         /// <param name="year">The year for which to cache transitions.</param>
+        /// <param name="cache">The cache to populate.</param>
         /// <returns>A tuple containing the index and count of cached transitions.</returns>
-        private (int index, int count) CacheTransitionsForYear(int year)
+        private (int index, int count) CacheTransitionsForYear(int year, TransitionCache cache)
         {
             Debug.Assert(_adjustmentRules is not null && _adjustmentRules.Length > 0);
 
@@ -641,7 +655,7 @@ namespace System
             {
                 // No rule found for the specified year
 
-                _transitionCache[year] = 0;
+                cache.Years[year] = 0;
                 return (0, 0);
             }
 
@@ -1324,7 +1338,7 @@ namespace System
                 }
             }
 
-            (int index, int count) result = CacheTransitions(allTransitions, transitionCount, year);
+            (int index, int count) result = CacheTransitions(allTransitions, transitionCount, year, cache);
             ArrayPool<TimeTransition>.Shared.Return(allTransitions);
             return result;
         }
@@ -1335,25 +1349,26 @@ namespace System
         /// <param name="allTransitions">An array of all time transitions.</param>
         /// <param name="count">The number of valid transitions in the array.</param>
         /// <param name="year">The year for which the transitions are cached.</param>
+        /// <param name="cache">The cache to populate.</param>
         /// <returns>A tuple containing the index and count of cached transitions.</returns>
-        private (int index, int count) CacheTransitions(TimeTransition[] allTransitions, int count, int year)
+        private static (int index, int count) CacheTransitions(TimeTransition[] allTransitions, int count, int year, TransitionCache cache)
         {
             Debug.Assert(count > 0 && allTransitions is not null && count < allTransitions.Length);
 
-            lock (_transitionCache)
+            lock (cache)
             {
-                // We update _yearsTransitions and _yearsTransitionsCount under lock to ensure thread-safety.
+                // Update the transitions and count under lock, then publish their index through the dictionary.
 
-                if (count + _yearsTransitionsCount > _yearsTransitions.Length)
+                if (count + cache.Count > cache.Transitions.Length)
                 {
-                    Array.Resize(ref _yearsTransitions, Math.Max(_yearsTransitions.Length * 2, count + _yearsTransitionsCount));
+                    Array.Resize(ref cache.Transitions, Math.Max(cache.Transitions.Length * 2, count + cache.Count));
                 }
 
-                Array.Copy(allTransitions, 0, _yearsTransitions, _yearsTransitionsCount, count);
-                int index = _yearsTransitionsCount;
-                _yearsTransitionsCount += count;
+                Array.Copy(allTransitions, 0, cache.Transitions, cache.Count, count);
+                int index = cache.Count;
+                cache.Count += count;
 
-                _transitionCache[year] = index | (count << 16);
+                cache.Years[year] = index | (count << 16);
 
                 return (index, count);
             }
@@ -1391,15 +1406,20 @@ namespace System
         private static TimeSpan GetRuleFullUtcOffset(AdjustmentRule rule) =>
             rule.BaseUtcOffsetDelta + (rule.HasDaylightSaving ? rule.DaylightDelta : TimeSpan.Zero);
 
-        // _transitionCache maps a year to int value. the low 16 bits store the index of the first transition for that year in _yearsTransitions.
-        // the high 16 bits store the number of transitions for that year. We use concurrent dictionary for thread-safe access.
-        private readonly ConcurrentDictionary<int, int> _transitionCache = new ConcurrentDictionary<int, int>();
+        // UTC and fixed-offset zones never need transition storage.
+        private TransitionCache? _transitionCache;
 
-        // _yearsTransitions stores all transitions for all cached years.
-        // When accessing _yearsTransitions, store it in a local variable as it may be replaced by another thread.
-        // _yearsTransitions can grow but never shrink. This guarantees indexes returned from _transitionCache are always valid.
-        private TimeTransition[] _yearsTransitions = new TimeTransition[10]; // start with 10 transitions and grow as needed
-        private int _yearsTransitionsCount;
+        private sealed class TransitionCache
+        {
+            // The low 16 bits store the first transition's index, and the high 16 bits store the count.
+            public readonly ConcurrentDictionary<int, int> Years = new ConcurrentDictionary<int, int>();
+
+            // Store this array in a local when reading: it can grow, but never shrink, under this cache's lock.
+            // Publishing a year's index through Years makes its transitions visible to readers.
+            public TimeTransition[] Transitions = new TimeTransition[10]; // start with 10 transitions and grow as needed
+            public int Count;
+        }
+
         private const int MaxYear = 9999;
 
         private record struct TimeTransition(
