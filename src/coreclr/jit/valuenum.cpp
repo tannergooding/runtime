@@ -3569,6 +3569,23 @@ TailCall:
     // Reduce our budget by one
     (*pBudget)--;
 
+#if defined(FEATURE_SIMD)
+    var_types mapType = TypeOfVN(map);
+    if (varTypeIsSIMD(mapType) && (genTypeSize(mapType) != 0) && IsVNConstant(map) &&
+        (varTypeIsArithmetic(type) || varTypeIsSIMD(type)))
+    {
+        unsigned selectSize;
+        unsigned selectOffset = DecodePhysicalSelector(index, &selectSize);
+        unsigned mapSize      = genTypeSize(mapType);
+
+        if ((selectSize == genTypeSize(type)) && (selectSize <= mapSize) && (selectOffset <= mapSize - selectSize))
+        {
+            simd_t value = GetConstantSimd(map);
+            return VNForGenericCon(type, value.u8 + selectOffset);
+        }
+    }
+#endif // FEATURE_SIMD
+
     SmallValueNumSet recMemoryDependencies;
 
     VNFuncApp funcApp;
@@ -8434,15 +8451,56 @@ ValueNum EvaluateSimdCvtVectorToMask(ValueNumStore* vns, var_types simdType, var
 }
 #endif // FEATURE_MASKED_HW_INTRINSICS
 
-ValueNum ValueNumStore::EvalHWIntrinsicFunUnary(GenTreeHWIntrinsic* tree,
-                                                VNFunc              func,
-                                                ValueNum            arg0VN,
-                                                ValueNum            resultTypeVN)
+//------------------------------------------------------------------------
+// VNForSimdGetElement: Select a SIMD element using the physical map machinery,
+// including selections through lane stores, bitcasts, and SSA phis.
+//
+// Arguments:
+//    vnk      - The kind of VN to select
+//    vectorVN - The normal VN of the vector
+//    baseType - The element type
+//    simdSize - The fixed vector size in bytes
+//    index    - The valid element index
+//
+// Return Value:
+//    The selected element's VN, normalized to its scalar type.
+//
+ValueNum ValueNumStore::VNForSimdGetElement(
+    ValueNumKind vnk, ValueNum vectorVN, var_types baseType, unsigned simdSize, unsigned index)
+{
+    assert(simdSize != 0);
+    assert(index < GenTreeVecCon::ElementCount(simdSize, baseType));
+
+    unsigned elementSize = genTypeSize(baseType);
+    return VNForLoad(vnk, vectorVN, ValueSize(simdSize), baseType, index * elementSize, ValueSize(elementSize));
+}
+
+ValueNum ValueNumStore::EvalHWIntrinsicFunUnary(
+    ValueNumKind vnk, GenTreeHWIntrinsic* tree, VNFunc func, ValueNum arg0VN, ValueNum resultTypeVN)
 {
     var_types      type     = tree->TypeGet();
     var_types      baseType = tree->GetSimdBaseType();
     unsigned       simdSize = tree->GetSimdSize();
     NamedIntrinsic ni       = tree->GetHWIntrinsicId();
+
+    if (simdSize != 0)
+    {
+        if ((ni == NI_Vector_ToScalar) && !IsVNConstant(arg0VN))
+        {
+            return VNForSimdGetElement(vnk, arg0VN, baseType, simdSize, 0);
+        }
+
+        if (ni == NI_Vector_CreateScalar)
+        {
+            unsigned elementSize = genTypeSize(baseType);
+            if (elementSize == simdSize)
+            {
+                return VNForBitCast(arg0VN, type, ValueSize(simdSize));
+            }
+
+            return VNForStore(VNZeroForType(type), ValueSize(simdSize), 0, ValueSize(elementSize), arg0VN);
+        }
+    }
 
     if (IsVNConstant(arg0VN))
     {
@@ -8880,12 +8938,21 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunUnary(GenTreeHWIntrinsic* tree,
 }
 
 ValueNum ValueNumStore::EvalHWIntrinsicFunBinary(
-    GenTreeHWIntrinsic* tree, VNFunc func, ValueNum arg0VN, ValueNum arg1VN, ValueNum resultTypeVN)
+    ValueNumKind vnk, GenTreeHWIntrinsic* tree, VNFunc func, ValueNum arg0VN, ValueNum arg1VN, ValueNum resultTypeVN)
 {
     var_types      type     = tree->TypeGet();
     var_types      baseType = tree->GetSimdBaseType();
     unsigned       simdSize = tree->GetSimdSize();
     NamedIntrinsic ni       = tree->GetHWIntrinsicId();
+
+    if ((ni == NI_Vector_GetElement) && (simdSize != 0) && !IsVNConstant(arg0VN) && IsVNConstant(arg1VN))
+    {
+        uint32_t index = static_cast<uint32_t>(GetConstantInt32(arg1VN));
+        if (index < GenTreeVecCon::ElementCount(simdSize, baseType))
+        {
+            return VNForSimdGetElement(vnk, arg0VN, baseType, simdSize, index);
+        }
+    }
 
     ValueNum cnsVN = NoVN;
     ValueNum argVN = NoVN;
@@ -9909,8 +9976,11 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunTernary(
         }
 
         case NI_Vector_WithElement:
+#if defined(TARGET_ARM64)
+        case NI_AdvSimd_Insert:
+#endif // TARGET_ARM64
         {
-            if (!IsVNConstant(arg0VN) || !IsVNConstant(arg1VN) || !IsVNConstant(arg2VN))
+            if ((simdSize == 0) || !IsVNConstant(arg1VN))
             {
                 break;
             }
@@ -9921,6 +9991,22 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunTernary(
             {
                 // Nothing to fold for out of range indexes
                 break;
+            }
+
+            if (!IsVNConstant(arg0VN) || !IsVNConstant(arg2VN))
+            {
+                unsigned elementSize = genTypeSize(baseType);
+                if (varTypeIsSmall(baseType))
+                {
+                    arg2VN = VNForCast(arg2VN, baseType, TypeOfVN(arg2VN));
+                }
+
+                if (elementSize == simdSize)
+                {
+                    return VNForBitCast(arg2VN, type, ValueSize(simdSize));
+                }
+
+                return VNForStore(arg0VN, ValueSize(simdSize), index * elementSize, ValueSize(elementSize), arg2VN);
             }
 
             if (varTypeIsFloating(baseType))
@@ -14248,10 +14334,11 @@ void Compiler::fgValueNumberHWIntrinsic(GenTreeHWIntrinsic* tree)
 
             if (opCount == 1)
             {
-                ValueNum normalLVN =
-                    vnStore->EvalHWIntrinsicFunUnary(tree, func, op1vnp.GetLiberal(), resultTypeVNPair.GetLiberal());
-                ValueNum normalCVN = vnStore->EvalHWIntrinsicFunUnary(tree, func, op1vnp.GetConservative(),
-                                                                      resultTypeVNPair.GetConservative());
+                ValueNum normalLVN = vnStore->EvalHWIntrinsicFunUnary(VNK_Liberal, tree, func, op1vnp.GetLiberal(),
+                                                                      resultTypeVNPair.GetLiberal());
+                ValueNum normalCVN =
+                    vnStore->EvalHWIntrinsicFunUnary(VNK_Conservative, tree, func, op1vnp.GetConservative(),
+                                                     resultTypeVNPair.GetConservative());
 
                 normalPair = ValueNumPair(normalLVN, normalCVN);
                 excSetPair = op1Xvnp;
@@ -14265,10 +14352,10 @@ void Compiler::fgValueNumberHWIntrinsic(GenTreeHWIntrinsic* tree)
                 if (opCount == 2)
                 {
                     ValueNum normalLVN =
-                        vnStore->EvalHWIntrinsicFunBinary(tree, func, op1vnp.GetLiberal(), op2vnp.GetLiberal(),
-                                                          resultTypeVNPair.GetLiberal());
+                        vnStore->EvalHWIntrinsicFunBinary(VNK_Liberal, tree, func, op1vnp.GetLiberal(),
+                                                          op2vnp.GetLiberal(), resultTypeVNPair.GetLiberal());
                     ValueNum normalCVN =
-                        vnStore->EvalHWIntrinsicFunBinary(tree, func, op1vnp.GetConservative(),
+                        vnStore->EvalHWIntrinsicFunBinary(VNK_Conservative, tree, func, op1vnp.GetConservative(),
                                                           op2vnp.GetConservative(), resultTypeVNPair.GetConservative());
 
                     normalPair = ValueNumPair(normalLVN, normalCVN);

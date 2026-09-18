@@ -1,11 +1,61 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using Xunit;
 
 public class SimdConstantFoldings
 {
+    [Fact]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void KnownLaneConstantTests()
+    {
+        Vector64<int> small = Vector64.CreateScalar(17).WithElement(1, -42);
+        Vector128<int> medium = Vector128.CreateScalar(17).WithElement(2, -42);
+        Vector256<int> large = Vector256.CreateScalar(17).WithElement(5, -42);
+        Vector512<int> largest = Vector512.CreateScalar(17).WithElement(13, -42);
+        Assert.Equal(17, small.ToScalar());
+        Assert.Equal(-42, small.GetElement(1));
+        Assert.Equal(-42, medium.GetElement(2));
+        Assert.Equal(0, medium.GetElement(3));
+        Assert.Equal(-42, large.GetElement(5));
+        Assert.Equal(0, large.GetElement(7));
+        Assert.Equal(-42, largest.GetElement(13));
+        Assert.Equal(0, largest.GetElement(15));
+        Assert.Equal(42, largest.WithElement(13, 42).GetElement(13));
+
+        Assert.Equal(-1, (int)Vector128<sbyte>.Zero.WithElement(3, (sbyte)-1).GetElement(3));
+        Assert.Equal(255, (int)Vector128<byte>.Zero.WithElement(3, (byte)255).GetElement(3));
+        Assert.Equal(-32768, (int)Vector128<short>.Zero.WithElement(3, (short)-32768).GetElement(3));
+        Assert.Equal(65535, (int)Vector128<ushort>.Zero.WithElement(3, (ushort)65535).GetElement(3));
+    }
+
+    [Fact]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void KnownLaneConstantBitsTests()
+    {
+        Vector128<float> singles = Vector128.CreateScalar(-0.0f);
+        Assert.Equal(int.MinValue, singles.AsInt32().ToScalar());
+        Assert.Equal(0, singles.AsInt32().GetElement(1));
+        Assert.Equal(0, singles.WithElement(0, +0.0f).AsInt32().ToScalar());
+        Assert.Equal(int.MinValue, singles.WithElement(1, -0.0f).AsInt32().GetElement(1));
+        Assert.Equal(0x7FC12345, Vector128<int>.Zero.WithElement(2, 0x7FC12345).AsSingle().AsInt32().GetElement(2));
+        Assert.Equal(0x7FC54321, Vector128.Create(0x7FC12345).AsSingle()
+            .WithElement(2, BitConverter.Int32BitsToSingle(0x7FC54321)).AsInt32().GetElement(2));
+
+        Vector128<double> doubles = Vector128.CreateScalar(-0.0);
+        Assert.Equal(long.MinValue, doubles.AsInt64().ToScalar());
+        Assert.Equal(0L, doubles.AsInt64().GetElement(1));
+        Assert.Equal(0L, doubles.WithElement(0, +0.0).AsInt64().ToScalar());
+        Assert.Equal(long.MinValue, doubles.WithElement(1, -0.0).AsInt64().GetElement(1));
+        Assert.Equal(0x7FF8123456789ABCL, Vector128<long>.Zero
+            .WithElement(1, 0x7FF8123456789ABCL).AsDouble().AsInt64().GetElement(1));
+        Assert.Equal(0x7FF8ABCDEF012345L, Vector128.Create(0x7FF8123456789ABCL).AsDouble()
+            .WithElement(1, BitConverter.Int64BitsToDouble(0x7FF8ABCDEF012345L)).AsInt64().GetElement(1));
+    }
+
     [Fact]
     public static void NegateTests()
     {

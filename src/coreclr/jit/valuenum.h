@@ -1408,10 +1408,18 @@ public:
     }
 
 #if defined(FEATURE_HW_INTRINSICS)
-    ValueNum EvalHWIntrinsicFunUnary(GenTreeHWIntrinsic* tree, VNFunc func, ValueNum arg0VN, ValueNum resultTypeVN);
+    ValueNum VNForSimdGetElement(
+        ValueNumKind vnk, ValueNum vectorVN, var_types baseType, unsigned simdSize, unsigned index);
 
-    ValueNum EvalHWIntrinsicFunBinary(
-        GenTreeHWIntrinsic* tree, VNFunc func, ValueNum arg0VN, ValueNum arg1VN, ValueNum resultTypeVN);
+    ValueNum EvalHWIntrinsicFunUnary(
+        ValueNumKind vnk, GenTreeHWIntrinsic* tree, VNFunc func, ValueNum arg0VN, ValueNum resultTypeVN);
+
+    ValueNum EvalHWIntrinsicFunBinary(ValueNumKind        vnk,
+                                      GenTreeHWIntrinsic* tree,
+                                      VNFunc              func,
+                                      ValueNum            arg0VN,
+                                      ValueNum            arg1VN,
+                                      ValueNum            resultTypeVN);
 
     ValueNum EvalHWIntrinsicFunTernary(GenTreeHWIntrinsic* tree,
                                        VNFunc              func,

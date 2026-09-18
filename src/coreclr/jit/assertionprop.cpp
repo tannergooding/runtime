@@ -2934,6 +2934,60 @@ GenTree* Compiler::optVNBasedFoldExpr_Call(BasicBlock* block, GenTree* parent, G
 }
 
 //------------------------------------------------------------------------------
+#ifdef FEATURE_HW_INTRINSICS
+// optVNBasedFoldExpr_HWIntrinsic: Remove an insertion that leaves the lane bits unchanged.
+//
+// Arguments:
+//    tree - The hardware intrinsic to simplify
+//
+// Return Value:
+//    The vector operand, or nullptr if the insertion cannot be removed.
+//
+GenTree* Compiler::optVNBasedFoldExpr_HWIntrinsic(GenTreeHWIntrinsic* tree)
+{
+    NamedIntrinsic intrinsic = tree->GetHWIntrinsicId();
+    if ((intrinsic != NI_Vector_WithElement)
+#if defined(TARGET_ARM64)
+        && (intrinsic != NI_AdvSimd_Insert)
+#endif // TARGET_ARM64
+    )
+    {
+        return nullptr;
+    }
+
+    unsigned simdSize = tree->GetSimdSize();
+    if ((simdSize == 0) || ((tree->Op(2)->gtFlags | tree->Op(3)->gtFlags) & GTF_ALL_EFFECT) != 0)
+    {
+        return nullptr;
+    }
+
+    ValueNum indexVN = vnStore->VNConservativeNormalValue(tree->Op(2)->gtVNPair);
+    if (!vnStore->IsVNConstant(indexVN))
+    {
+        return nullptr;
+    }
+
+    var_types baseType = tree->GetSimdBaseType();
+    uint32_t  index    = static_cast<uint32_t>(vnStore->GetConstantInt32(indexVN));
+    if (index >= GenTreeVecCon::ElementCount(simdSize, baseType))
+    {
+        return nullptr;
+    }
+
+    ValueNum vectorVN = vnStore->VNConservativeNormalValue(tree->Op(1)->gtVNPair);
+    ValueNum valueVN  = vnStore->VNConservativeNormalValue(tree->Op(3)->gtVNPair);
+    if (varTypeIsSmall(baseType))
+    {
+        valueVN = vnStore->VNForCast(valueVN, baseType, vnStore->TypeOfVN(valueVN));
+        valueVN = vnStore->VNForBitCast(valueVN, baseType, ValueSize(genTypeSize(baseType)));
+    }
+
+    ValueNum laneVN = vnStore->VNForSimdGetElement(VNK_Conservative, vectorVN, baseType, simdSize, index);
+    return (laneVN == valueVN) ? tree->Op(1) : nullptr;
+}
+#endif // FEATURE_HW_INTRINSICS
+
+//------------------------------------------------------------------------------
 // optVNBasedFoldExpr: Folds given tree using VN to a constant or a simpler tree.
 //
 // Arguments:
@@ -2957,6 +3011,11 @@ GenTree* Compiler::optVNBasedFoldExpr(BasicBlock* block, GenTree* parent, GenTre
     {
         case GT_CALL:
             return optVNBasedFoldExpr_Call(block, parent, tree->AsCall());
+
+#ifdef FEATURE_HW_INTRINSICS
+        case GT_HWINTRINSIC:
+            return optVNBasedFoldExpr_HWIntrinsic(tree->AsHWIntrinsic());
+#endif // FEATURE_HW_INTRINSICS
 
             // We can add more VN-based foldings here.
 
