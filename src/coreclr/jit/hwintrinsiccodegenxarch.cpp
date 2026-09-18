@@ -2536,18 +2536,20 @@ void CodeGen::genBaseIntrinsic(GenTreeHWIntrinsic* node, insOpts instOptions)
                 assert(varTypeIsUnsigned(baseType));
                 emit->emitIns_SIMD_R_R_R(INS_divpd, divTypeSize, tmpReg1, tmpReg2, tmpReg3, instOptions);
 
+                // A quotient that overflows int must have a divisor of 1, so select the original
+                // dividend using the sign bit of each packed 32-bit conversion result.
                 if (m_compiler->compOpportunisticallyDependsOn(InstructionSet_AVX))
                 {
                     emit->emitIns_R_R(INS_cvttpd2dq, divTypeSize, tmpReg3, tmpReg1, instOptions);
                     emit->emitIns_Mov(INS_movups, typeSize, tmpReg1, op1Reg, instOptions);
-                    emit->emitIns_SIMD_R_R_R_R(INS_blendvpd, typeSize, targetReg, tmpReg3, tmpReg1, tmpReg3,
+                    emit->emitIns_SIMD_R_R_R_R(INS_blendvps, typeSize, targetReg, tmpReg3, tmpReg1, tmpReg3,
                                                instOptions);
                 }
                 else
                 {
                     emit->emitIns_R_R(INS_cvttpd2dq, divTypeSize, tmpReg1, tmpReg1, instOptions);
                     emit->emitIns_Mov(INS_movups, typeSize, tmpReg2, op1Reg, instOptions);
-                    emit->emitIns_R_R(INS_blendvpd, typeSize, tmpReg1, tmpReg2, instOptions);
+                    emit->emitIns_R_R(INS_blendvps, typeSize, tmpReg1, tmpReg2, instOptions);
                     emit->emitIns_Mov(INS_movups, typeSize, targetReg, tmpReg1, false);
                 }
             }
