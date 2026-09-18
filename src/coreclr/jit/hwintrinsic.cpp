@@ -3830,8 +3830,9 @@ GenTree* Compiler::impXplatIntrinsic(NamedIntrinsic        intrinsic,
         {
             assert(sig->numArgs == 2);
 
-            impSpillSideEffect(true, stackState.esStackDepth -
-                                         2 DEBUGARG("Spilling op1 side effects for vector CreateAlternatingSequence"));
+            impSpillSideEffect(GTF_ALL_EFFECT,
+                               stackState.esStackDepth -
+                                   2 DEBUGARG("Spilling op1 side effects for vector CreateAlternatingSequence"));
 
             op2 = impPopStack().val;
             op1 = impPopStack().val;
@@ -3872,8 +3873,9 @@ GenTree* Compiler::impXplatIntrinsic(NamedIntrinsic        intrinsic,
                 break;
             }
 
-            impSpillSideEffect(true, stackState.esStackDepth -
-                                         2 DEBUGARG("Spilling op1 side effects for vector CreateGeometricSequence"));
+            impSpillSideEffect(GTF_ALL_EFFECT,
+                               stackState.esStackDepth -
+                                   2 DEBUGARG("Spilling op1 side effects for vector CreateGeometricSequence"));
 
             op2 = impPopStack().val;
             op1 = impPopStack().val;
@@ -3912,8 +3914,8 @@ GenTree* Compiler::impXplatIntrinsic(NamedIntrinsic        intrinsic,
             }
 #endif
 
-            impSpillSideEffect(true, stackState.esStackDepth -
-                                         2 DEBUGARG("Spilling op1 side effects for vector CreateSequence"));
+            impSpillSideEffect(GTF_ALL_EFFECT, stackState.esStackDepth -
+                                                   2 DEBUGARG("Spilling op1 side effects for vector CreateSequence"));
 
             op2 = impPopStack().val;
             op1 = impPopStack().val;
@@ -4078,10 +4080,10 @@ GenTree* Compiler::impXplatIntrinsic(NamedIntrinsic        intrinsic,
                 break;
             }
 #elif defined(TARGET_ARM64)
-            impSpillSideEffect(true,
+            impSpillSideEffect(GTF_ALL_EFFECT,
                                stackState.esStackDepth - 3 DEBUGARG("Spilling op1 side effects for FusedMultiplyAdd"));
 
-            impSpillSideEffect(true,
+            impSpillSideEffect(GTF_ALL_EFFECT,
                                stackState.esStackDepth - 2 DEBUGARG("Spilling op2 side effects for FusedMultiplyAdd"));
 #elif defined(TARGET_WASM)
             // WASM SIMD has no fused-multiply-add; emulating it as a separate multiply and add would
@@ -4583,11 +4585,11 @@ GenTree* Compiler::impXplatIntrinsic(NamedIntrinsic        intrinsic,
 #if defined(TARGET_ARM64)
             if (varTypeIsFloating(simdBaseType))
             {
-                impSpillSideEffect(true, stackState.esStackDepth -
-                                             3 DEBUGARG("Spilling op1 side effects for MultiplyAddEstimate"));
+                impSpillSideEffect(GTF_ALL_EFFECT, stackState.esStackDepth -
+                                                       3 DEBUGARG("Spilling op1 side effects for MultiplyAddEstimate"));
 
-                impSpillSideEffect(true, stackState.esStackDepth -
-                                             2 DEBUGARG("Spilling op2 side effects for MultiplyAddEstimate"));
+                impSpillSideEffect(GTF_ALL_EFFECT, stackState.esStackDepth -
+                                                       2 DEBUGARG("Spilling op2 side effects for MultiplyAddEstimate"));
             }
 #endif
 
@@ -4992,7 +4994,8 @@ GenTree* Compiler::impXplatIntrinsic(NamedIntrinsic        intrinsic,
             }
 #endif
 
-            impSpillSideEffect(true, stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
+            impSpillSideEffect(GTF_ALL_EFFECT,
+                               stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
 
             op2 = impPopStack().val;
 
@@ -5023,7 +5026,8 @@ GenTree* Compiler::impXplatIntrinsic(NamedIntrinsic        intrinsic,
             }
 #endif
 
-            impSpillSideEffect(true, stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
+            impSpillSideEffect(GTF_ALL_EFFECT,
+                               stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
 
             op2 = impPopStack().val;
 
@@ -5045,7 +5049,7 @@ GenTree* Compiler::impXplatIntrinsic(NamedIntrinsic        intrinsic,
 
             if (sig->numArgs == 3)
             {
-                impSpillSideEffect(true,
+                impSpillSideEffect(GTF_ALL_EFFECT,
                                    stackState.esStackDepth - 3 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
 
                 op3 = impPopStack().val;
@@ -5054,7 +5058,7 @@ GenTree* Compiler::impXplatIntrinsic(NamedIntrinsic        intrinsic,
             {
                 assert(sig->numArgs == 2);
 
-                impSpillSideEffect(true,
+                impSpillSideEffect(GTF_ALL_EFFECT,
                                    stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
             }
 
@@ -5644,8 +5648,9 @@ GenTree* Compiler::impXplatIntrinsic(NamedIntrinsic        intrinsic,
                 {
                     break;
                 }
-                impSpillSideEffect(true, stackState.esStackDepth -
-                                             2 DEBUGARG("Spilling op1 side effects for vector integer division"));
+                impSpillSideEffect(GTF_ALL_EFFECT,
+                                   stackState.esStackDepth -
+                                       2 DEBUGARG("Spilling op1 side effects for vector integer division"));
 #else
                 // We can't trivially handle division for integral types using SIMD
                 break;

@@ -5728,8 +5728,8 @@ private:
     void impSpillStackEnsure(bool spillLeaves = false);
     void impEvalSideEffects();
     void impSpillSpecialSideEff();
-    void impSpillSideEffect(bool spillGlobEffects, unsigned chkLevel DEBUGARG(const char* reason));
-    void impSpillSideEffects(bool spillGlobEffects, unsigned chkLevel DEBUGARG(const char* reason));
+    void impSpillSideEffect(GenTreeFlags spillFlags, unsigned chkLevel DEBUGARG(const char* reason));
+    void impSpillSideEffects(GenTreeFlags spillFlags, unsigned chkLevel DEBUGARG(const char* reason));
     void impSpillLclRefs(unsigned lclNum, unsigned chkLevel);
 
     BasicBlock* impPushCatchArgOnStack(BasicBlock* hndBlk, CORINFO_CLASS_HANDLE clsHnd, bool isSingleBlockFilter);

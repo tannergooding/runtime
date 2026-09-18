@@ -622,7 +622,8 @@ var_types Compiler::impImportCall(OPCODE                  opcode,
                 {
                     // NativeAOT generic virtual method: need to handle potential fat function pointers
                     // Spill any side-effecting arguments before we do the LDVIRTFTN
-                    impSpillSideEffects(false, CHECK_SPILL_ALL DEBUGARG("fat pointer arg spill"));
+                    impSpillSideEffects(GTF_SIDE_EFFECT | GTF_ORDER_SIDEEFF,
+                                        CHECK_SPILL_ALL DEBUGARG("fat pointer arg spill"));
                 }
 
                 // OK, We've been told to call via LDVIRTFTN, so just
@@ -641,8 +642,9 @@ var_types Compiler::impImportCall(OPCODE                  opcode,
 
                 if (callInfo->thisTransform != CORINFO_NO_THIS_TRANSFORM)
                 {
-                    impSpillSideEffects(false, CHECK_SPILL_ALL DEBUGARG(
-                                                   "LDVIRTFTN constrained call requires transforming 'this'"));
+                    impSpillSideEffects(GTF_SIDE_EFFECT | GTF_ORDER_SIDEEFF,
+                                        CHECK_SPILL_ALL DEBUGARG(
+                                            "LDVIRTFTN constrained call requires transforming 'this'"));
                 }
 
                 impPopCallArgs(sig, call->AsCall());
@@ -1049,8 +1051,9 @@ var_types Compiler::impImportCall(OPCODE                  opcode,
 
     if (hasThis && (constraintCallThisTransform != CORINFO_NO_THIS_TRANSFORM))
     {
-        impSpillSideEffects(false, CHECK_SPILL_ALL DEBUGARG(
-                                       "constrained call requires transforming 'this' right before call"));
+        impSpillSideEffects(GTF_SIDE_EFFECT | GTF_ORDER_SIDEEFF,
+                            CHECK_SPILL_ALL DEBUGARG(
+                                "constrained call requires transforming 'this' right before call"));
     }
 
     impPopCallArgs(sig, call->AsCall());
@@ -1715,7 +1718,7 @@ DONE_CALL:
 
                 if (spillStack)
                 {
-                    impSpillSideEffects(true, CHECK_SPILL_ALL DEBUGARG("non-inline candidate call"));
+                    impSpillSideEffects(GTF_ALL_EFFECT, CHECK_SPILL_ALL DEBUGARG("non-inline candidate call"));
                 }
 
                 if (JitConfig.JitProfileValues() && call->IsCall() &&
@@ -2534,7 +2537,7 @@ void Compiler::impPopArgsForSwiftCall(GenTreeCall* call, CORINFO_SIG_INFO* sig, 
 
     if (spillStack)
     {
-        impSpillSideEffects(true, CHECK_SPILL_ALL DEBUGARG("Spill for swift call"));
+        impSpillSideEffects(GTF_ALL_EFFECT, CHECK_SPILL_ALL DEBUGARG("Spill for swift call"));
     }
 
     impPopCallArgs(sig, call);
@@ -5109,11 +5112,11 @@ GenTree* Compiler::impIntrinsic(CORINFO_CLASS_HANDLE    clsHnd,
                 //        Vector64.Create{ScalarUnsafe}(x)
                 //    ).ToScalar();
 
-                impSpillSideEffect(true, stackState.esStackDepth -
-                                             3 DEBUGARG("Spilling op1 side effects for FusedMultiplyAdd"));
+                impSpillSideEffect(GTF_ALL_EFFECT, stackState.esStackDepth -
+                                                       3 DEBUGARG("Spilling op1 side effects for FusedMultiplyAdd"));
 
-                impSpillSideEffect(true, stackState.esStackDepth -
-                                             2 DEBUGARG("Spilling op2 side effects for FusedMultiplyAdd"));
+                impSpillSideEffect(GTF_ALL_EFFECT, stackState.esStackDepth -
+                                                       2 DEBUGARG("Spilling op2 side effects for FusedMultiplyAdd"));
 
                 GenTree* op3 = impImplicitR4orR8Cast(impPopStack().val, callType);
                 GenTree* op2 = impImplicitR4orR8Cast(impPopStack().val, callType);
@@ -6210,7 +6213,7 @@ GenTree* Compiler::impSRCSUnsafeIntrinsic(NamedIntrinsic          intrinsic,
             // sub
             // ret
 
-            impSpillSideEffect(true,
+            impSpillSideEffect(GTF_ALL_EFFECT,
                                stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for Unsafe.ByteOffset"));
 
             GenTree* op2 = impPopStack().val;
@@ -11218,11 +11221,11 @@ GenTree* Compiler::impEstimateIntrinsic(CORINFO_METHOD_HANDLE method,
 
                 // AdvSimd.FusedMultiplyAdd expects (addend, left, right), while the APIs take (left, right, addend)
 
-                impSpillSideEffect(true, stackState.esStackDepth -
-                                             3 DEBUGARG("Spilling op1 side effects for MultiplyAddEstimate"));
+                impSpillSideEffect(GTF_ALL_EFFECT, stackState.esStackDepth -
+                                                       3 DEBUGARG("Spilling op1 side effects for MultiplyAddEstimate"));
 
-                impSpillSideEffect(true, stackState.esStackDepth -
-                                             2 DEBUGARG("Spilling op2 side effects for MultiplyAddEstimate"));
+                impSpillSideEffect(GTF_ALL_EFFECT, stackState.esStackDepth -
+                                                       2 DEBUGARG("Spilling op2 side effects for MultiplyAddEstimate"));
 
                 swapOp1AndOp3 = true;
             }
@@ -13460,7 +13463,7 @@ GenTree* Compiler::impUnsupportedNamedIntrinsic(unsigned              helper,
 
     if (mustExpand || opts.OptimizationEnabled())
     {
-        impSpillSideEffects(true, CHECK_SPILL_ALL DEBUGARG("impUnsupportedNamedIntrinsic"));
+        impSpillSideEffects(GTF_ALL_EFFECT, CHECK_SPILL_ALL DEBUGARG("impUnsupportedNamedIntrinsic"));
 
         for (unsigned i = 0; i < sig->numArgs; i++)
         {
@@ -13599,7 +13602,8 @@ GenTree* Compiler::impArrayAccessIntrinsic(
         // The array checks in the store's address must happen after the value is evaluated.
         if ((impStackTop().val->gtFlags & GTF_SIDE_EFFECT) != 0)
         {
-            impSpillSideEffects(false, CHECK_SPILL_ALL DEBUGARG("Strict ordering of exceptions for MD Array store"));
+            impSpillSideEffects(GTF_SIDE_EFFECT | GTF_ORDER_SIDEEFF,
+                                CHECK_SPILL_ALL DEBUGARG("Strict ordering of exceptions for MD Array store"));
         }
 
         val = impPopStack().val;

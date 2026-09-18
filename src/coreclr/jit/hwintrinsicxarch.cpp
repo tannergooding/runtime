@@ -1169,7 +1169,8 @@ GenTree* Compiler::impNonConstFallback(NamedIntrinsic intrinsic, var_types simdT
         {
             // These intrinsics have overloads that take op2 in a simd register and just read the lowest 8-bits
 
-            impSpillSideEffect(true, stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
+            impSpillSideEffect(GTF_ALL_EFFECT,
+                               stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
 
             GenTree* op2 = impPopStack().val;
             GenTree* op1 = impSIMDPopStack();
@@ -1187,7 +1188,8 @@ GenTree* Compiler::impNonConstFallback(NamedIntrinsic intrinsic, var_types simdT
             static_assert(NI_AVX512_RotateLeftVariable == (NI_AVX512_RotateLeft + 1));
             static_assert(NI_AVX512_RotateRightVariable == (NI_AVX512_RotateRight + 1));
 
-            impSpillSideEffect(true, stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
+            impSpillSideEffect(GTF_ALL_EFFECT,
+                               stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
 
             GenTree* op2 = impPopStack().val;
             GenTree* op1 = impSIMDPopStack();
@@ -1422,7 +1424,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
 
             if (!supportsAvx)
             {
-                impSpillSideEffect(true,
+                impSpillSideEffect(GTF_ALL_EFFECT,
                                    stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
             }
 
@@ -1541,7 +1543,8 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
         {
             simdBaseType = getBaseTypeOfSIMDType(sig->retTypeSigClass);
 
-            impSpillSideEffect(true, stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
+            impSpillSideEffect(GTF_ALL_EFFECT,
+                               stackState.esStackDepth - 2 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
 
             // swap the two operands
             GenTree* idxVector = impSIMDPopStack();
@@ -1850,14 +1853,14 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
 
                     if (spillOp1)
                     {
-                        impSpillSideEffect(true, stackState.esStackDepth -
-                                                     3 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
+                        impSpillSideEffect(GTF_ALL_EFFECT, stackState.esStackDepth -
+                                                               3 DEBUGARG("Spilling op1 side effects for HWIntrinsic"));
                     }
 
                     if (spillOp2)
                     {
-                        impSpillSideEffect(true, stackState.esStackDepth -
-                                                     2 DEBUGARG("Spilling op2 side effects for HWIntrinsic"));
+                        impSpillSideEffect(GTF_ALL_EFFECT, stackState.esStackDepth -
+                                                               2 DEBUGARG("Spilling op2 side effects for HWIntrinsic"));
                     }
 
                     op3 = impSIMDPopStack();
@@ -2696,7 +2699,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
         {
             assert(sig->numArgs == 2);
 
-            impSpillSideEffect(true, stackState.esStackDepth - 2 DEBUGARG("Spilling op1 for ZeroHighBits"));
+            impSpillSideEffect(GTF_ALL_EFFECT, stackState.esStackDepth - 2 DEBUGARG("Spilling op1 for ZeroHighBits"));
 
             GenTree* op2 = impPopStack().val;
             GenTree* op1 = impPopStack().val;
@@ -2715,7 +2718,8 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             }
             assert(sig->numArgs == 2);
 
-            impSpillSideEffect(true, stackState.esStackDepth - 2 DEBUGARG("Spilling op1 for BitFieldExtract"));
+            impSpillSideEffect(GTF_ALL_EFFECT,
+                               stackState.esStackDepth - 2 DEBUGARG("Spilling op1 for BitFieldExtract"));
 
             GenTree* op2 = impPopStack().val;
             GenTree* op1 = impPopStack().val;
