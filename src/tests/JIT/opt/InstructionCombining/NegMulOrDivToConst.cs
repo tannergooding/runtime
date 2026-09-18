@@ -12,6 +12,7 @@
 // change 1 and -1 sign.
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Xunit;
 
@@ -281,10 +282,6 @@ namespace TestIntLimits
 
             try
             {
-                NegDivIntMinValue(1);
-                NegDivIntMinValue(int.MinValue);
-                LongNegDivLongMinValue(1);
-                LongNegDivLongMinValue(long.MinValue);
                 NegDiv1(int.MinValue);
                 LongNegDiv1(long.MinValue);
             }
@@ -322,11 +319,34 @@ namespace TestIntLimits
         [MethodImpl(MethodImplOptions.NoInlining)]
         static long LongNegDiv1000(long a) => -(a / 1000);
 
+        public static IEnumerable<object[]> NegDivMinValueData()
+        {
+            yield return new object[] { int.MinValue, long.MinValue, nint.MinValue, -1 };
+            yield return new object[] { int.MinValue + 1, long.MinValue + 1, nint.MinValue + 1, 0 };
+            yield return new object[] { -1, -1L, (nint)(-1), 0 };
+            yield return new object[] { 0, 0L, (nint)0, 0 };
+            yield return new object[] { 1, 1L, (nint)1, 0 };
+            yield return new object[] { int.MaxValue - 1, long.MaxValue - 1, nint.MaxValue - 1, 0 };
+            yield return new object[] { int.MaxValue, long.MaxValue, nint.MaxValue, 0 };
+        }
+
+        [Theory]
+        [MemberData(nameof(NegDivMinValueData))]
+        public static void CheckNegDivMinValue(int intValue, long longValue, nint nativeValue, int expected)
+        {
+            Assert.Equal(expected, NegDivIntMinValue(intValue));
+            Assert.Equal((long)expected, LongNegDivLongMinValue(longValue));
+            Assert.Equal((nint)expected, NativeNegDivMinValue(nativeValue));
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         static int NegDivIntMinValue(int a) => -(a / int.MinValue);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static long LongNegDivLongMinValue(long a) => -(a / long.MinValue);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static nint NativeNegDivMinValue(nint a) => -(a / nint.MinValue);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static int NegDiv1(int a) => -(a / 1);
