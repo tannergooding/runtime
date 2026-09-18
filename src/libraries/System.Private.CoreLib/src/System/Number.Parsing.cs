@@ -410,6 +410,22 @@ namespace System
                 }
             }
 
+            // Skip whitespace between the sign and the digits, mirroring the trailing loop and TryParseNumber.
+            if ((styles & NumberStyles.AllowLeadingWhite) != 0 && IsWhite(num))
+            {
+                do
+                {
+                    index++;
+
+                    if ((uint)index >= (uint)value.Length)
+                    {
+                        goto FalseExit;
+                    }
+                    num = TChar.CastToUInt32(value[index]);
+                }
+                while (IsWhite(num));
+            }
+
             bool overflow = !TInteger.IsSigned && isNegative;
             TInteger answer = TInteger.Zero;
 
@@ -1245,6 +1261,15 @@ namespace System
                     {
                         index += positiveSign.Length;
                     }
+                }
+            }
+
+            // Skip whitespace between the sign and the "0x" prefix, mirroring TryParseNumber.
+            if ((styles & NumberStyles.AllowLeadingWhite) != 0)
+            {
+                while (index < value.Length && IsWhite(TChar.CastToUInt32(value[index])))
+                {
+                    index++;
                 }
             }
 

@@ -341,6 +341,12 @@ namespace System.Tests
             yield return new object[] { "  0  ", NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite, null, 0 };
             yield return new object[] { "  000000000  ", NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite, null, 0 };
 
+            // Whitespace between a leading sign and the digits (mirrors trailing sign + AllowTrailingWhite)
+            yield return new object[] { "- 123", NumberStyles.AllowLeadingWhite | NumberStyles.AllowLeadingSign, null, -123 };
+            yield return new object[] { "+ 123", NumberStyles.AllowLeadingWhite | NumberStyles.AllowLeadingSign, null, 123 };
+            yield return new object[] { "  -  123  ", NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowLeadingSign, null, -123 };
+            yield return new object[] { "- 123", NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowLeadingSign | NumberStyles.AllowTrailingSign, null, -123 };
+
             // AllowThousands
             NumberFormatInfo thousandsFormat = new NumberFormatInfo() { NumberGroupSeparator = "|" };
             yield return new object[] { "1000", NumberStyles.AllowThousands, thousandsFormat, 1000 };
@@ -364,6 +370,10 @@ namespace System.Tests
             // AllowParentheses
             yield return new object[] { "123", NumberStyles.AllowParentheses, null, 123 };
             yield return new object[] { "(123)", NumberStyles.AllowParentheses, null, -123 };
+
+            // Whitespace between an opening parenthesis and the digits (AllowLeadingWhite)
+            yield return new object[] { "(   123)", NumberStyles.AllowLeadingWhite | NumberStyles.AllowParentheses, null, -123 };
+            yield return new object[] { "( 123 )", NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowParentheses, null, -123 };
 
             // AllowDecimalPoint
             NumberFormatInfo decimalFormat = new NumberFormatInfo() { NumberDecimalSeparator = "|" };

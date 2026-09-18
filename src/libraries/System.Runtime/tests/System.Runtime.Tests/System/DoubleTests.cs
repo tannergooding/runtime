@@ -282,6 +282,10 @@ namespace System.Tests
             yield return new object[] { "0", defaultStyle, null, 0.0 };
             yield return new object[] { "123", defaultStyle, null, 123.0 };
             yield return new object[] { "  123  ", defaultStyle, null, 123.0 };
+
+            // Whitespace between a leading sign and the digits (mirrors trailing sign + AllowTrailingWhite)
+            yield return new object[] { "- 123", NumberStyles.AllowLeadingWhite | NumberStyles.AllowLeadingSign, invariantFormat, -123.0 };
+            yield return new object[] { "  -  123  ", NumberStyles.Float, invariantFormat, -123.0 };
             yield return new object[] { (567.89).ToString(), defaultStyle, null, 567.89 };
             yield return new object[] { (-567.89).ToString(), defaultStyle, null, -567.89 };
             yield return new object[] { "1E23", defaultStyle, null, 1E23 };
@@ -467,6 +471,10 @@ namespace System.Tests
             yield return new object[] { "0xFFp0", NumberStyles.HexFloat, invariantFormat, 255.0 };
             yield return new object[] { "0x1p0", NumberStyles.HexFloat, invariantFormat, 1.0 };
             yield return new object[] { "0x100p0", NumberStyles.HexFloat, invariantFormat, 256.0 };
+
+            // Whitespace between a leading sign and the "0x" prefix (AllowLeadingWhite)
+            yield return new object[] { "- 0x1p0", NumberStyles.HexFloat, invariantFormat, -1.0 };
+            yield return new object[] { "  -  0x1p0  ", NumberStyles.HexFloat, invariantFormat, -1.0 };
 
             // Large significand (many hex digits)
             yield return new object[] { "0xFFFFFFFFFFFFFFp0", NumberStyles.HexFloat, invariantFormat, (double)0xFFFFFFFFFFFFFF };
