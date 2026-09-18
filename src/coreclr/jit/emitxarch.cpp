@@ -9565,6 +9565,17 @@ void emitter::emitIns_ARX_R(instruction    ins,
 void emitter::emitIns_SIMD_R_R_I(
     instruction ins, emitAttr attr, regNumber targetReg, regNumber op1Reg, int ival, insOpts instOptions)
 {
+    if (((ins == INS_vpermilps) || (ins == INS_vpermilpd)) && ((attr == EA_16BYTE) || (attr == EA_32BYTE)) &&
+        (instOptions == INS_OPTS_NONE) && !IsExtendedReg(op1Reg) && !isHighSimdReg(targetReg) &&
+        !m_compiler->DoJitStressEvexEncoding())
+    {
+        // A self-shuffle has the same lane selections and can use a two-byte VEX prefix,
+        // unlike the immediate permute's 0F3A opcode map. Extended sources and EVEX do not save a byte.
+        ins = (ins == INS_vpermilps) ? INS_shufps : INS_shufpd;
+        emitIns_SIMD_R_R_R_I(ins, attr, targetReg, op1Reg, op1Reg, ival, instOptions);
+        return;
+    }
+
     if (UseSimdEncoding() || IsDstSrcImmAvxInstruction(ins))
     {
         emitIns_R_R_I(ins, attr, targetReg, op1Reg, ival, instOptions);
