@@ -200,7 +200,12 @@ namespace System.Text
                     // Continue consuming optional additional digits.
                     while (char.IsAsciiDigit(ch))
                     {
-                        index = index * 10 + ch - '0';
+                        // The index plus one must fit in an int for MinimumArgumentCount.
+                        if (index > int.MaxValue / 10 || (index == int.MaxValue / 10 && ch >= '7'))
+                        {
+                            goto FailureUnclosedFormatItem;
+                        }
+                        index = index * 10 + (ch - '0');
                         if (!TryMoveNext(format, ref pos, out ch))
                         {
                             goto FailureUnclosedFormatItem;
@@ -257,7 +262,12 @@ namespace System.Text
                         }
                         while (char.IsAsciiDigit(ch))
                         {
-                            width = width * 10 + ch - '0';
+                            // The magnitude must fit in an int before applying the alignment sign.
+                            if (width > int.MaxValue / 10 || (width == int.MaxValue / 10 && ch > '7'))
+                            {
+                                goto FailureUnclosedFormatItem;
+                            }
+                            width = width * 10 + (ch - '0');
                             if (!TryMoveNext(format, ref pos, out ch))
                             {
                                 goto FailureUnclosedFormatItem;

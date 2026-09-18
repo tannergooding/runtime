@@ -206,6 +206,69 @@ namespace System.Text.Tests
         }
 
         [Theory]
+        [InlineData("{2147483647}")]
+        [InlineData("{2147483648}")]
+        [InlineData("{4294967296}")]
+        [InlineData("{4294967297}")]
+        [InlineData("{999999999999999999999999999999}")]
+        [InlineData("{0000002147483647}")]
+        [InlineData("{2147483647,1:X}")]
+        [InlineData("{0,2147483648}")]
+        [InlineData("{0,-2147483648}")]
+        [InlineData("{0,4294967296}")]
+        [InlineData("{0,-4294967296}")]
+        [InlineData("{0,999999999999999999999999999999}")]
+        [InlineData("{0,-999999999999999999999999999999}")]
+        [InlineData("{0,0000002147483648}")]
+        [InlineData("{0,-0000002147483648}")]
+        [InlineData("{0,2147483648:X}")]
+        public static void Parse_OverflowingNumber_ThrowsFormatException(string format)
+        {
+            Assert.Throws<FormatException>(() => CompositeFormat.Parse(format));
+        }
+
+        [Theory]
+        [InlineData("{9999999}", 10000000)]
+        [InlineData("{10000000}", 10000001)]
+        [InlineData("{2147483646}", int.MaxValue)]
+        [InlineData("{0000002147483646}", int.MaxValue)]
+        [InlineData("{2147483646,1:X}", int.MaxValue)]
+        [InlineData("{0} {2147483646} {1}", int.MaxValue)]
+        public static void Parse_LargeIndex_ValidatesArgumentCount(string format, int expected)
+        {
+            CompositeFormat cf = CompositeFormat.Parse(format);
+
+            Assert.Same(format, cf.Format);
+            Assert.Equal(expected, cf.MinimumArgumentCount);
+
+            Assert.Throws<FormatException>(() => string.Format(null, cf, "arg"));
+            Assert.Throws<FormatException>(() => new StringBuilder().AppendFormat(null, cf, "arg"));
+            Assert.Throws<FormatException>(() => Span<char>.Empty.TryWrite(null, cf, out _, "arg"));
+        }
+
+        [Theory]
+        [InlineData("{0,9999999}")]
+        [InlineData("{0,-9999999}")]
+        [InlineData("{0,10000000}")]
+        [InlineData("{0,-10000000}")]
+        [InlineData("{0,2147483647}")]
+        [InlineData("{0,-2147483647}")]
+        [InlineData("{0,0000002147483647}")]
+        [InlineData("{0,-0000002147483647}")]
+        [InlineData("{0,2147483647:X}")]
+        public static void Parse_LargeAlignment_Accepted(string format)
+        {
+            CompositeFormat cf = CompositeFormat.Parse(format);
+
+            Assert.Same(format, cf.Format);
+            Assert.Equal(1, cf.MinimumArgumentCount);
+
+            Span<char> destination = stackalloc char[1];
+            Assert.False(destination.TryWrite(null, cf, out int charsWritten, string.Empty));
+            Assert.Equal(0, charsWritten);
+        }
+
+        [Theory]
         [MemberData(nameof(System.Tests.StringTests.Format_Invalid_FormatExceptionFromArgs_MemberData), MemberType = typeof(System.Tests.StringTests))]
         public static void StringFormat_Invalid_FormatExceptionFromArgs(IFormatProvider provider, string format, object[] args)
         {
