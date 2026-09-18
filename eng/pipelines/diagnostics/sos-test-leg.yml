@@ -43,9 +43,9 @@ jobs:
           unpackFolder: $(Build.SourcesDirectory)/artifacts/runtime
           displayName: 'Runtime Build Artifacts'
       # The cdac leg exercises the runtime-under-test's own cDAC through SOS's standard cDAC hosting.
-      # SOS resolves the cDAC from next to sos.dll, which is the copy restored from a referenced runtime
-      # package -- not the runtime being tested. Download the freshly built cDAC so the build can overlay
-      # it (see -cdacPath in runtime-diag-job.yml / eng/build.* in dotnet/diagnostics).
+      # SOS resolves the cDAC and universal DBI from next to sos.dll, normally restored from a referenced
+      # runtime package -- not the runtime being tested. Download the matching pair so the build can
+      # overlay both (see -cdacPath in runtime-diag-job.yml / eng/build.* in dotnet/diagnostics).
       - ${{ if eq(parameters.dacMode, 'cdac') }}:
         - template: /eng/pipelines/common/download-artifact-step.yml
           parameters:

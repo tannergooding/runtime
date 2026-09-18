@@ -153,10 +153,13 @@ extends:
                 displayName: Build Assets
             # The cDAC (mscordaccore_universal) is built by tools.cdac but is not part of the shared
             # framework (testhost), so upload it separately for the cDAC-only SOS leg to consume.
+            # Include the matching universal DBI from its native build output alongside the cDAC.
             - powershell: |
                 $cdacDir = Get-ChildItem -Directory -Path "$(Build.SourcesDirectory)\artifacts\bin\mscordaccore_universal\*\win-$(archType)\publish" | Select-Object -ExpandProperty FullName -First 1
+                $dbiDir = "$(Build.SourcesDirectory)\artifacts\obj\coreclr\$(osGroup).$(archType).$(_BuildConfig)\dlls\mscordbi_universal"
+                Copy-Item -Path "$dbiDir\mscordbi_universal.dll", "$dbiDir\mscordbi_universal.pdb" -Destination $cdacDir -ErrorAction Stop
                 Write-Host "##vso[task.setvariable variable=cdacDir]$cdacDir"
-              displayName: 'Set Path to cDAC Artifacts'
+              displayName: 'Prepare cDAC Artifacts'
             - template: /eng/pipelines/common/upload-artifact-step.yml
               parameters:
                 rootFolder: $(cdacDir)
@@ -171,7 +174,7 @@ extends:
       # name (artifact namespace) and the cDAC/DAC load mode.
 
       # cDAC: the runtime-under-test's own standalone cDAC (mscordaccore_universal) loaded through SOS's
-      # standard cDAC hosting path (overlaying the freshly built cDAC next to sos.dll).
+      # standard cDAC hosting path (overlaying the matching cDAC and universal DBI next to sos.dll).
       - template: /eng/pipelines/diagnostics/sos-test-leg.yml
         parameters:
           name: cDAC
