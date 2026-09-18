@@ -1431,13 +1431,15 @@ int LinearScan::BuildBlockStore(GenTreeBlk* blkNode)
         {
             case GenTreeBlk::BlkOpKindUnroll:
             {
-                bool willUseSimdMov = (size >= XMM_REGSIZE_BYTES);
+                unsigned simdSize       = m_compiler->roundDownSIMDSize(size);
+                bool     willUseSimdMov = (size >= XMM_REGSIZE_BYTES);
                 if (willUseSimdMov && blkNode->IsOnHeapAndContainsReferences())
                 {
                     ClassLayout* layout = blkNode->GetLayout();
 
-                    unsigned xmmCandidates   = 0;
-                    unsigned continuousNonGc = 0;
+                    unsigned xmmCandidates      = 0;
+                    unsigned continuousNonGc    = 0;
+                    unsigned maxContinuousNonGc = 0;
                     for (unsigned slot = 0; slot < layout->GetSlotCount(); slot++)
                     {
                         if (layout->IsGCPtr(slot))
@@ -1448,18 +1450,20 @@ int LinearScan::BuildBlockStore(GenTreeBlk* blkNode)
                         else
                         {
                             continuousNonGc++;
+                            maxContinuousNonGc = max(maxContinuousNonGc, continuousNonGc);
                         }
                     }
                     xmmCandidates += ((continuousNonGc * TARGET_POINTER_SIZE) / XMM_REGSIZE_BYTES);
 
                     // Just one XMM candidate is not profitable
                     willUseSimdMov = xmmCandidates > 1;
+                    simdSize       = m_compiler->roundDownSIMDSize(maxContinuousNonGc * TARGET_POINTER_SIZE);
                 }
 
                 if (willUseSimdMov)
                 {
                     buildInternalFloatRegisterDefForNode(blkNode, internalFloatRegCandidates());
-                    SetContainsAVXFlags();
+                    SetContainsAVXFlags(simdSize);
                 }
 
 #ifdef TARGET_X86
@@ -1564,7 +1568,7 @@ int LinearScan::BuildBlockStore(GenTreeBlk* blkNode)
                         // no more than MaxInternalCount. Currently, it's controlled by getUnrollThreshold(memmove)
                         buildInternalFloatRegisterDefForNode(blkNode, internalFloatRegCandidates());
                     }
-                    SetContainsAVXFlags();
+                    SetContainsAVXFlags(simdSize);
                 }
                 else if (isPow2(size))
                 {
