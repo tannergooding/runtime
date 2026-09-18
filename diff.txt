@@ -1,0 +1,413 @@
+diff --git a/src/libraries/System.Numerics.Tensors/src/System/Numerics/Tensors/netcore/TensorPrimitives.LogP1.cs b/src/libraries/System.Numerics.Tensors/src/System/Numerics/Tensors/netcore/TensorPrimitives.LogP1.cs
+index ac76d321496..4840c863af6 100644
+--- a/src/libraries/System.Numerics.Tensors/src/System/Numerics/Tensors/netcore/TensorPrimitives.LogP1.cs
++++ b/src/libraries/System.Numerics.Tensors/src/System/Numerics/Tensors/netcore/TensorPrimitives.LogP1.cs
+@@ -17,10 +17,11 @@ public static partial class TensorPrimitives
+         /// This method effectively computes <c><paramref name="destination" />[i] = <typeparamref name="T"/>.LogP1(<paramref name="x" />[i])</c>.
+         /// </para>
+         /// <para>
+-        /// If a value equals 0, the result stored into the corresponding destination location is set to <see cref="IFloatingPointIeee754{TSelf}.NegativeInfinity"/>.
+-        /// If a value is negative or equal to <see cref="IFloatingPointIeee754{TSelf}.NaN"/>, the result stored into the corresponding destination location is set to NaN.
++        /// If a value equals 0, the result stored into the corresponding destination location is the same signed zero.
++        /// If a value is less than -1 or equal to <see cref="IFloatingPointIeee754{TSelf}.NaN"/>, the result stored into the corresponding destination location is set to NaN.
++        /// If a value equals -1, the result stored into the corresponding destination location is set to <see cref="IFloatingPointIeee754{TSelf}.NegativeInfinity"/>.
+         /// If a value is positive infinity, the result stored into the corresponding destination location is set to <see cref="IFloatingPointIeee754{TSelf}.PositiveInfinity"/>.
+-        /// Otherwise, if a value is positive, its natural logarithm plus 1 is stored into the corresponding destination location.
++        /// Otherwise, its natural logarithm plus 1 is stored into the corresponding destination location.
+         /// </para>
+         /// <para>
+         /// This method may call into the underlying C runtime or employ instructions specific to the current architecture. Exact results may differ between different
+@@ -44,9 +45,75 @@ public static void LogP1<T>(ReadOnlySpan<T> x, Span<T> destination)
+         {
+             public static bool Vectorizable => LogOperator<T>.Vectorizable;
+             public static T Invoke(T x) => T.LogP1(x);
+-            public static Vector128<T> Invoke(Vector128<T> x) => LogOperator<T>.Invoke(x + Vector128<T>.One);
+-            public static Vector256<T> Invoke(Vector256<T> x) => LogOperator<T>.Invoke(x + Vector256<T>.One);
+-            public static Vector512<T> Invoke(Vector512<T> x) => LogOperator<T>.Invoke(x + Vector512<T>.One);
++
++            public static Vector128<T> Invoke(Vector128<T> x)
++            {
++                Vector128<T> onePlusX = x + Vector128<T>.One;
++
++                if (Vector128.EqualsAll(onePlusX, Vector128<T>.One))
++                {
++                    return x;
++                }
++
++                Vector128<T> half = Vector128.Create(T.CreateTruncating(0.5));
++                if (Vector128.GreaterThanOrEqualAll(Vector128.Abs(x), half))
++                {
++                    return LogOperator<T>.Invoke(onePlusX);
++                }
++
++                Vector128<T> result = LogOperator<T>.Invoke(onePlusX);
++                Vector128<T> correction = (onePlusX - Vector128<T>.One) - x;
++                Vector128<T> compensationMask = Vector128.LessThan(Vector128.Abs(x), half);
++
++                result = Vector128.ConditionalSelect(compensationMask, result - correction, result);
++                return Vector128.ConditionalSelect(Vector128.Equals(onePlusX, Vector128<T>.One), x, result);
++            }
++
++            public static Vector256<T> Invoke(Vector256<T> x)
++            {
++                Vector256<T> onePlusX = x + Vector256<T>.One;
++
++                if (Vector256.EqualsAll(onePlusX, Vector256<T>.One))
++                {
++                    return x;
++                }
++
++                Vector256<T> half = Vector256.Create(T.CreateTruncating(0.5));
++                if (Vector256.GreaterThanOrEqualAll(Vector256.Abs(x), half))
++                {
++                    return LogOperator<T>.Invoke(onePlusX);
++                }
++
++                Vector256<T> result = LogOperator<T>.Invoke(onePlusX);
++                Vector256<T> correction = (onePlusX - Vector256<T>.One) - x;
++                Vector256<T> compensationMask = Vector256.LessThan(Vector256.Abs(x), half);
++
++                result = Vector256.ConditionalSelect(compensationMask, result - correction, result);
++                return Vector256.ConditionalSelect(Vector256.Equals(onePlusX, Vector256<T>.One), x, result);
++            }
++
++            public static Vector512<T> Invoke(Vector512<T> x)
++            {
++                Vector512<T> onePlusX = x + Vector512<T>.One;
++
++                if (Vector512.EqualsAll(onePlusX, Vector512<T>.One))
++                {
++                    return x;
++                }
++
++                Vector512<T> half = Vector512.Create(T.CreateTruncating(0.5));
++                if (Vector512.GreaterThanOrEqualAll(Vector512.Abs(x), half))
++                {
++                    return LogOperator<T>.Invoke(onePlusX);
++                }
++
++                Vector512<T> result = LogOperator<T>.Invoke(onePlusX);
++                Vector512<T> correction = (onePlusX - Vector512<T>.One) - x;
++                Vector512<T> compensationMask = Vector512.LessThan(Vector512.Abs(x), half);
++
++                result = Vector512.ConditionalSelect(compensationMask, result - correction, result);
++                return Vector512.ConditionalSelect(Vector512.Equals(onePlusX, Vector512<T>.One), x, result);
++            }
+         }
+     }
+ }
+diff --git a/src/libraries/System.Numerics.Tensors/tests/TensorPrimitives.Generic.cs b/src/libraries/System.Numerics.Tensors/tests/TensorPrimitives.Generic.cs
+index 295955d9497..461a128a29a 100644
+--- a/src/libraries/System.Numerics.Tensors/tests/TensorPrimitives.Generic.cs
++++ b/src/libraries/System.Numerics.Tensors/tests/TensorPrimitives.Generic.cs
+@@ -373,6 +373,31 @@ public unsafe abstract class GenericFloatingPointNumberTensorPrimitivesTests<T>
+ 
+         protected override T NextRandom() => T.CreateTruncating((Random.NextDouble() * 2) - 1); // For testing purposes, get a mix of negative and positive values.
+ 
++        [Fact]
++        public void LogP1_PreservesTinyValuesAndSignedZero()
++        {
++            T[] values = new T[129];
++
++            for (int i = 0; i < values.Length; i++)
++            {
++                values[i] = (i % 4) switch
++                {
++                    0 => T.Epsilon,
++                    1 => -T.Epsilon,
++                    2 => T.Zero,
++                    _ => -T.Zero,
++                };
++            }
++
++            T[] destination = new T[values.Length];
++            TensorPrimitives.LogP1(values, destination);
++
++            for (int i = 0; i < values.Length; i++)
++            {
++                AssertEqualTolerance(values[i], destination[i], T.Zero);
++            }
++        }
++
+         protected override IEnumerable<T> GetSpecialValues()
+         {
+             // NaN
+diff --git a/src/libraries/System.Private.CoreLib/src/System/Double.cs b/src/libraries/System.Private.CoreLib/src/System/Double.cs
+index d4ac8530645..45b2e4febf4 100644
+--- a/src/libraries/System.Private.CoreLib/src/System/Double.cs
++++ b/src/libraries/System.Private.CoreLib/src/System/Double.cs
+@@ -906,7 +906,63 @@ bool IFloatingPoint<double>.TryWriteSignificandLittleEndian(Span<byte> destinati
+         public static double Log(double x, double newBase) => Math.Log(x, newBase);
+ 
+         /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.LogP1(TSelf)" />
+-        public static double LogP1(double x) => Math.Log(x + 1);
++        [MethodImpl(MethodImplOptions.AggressiveInlining)]
++        public static double LogP1(double x)
++        {
++            double ax = Abs(x);
++
++            if (ax >= 0.5)
++            {
++                return Math.Log(1.0 + x);
++            }
++
++            if (ax < 1.1102230246251565E-16)
++            {
++                return x;
++            }
++
++            if ((x >= -0.06058693718652422) && (x <= +0.06449445891785943))
++            {
++                return LogP1Small(x);
++            }
++
++            return LogP1Compensated(x);
++        }
++
++        [MethodImpl(MethodImplOptions.AggressiveInlining)]
++        internal static double LogP1Small(double x)
++        {
++            // This code is based on log1p from amd/aocl-libm-ose
++            // Copyright (C) 2019-2025 Advanced Micro Devices, Inc. All rights reserved.
++            //
++            // Licensed under the BSD 3-Clause "New" or "Revised" License
++            // See THIRD-PARTY-NOTICES.TXT for the full license text
++
++            const double C1 = 0.08333333333333179;
++            const double C2 = 0.01250000000377175;
++            const double C3 = 0.002232139987919448;
++            const double C4 = 0.0004348877777076146;
++
++            double r = x / (2.0 + x);
++            double correction = x * r;
++            r += r;
++
++            double r2 = r * r;
++            double poly = MultiplyAddEstimate(C4, r2, C3);
++            poly = MultiplyAddEstimate(poly, r2, C2);
++            poly = MultiplyAddEstimate(poly, r2, C1);
++
++            double remainder = MultiplyAddEstimate(r * r2, poly, -correction);
++            return x + remainder;
++        }
++
++        [MethodImpl(MethodImplOptions.AggressiveInlining)]
++        internal static double LogP1Compensated(double x)
++        {
++            double onePlusX = 1.0 + x;
++
++            return Math.Log(onePlusX) - (((onePlusX - 1.0) - x) / onePlusX);
++        }
+ 
+         /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log2P1(TSelf)" />
+         public static double Log2P1(double x) => Math.Log2(x + 1);
+diff --git a/src/libraries/System.Private.CoreLib/src/System/Number.DecimalIeee754.Transcendental.cs b/src/libraries/System.Private.CoreLib/src/System/Number.DecimalIeee754.Transcendental.cs
+index 69d4fcc2367..3e8aacba96c 100644
+--- a/src/libraries/System.Private.CoreLib/src/System/Number.DecimalIeee754.Transcendental.cs
++++ b/src/libraries/System.Private.CoreLib/src/System/Number.DecimalIeee754.Transcendental.cs
+@@ -230,18 +230,11 @@ internal static TValue Exp10M1DecimalIeee754<TDecimal, TValue>(TValue x)
+         return DiyFp128ToDecimal<TDecimal, TValue>(DiyFp128Exp10M1(argument));
+     }
+ 
+-    /// <summary>Accurate binary64 <c>ln(1 + x)</c> (Kahan), avoiding the cancellation in the naive
+-    /// <c>Log(1 + x)</c> so the Decimal32 log1p family stays faithful to Intel's binary path.</summary>
++    /// <summary>Accurate binary64 <c>ln(1 + x)</c>, avoiding the cancellation in the naive
++    /// <c>Log(1 + x)</c> so the binary64-backed decimal formats stay faithful to Intel's binary path.</summary>
+     private static double DoubleLog1p(double x)
+     {
+-        double u = 1.0 + x;
+-
+-        if (u == 1.0)
+-        {
+-            return x;
+-        }
+-
+-        return double.Log(u) * (x / (u - 1.0));
++        return double.LogP1(x);
+     }
+ 
+     /// <summary>
+diff --git a/src/libraries/System.Private.CoreLib/src/System/Numerics/ILogarithmicFunctions.cs b/src/libraries/System.Private.CoreLib/src/System/Numerics/ILogarithmicFunctions.cs
+index 343327946e4..06dec39ba39 100644
+--- a/src/libraries/System.Private.CoreLib/src/System/Numerics/ILogarithmicFunctions.cs
++++ b/src/libraries/System.Private.CoreLib/src/System/Numerics/ILogarithmicFunctions.cs
+@@ -23,7 +23,25 @@ public interface ILogarithmicFunctions<TSelf>
+         /// <summary>Computes the natural (<c>base-E</c>) logarithm of a value plus one.</summary>
+         /// <param name="x">The value to which one is added before computing the natural logarithm.</param>
+         /// <returns><c>log<sub>e</sub>(<paramref name="x" /> + 1)</c></returns>
+-        static virtual TSelf LogP1(TSelf x) => TSelf.Log(x + TSelf.One);
++        static virtual TSelf LogP1(TSelf x)
++        {
++            TSelf onePlusX = x + TSelf.One;
++
++            if (onePlusX == TSelf.One)
++            {
++                return x;
++            }
++
++            TSelf result = TSelf.Log(onePlusX);
++            TSelf denominator = onePlusX - TSelf.One;
++
++            if (denominator != x)
++            {
++                result *= x / denominator;
++            }
++
++            return result;
++        }
+ 
+         /// <summary>Computes the base-2 logarithm of a value.</summary>
+         /// <param name="x">The value whose base-2 logarithm is to be computed.</param>
+diff --git a/src/libraries/System.Private.CoreLib/src/System/Single.cs b/src/libraries/System.Private.CoreLib/src/System/Single.cs
+index 65c893ca9db..118c9d37f0b 100644
+--- a/src/libraries/System.Private.CoreLib/src/System/Single.cs
++++ b/src/libraries/System.Private.CoreLib/src/System/Single.cs
+@@ -903,7 +903,29 @@ bool IFloatingPoint<float>.TryWriteSignificandLittleEndian(Span<byte> destinatio
+         public static float Log(float x, float newBase) => MathF.Log(x, newBase);
+ 
+         /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.LogP1(TSelf)" />
+-        public static float LogP1(float x) => MathF.Log(x + 1);
++        public static float LogP1(float x)
++        {
++            // AOCL computes log1pf in double precision and rounds only the final result.
++            double dx = x;
++            double ax = double.Abs(dx);
++
++            if (ax >= 0.5)
++            {
++                return (float)Math.Log(1.0 + dx);
++            }
++
++            if (ax < 5.960464477539063E-08)
++            {
++                return x;
++            }
++
++            if ((dx >= -0.06058693718652422) && (dx <= +0.06449445891785943))
++            {
++                return (float)double.LogP1Small(dx);
++            }
++
++            return (float)double.LogP1Compensated(dx);
++        }
+ 
+         /// <inheritdoc cref="ILogarithmicFunctions{TSelf}.Log10(TSelf)" />
+         [Intrinsic]
+diff --git a/src/libraries/System.Runtime.Numerics/src/System/Numerics/Complex.Generic.cs b/src/libraries/System.Runtime.Numerics/src/System/Numerics/Complex.Generic.cs
+index 0ca05c733a5..63f225426f0 100644
+--- a/src/libraries/System.Runtime.Numerics/src/System/Numerics/Complex.Generic.cs
++++ b/src/libraries/System.Runtime.Numerics/src/System/Numerics/Complex.Generic.cs
+@@ -366,31 +366,6 @@ public static T Abs(Complex<T> value)
+             return T.Hypot(value.m_real, value.m_imaginary);
+         }
+ 
+-        private static T Log1P(T x)
+-        {
+-            // Compute log(1 + x) without loss of accuracy when x is small.
+-
+-            // Our only use case so far is for positive values, so this isn't coded to handle negative values.
+-            Debug.Assert((x >= T.Zero) || T.IsNaN(x));
+-
+-            T xp1 = T.One + x;
+-            if (xp1 == T.One)
+-            {
+-                return x;
+-            }
+-            else if (x < T.CreateChecked(0.75))
+-            {
+-                // This is accurate to within 5 ulp with any floating-point system that uses a guard digit,
+-                // as proven in Theorem 4 of "What Every Computer Scientist Should Know About Floating-Point
+-                // Arithmetic" (https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html)
+-                return x * T.Log(xp1) / (xp1 - T.One);
+-            }
+-            else
+-            {
+-                return T.Log(xp1);
+-            }
+-        }
+-
+         public static Complex<T> Conjugate(Complex<T> value)
+         {
+             // Conjugate of a Complex number: the conjugate of x+i*y is x-i*y
+@@ -872,7 +847,7 @@ private static void Asin_Internal(T x, T y, out T b, out T bPrime, out T v)
+                     big = x;
+                 }
+                 T ratio = small / big;
+-                v = s_log2 + T.Log(big) + Log1P(ratio * ratio) / T.CreateChecked(2);
++                v = s_log2 + T.Log(big) + T.LogP1(ratio * ratio) / T.CreateChecked(2);
+             }
+             else
+             {
+@@ -912,12 +887,12 @@ private static void Asin_Internal(T x, T y, out T b, out T bPrime, out T v)
+                         // under the square root.
+                         T t = (T.One / (r + (x + T.One)) + T.One / (s + (T.One - x))) / T.CreateChecked(2);
+                         T am1 = y * y * t;
+-                        v = Log1P(am1 + y * T.Sqrt(t * (a + T.One)));
++                        v = T.LogP1(am1 + y * T.Sqrt(t * (a + T.One)));
+                     }
+                     else
+                     {
+                         T am1 = (y * y / (r + (x + T.One)) + (s + (x - T.One))) / T.CreateChecked(2);
+-                        v = Log1P(am1 + T.Sqrt(am1 * (a + T.One)));
++                        v = T.LogP1(am1 + T.Sqrt(am1 * (a + T.One)));
+                     }
+                 }
+                 else
+diff --git a/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/DoubleTests.cs b/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/DoubleTests.cs
+index f0238fe488f..203bd3c915f 100644
+--- a/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/DoubleTests.cs
++++ b/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/DoubleTests.cs
+@@ -1586,8 +1586,10 @@ public static void Exp10M1Test(double value, double expectedResult, double allow
+         [InlineData(-0.50693130860476021,    -0.70710678118654752,     CrossPlatformMachineEpsilon)]       // expected: -(1 / sqrt(2))
+         [InlineData(-0.5,                    -0.69314718055994531,     CrossPlatformMachineEpsilon)]       // expected: -(ln(2))
+         [InlineData(-0.47092219173226465,    -0.63661977236758134,     CrossPlatformMachineEpsilon)]       // expected: -(2 / pi)
+-        [InlineData(-0.0,                     0.0,                     0.0)]
++        [InlineData(-1.23e-20,               -1.23e-20,                0.0)]
++        [InlineData(-0.0,                    -0.0,                     0.0)]
+         [InlineData( 0.0,                     0.0,                     0.0)]
++        [InlineData( 1.23e-20,                1.23e-20,                0.0)]
+         [InlineData( 0.37480222743935863,     0.31830988618379067,     CrossPlatformMachineEpsilon)]       // expected:  (1 / pi)
+         [InlineData( 0.54387344397118114,     0.43429448190325183,     CrossPlatformMachineEpsilon)]       // expected:  (log10(e))
+         [InlineData( 0.89008116457222198,     0.63661977236758134,     CrossPlatformMachineEpsilon)]       // expected:  (2 / pi)
+diff --git a/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/HalfTests.cs b/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/HalfTests.cs
+index 927bea6948c..05c22949e90 100644
+--- a/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/HalfTests.cs
++++ b/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/HalfTests.cs
+@@ -1876,7 +1876,7 @@ public static IEnumerable<object[]> LogP1_TestData()
+             yield return new object[] { (Half)(-0.506931309f),  (Half)(-0.707106781f),  CrossPlatformMachineEpsilon };             // expected: -(1 / sqrt(2))
+             yield return new object[] { (Half)(-0.5f),          (Half)(-0.693147181f),  CrossPlatformMachineEpsilon };             // expected: -(ln(2))
+             yield return new object[] { (Half)(-0.470922192f),  (Half)(-0.636619772f),  CrossPlatformMachineEpsilon };             // expected: -(2 / pi)
+-            yield return new object[] { (Half)(-0.0f),          (Half)( 0.0f),          0.0f };
++            yield return new object[] { (Half)(-0.0f),          (Half)(-0.0f),          0.0f };
+             yield return new object[] { (Half)( 0.0f),          (Half)( 0.0f),          0.0f };
+             yield return new object[] { (Half)( 0.374802227f),  (Half)( 0.318309886f),  CrossPlatformMachineEpsilon };             // expected:  (1 / pi)
+             yield return new object[] { (Half)( 0.543873444f),  (Half)( 0.434294482f),  CrossPlatformMachineEpsilon };             // expected:  (log10(e))
+diff --git a/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/Numerics/BFloat16Tests.cs b/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/Numerics/BFloat16Tests.cs
+index a5ff7414edb..55e917c72cd 100644
+--- a/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/Numerics/BFloat16Tests.cs
++++ b/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/Numerics/BFloat16Tests.cs
+@@ -1873,7 +1873,7 @@ public static IEnumerable<object[]> LogP1_TestData()
+             yield return new object[] { (BFloat16)(-0.5078f), (BFloat16)(-0.707f), CrossPlatformMachineEpsilon };             // expected: -(1 / sqrt(2))
+             yield return new object[] { (BFloat16)(-0.5f), (BFloat16)(-0.6914f), CrossPlatformMachineEpsilon };             // expected: -(ln(2))
+             yield return new object[] { (BFloat16)(-0.4707f), (BFloat16)(-0.6367f), CrossPlatformMachineEpsilon };             // expected: -(2 / pi)
+-            yield return new object[] { (BFloat16)(-0f), (BFloat16)(0f), (BFloat16)0.0f };
++            yield return new object[] { BFloat16.NegativeZero, BFloat16.NegativeZero, (BFloat16)0.0f };
+             yield return new object[] { (BFloat16)(0f), (BFloat16)(0f), (BFloat16)0.0f };
+             yield return new object[] { (BFloat16)(0.375f), (BFloat16)(0.3184f), CrossPlatformMachineEpsilon };             // expected:  (1 / pi)
+             yield return new object[] { (BFloat16)(0.543f), (BFloat16)(0.4336f), CrossPlatformMachineEpsilon };             // expected:  (log10(e))
+diff --git a/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/SingleTests.cs b/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/SingleTests.cs
+index 0d83d4d1708..984378da0d8 100644
+--- a/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/SingleTests.cs
++++ b/src/libraries/System.Runtime/tests/System.Runtime.Tests/System/SingleTests.cs
+@@ -1336,8 +1336,10 @@ public static void Exp10M1Test(float value, float expectedResult, float allowedV
+         [InlineData(-0.506931309f,           -0.707106781f,           CrossPlatformMachineEpsilon)]       // expected: -(1 / sqrt(2))
+         [InlineData(-0.5f,                   -0.693147181f,           CrossPlatformMachineEpsilon)]       // expected: -(ln(2))
+         [InlineData(-0.470922192f,           -0.636619772f,           CrossPlatformMachineEpsilon)]       // expected: -(2 / pi)
+-        [InlineData(-0.0f,                    0.0f,                   0.0f)]
++        [InlineData(-1.23e-20f,              -1.23e-20f,              0.0f)]
++        [InlineData(-0.0f,                   -0.0f,                   0.0f)]
+         [InlineData( 0.0f,                    0.0f,                   0.0f)]
++        [InlineData( 1.23e-20f,               1.23e-20f,              0.0f)]
+         [InlineData( 0.374802227f,            0.318309886f,           CrossPlatformMachineEpsilon)]       // expected:  (1 / pi)
+         [InlineData( 0.543873444f,            0.434294482f,           CrossPlatformMachineEpsilon)]       // expected:  (log10(e))
+         [InlineData( 0.890081165f,            0.636619772f,           CrossPlatformMachineEpsilon)]       // expected:  (2 / pi)
