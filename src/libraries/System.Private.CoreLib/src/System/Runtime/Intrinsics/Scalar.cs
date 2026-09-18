@@ -11,7 +11,8 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.Intrinsics
 {
-    internal static class Scalar<T>
+    [CLSCompliant(false)]
+    public static class Scalar<T>
     {
         public static bool IsFloatingPoint
         {

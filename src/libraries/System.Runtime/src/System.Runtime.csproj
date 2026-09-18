@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>$(NetCoreAppCurrent)</TargetFramework>
     <IsPartialFacadeAssembly>true</IsPartialFacadeAssembly>
+    <!-- GenFacades emits extern aliases before its auto-generated marker. -->
+    <NoWarn>$(NoWarn);IDE0073</NoWarn>
     <UseCompilerGeneratedDocXmlFile>false</UseCompilerGeneratedDocXmlFile>
   </PropertyGroup>
 
@@ -26,6 +28,15 @@
   <ItemGroup>
     <ProjectReference Include="$(CoreLibProject)" />
     <ProjectReference Include="$(UriProject)" />
+    <ProjectReference Include="..\..\System.Numerics.Vectors\src\System.Numerics.Vectors.csproj" ReferenceOutputAssembly="false" />
+    <SeedTypePreference Include="System.Numerics.Vector" Aliases="numericsvectors" />
   </ItemGroup>
+
+  <Target Name="AddNumericsVectorsFacadeReference" BeforeTargets="GeneratePartialFacadeSource">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Include="$(ArtifactsBinDir)System.Numerics.Vectors\$(Configuration)\$(TargetFramework)\System.Numerics.Vectors.dll"
+                                      Aliases="numericsvectors" />
+    </ItemGroup>
+  </Target>
 
 </Project>

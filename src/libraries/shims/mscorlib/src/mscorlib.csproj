@@ -17,6 +17,7 @@
     <ProjectReference Include="$(LibrariesProjectRoot)System.IO.FileSystem.DriveInfo\src\System.IO.FileSystem.DriveInfo.csproj" />
     <ProjectReference Include="$(LibrariesProjectRoot)System.IO.IsolatedStorage\src\System.IO.IsolatedStorage.csproj" />
     <ProjectReference Include="$(LibrariesProjectRoot)System.Memory\src\System.Memory.csproj" />
+    <ProjectReference Include="$(LibrariesProjectRoot)System.Numerics.Vectors\src\System.Numerics.Vectors.csproj" />
     <ProjectReference Include="$(LibrariesProjectRoot)System.ObjectModel\src\System.ObjectModel.csproj" />
     <ProjectReference Include="$(LibrariesProjectRoot)System.Reflection.TypeExtensions\src\System.Reflection.TypeExtensions.csproj" />
     <ProjectReference Include="$(LibrariesProjectRoot)System.Resources.Writer\src\System.Resources.Writer.csproj" />

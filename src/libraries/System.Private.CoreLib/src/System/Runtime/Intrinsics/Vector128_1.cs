@@ -31,8 +31,10 @@ namespace System.Runtime.Intrinsics
     [StructLayout(LayoutKind.Sequential, Size = Vector128.Size)]
     public readonly unsafe struct Vector128<T> : ISimdVector<Vector128<T>, T>
     {
-        internal readonly Vector64<T> _lower;
-        internal readonly Vector64<T> _upper;
+        [CLSCompliant(false)]
+        public readonly Vector64<T> _lower;
+        [CLSCompliant(false)]
+        public readonly Vector64<T> _upper;
 
         /// <summary>Gets a new <see cref="Vector128{T}" /> with all bits set to 1.</summary>
         /// <exception cref="NotSupportedException">The type of the vector (<typeparamref name="T" />) is not supported.</exception>

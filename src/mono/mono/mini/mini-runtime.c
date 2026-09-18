@@ -4487,7 +4487,9 @@ free_jit_mem_manager (MonoMemoryManager *mem_manager)
 static void
 init_class (MonoClass *klass)
 {
-	if (!mono_is_corlib_image (m_class_get_image (klass)))
+	MonoImage *image = m_class_get_image (klass);
+
+	if (!mono_is_corlib_image (image) && (!image->assembly_name || strcmp (image->assembly_name, "System.Numerics.Vectors")))
 		return;
 
 	const char *name = m_class_get_name (klass);

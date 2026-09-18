@@ -833,4 +833,36 @@
     <DiagnosticId>CP0001</DiagnosticId>
     <Target>T:Internal.NativeFormat.TypeHashingAlgorithms</Target>
   </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Intrinsics.ISimdVector`2</Target>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Intrinsics.Scalar`1</Target>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0001</DiagnosticId>
+    <Target>T:System.Runtime.Intrinsics.VectorMath</Target>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:System.Numerics.Vector`1</Target>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:System.Runtime.Intrinsics.Vector64`1</Target>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:System.Runtime.Intrinsics.Vector128`1</Target>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:System.Runtime.Intrinsics.Vector256`1</Target>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:System.Runtime.Intrinsics.Vector512`1</Target>
+  </Suppression>
 </Suppressions>

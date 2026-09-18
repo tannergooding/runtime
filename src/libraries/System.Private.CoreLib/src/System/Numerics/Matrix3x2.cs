@@ -417,7 +417,7 @@ namespace System.Numerics
         /// <param name="value1">The first matrix.</param>
         /// <param name="value2">The second matrix.</param>
         /// <returns>The product matrix.</returns>
-        /// <remarks>The <see cref="Matrix3x2.op_Multiply" /> method defines the operation of the multiplication operator for <see cref="Matrix3x2" /> objects.</remarks>
+        /// <remarks>The <see cref="Matrix3x2.op_Multiply(Matrix3x2, Matrix3x2)" /> method defines the operation of the multiplication operator for <see cref="Matrix3x2" /> objects.</remarks>
         public static Matrix3x2 operator *(Matrix3x2 value1, Matrix3x2 value2)
         {
             ref readonly Impl left = ref value1.AsROImpl();
@@ -443,7 +443,7 @@ namespace System.Numerics
         /// <param name="value1">The matrix to scale.</param>
         /// <param name="value2">The scaling value to use.</param>
         /// <returns>The scaled matrix.</returns>
-        /// <remarks>The <see cref="Matrix3x2.op_Multiply" /> method defines the operation of the multiplication operator for <see cref="Matrix3x2" /> objects.</remarks>
+        /// <remarks>The <see cref="Matrix3x2.op_Multiply(Matrix3x2, float)" /> method defines the operation of the multiplication operator for <see cref="Matrix3x2" /> objects.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Matrix3x2 operator *(Matrix3x2 value1, float value2)
         {

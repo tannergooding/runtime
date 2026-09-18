@@ -37,6 +37,15 @@ const char* FormatSig(MethodDesc* pMD, LoaderHeap *pHeap, AllocMemTracker *pamTr
 unsigned g_dupMethods = 0;
 #endif // _DEBUG
 
+static bool IsRuntimeIntrinsicModule(Module* pModule)
+{
+    LIMITED_METHOD_CONTRACT;
+
+    return pModule->IsSystem() ||
+           ((pModule->GetPEAssembly()->GetAssemblyBinder() == GetAppDomain()->GetDefaultBinder()) &&
+            (strcmp(pModule->GetPEAssembly()->GetSimpleName(), "System.Numerics.Vectors") == 0));
+}
+
 //==========================================================================
 // This function is very specific about how it constructs a EEClass.  It first
 // determines the necessary size of the vtable and the number of statics that
@@ -1515,7 +1524,7 @@ MethodTableBuilder::BuildMethodTableThrowing(
     // SIMD types have [Intrinsic] attribute, for example
     //
     // We check this here fairly early to ensure other downstream checks on these types can be slightly more efficient.
-    if (GetModule()->IsSystem())
+    if (IsRuntimeIntrinsicModule(GetModule()))
     {
         HRESULT hr = GetCustomAttribute(bmtInternal->pType->GetTypeDefToken(),
             WellKnownAttribute::Intrinsic,
@@ -5344,7 +5353,7 @@ MethodTableBuilder::InitNewMethodDesc(
     }
 
     // Check for methods marked as [Intrinsic]
-    if (GetModule()->IsSystem())
+    if (IsRuntimeIntrinsicModule(GetModule()))
     {
         if (bmtProp->fIsHardwareIntrinsic || (S_OK == GetCustomAttribute(pMethod->GetMethodSignature().GetToken(),
                                                     WellKnownAttribute::Intrinsic,

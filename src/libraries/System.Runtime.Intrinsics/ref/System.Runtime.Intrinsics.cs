@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace System.Runtime.Intrinsics
 {
+#if !BUILDING_CORELIB_REFERENCE
     public static partial class Vector128
     {
         public static bool IsHardwareAccelerated { get { throw null; } }
@@ -453,9 +454,17 @@ namespace System.Runtime.Intrinsics
             public static System.Runtime.Intrinsics.Vector128<T> SignSequence { get { throw null; } }
         }
     }
+#endif // !BUILDING_CORELIB_REFERENCE
     public readonly partial struct Vector128<T> : System.IEquatable<System.Runtime.Intrinsics.Vector128<T>>
     {
+#if BUILDING_CORELIB_REFERENCE
+        [System.CLSCompliantAttribute(false)]
+        public readonly System.Runtime.Intrinsics.Vector64<T> _lower;
+        [System.CLSCompliantAttribute(false)]
+        public readonly System.Runtime.Intrinsics.Vector64<T> _upper;
+#else
         private readonly int _dummyPrimitive;
+#endif
         public static System.Runtime.Intrinsics.Vector128<T> AllBitsSet { get { throw null; } }
         public static int Count { get { throw null; } }
         public static System.Runtime.Intrinsics.Vector128<T> Indices { get { throw null; } }
@@ -488,6 +497,13 @@ namespace System.Runtime.Intrinsics
     }
     public static partial class Vector256
     {
+#if BUILDING_CORELIB_REFERENCE
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector256<uint> ShiftLeft(System.Runtime.Intrinsics.Vector256<uint> vector, System.Runtime.Intrinsics.Vector256<uint> shiftCount) { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector256<ulong> ShiftLeft(System.Runtime.Intrinsics.Vector256<ulong> vector, System.Runtime.Intrinsics.Vector256<ulong> shiftCount) { throw null; }
+        public static void SetLowerUnsafe<T>(this in System.Runtime.Intrinsics.Vector256<T> vector, System.Runtime.Intrinsics.Vector128<T> value) { }
+#endif
         public static bool IsHardwareAccelerated { get { throw null; } }
         public static System.Runtime.Intrinsics.Vector256<T> Abs<T>(System.Runtime.Intrinsics.Vector256<T> vector) { throw null; }
         public static System.Runtime.Intrinsics.Vector256<T> Add<T>(System.Runtime.Intrinsics.Vector256<T> left, System.Runtime.Intrinsics.Vector256<T> right) { throw null; }
@@ -955,6 +971,12 @@ namespace System.Runtime.Intrinsics
     }
     public static partial class Vector512
     {
+#if BUILDING_CORELIB_REFERENCE
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector512<uint> ShiftLeft(System.Runtime.Intrinsics.Vector512<uint> vector, System.Runtime.Intrinsics.Vector512<uint> shiftCount) { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector512<ulong> ShiftLeft(System.Runtime.Intrinsics.Vector512<ulong> vector, System.Runtime.Intrinsics.Vector512<ulong> shiftCount) { throw null; }
+#endif
         public static bool IsHardwareAccelerated { get { throw null; } }
         public static System.Runtime.Intrinsics.Vector512<T> Abs<T>(System.Runtime.Intrinsics.Vector512<T> vector) { throw null; }
         public static System.Runtime.Intrinsics.Vector512<T> Add<T>(System.Runtime.Intrinsics.Vector512<T> left, System.Runtime.Intrinsics.Vector512<T> right) { throw null; }
@@ -1421,6 +1443,17 @@ namespace System.Runtime.Intrinsics
     }
     public static partial class Vector64
     {
+#if BUILDING_CORELIB_REFERENCE
+        public static System.Runtime.Intrinsics.Vector64<T> Ceiling<T>(System.Runtime.Intrinsics.Vector64<T> vector) { throw null; }
+        public static System.Runtime.Intrinsics.Vector64<T> Floor<T>(System.Runtime.Intrinsics.Vector64<T> vector) { throw null; }
+        public static System.Runtime.Intrinsics.Vector64<T> MultiplyAddEstimate<T>(System.Runtime.Intrinsics.Vector64<T> left, System.Runtime.Intrinsics.Vector64<T> right, System.Runtime.Intrinsics.Vector64<T> addend) { throw null; }
+        public static System.Runtime.Intrinsics.Vector64<T> Round<T>(System.Runtime.Intrinsics.Vector64<T> vector) { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector64<uint> ShiftLeft(System.Runtime.Intrinsics.Vector64<uint> vector, System.Runtime.Intrinsics.Vector64<uint> shiftCount) { throw null; }
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.Vector64<ulong> ShiftLeft(System.Runtime.Intrinsics.Vector64<ulong> vector, System.Runtime.Intrinsics.Vector64<ulong> shiftCount) { throw null; }
+        public static System.Runtime.Intrinsics.Vector64<T> Truncate<T>(System.Runtime.Intrinsics.Vector64<T> vector) { throw null; }
+#endif
         public static bool IsHardwareAccelerated { get { throw null; } }
         public static System.Runtime.Intrinsics.Vector64<T> Abs<T>(System.Runtime.Intrinsics.Vector64<T> vector) { throw null; }
         public static System.Runtime.Intrinsics.Vector64<T> Add<T>(System.Runtime.Intrinsics.Vector64<T> left, System.Runtime.Intrinsics.Vector64<T> right) { throw null; }
@@ -11512,6 +11545,9 @@ namespace System.Runtime.Intrinsics.Wasm
     [CLSCompliant(false)]
     public abstract partial class PackedSimd
     {
+#if BUILDING_CORELIB_REFERENCE
+        public static Vector128<byte> Shuffle(Vector128<byte> lower, Vector128<byte> upper, Vector128<byte> indices) { throw null; }
+#endif
         public static bool IsSupported { get { throw null; } }
         public static Vector128<sbyte> Splat(sbyte value) { throw null; }
         public static Vector128<byte> Splat(byte value) { throw null; }

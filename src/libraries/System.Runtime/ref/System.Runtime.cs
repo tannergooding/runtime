@@ -15138,6 +15138,9 @@ namespace System.Runtime.CompilerServices
     }
     public static partial class RuntimeHelpers
     {
+#if BUILDING_CORELIB_REFERENCE
+        public static bool IsKnownConstant<T>(T t) where T : struct { throw null; }
+#endif
         [System.ObsoleteAttribute("OffsetToStringData has been deprecated. Use string.GetPinnableReference() instead.")]
         public static int OffsetToStringData { get { throw null; } }
         public static System.IntPtr AllocateTypeAssociatedMemory(System.Type type, int size) { throw null; }

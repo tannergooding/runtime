@@ -176,7 +176,7 @@ namespace System.Runtime.CompilerServices
         internal static bool IsKnownConstant(char t) => false;
 
         [Intrinsic]
-        internal static bool IsKnownConstant<T>(T t) where T : struct => false;
+        public static bool IsKnownConstant<T>(T t) where T : struct => false;
 #pragma warning restore IDE0060
 
         // Returns true if the method being compiled is a runtime-async method.

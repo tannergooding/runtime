@@ -134,7 +134,7 @@ namespace System.Numerics
         /// <param name="value1">The first quaternion.</param>
         /// <param name="value2">The second quaternion.</param>
         /// <returns>The product quaternion.</returns>
-        /// <remarks>The <see cref="Quaternion.op_Multiply" /> method defines the operation of the multiplication operator for <see cref="Quaternion" /> objects.</remarks>
+        /// <remarks>The <see cref="Quaternion.op_Multiply(Quaternion, Quaternion)" /> method defines the operation of the multiplication operator for <see cref="Quaternion" /> objects.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion operator *(Quaternion value1, Quaternion value2) => Concatenate(value2, value1);
 
@@ -142,7 +142,7 @@ namespace System.Numerics
         /// <param name="value1">The source quaternion.</param>
         /// <param name="value2">The scalar value.</param>
         /// <returns>The scaled quaternion.</returns>
-        /// <remarks>The <see cref="Quaternion.op_Multiply" /> method defines the operation of the multiplication operator for <see cref="Quaternion" /> objects.</remarks>
+        /// <remarks>The <see cref="Quaternion.op_Multiply(Quaternion, float)" /> method defines the operation of the multiplication operator for <see cref="Quaternion" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion operator *(Quaternion value1, float value2) => (value1.AsVector128() * value2).AsQuaternion();

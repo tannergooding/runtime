@@ -10,6 +10,10 @@ using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.Wasm;
 using System.Runtime.Intrinsics.X86;
 
+#if SYSTEM_PRIVATE_CORELIB
+#pragma warning disable CS3019
+#endif
+
 namespace System.Runtime.Intrinsics
 {
     // We mark certain methods with AggressiveInlining to ensure that the JIT will
@@ -31,7 +35,12 @@ namespace System.Runtime.Intrinsics
     // the internal inlining limits of the JIT.
 
     /// <summary>Provides a collection of static methods for creating, manipulating, and otherwise operating on 128-bit vectors.</summary>
-    public static partial class Vector128
+#if SYSTEM_PRIVATE_CORELIB
+    internal
+#else
+    public
+#endif
+    static partial class Vector128
     {
         internal const int Size = 16;
 
@@ -2172,11 +2181,11 @@ namespace System.Runtime.Intrinsics
         {
             if (typeof(T) == typeof(float))
             {
-                return ~IsZero(AndNot(Create<uint>(float.PositiveInfinityBits), vector.AsUInt32())).As<uint, T>();
+                return ~IsZero(AndNot(Create<uint>(VectorMath.SinglePositiveInfinityBits), vector.AsUInt32())).As<uint, T>();
             }
             else if (typeof(T) == typeof(double))
             {
-                return ~IsZero(AndNot(Create<ulong>(double.PositiveInfinityBits), vector.AsUInt64())).As<ulong, T>();
+                return ~IsZero(AndNot(Create<ulong>(VectorMath.DoublePositiveInfinityBits), vector.AsUInt64())).As<ulong, T>();
             }
             return Vector128<T>.AllBitsSet;
         }
@@ -2263,11 +2272,11 @@ namespace System.Runtime.Intrinsics
         {
             if (typeof(T) == typeof(float))
             {
-                return LessThan(Abs(vector).AsUInt32() - Create<uint>(float.SmallestNormalBits), Create<uint>(float.PositiveInfinityBits - float.SmallestNormalBits)).As<uint, T>();
+                return LessThan(Abs(vector).AsUInt32() - Create<uint>(VectorMath.SingleSmallestNormalBits), Create<uint>(VectorMath.SinglePositiveInfinityBits - VectorMath.SingleSmallestNormalBits)).As<uint, T>();
             }
             else if (typeof(T) == typeof(double))
             {
-                return LessThan(Abs(vector).AsUInt64() - Create<ulong>(double.SmallestNormalBits), Create<ulong>(double.PositiveInfinityBits - double.SmallestNormalBits)).As<ulong, T>();
+                return LessThan(Abs(vector).AsUInt64() - Create<ulong>(VectorMath.DoubleSmallestNormalBits), Create<ulong>(VectorMath.DoublePositiveInfinityBits - VectorMath.DoubleSmallestNormalBits)).As<ulong, T>();
             }
             return ~IsZero(vector);
         }
@@ -2334,11 +2343,11 @@ namespace System.Runtime.Intrinsics
         {
             if (typeof(T) == typeof(float))
             {
-                return LessThan(Abs(vector).AsUInt32() - Vector128<uint>.One, Create<uint>(float.MaxTrailingSignificand)).As<uint, T>();
+                return LessThan(Abs(vector).AsUInt32() - Vector128<uint>.One, Create<uint>(VectorMath.SingleMaxTrailingSignificand)).As<uint, T>();
             }
             else if (typeof(T) == typeof(double))
             {
-                return LessThan(Abs(vector).AsUInt64() - Vector128<ulong>.One, Create<ulong>(double.MaxTrailingSignificand)).As<ulong, T>();
+                return LessThan(Abs(vector).AsUInt64() - Vector128<ulong>.One, Create<ulong>(VectorMath.DoubleMaxTrailingSignificand)).As<ulong, T>();
             }
             return Vector128<T>.Zero;
         }

@@ -381,7 +381,7 @@ namespace System.Runtime.Intrinsics
         /// <returns>A vector whose elements are the ceiling of the elements in <paramref name="vector" />.</returns>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Vector64<T> Ceiling<T>(Vector64<T> vector)
+        public static Vector64<T> Ceiling<T>(Vector64<T> vector)
         {
             if (Scalar<T>.IsFloatingPoint)
             {
@@ -1867,7 +1867,7 @@ namespace System.Runtime.Intrinsics
         /// <returns>A vector whose elements are the floor of the elements in <paramref name="vector" />.</returns>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Vector64<T> Floor<T>(Vector64<T> vector)
+        public static Vector64<T> Floor<T>(Vector64<T> vector)
         {
             if (Scalar<T>.IsFloatingPoint)
             {
@@ -3013,7 +3013,7 @@ namespace System.Runtime.Intrinsics
 
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Vector64<T> MultiplyAddEstimate<T>(Vector64<T> left, Vector64<T> right, Vector64<T> addend)
+        public static Vector64<T> MultiplyAddEstimate<T>(Vector64<T> left, Vector64<T> right, Vector64<T> addend)
         {
             Unsafe.SkipInit(out Vector64<T> result);
 
@@ -3318,7 +3318,7 @@ namespace System.Runtime.Intrinsics
 
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Vector64<T> Round<T>(Vector64<T> vector)
+        public static Vector64<T> Round<T>(Vector64<T> vector)
         {
             if (Scalar<T>.IsFloatingPoint)
             {
@@ -3436,7 +3436,8 @@ namespace System.Runtime.Intrinsics
         public static Vector64<uint> ShiftLeft(Vector64<uint> vector, int shiftCount) => vector << shiftCount;
 
         [Intrinsic]
-        internal static Vector64<uint> ShiftLeft(Vector64<uint> vector, Vector64<uint> shiftCount)
+        [CLSCompliant(false)]
+        public static Vector64<uint> ShiftLeft(Vector64<uint> vector, Vector64<uint> shiftCount)
         {
             Unsafe.SkipInit(out Vector64<uint> result);
 
@@ -3458,7 +3459,8 @@ namespace System.Runtime.Intrinsics
         public static Vector64<ulong> ShiftLeft(Vector64<ulong> vector, int shiftCount) => vector << shiftCount;
 
         [Intrinsic]
-        internal static Vector64<ulong> ShiftLeft(Vector64<ulong> vector, Vector64<ulong> shiftCount)
+        [CLSCompliant(false)]
+        public static Vector64<ulong> ShiftLeft(Vector64<ulong> vector, Vector64<ulong> shiftCount)
         {
             Unsafe.SkipInit(out Vector64<ulong> result);
 
@@ -4028,7 +4030,7 @@ namespace System.Runtime.Intrinsics
 
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Vector64<T> Truncate<T>(Vector64<T> vector)
+        public static Vector64<T> Truncate<T>(Vector64<T> vector)
         {
             if (Scalar<T>.IsFloatingPoint)
             {

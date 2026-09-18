@@ -3305,7 +3305,8 @@ namespace System.Runtime.Intrinsics
         public static Vector256<uint> ShiftLeft(Vector256<uint> vector, int shiftCount) => vector << shiftCount;
 
         [Intrinsic]
-        internal static Vector256<uint> ShiftLeft(Vector256<uint> vector, Vector256<uint> shiftCount)
+        [CLSCompliant(false)]
+        public static Vector256<uint> ShiftLeft(Vector256<uint> vector, Vector256<uint> shiftCount)
         {
             return Create(
                 Vector128.ShiftLeft(vector._lower, shiftCount._lower),
@@ -3322,7 +3323,8 @@ namespace System.Runtime.Intrinsics
         public static Vector256<ulong> ShiftLeft(Vector256<ulong> vector, int shiftCount) => vector << shiftCount;
 
         [Intrinsic]
-        internal static Vector256<ulong> ShiftLeft(Vector256<ulong> vector, Vector256<ulong> shiftCount)
+        [CLSCompliant(false)]
+        public static Vector256<ulong> ShiftLeft(Vector256<ulong> vector, Vector256<ulong> shiftCount)
         {
             return Create(
                 Vector128.ShiftLeft(vector._lower, shiftCount._lower),
@@ -4309,7 +4311,7 @@ namespace System.Runtime.Intrinsics
             Unsafe.Add(ref address, index) = value;
         }
 
-        internal static void SetLowerUnsafe<T>(in this Vector256<T> vector, Vector128<T> value) => Unsafe.AsRef(in vector._lower) = value;
+        public static void SetLowerUnsafe<T>(in this Vector256<T> vector, Vector128<T> value) => Unsafe.AsRef(in vector._lower) = value;
 
         internal static void SetUpperUnsafe<T>(in this Vector256<T> vector, Vector128<T> value) => Unsafe.AsRef(in vector._upper) = value;
     }

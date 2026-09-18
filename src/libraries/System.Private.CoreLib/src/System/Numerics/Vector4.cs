@@ -266,7 +266,7 @@ namespace System.Numerics
         /// <param name="left">The first vector.</param>
         /// <param name="right">The second vector.</param>
         /// <returns>The vector that results from dividing <paramref name="left" /> by <paramref name="right" />.</returns>
-        /// <remarks>The <see cref="Vector4.op_Division" /> method defines the division operation for <see cref="Vector4" /> objects.</remarks>
+        /// <remarks>The <see cref="Vector4.op_Division(Vector4, Vector4)" /> method defines the division operation for <see cref="Vector4" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector4 operator /(Vector4 left, Vector4 right) => (left.AsVector128() / right.AsVector128()).AsVector4();
@@ -275,7 +275,7 @@ namespace System.Numerics
         /// <param name="value1">The vector.</param>
         /// <param name="value2">The scalar value.</param>
         /// <returns>The result of the division.</returns>
-        /// <remarks>The <see cref="Vector4.op_Division" /> method defines the division operation for <see cref="Vector4" /> objects.</remarks>
+        /// <remarks>The <see cref="Vector4.op_Division(Vector4, float)" /> method defines the division operation for <see cref="Vector4" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector4 operator /(Vector4 value1, float value2) => (value1.AsVector128() / value2).AsVector4();
@@ -301,7 +301,7 @@ namespace System.Numerics
         /// <param name="left">The first vector.</param>
         /// <param name="right">The second vector.</param>
         /// <returns>The element-wise product vector.</returns>
-        /// <remarks>The <see cref="Vector4.op_Multiply" /> method defines the multiplication operation for <see cref="Vector4" /> objects.</remarks>
+        /// <remarks>The <see cref="Vector4.op_Multiply(Vector4, Vector4)" /> method defines the multiplication operation for <see cref="Vector4" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector4 operator *(Vector4 left, Vector4 right) => (left.AsVector128() * right.AsVector128()).AsVector4();
@@ -310,7 +310,7 @@ namespace System.Numerics
         /// <param name="left">The vector.</param>
         /// <param name="right">The scalar value.</param>
         /// <returns>The scaled vector.</returns>
-        /// <remarks>The <see cref="Vector4.op_Multiply" /> method defines the multiplication operation for <see cref="Vector4" /> objects.</remarks>
+        /// <remarks>The <see cref="Vector4.op_Multiply(Vector4, float)" /> method defines the multiplication operation for <see cref="Vector4" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector4 operator *(Vector4 left, float right) => (left.AsVector128() * right).AsVector4();
@@ -319,7 +319,7 @@ namespace System.Numerics
         /// <param name="left">The vector.</param>
         /// <param name="right">The scalar value.</param>
         /// <returns>The scaled vector.</returns>
-        /// <remarks>The <see cref="Vector4.op_Multiply" /> method defines the multiplication operation for <see cref="Vector4" /> objects.</remarks>
+        /// <remarks>The <see cref="Vector4.op_Multiply(float, Vector4)" /> method defines the multiplication operation for <see cref="Vector4" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector4 operator *(float left, Vector4 right) => (right.AsVector128() * left).AsVector4();
@@ -547,7 +547,7 @@ namespace System.Numerics
         /// <returns>The cross product.</returns>
         /// <remarks>
         /// The proposed Cross function for <see cref="Vector4"/> is nearly the same as that for
-        /// <see cref="Vector3.Cross"/> with the addition of the fourth value which is
+        /// <see cref="Vector3.Cross(Vector3, Vector3)"/> with the addition of the fourth value which is
         /// the product of the original two w's. This can be derived by symbolically performing
         /// the cross product for <see cref="Vector3"/> with values [x_1/w_1, y_1/w_1, z_1/w_1]
         /// and [x_2/w_2, y_2/w_2, z_2/w_2].

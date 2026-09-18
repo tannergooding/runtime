@@ -1454,7 +1454,7 @@ interp_emit_simd_intrinsics (TransformData *td, MonoMethod *cmethod, MonoMethodS
 	const char *class_ns;
 	MonoImage *image = m_class_get_image (cmethod->klass);
 
-	if (image != mono_get_corlib ())
+	if ((image != mono_get_corlib ()) && (!image->assembly_name || strcmp (image->assembly_name, "System.Numerics.Vectors")))
 		return FALSE;
 
 	if (!interp_simd_enabled)

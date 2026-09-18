@@ -534,7 +534,7 @@ namespace System.Numerics
         /// <param name="value1">The first matrix.</param>
         /// <param name="value2">The second matrix.</param>
         /// <returns>The product matrix.</returns>
-        /// <remarks>The <see cref="Matrix4x4.op_Multiply" /> method defines the operation of the multiplication operator for <see cref="Matrix4x4" /> objects.</remarks>
+        /// <remarks>The <see cref="Matrix4x4.op_Multiply(Matrix4x4, Matrix4x4)" /> method defines the operation of the multiplication operator for <see cref="Matrix4x4" /> objects.</remarks>
         public static Matrix4x4 operator *(Matrix4x4 value1, Matrix4x4 value2)
         {
             ref readonly Impl left = ref value1.AsROImpl();
@@ -554,7 +554,7 @@ namespace System.Numerics
         /// <param name="value1">The matrix to scale.</param>
         /// <param name="value2">The scaling value to use.</param>
         /// <returns>The scaled matrix.</returns>
-        /// <remarks>The <see cref="Matrix4x4.op_Multiply" /> method defines the operation of the multiplication operator for <see cref="Matrix4x4" /> objects.</remarks>
+        /// <remarks>The <see cref="Matrix4x4.op_Multiply(Matrix4x4, float)" /> method defines the operation of the multiplication operator for <see cref="Matrix4x4" /> objects.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Matrix4x4 operator *(Matrix4x4 value1, float value2)
         {

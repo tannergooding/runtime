@@ -10,8 +10,17 @@ using System.Runtime.Intrinsics.Wasm;
 
 namespace System.Runtime.Intrinsics
 {
-    internal static class VectorMath
+    [CLSCompliant(false)]
+    public static class VectorMath
     {
+        public const uint SingleMaxTrailingSignificand = 0x007F_FFFF;
+        public const uint SinglePositiveInfinityBits = 0x7F80_0000;
+        public const uint SingleSmallestNormalBits = 0x0080_0000;
+
+        public const ulong DoubleMaxTrailingSignificand = 0x000F_FFFF_FFFF_FFFF;
+        public const ulong DoublePositiveInfinityBits = 0x7FF0_0000_0000_0000;
+        public const ulong DoubleSmallestNormalBits = 0x0010_0000_0000_0000;
+
         public static TVectorDouble CosDouble<TVectorDouble, TVectorInt64>(TVectorDouble x)
             where TVectorDouble : unmanaged, ISimdVector<TVectorDouble, double>
             where TVectorInt64 : unmanaged, ISimdVector<TVectorInt64, long>

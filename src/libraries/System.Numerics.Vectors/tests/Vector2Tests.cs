@@ -14,6 +14,23 @@ namespace System.Numerics.Tests
     {
         private const int ElementCount = 2;
 
+        [Theory]
+        [InlineData(typeof(Matrix3x2), "System.Numerics.Vectors")]
+        [InlineData(typeof(Matrix4x4), "System.Numerics.Vectors")]
+        [InlineData(typeof(Plane), "System.Numerics.Vectors")]
+        [InlineData(typeof(Quaternion), "System.Numerics.Vectors")]
+        [InlineData(typeof(Vector), "System.Numerics.Vectors")]
+        [InlineData(typeof(Vector2), "System.Numerics.Vectors")]
+        [InlineData(typeof(Vector3), "System.Numerics.Vectors")]
+        [InlineData(typeof(Vector4), "System.Numerics.Vectors")]
+        [InlineData(typeof(Vector128), "System.Numerics.Vectors")]
+        [InlineData(typeof(Vector<int>), "System.Private.CoreLib")]
+        [InlineData(typeof(Vector128<int>), "System.Private.CoreLib")]
+        public void ImplementationAssemblyTest(Type type, string expectedAssembly)
+        {
+            Assert.Equal(expectedAssembly, type.Assembly.GetName().Name);
+        }
+
         /// <summary>Verifies that two <see cref="Vector2" /> values are equal, within the <paramref name="variance" />.</summary>
         /// <param name="expected">The expected value</param>
         /// <param name="actual">The value to be compared against</param>

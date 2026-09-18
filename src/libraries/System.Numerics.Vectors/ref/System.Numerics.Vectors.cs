@@ -6,6 +6,7 @@
 
 namespace System.Numerics
 {
+#if !BUILDING_CORELIB_REFERENCE
     public partial struct Matrix3x2 : System.IEquatable<System.Numerics.Matrix3x2>
     {
         public float M11;
@@ -1109,6 +1110,7 @@ namespace System.Numerics
         public static System.Numerics.Vector4 Truncate(System.Numerics.Vector4 vector) { throw null; }
         public static System.Numerics.Vector4 Xor(System.Numerics.Vector4 left, System.Numerics.Vector4 right) { throw null; }
     }
+#endif // !BUILDING_CORELIB_REFERENCE
     public readonly partial struct Vector<T> : System.IEquatable<System.Numerics.Vector<T>>, System.IFormattable
     {
         private readonly int _dummyPrimitive;

@@ -231,7 +231,7 @@ namespace System.Numerics
         /// <param name="left">The first vector.</param>
         /// <param name="right">The second vector.</param>
         /// <returns>The vector that results from dividing <paramref name="left" /> by <paramref name="right" />.</returns>
-        /// <remarks>The <see cref="Vector3.op_Division" /> method defines the division operation for <see cref="Vector3" /> objects.</remarks>
+        /// <remarks>The <see cref="Vector3.op_Division(Vector3, Vector3)" /> method defines the division operation for <see cref="Vector3" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 operator /(Vector3 left, Vector3 right) => (left.AsVector128Unsafe() / right.AsVector128Unsafe()).AsVector3();
@@ -240,7 +240,7 @@ namespace System.Numerics
         /// <param name="value1">The vector.</param>
         /// <param name="value2">The scalar value.</param>
         /// <returns>The result of the division.</returns>
-        /// <remarks>The <see cref="Vector3.op_Division" /> method defines the division operation for <see cref="Vector3" /> objects.</remarks>
+        /// <remarks>The <see cref="Vector3.op_Division(Vector3, float)" /> method defines the division operation for <see cref="Vector3" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 operator /(Vector3 value1, float value2) => (value1.AsVector128Unsafe() / value2).AsVector3();
@@ -266,7 +266,7 @@ namespace System.Numerics
         /// <param name="left">The first vector.</param>
         /// <param name="right">The second vector.</param>
         /// <returns>The element-wise product vector.</returns>
-        /// <remarks>The <see cref="Vector3.op_Multiply" /> method defines the multiplication operation for <see cref="Vector3" /> objects.</remarks>
+        /// <remarks>The <see cref="Vector3.op_Multiply(Vector3, Vector3)" /> method defines the multiplication operation for <see cref="Vector3" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 operator *(Vector3 left, Vector3 right) => (left.AsVector128Unsafe() * right.AsVector128Unsafe()).AsVector3();
@@ -275,7 +275,7 @@ namespace System.Numerics
         /// <param name="left">The vector.</param>
         /// <param name="right">The scalar value.</param>
         /// <returns>The scaled vector.</returns>
-        /// <remarks>The <see cref="Vector3.op_Multiply" /> method defines the multiplication operation for <see cref="Vector3" /> objects.</remarks>
+        /// <remarks>The <see cref="Vector3.op_Multiply(Vector3, float)" /> method defines the multiplication operation for <see cref="Vector3" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 operator *(Vector3 left, float right) => (left.AsVector128Unsafe() * right).AsVector3();
@@ -284,7 +284,7 @@ namespace System.Numerics
         /// <param name="left">The vector.</param>
         /// <param name="right">The scalar value.</param>
         /// <returns>The scaled vector.</returns>
-        /// <remarks>The <see cref="Vector3.op_Multiply" /> method defines the multiplication operation for <see cref="Vector3" /> objects.</remarks>
+        /// <remarks>The <see cref="Vector3.op_Multiply(float, Vector3)" /> method defines the multiplication operation for <see cref="Vector3" /> objects.</remarks>
         [Intrinsic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 operator *(float left, Vector3 right) => (right.AsVector128Unsafe() * left).AsVector3();

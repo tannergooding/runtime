@@ -6995,7 +6995,7 @@ emit_intrinsics (MonoCompile *cfg, MonoMethod *cmethod, MonoMethodSignature *fsi
 	const char *class_ns;
 	MonoImage *image = m_class_get_image (cmethod->klass);
 
-	if (image != mono_get_corlib ())
+	if ((image != mono_get_corlib ()) && (!image->assembly_name || strcmp (image->assembly_name, "System.Numerics.Vectors")))
 		return NULL;
 
 	class_ns = m_class_get_name_space (cmethod->klass);

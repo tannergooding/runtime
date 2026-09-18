@@ -2,9 +2,33 @@
 
   <PropertyGroup>
     <TargetFramework>$(NetCoreAppCurrent)</TargetFramework>
+    <ContractTypesPartiallyMoved>true</ContractTypesPartiallyMoved>
+    <CompileAgainstCoreLibImplementation>true</CompileAgainstCoreLibImplementation>
     <IsPartialFacadeAssembly>true</IsPartialFacadeAssembly>
     <UseCompilerGeneratedDocXmlFile>false</UseCompilerGeneratedDocXmlFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Runtime\CompilerServices\CompExactlyDependsOnAttribute.cs" Link="System\Runtime\CompilerServices\CompExactlyDependsOnAttribute.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Runtime\CompilerServices\CompHasFallbackAttribute.cs" Link="System\Runtime\CompilerServices\CompHasFallbackAttribute.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Runtime\CompilerServices\IntrinsicAttribute.cs" Link="System\Runtime\CompilerServices\IntrinsicAttribute.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Matrix3x2.cs" Link="System\Numerics\Matrix3x2.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Matrix4x4.cs" Link="System\Numerics\Matrix4x4.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Plane.cs" Link="System\Numerics\Plane.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Plane.Extensions.cs" Link="System\Numerics\Plane.Extensions.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Quaternion.cs" Link="System\Numerics\Quaternion.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Quaternion.Extensions.cs" Link="System\Numerics\Quaternion.Extensions.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Vector.cs" Link="System\Numerics\Vector.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Vector2.cs" Link="System\Numerics\Vector2.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Vector2.Extensions.cs" Link="System\Numerics\Vector2.Extensions.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Vector3.cs" Link="System\Numerics\Vector3.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Vector3.Extensions.cs" Link="System\Numerics\Vector3.Extensions.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Vector4.cs" Link="System\Numerics\Vector4.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Numerics\Vector4.Extensions.cs" Link="System\Numerics\Vector4.Extensions.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Runtime\Intrinsics\Vector128.cs" Link="System\Runtime\Intrinsics\Vector128.cs" />
+    <Compile Include="..\..\System.Private.CoreLib\src\System\Runtime\Intrinsics\Vector128.Numerics.cs" Link="System\Runtime\Intrinsics\Vector128.Numerics.cs" />
+    <Compile Include="System\ThrowHelper.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="$(CoreLibProject)" />

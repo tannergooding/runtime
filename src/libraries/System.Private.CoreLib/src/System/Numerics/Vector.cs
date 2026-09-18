@@ -7,11 +7,20 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 
+#if SYSTEM_PRIVATE_CORELIB
+#pragma warning disable CS3019
+#endif
+
 namespace System.Numerics
 {
     /// <summary>Provides a collection of static methods for creating, manipulating, and otherwise operating on generic vectors.</summary>
     [Intrinsic]
-    public static partial class Vector
+#if SYSTEM_PRIVATE_CORELIB
+    internal
+#else
+    public
+#endif
+    static partial class Vector
     {
         internal static int Alignment => Vector<byte>.Count;
 
@@ -1846,11 +1855,11 @@ namespace System.Numerics
         {
             if (typeof(T) == typeof(float))
             {
-                return LessThan(Abs(vector).As<T, uint>() - Create<uint>(float.SmallestNormalBits), Create<uint>(float.PositiveInfinityBits - float.SmallestNormalBits)).As<uint, T>();
+                return LessThan(Abs(vector).As<T, uint>() - Create<uint>(VectorMath.SingleSmallestNormalBits), Create<uint>(VectorMath.SinglePositiveInfinityBits - VectorMath.SingleSmallestNormalBits)).As<uint, T>();
             }
             else if (typeof(T) == typeof(double))
             {
-                return LessThan(Abs(vector).As<T, ulong>() - Create<ulong>(double.SmallestNormalBits), Create<ulong>(double.PositiveInfinityBits - double.SmallestNormalBits)).As<ulong, T>();
+                return LessThan(Abs(vector).As<T, ulong>() - Create<ulong>(VectorMath.DoubleSmallestNormalBits), Create<ulong>(VectorMath.DoublePositiveInfinityBits - VectorMath.DoubleSmallestNormalBits)).As<ulong, T>();
             }
             return ~IsZero(vector);
         }
@@ -1917,11 +1926,11 @@ namespace System.Numerics
         {
             if (typeof(T) == typeof(float))
             {
-                return LessThan(Abs(vector).As<T, uint>() - Vector<uint>.One, Create<uint>(float.MaxTrailingSignificand)).As<uint, T>();
+                return LessThan(Abs(vector).As<T, uint>() - Vector<uint>.One, Create<uint>(VectorMath.SingleMaxTrailingSignificand)).As<uint, T>();
             }
             else if (typeof(T) == typeof(double))
             {
-                return LessThan(Abs(vector).As<T, ulong>() - Vector<ulong>.One, Create<ulong>(double.MaxTrailingSignificand)).As<ulong, T>();
+                return LessThan(Abs(vector).As<T, ulong>() - Vector<ulong>.One, Create<ulong>(VectorMath.DoubleMaxTrailingSignificand)).As<ulong, T>();
             }
             return Vector<T>.Zero;
         }

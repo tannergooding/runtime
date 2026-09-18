@@ -3332,7 +3332,8 @@ namespace System.Runtime.Intrinsics
         public static Vector512<uint> ShiftLeft(Vector512<uint> vector, int shiftCount) => vector << shiftCount;
 
         [Intrinsic]
-        internal static Vector512<uint> ShiftLeft(Vector512<uint> vector, Vector512<uint> shiftCount)
+        [CLSCompliant(false)]
+        public static Vector512<uint> ShiftLeft(Vector512<uint> vector, Vector512<uint> shiftCount)
         {
             return Create(
                 Vector256.ShiftLeft(vector._lower, shiftCount._lower),
@@ -3349,7 +3350,8 @@ namespace System.Runtime.Intrinsics
         public static Vector512<ulong> ShiftLeft(Vector512<ulong> vector, int shiftCount) => vector << shiftCount;
 
         [Intrinsic]
-        internal static Vector512<ulong> ShiftLeft(Vector512<ulong> vector, Vector512<ulong> shiftCount)
+        [CLSCompliant(false)]
+        public static Vector512<ulong> ShiftLeft(Vector512<ulong> vector, Vector512<ulong> shiftCount)
         {
             return Create(
                 Vector256.ShiftLeft(vector._lower, shiftCount._lower),

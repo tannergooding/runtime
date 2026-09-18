@@ -13,4 +13,10 @@
     <DiagnosticId>CP0002</DiagnosticId>
     <Target>M:System.Runtime.Serialization.SerializationInfo.StartDeserialization</Target>
   </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:System.Runtime.CompilerServices.RuntimeHelpers.IsKnownConstant``1(``0)</Target>
+    <Left>ref/net11.0/System.Runtime.dll</Left>
+    <Right>lib/net11.0/System.Runtime.dll</Right>
+  </Suppression>
 </Suppressions>

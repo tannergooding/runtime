@@ -254,7 +254,7 @@ namespace System.Runtime.Intrinsics.Wasm
         ///   <para>i8x16.shuffle laneidx^16 : [v128 v128] -> [v128]</para>
         /// </summary>
         [Intrinsic]
-        internal static Vector128<byte>  Shuffle(Vector128<byte>  lower, Vector128<byte>  upper, Vector128<byte>  indices) => Shuffle(lower, upper, indices);
+        public static Vector128<byte>  Shuffle(Vector128<byte>  lower, Vector128<byte>  upper, Vector128<byte>  indices) => Shuffle(lower, upper, indices);
 
         /// <summary>
         ///   <para>v128_t wasm_i8x16_swizzle (v128_t a, v128_t b)</para>
