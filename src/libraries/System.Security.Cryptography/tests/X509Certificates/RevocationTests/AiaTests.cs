@@ -1,8 +1,14 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates.Tests.Common;
+using System.Text;
+using System.Threading;
 using Microsoft.DotNet.RemoteExecutor;
 using Test.Cryptography;
 using Xunit;
@@ -13,6 +19,66 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
     [SkipOnPlatform(TestPlatforms.Browser, "Browser doesn't support X.509 certificates")]
     public static class AiaTests
     {
+        [ConditionalTheory(typeof(RemoteExecutor), nameof(RemoteExecutor.IsSupported))]
+        [InlineData("1")]
+        [InlineData("2")]
+        public static void ResponderServesCertificatesWithLimitedWorkers(string workerLimit)
+        {
+            var options = new RemoteInvokeOptions();
+            options.StartInfo.Environment["DOTNET_ThreadPool_UseWindowsThreadPool"] = "0";
+
+            RemoteExecutor.Invoke(static limit =>
+            {
+                ThreadPool.GetMinThreads(out _, out int minIo);
+                ThreadPool.GetMaxThreads(out _, out int maxIo);
+                Assert.True(ThreadPool.SetMinThreads(1, minIo));
+                Assert.True(ThreadPool.SetMaxThreads(int.Parse(limit), maxIo));
+
+                CertificateAuthority.BuildPrivatePki(
+                    PkiOptions.AllRevocation,
+                    out RevocationResponder responder,
+                    out CertificateAuthority root,
+                    out CertificateAuthority intermediate,
+                    out X509Certificate2 endEntity,
+                    testName: nameof(ResponderServesCertificatesWithLimitedWorkers));
+
+                using (root)
+                using (intermediate)
+                using (endEntity)
+                using (responder)
+                {
+                    foreach (CertificateAuthority authority in new[] { root, intermediate })
+                    {
+                        var uri = new Uri(authority.AiaHttpUri);
+                        using (var client = new TcpClient())
+                        {
+                            // Keep the client independent of the worker pool being exercised.
+                            client.ReceiveTimeout = 10_000;
+                            client.SendTimeout = 10_000;
+                            client.Connect(IPAddress.Loopback, uri.Port);
+
+                            using (NetworkStream stream = client.GetStream())
+                            using (var response = new MemoryStream())
+                            {
+                                byte[] request = Encoding.ASCII.GetBytes(
+                                    $"GET {uri.PathAndQuery} HTTP/1.1\r\nHost: {uri.Authority}\r\nConnection: close\r\n\r\n");
+                                stream.Write(request);
+                                stream.CopyTo(response);
+
+                                byte[] bytes = response.ToArray();
+                                int headerEnd = bytes.AsSpan().IndexOf("\r\n\r\n"u8);
+                                Assert.True(headerEnd >= 0, "Missing HTTP response headers");
+                                string headers = Encoding.ASCII.GetString(bytes, 0, headerEnd);
+                                Assert.StartsWith("HTTP/1.1 200 ", headers);
+                                Assert.Contains("application/pkix-cert", headers);
+                                Assert.Equal(authority.GetCertData(), bytes.AsSpan(headerEnd + 4).ToArray());
+                            }
+                        }
+                    }
+                }
+            }, workerLimit, options).Dispose();
+        }
+
         [Fact]
         public static void EmptyAiaResponseIsIgnored()
         {
@@ -26,12 +92,12 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
                 pkiOptionsInSubject: false,
                 testName: nameof(EmptyAiaResponseIsIgnored));
 
-            using (responder)
             using (root)
             using (CertificateAuthority intermediate1 = intermediates[0])
             using (CertificateAuthority intermediate2 = intermediates[1])
             using (endEntity)
             using (X509Certificate2 intermediate2Cert = intermediate2.CloneIssuerCert())
+            using (responder)
             {
                 responder.RespondKind = RespondKind.Empty;
 
@@ -68,11 +134,11 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
                 pkiOptionsInSubject: false,
                 testName: Guid.NewGuid().ToString());
 
-            using (responder)
             using (root)
             using (intermediate)
             using (endEntity)
             using (X509Certificate2 rootCert = root.CloneIssuerCert())
+            using (responder)
             {
                 responder.AiaResponseKind = aiaResponseKind;
 
@@ -85,7 +151,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
                         chain.ChainPolicy.VerificationTime = endEntity.NotBefore.AddMinutes(1);
                         chain.ChainPolicy.UrlRetrievalTimeout = DynamicRevocationTests.s_urlRetrievalLimit;
 
-                        Assert.NotEqual(mustIgnore, chain.Build(endEntity));
+                        AssertChainBuild(chain, endEntity, !mustIgnore, $"AIA response: {aiaResponseKind}");
                     }
                 });
             }
@@ -104,12 +170,12 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
                 pkiOptionsInSubject: false,
                 testName: nameof(DisableAiaOptionWorks));
 
-            using (responder)
             using (root)
             using (intermediate)
             using (endEntity)
             using (X509Certificate2 rootCert = root.CloneIssuerCert())
             using (X509Certificate2 intermediateCert = intermediate.CloneIssuerCert())
+            using (responder)
             {
                 RetryHelper.Execute(() => {
                     using (ChainHolder holder = new ChainHolder())
@@ -132,7 +198,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
                         chain.ChainPolicy.VerificationTime = endEntity.NotBefore.AddMinutes(1);
                         chain.ChainPolicy.UrlRetrievalTimeout = DynamicRevocationTests.s_urlRetrievalLimit;
 
-                        Assert.False(chain.Build(endEntity), "Chain build with no intermediate, AIA disabled");
+                        AssertChainBuild(chain, endEntity, false, "Chain build with no intermediate, AIA disabled");
 
                         // If a previous run of this test leaves contamination in the CU\CA store on Windows
                         // the Windows chain engine will match the bad issuer and report NotSignatureValid instead
@@ -156,7 +222,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
                             holder.DisposeChainElements();
 
                             // Try again, with no caching side effect.
-                            Assert.False(chain.Build(endEntity), "Chain build 2 with no intermediate, AIA disabled");
+                            AssertChainBuild(chain, endEntity, false, "Chain build 2 with no intermediate, AIA disabled");
                         }
 
                         Assert.Equal(1, chain.ChainElements.Count);
@@ -164,14 +230,14 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
                         holder.DisposeChainElements();
 
                         chain.ChainPolicy.ExtraStore.Add(intermediateCert);
-                        Assert.True(chain.Build(endEntity), "Chain build with intermediate, AIA disabled");
+                        AssertChainBuild(chain, endEntity, true, "Chain build with intermediate, AIA disabled");
                         Assert.Equal(3, chain.ChainElements.Count);
                         Assert.Equal(X509ChainStatusFlags.NoError, chain.AllStatusFlags());
                         holder.DisposeChainElements();
 
                         chain.ChainPolicy.DisableCertificateDownloads = false;
                         chain.ChainPolicy.ExtraStore.Clear();
-                        Assert.True(chain.Build(endEntity), "Chain build with no intermediate, AIA enabled");
+                        AssertChainBuild(chain, endEntity, true, "Chain build with no intermediate, AIA enabled");
                         Assert.Equal(3, chain.ChainElements.Count);
                         Assert.Equal(X509ChainStatusFlags.NoError, chain.AllStatusFlags());
 
@@ -196,11 +262,11 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
                     out X509Certificate2 endEntity,
                     pkiOptionsInSubject: false,
                     testName: Guid.NewGuid().ToString());
-                using (responder)
                 using (root)
                 using (intermediate)
                 using (endEntity)
                 using (X509Certificate2 rootCert = root.CloneIssuerCert())
+                using (responder)
                 {
                     responder.AiaResponseKind = AiaResponseKind.Cert;
                     using (ChainHolder holder = new ChainHolder())
@@ -238,12 +304,12 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
                         pkiOptionsInSubject: false,
                         testName: $"{nameof(AiaCompletionHasLimits)}_{iteration}");
 
-                    using (responder)
                     using (root)
                     using (endEntity)
                     {
                         try
                         {
+                            using (responder)
                             using (ChainHolder holder = new ChainHolder())
                             {
                                 // This test shows that we only download two certificates at a time.
@@ -346,6 +412,24 @@ namespace System.Security.Cryptography.X509Certificates.Tests.RevocationTests
                 ReadOnlySpan<byte> source = chain.ChainElements[index].Certificate.RawDataMemory.Span;
                 X509Certificate2 cert = X509CertificateLoader.LoadCertificate(source);
                 chain.ChainPolicy.ExtraStore.Add(cert);
+            }
+        }
+
+        private static void AssertChainBuild(X509Chain chain, X509Certificate2 certificate, bool expected, string context)
+        {
+            long start = Stopwatch.GetTimestamp();
+            bool actual = chain.Build(certificate);
+
+            if (actual != expected)
+            {
+                Assert.Fail(
+                    $"{context}: expected {expected}, got {actual} in {Stopwatch.GetElapsedTime(start)}. " +
+                    $"Revocation: {chain.ChainPolicy.RevocationMode}; downloads disabled: {chain.ChainPolicy.DisableCertificateDownloads}; " +
+                    $"chain flags: {chain.AllStatusFlags()}; elements: {chain.ChainElements.Count}.{Environment.NewLine}" +
+                    string.Join(Environment.NewLine, chain.ChainElements.Select(element =>
+                        $"{element.Certificate.Subject}; thumbprint: {element.Certificate.Thumbprint}; " +
+                        $"key: {element.Certificate.GetKeyAlgorithm()}; signature: {element.Certificate.SignatureAlgorithm.Value}; " +
+                        $"flags: {string.Join(", ", element.ChainElementStatus.Select(status => status.Status))}")));
             }
         }
     }

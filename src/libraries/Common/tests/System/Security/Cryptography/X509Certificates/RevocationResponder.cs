@@ -20,6 +20,10 @@ namespace System.Security.Cryptography.X509Certificates.Tests.Common
             "<html><marquee>The server is down for maintenence.</marquee></html>"u8.ToArray();
 
         private readonly HttpListener _listener;
+        private readonly CancellationTokenSource _shutdown = new CancellationTokenSource();
+        private readonly List<Task> _requests = new List<Task>();
+        private readonly Task _requestLoop;
+        private int _disposed;
 
         private readonly Dictionary<string, CertificateAuthority> _aiaPaths =
             new Dictionary<string, CertificateAuthority>();
@@ -42,11 +46,35 @@ namespace System.Security.Cryptography.X509Certificates.Tests.Common
         {
             _listener = listener;
             UriPrefix = uriPrefix;
+            _requestLoop = HandleRequestsAsync();
         }
 
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
+
+            _shutdown.Cancel();
             _listener.Close();
+
+            try
+            {
+                try
+                {
+                    _requestLoop.GetAwaiter().GetResult();
+                }
+                finally
+                {
+                    // Only the accept loop adds requests; it must finish before enumerating them.
+                    Task.WhenAll(_requests).GetAwaiter().GetResult();
+                }
+            }
+            finally
+            {
+                _shutdown.Dispose();
+            }
         }
 
         internal void AddCertificateAuthority(CertificateAuthority authority)
@@ -73,59 +101,23 @@ namespace System.Security.Cryptography.X509Certificates.Tests.Common
             }
         }
 
-        private void HandleRequests()
+        private async Task HandleRequestsAsync()
         {
-            ThreadPool.QueueUserWorkItem(
-                state =>
+            try
+            {
+                while (_listener.IsListening)
                 {
-                    while (state._listener.IsListening)
-                    {
-                        state.HandleRequest();
-                    }
-                },
-                this,
-                true);
-        }
-
-        internal void HandleRequest()
-        {
-            HttpListenerContext context = null;
-
-            try
-            {
-                context = _listener.GetContext();
+                    HttpListenerContext context = await _listener.GetContextAsync().ConfigureAwait(false);
+                    Trace($"Accepted {context.Request.HttpMethod} {context.Request.Url}");
+                    _requests.RemoveAll(static request => request.IsCompletedSuccessfully);
+                    _requests.Add(Task.Run(() => HandleRequest(context)));
+                }
             }
-            catch (Exception)
+            catch (HttpListenerException) when (_shutdown.IsCancellationRequested)
             {
             }
-
-            if (context != null)
+            catch (ObjectDisposedException) when (_shutdown.IsCancellationRequested)
             {
-                ThreadPool.QueueUserWorkItem(
-                    state => HandleRequest(state),
-                    context,
-                    true);
-            }
-        }
-
-        internal async Task HandleRequestAsync()
-        {
-            HttpListenerContext context = null;
-
-            try
-            {
-                context = await _listener.GetContextAsync();
-            }
-            catch (Exception)
-            {
-            }
-
-            if (context != null)
-            {
-                ThreadPool.QueueUserWorkItem(
-                    state => HandleRequest(state),
-                    context,
-                    true);
             }
         }
 
@@ -134,8 +126,13 @@ namespace System.Security.Cryptography.X509Certificates.Tests.Common
             bool responded = false;
             try
             {
-                Trace($"{context.Request.HttpMethod} {context.Request.RawUrl} (HTTP {context.Request.ProtocolVersion})");
+                _shutdown.Token.ThrowIfCancellationRequested();
+                Trace($"Handling {context.Request.HttpMethod} {context.Request.Url} (HTTP {context.Request.ProtocolVersion})");
                 HandleRequest(context, ref responded);
+            }
+            catch (OperationCanceledException) when (_shutdown.IsCancellationRequested)
+            {
+                return;
             }
             catch (Exception e)
             {
@@ -183,7 +180,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests.Common
                 if (DelayedActions.HasFlag(DelayedActionsFlag.Aia))
                 {
                     Trace($"Delaying response by {ResponseDelay}.");
-                    Thread.Sleep(ResponseDelay);
+                    DelayResponse();
                 }
 
                 byte[] certData = RespondKind switch
@@ -206,7 +203,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests.Common
                 if (DelayedActions.HasFlag(DelayedActionsFlag.Crl))
                 {
                     Trace($"Delaying response by {ResponseDelay}.");
-                    Thread.Sleep(ResponseDelay);
+                    DelayResponse();
                 }
 
                 byte[] crl = RespondKind switch
@@ -259,7 +256,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests.Common
                         if (DelayedActions.HasFlag(DelayedActionsFlag.Ocsp))
                         {
                             Trace($"Delaying response by {ResponseDelay}.");
-                            Thread.Sleep(ResponseDelay);
+                            DelayResponse();
                         }
 
                         responded = true;
@@ -287,9 +284,14 @@ namespace System.Security.Cryptography.X509Certificates.Tests.Common
         {
             HttpListener listener = OpenListener(out string uriPrefix);
 
-            RevocationResponder responder = new RevocationResponder(listener, uriPrefix);
-            responder.HandleRequests();
-            return responder;
+            return new RevocationResponder(listener, uriPrefix);
+        }
+
+        private void DelayResponse()
+        {
+            // Shutdown must not wait for intentionally slow timeout-test responses.
+            _shutdown.Token.WaitHandle.WaitOne(ResponseDelay);
+            _shutdown.Token.ThrowIfCancellationRequested();
         }
 
         private static HttpListener OpenListener(out string uriPrefix)
@@ -461,13 +463,17 @@ namespace System.Security.Cryptography.X509Certificates.Tests.Common
             }
         }
 
-        internal void Stop() => _listener.Stop();
+        internal void Stop()
+        {
+            _shutdown.Cancel();
+            _listener.Stop();
+        }
 
         private static void Trace(string trace)
         {
             if (s_traceEnabled)
             {
-                Console.WriteLine(trace);
+                Console.WriteLine($"[{Environment.TickCount64} ms, thread {Environment.CurrentManagedThreadId}] {trace}");
             }
         }
     }
