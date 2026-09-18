@@ -91,6 +91,24 @@ namespace System.Tests
         }
 
         [Fact]
+        public void Compare_OnlySecondArgumentIsComparable_UsesNegatedResult()
+        {
+            StringComparer c = StringComparer.Ordinal;
+
+            object x = new object();
+            var y = new ComparableToAnything { Result = 5 };
+
+            Assert.Equal(5, c.Compare(y, x));
+            Assert.Equal(-5, c.Compare(x, y));
+        }
+
+        private sealed class ComparableToAnything : IComparable
+        {
+            public int Result;
+            public int CompareTo(object? obj) => Result;
+        }
+
+        [Fact]
         public void Equals_ExpectedResults()
         {
             StringComparer c = StringComparer.Ordinal;

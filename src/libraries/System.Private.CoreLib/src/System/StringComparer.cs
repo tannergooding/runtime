@@ -174,6 +174,11 @@ namespace System
                 return ia.CompareTo(y);
             }
 
+            if (y is IComparable ib)
+            {
+                return -ib.CompareTo(x);
+            }
+
             throw new ArgumentException(SR.Argument_ImplementIComparable);
         }
 
