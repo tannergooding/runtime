@@ -528,7 +528,26 @@ namespace System
                 Debug.Assert(unchecked((uint)lhs._length) <= MaxBlockCount);
                 Debug.Assert(unchecked((uint)rhs._length) <= MaxBlockCount);
 
-                return BigIntegerCalculator.Compare(lhs._blocks[..(int)lhs._length], rhs._blocks[..(int)rhs._length]);
+                int lhsLength = (int)lhs._length;
+                int rhsLength = (int)rhs._length;
+
+                if (lhsLength != rhsLength)
+                {
+                    return lhsLength < rhsLength ? -1 : 1;
+                }
+
+                for (int index = lhsLength - 1; index >= 0; index--)
+                {
+                    nuint lhsBlock = lhs._blocks[index];
+                    nuint rhsBlock = rhs._blocks[index];
+
+                    if (lhsBlock != rhsBlock)
+                    {
+                        return lhsBlock < rhsBlock ? -1 : 1;
+                    }
+                }
+
+                return 0;
             }
 
             public static int CountSignificantBits(ulong value)
@@ -645,40 +664,50 @@ namespace System
 
                 if (quotient != 0)
                 {
-                    // dividend -= divisor * quotient. This runs once per output digit in Dragon4's hot
-                    // loop, so the widening multiply-subtract is kept fully inline: routing through the
-                    // shared span kernels (SubMul1) regressed ToString("G50") ~40%+ (out-of-line call +
-                    // Span setup spilling the block pointers), and even an inlinable scalar helper left
-                    // ~8% on the table because the UInt128 body did not inline. The `nint.Size` branch
-                    // constant-folds so only the native-width loop is emitted. The estimate never
-                    // overshoots enough to underflow, so the trailing borrow is discarded.
-                    nuint borrow = 0;
-                    if (nint.Size == 8)
+                    if (divisorLength == 1)
                     {
-                        for (int i = 0; i < divisorLength; i++)
-                        {
-                            UInt128 product = (UInt128)(ulong)divisor._blocks[i] * quotient + borrow;
-                            nuint low = (nuint)product.Lower;
-                            nuint orig = dividend._blocks[i];
-                            dividend._blocks[i] = orig - low;
-                            borrow = (nuint)product.Upper + ((orig < low) ? (nuint)1 : 0);
-                        }
+                        Debug.Assert(divisor._blocks[0] <= (nuint.MaxValue / quotient));
+                        nuint difference = dividend._blocks[0] - (divisor._blocks[0] * quotient);
+                        dividend._blocks[0] = difference;
+                        dividend._length = (difference == 0) ? 0 : 1;
                     }
                     else
                     {
-                        for (int i = 0; i < divisorLength; i++)
+                        // dividend -= divisor * quotient. This runs once per output digit in Dragon4's hot
+                        // loop, so the widening multiply-subtract is kept fully inline: routing through the
+                        // shared span kernels (SubMul1) regressed ToString("G50") ~40%+ (out-of-line call +
+                        // Span setup spilling the block pointers), and even an inlinable scalar helper left
+                        // ~8% on the table because the UInt128 body did not inline. The `nint.Size` branch
+                        // constant-folds so only the native-width loop is emitted. The estimate never
+                        // overshoots enough to underflow, so the trailing borrow is discarded.
+                        nuint borrow = 0;
+                        if (nint.Size == 8)
                         {
-                            ulong product = (ulong)(uint)divisor._blocks[i] * quotient + borrow;
-                            nuint low = (nuint)(uint)product;
-                            nuint orig = dividend._blocks[i];
-                            dividend._blocks[i] = orig - low;
-                            borrow = (nuint)(uint)(product >> 32) + ((orig < low) ? (nuint)1 : 0);
+                            for (int i = 0; i < divisorLength; i++)
+                            {
+                                UInt128 product = (UInt128)(ulong)divisor._blocks[i] * quotient + borrow;
+                                nuint low = (nuint)product.Lower;
+                                nuint orig = dividend._blocks[i];
+                                dividend._blocks[i] = orig - low;
+                                borrow = (nuint)product.Upper + ((orig < low) ? (nuint)1 : 0);
+                            }
                         }
-                    }
+                        else
+                        {
+                            for (int i = 0; i < divisorLength; i++)
+                            {
+                                ulong product = (ulong)(uint)divisor._blocks[i] * quotient + borrow;
+                                nuint low = (nuint)(uint)product;
+                                nuint orig = dividend._blocks[i];
+                                dividend._blocks[i] = orig - low;
+                                borrow = (nuint)(uint)(product >> 32) + ((orig < low) ? (nuint)1 : 0);
+                            }
+                        }
 
-                    // Remove all leading zero blocks from dividend
-                    divisorLength = BigIntegerCalculator.ActualLength(dividend._blocks[..divisorLength]);
-                    dividend._length = divisorLength;
+                        // Remove all leading zero blocks from dividend
+                        divisorLength = BigIntegerCalculator.ActualLength(dividend._blocks[..divisorLength]);
+                        dividend._length = divisorLength;
+                    }
                 }
 
                 // If the dividend is still larger than the divisor, we overshot our estimate quotient. To correct,
@@ -1040,6 +1069,12 @@ namespace System
                 }
 
                 int length = (int)_length;
+
+                if ((length == 1) && (_blocks[0] <= (nuint.MaxValue / 10)))
+                {
+                    _blocks[0] *= 10;
+                    return;
+                }
 
                 // Multiply-by-10 is called once per output digit in Dragon4's hot loop. Routing it
                 // through the shared Mul1 kernel costs a non-inlined call plus span setup per digit

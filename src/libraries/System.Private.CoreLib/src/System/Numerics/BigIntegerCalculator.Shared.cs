@@ -75,7 +75,14 @@ namespace System.Numerics
             // Since we're reusing memory here, the actual length
             // of a given value may be less than the array's length
 
-            return value.LastIndexOfAnyExcept((nuint)0) + 1;
+            int length = value.Length;
+
+            if ((length == 0) || (value[length - 1] != 0))
+            {
+                return length;
+            }
+
+            return value[..^1].LastIndexOfAnyExcept((nuint)0) + 1;
         }
 
         /// <summary>
