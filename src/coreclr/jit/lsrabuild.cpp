@@ -3821,6 +3821,7 @@ int LinearScan::BuildDelayFreeUses(GenTree*         node,
 // Notes:
 //    The operands must already have been processed by buildRefPositionsForNode, and their
 //    RefInfoListNodes placed in the defList.
+//    Unary nodes are also supported; their second operand is null.
 //    For TARGET_XARCH:
 //              Case 1: APX is not supported at all – We do not need to worry about it at all
 //                      since high GPR doesn’t come into play at all. So, in effect, candidates are
@@ -3835,16 +3836,16 @@ int LinearScan::BuildBinaryUses(GenTreeOp* node, SingleTypeRegSet candidates)
     GenTree* op1 = node->gtGetOp1();
     GenTree* op2 = node->gtGetOp2IfPresent();
 #ifdef TARGET_XARCH
-    if (node->OperIsBinary() && isRMWRegOper(node))
+    if (isRMWRegOper(node))
     {
-        assert(op2 != nullptr);
-        if (candidates == RBM_NONE && varTypeUsesFloatReg(node) && (op1->isContainedIndir() || op2->isContainedIndir()))
+        if (candidates == RBM_NONE && varTypeUsesFloatReg(node) &&
+            (op1->isContainedIndir() || ((op2 != nullptr) && op2->isContainedIndir())))
         {
             if (op1->isContainedIndir() && !getEvexIsSupported())
             {
                 return BuildRMWUses(node, op1, op2, lowGprRegs, candidates);
             }
-            else if (op2->isContainedIndir() && !getEvexIsSupported())
+            else if ((op2 != nullptr) && op2->isContainedIndir() && !getEvexIsSupported())
             {
                 return BuildRMWUses(node, op1, op2, candidates, lowGprRegs);
             }

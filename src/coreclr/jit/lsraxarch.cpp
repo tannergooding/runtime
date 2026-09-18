@@ -398,42 +398,6 @@ int LinearScan::BuildNode(GenTree* tree)
 
             break;
 
-        case GT_NEG:
-            // TODO-XArch-CQ:
-            // SSE instruction set doesn't have an instruction to negate a number.
-            // The recommended way is to xor the float/double number with a bitmask.
-            // The only way to xor is using xorps or xorpd both of which operate on
-            // 128-bit operands.  To hold the bit-mask we would need another xmm
-            // register or a 16-byte aligned 128-bit data constant. Right now emitter
-            // lacks the support for emitting such constants or instruction with mem
-            // addressing mode referring to a 128-bit operand. For now we use an
-            // internal xmm register to load 32/64-bit bitmask from data section.
-            // Note that by trading additional data section memory (128-bit) we can
-            // save on the need for an internal register and also a memory-to-reg
-            // move.
-            //
-            // Note: another option to avoid internal register requirement is by
-            // lowering as GT_SUB(0, src).  This will generate code different from
-            // Jit64 and could possibly result in compat issues (?).
-            if (varTypeIsFloating(tree))
-            {
-
-                RefPosition* internalDef = buildInternalFloatRegisterDefForNode(tree, internalFloatRegCandidates());
-                srcCount                 = BuildOperandUses(tree->gtGetOp1());
-                buildInternalRegisterUses();
-            }
-            else
-            {
-                srcCount = BuildOperandUses(tree->gtGetOp1());
-            }
-            BuildDef(tree);
-            break;
-
-        case GT_NOT:
-            srcCount = BuildOperandUses(tree->gtGetOp1());
-            BuildDef(tree);
-            break;
-
         case GT_LSH:
         case GT_RSH:
         case GT_RSZ:
@@ -740,10 +704,10 @@ void LinearScan::getTgtPrefOperands(GenTree* tree, GenTree* op1, GenTree* op2, b
 }
 
 //------------------------------------------------------------------------------
-// isRMWRegOper: Can this binary tree node be used in a Read-Modify-Write format
+// isRMWRegOper: Can this tree node be used in a Read-Modify-Write format
 //
 // Arguments:
-//    tree      - a binary tree node
+//    tree      - a unary, binary, or hardware intrinsic tree node
 //
 // Return Value:
 //    Returns true if we can use the read-modify-write instruction form
@@ -757,9 +721,10 @@ bool LinearScan::isRMWRegOper(GenTree* tree)
     // For now, We assume that most binary operators are of the RMW form.
 
 #ifdef FEATURE_HW_INTRINSICS
-    assert(tree->OperIsBinary() || (tree->OperIsMultiOp() && (tree->AsMultiOp()->GetOperandCount() <= 2)));
+    assert(tree->OperIsUnary() || tree->OperIsBinary() ||
+           (tree->OperIsMultiOp() && (tree->AsMultiOp()->GetOperandCount() <= 2)));
 #else
-    assert(tree->OperIsBinary());
+    assert(tree->OperIsUnary() || tree->OperIsBinary());
 #endif
 
     if (tree->OperIsCompare() || tree->OperIs(GT_CMP, GT_TEST, GT_BT))
@@ -769,6 +734,15 @@ bool LinearScan::isRMWRegOper(GenTree* tree)
 
     switch (tree->OperGet())
     {
+        case GT_NOT:
+        case GT_INC_SATURATE:
+            return true;
+
+        case GT_BSWAP:
+        case GT_BSWAP16:
+            // A contained memory operand uses MOVBE rather than modifying a source register.
+            return !tree->gtGetOp1()->isContained();
+
         // These Opers either support a three op form (i.e. GT_LEA), or do not read/write their first operand
         case GT_LEA:
         case GT_STOREIND:
@@ -784,6 +758,7 @@ bool LinearScan::isRMWRegOper(GenTree* tree)
         case GT_ADD:
         case GT_SUB:
         case GT_DIV:
+        case GT_NEG:
         {
             return !varTypeIsFloating(tree->TypeGet()) || !m_compiler->canUseVexEncoding();
         }
@@ -816,7 +791,7 @@ bool LinearScan::isRMWRegOper(GenTree* tree)
 #endif // FEATURE_HW_INTRINSICS
 
         default:
-            return true;
+            return tree->OperIsBinary();
     }
 }
 
@@ -1934,26 +1909,9 @@ int LinearScan::BuildIntrinsic(GenTree* tree)
     GenTree* op1 = tree->gtGetOp1();
     assert(varTypeIsFloating(op1));
     assert(op1->TypeGet() == tree->TypeGet());
-    RefPosition* internalFloatDef = nullptr;
-
     switch (tree->AsIntrinsic()->gtIntrinsicName)
     {
         case NI_System_Math_Abs:
-            // Abs(float x) = x & 0x7fffffff
-            // Abs(double x) = x & 0x7ffffff ffffffff
-
-            // In case of Abs we need an internal register to hold mask.
-
-            // TODO-XArch-CQ: avoid using an internal register for the mask.
-            // Andps or andpd both will operate on 128-bit operands.
-            // The data section constant to hold the mask is a 64-bit size.
-            // Therefore, we need both the operand and mask to be in
-            // xmm register. When we add support in emitter to emit 128-bit
-            // data constants and instructions that operate on 128-bit
-            // memory operands we can avoid the need for an internal register.
-            internalFloatDef = buildInternalFloatRegisterDefForNode(tree, internalFloatRegCandidates());
-            break;
-
         case NI_System_Math_Ceiling:
         case NI_System_Math_Floor:
         case NI_System_Math_Truncate:
@@ -2006,10 +1964,6 @@ int LinearScan::BuildIntrinsic(GenTree* tree)
     {
         tgtPrefUse = BuildUse(op1);
         srcCount   = 1;
-    }
-    if (internalFloatDef != nullptr)
-    {
-        buildInternalRegisterUses();
     }
     BuildDef(tree);
     return srcCount;
