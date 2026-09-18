@@ -12,10 +12,23 @@ namespace System.Collections.Generic
         private Span<T> _span;
         private T[]? _arrayFromPool;
         private int _pos;
+        // A limit of -1 is unbounded. Store its complement so default-initialized builders are also unbounded.
+        private int _maxLengthComplement;
 
         public ValueListBuilder(Span<T?> scratchBuffer)
         {
             _span = scratchBuffer!;
+        }
+
+        public ValueListBuilder(Span<T?> scratchBuffer, int maxLength)
+        {
+            Debug.Assert(maxLength >= -1);
+            _maxLengthComplement = ~maxLength;
+            _span = scratchBuffer!;
+            if ((uint)maxLength < (uint)_span.Length)
+            {
+                _span = _span.Slice(0, maxLength);
+            }
         }
 
         public ValueListBuilder(int capacity)
@@ -41,6 +54,63 @@ namespace System.Collections.Generic
                 Debug.Assert(index < _pos);
                 return ref _span[index];
             }
+        }
+
+        public bool CanAppend(long count)
+        {
+            Debug.Assert(count >= 0);
+            return _maxLengthComplement == 0 || count <= ~_maxLengthComplement - (long)_pos;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAppend(T item)
+        {
+            int pos = _pos;
+            Span<T> span = _span;
+            if ((uint)pos < (uint)span.Length)
+            {
+                span[pos] = item;
+                _pos = pos + 1;
+                return true;
+            }
+
+            return TryAddWithResize(item);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool TryAddWithResize(T item)
+        {
+            Debug.Assert(_pos == _span.Length);
+            if (!TryGrow(1))
+            {
+                return false;
+            }
+
+            _span[_pos++] = item;
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAppend(scoped ReadOnlySpan<T> source)
+        {
+            if (source.Length == 1)
+            {
+                return TryAppend(source[0]);
+            }
+
+            return TryAppendMultiChar(source);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool TryAppendMultiChar(scoped ReadOnlySpan<T> source)
+        {
+            if (!TryAppendSpan(source.Length, out Span<T> destination))
+            {
+                return false;
+            }
+
+            source.CopyTo(destination);
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -91,16 +161,57 @@ namespace System.Collections.Generic
 
         public void Insert(int index, scoped ReadOnlySpan<T> source)
         {
+            if (!TryInsert(index, source))
+            {
+                throw new ArgumentOutOfRangeException(nameof(source));
+            }
+        }
+
+        public bool TryInsert(int index, scoped ReadOnlySpan<T> source)
+        {
             Debug.Assert(index == 0, "Implementation currently only supports index == 0");
 
-            if ((uint)(_pos + source.Length) > (uint)_span.Length)
+            if ((uint)(_pos + source.Length) > (uint)_span.Length && !TryGrow(source.Length))
             {
-                Grow(source.Length);
+                return false;
             }
 
             _span.Slice(0, _pos).CopyTo(_span.Slice(source.Length));
             source.CopyTo(_span);
             _pos += source.Length;
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAppendSpan(int length, out Span<T> destination)
+        {
+            Debug.Assert(length >= 0);
+
+            int pos = _pos;
+            Span<T> span = _span;
+            if ((uint)(pos + length) <= (uint)span.Length)
+            {
+                _pos = pos + length;
+                destination = span.Slice(pos, length);
+                return true;
+            }
+
+            return TryAppendSpanWithGrow(length, out destination);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool TryAppendSpanWithGrow(int length, out Span<T> destination)
+        {
+            if (!TryGrow(length))
+            {
+                destination = default;
+                return false;
+            }
+
+            int pos = _pos;
+            _pos += length;
+            destination = _span.Slice(pos, length);
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -205,8 +316,22 @@ namespace System.Collections.Generic
         /// </remarks>
         private void Grow(int additionalCapacityBeyondPos)
         {
+            if (!TryGrow(additionalCapacityBeyondPos))
+            {
+                throw new ArgumentOutOfRangeException(nameof(additionalCapacityBeyondPos));
+            }
+        }
+
+        private bool TryGrow(int additionalCapacityBeyondPos)
+        {
             Debug.Assert(additionalCapacityBeyondPos > 0);
             Debug.Assert(_pos > _span.Length - additionalCapacityBeyondPos, "Grow called incorrectly, no resize is needed.");
+
+            uint maxLength = (uint)~_maxLengthComplement;
+            if ((uint)additionalCapacityBeyondPos > maxLength - (uint)_pos)
+            {
+                return false;
+            }
 
             const int ArrayMaxLength = 0x7FFFFFC7; // same as Array.MaxLength
 
@@ -225,11 +350,14 @@ namespace System.Collections.Generic
                 nextCapacity = Math.Max(Math.Max(_span.Length + 1, ArrayMaxLength), _span.Length);
             }
 
+            nextCapacity = (int)Math.Min((uint)nextCapacity, maxLength);
             T[] array = ArrayPool<T>.Shared.Rent(nextCapacity);
             _span.CopyTo(array);
 
             T[]? toReturn = _arrayFromPool;
-            _span = _arrayFromPool = array;
+            _arrayFromPool = array;
+            // Pool buckets may exceed the limit. Every append must reach TryGrow before exceeding it.
+            _span = array.AsSpan(0, (int)Math.Min((uint)array.Length, maxLength));
             if (toReturn != null)
             {
 #if SYSTEM_PRIVATE_CORELIB
@@ -250,6 +378,8 @@ namespace System.Collections.Generic
                 ArrayPool<T>.Shared.Return(toReturn);
 #endif
             }
+
+            return true;
         }
     }
 }

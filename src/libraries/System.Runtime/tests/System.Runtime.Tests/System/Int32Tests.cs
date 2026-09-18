@@ -1026,6 +1026,152 @@ namespace System.Tests
             NumberFormatTestHelper.TryFormatNumberTest(i, format, provider, expected);
 
         [Theory]
+        [InlineData("C999999999")]
+        [InlineData("E999999999")]
+        [InlineData("F999999999")]
+        [InlineData("N999999999")]
+        [InlineData("P999999999")]
+        public static void TryFormat_LargePrecision_SmallDestination(string format)
+        {
+            Check((sbyte)123);
+            Check((byte)123);
+            Check((short)123);
+            Check((ushort)123);
+            Check(123);
+            Check(123u);
+            Check(123L);
+            Check(123UL);
+            Check((nint)123);
+            Check((nuint)123);
+            Check((Int128)123);
+            Check((UInt128)123);
+            Check((Half)123);
+            Check((BFloat16)123);
+            Check(123.0f);
+            Check(123.0);
+            Check(123m);
+            Check((Decimal32)123);
+            Check((Decimal64)123);
+            Check((Decimal128)123);
+
+            void Check<T>(T value) where T : ISpanFormattable, IUtf8SpanFormattable
+            {
+                Span<char> chars = stackalloc char[33];
+                Span<byte> bytes = stackalloc byte[33];
+
+                foreach (int length in new[] { 0, 1, 31, 32, 33 })
+                {
+                    Assert.False(value.TryFormat(chars.Slice(0, length), out int charsWritten, format, CultureInfo.InvariantCulture));
+                    Assert.Equal(0, charsWritten);
+                    Assert.False(value.TryFormat(bytes.Slice(0, length), out int bytesWritten, format, CultureInfo.InvariantCulture));
+                    Assert.Equal(0, bytesWritten);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("C2")]
+        [InlineData("E4")]
+        [InlineData("F4")]
+        [InlineData("G4")]
+        [InlineData("N4")]
+        [InlineData("P4")]
+        [InlineData("#")]
+        [InlineData("''")]
+        [InlineData("0.0000")]
+        [InlineData("#,##0.00;(#,##0.00);'zero'")]
+        [InlineData("0.00%;-0.00%;'zero'")]
+        [InlineData("0.00\u2030")]
+        [InlineData("0.00E+00")]
+        [InlineData("'prefix \U0001F600'0.00'suffix'")]
+        [InlineData("0.00E+00E+0000000000000000000000000000000000000000")]
+        [InlineData("0.0000000000000000000000000000000000000000")]
+        public static void TryFormat_DestinationBoundaries(string format)
+        {
+            var info = new NumberFormatInfo
+            {
+                NegativeSign = "\u2212\u2212",
+                PositiveSign = "\uFF0B",
+                NumberDecimalSeparator = "::",
+                NumberGroupSeparator = "\u202F",
+                NumberGroupSizes = new[] { 3, 2, 0 },
+                CurrencySymbol = "\u20AC",
+                CurrencyDecimalSeparator = "\u066B",
+                CurrencyGroupSeparator = "\u066C",
+                PercentSymbol = "\u066A",
+                PerMilleSymbol = "\u2030",
+            };
+
+            Check(-12345);
+            Check(12345u);
+            Check(-12345L);
+            Check(12345UL);
+            Check((Int128)(-12345));
+            Check((UInt128)12345);
+            Check(-123.456);
+            Check(-123.456m);
+            Check(-0.0);
+            Check(0m);
+            Check(-0.001);
+            Check((Half)(-123.5));
+            Check((BFloat16)(-123.5));
+            Check((Decimal32)(-123));
+            Check((Decimal64)(-123));
+            Check((Decimal128)(-123));
+
+            void Check<T>(T value) where T : ISpanFormattable, IUtf8SpanFormattable
+            {
+                string expected = value.ToString(format, info);
+                char[] chars = new char[expected.Length + 1];
+                byte[] bytes = new byte[Encoding.UTF8.GetByteCount(expected) + 1];
+
+                for (int length = 0; length < chars.Length; length++)
+                {
+                    bool success = value.TryFormat(chars.AsSpan(0, length), out int written, format, info);
+                    Assert.Equal(length == expected.Length, success);
+                    Assert.Equal(success ? expected.Length : 0, written);
+                    if (success)
+                    {
+                        Assert.Equal(expected, new string(chars, 0, written));
+                    }
+                }
+
+                for (int length = 0; length < bytes.Length; length++)
+                {
+                    bool success = value.TryFormat(bytes.AsSpan(0, length), out int written, format, info);
+                    Assert.Equal(length == bytes.Length - 1, success);
+                    Assert.Equal(success ? bytes.Length - 1 : 0, written);
+                    if (success)
+                    {
+                        Assert.Equal(expected, Encoding.UTF8.GetString(bytes, 0, written));
+                    }
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("Z999999999")]
+        [InlineData("F1000000000")]
+        public static void TryFormat_InvalidFormat_EmptyDestination(string format)
+        {
+            Check(123);
+            Check(123u);
+            Check(123L);
+            Check(123UL);
+            Check((Int128)123);
+            Check((UInt128)123);
+            Check(123.0);
+            Check(123m);
+            Check((Decimal32)123);
+
+            void Check<T>(T value) where T : ISpanFormattable, IUtf8SpanFormattable
+            {
+                Assert.Throws<FormatException>(() => value.TryFormat(Span<char>.Empty, out _, format, CultureInfo.InvariantCulture));
+                Assert.Throws<FormatException>(() => value.TryFormat(Span<byte>.Empty, out _, format, CultureInfo.InvariantCulture));
+            }
+        }
+
+        [Theory]
         [InlineData("'\U0001F600'0", "\U0001F600123")]
         [InlineData("\\\U0001F6000", "\U0001F600123")]
         public static void TryFormat_CustomFormatWithSupplementaryLiteral(string format, string expected)

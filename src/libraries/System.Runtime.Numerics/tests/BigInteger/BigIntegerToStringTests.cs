@@ -546,30 +546,23 @@ namespace System.Numerics.Tests
             Assert.Throws<FormatException>(() => b.ToString("G000001000000000"));
         }
 
-        [Fact]
-        public static void ToString_ValidLargeFormat()
+        [Theory]
+        [InlineData("C999999999")]
+        [InlineData("E999999999")]
+        [InlineData("E00000999999999")]
+        [InlineData("F999999999")]
+        [InlineData("G999999999")]
+        [InlineData("G00000999999999")]
+        [InlineData("N999999999")]
+        [InlineData("P999999999")]
+        public static void ToString_ValidLargeFormat(string format)
         {
             BigInteger b = new BigInteger(123456789000m);
 
-            // Format precision limit is 999_999_999 (9 digits). Anything larger should throw.
-            // We use TryFormat rather than ToString to avoid excessive memory usage.
-
-            // Check ParseFormatSpecifier in FormatProvider.Number.cs with `E` format.
-            // Currently disabled since these would still allocate a 2GB buffer before
-            // returning, leading to OOM in CI.
-            // Assert.False(b.TryFormat(Span<char>.Empty, out _, format: "E999999999")); // Should not throw
-            // Assert.False(b.TryFormat(Span<char>.Empty, out _, format: "E00000999999999")); // Should not throw
-            //
-            // Assert.False(b.TryFormat(Span<byte>.Empty, out _, format: "E999999999")); // Should not throw
-            // Assert.False(b.TryFormat(Span<byte>.Empty, out _, format: "E00000999999999")); // Should not throw
-
-            // Check ParseFormatSpecifier in Number.BigInteger.cs with `G` format
-            Assert.False(b.TryFormat(Span<char>.Empty, out _, format: "G999999999")); // Should not throw
-            Assert.False(b.TryFormat(Span<char>.Empty, out _, format: "G00000999999999")); // Should not throw
-
-            // Check ParseFormatSpecifier in Number.BigInteger.cs with `G` format
-            Assert.False(b.TryFormat(Span<byte>.Empty, out _, format: "G999999999")); // Should not throw
-            Assert.False(b.TryFormat(Span<byte>.Empty, out _, format: "G00000999999999")); // Should not throw
+            Assert.False(b.TryFormat(Span<char>.Empty, out int charsWritten, format, CultureInfo.InvariantCulture));
+            Assert.Equal(0, charsWritten);
+            Assert.False(b.TryFormat(Span<byte>.Empty, out int bytesWritten, format, CultureInfo.InvariantCulture));
+            Assert.Equal(0, bytesWritten);
         }
 
         [Fact]

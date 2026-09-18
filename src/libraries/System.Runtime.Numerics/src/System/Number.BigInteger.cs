@@ -938,20 +938,16 @@ namespace System
                 number.Scale = valueDigits;
                 number.IsNegative = value.Sign < 0;
 
-                scoped var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize]); // arbitrary stack cut-off
+                scoped var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize], targetSpan ? destination.Length : -1); // arbitrary stack cut-off
 
-                if (fmt != 0)
-                {
-                    NumberToString(ref vlb, ref number, fmt, digits, info);
-                }
-                else
-                {
+                bool success = fmt != 0 ?
+                    NumberToString(ref vlb, ref number, fmt, digits, info) :
                     NumberToStringFormat(ref vlb, ref number, formatSpan, info);
-                }
 
                 if (targetSpan)
                 {
-                    spanSuccess = vlb.TryCopyTo(destination, out charsWritten);
+                    charsWritten = 0;
+                    spanSuccess = success && vlb.TryCopyTo(destination, out charsWritten);
                     strResult = null;
                 }
                 else

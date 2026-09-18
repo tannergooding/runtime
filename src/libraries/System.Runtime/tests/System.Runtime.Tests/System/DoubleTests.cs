@@ -1200,6 +1200,39 @@ namespace System.Tests
         }
 
         [Theory]
+        [InlineData(0.0)]
+        [InlineData(-0.0)]
+        [InlineData(1.5)]
+        [InlineData(double.Epsilon)]
+        [InlineData(double.MaxValue)]
+        public static void TryFormat_HexLargePrecision_SmallDestination(double value)
+        {
+            Span<char> chars = stackalloc char[32];
+            Span<byte> bytes = stackalloc byte[32];
+
+            Assert.False(value.TryFormat(chars, out int charsWritten, "X999999999", CultureInfo.InvariantCulture));
+            Assert.Equal(0, charsWritten);
+            Assert.False(value.TryFormat(bytes, out int bytesWritten, "x999999999", CultureInfo.InvariantCulture));
+            Assert.Equal(0, bytesWritten);
+        }
+
+        [Theory]
+        [InlineData(double.NaN, "\u975E\u6570")]
+        [InlineData(double.PositiveInfinity, "+\u221E")]
+        [InlineData(double.NegativeInfinity, "-\u221E")]
+        public static void TryFormat_NonFinite_InvalidFormat(double value, string expected)
+        {
+            var info = new NumberFormatInfo
+            {
+                NaNSymbol = "\u975E\u6570",
+                PositiveInfinitySymbol = "+\u221E",
+                NegativeInfinitySymbol = "-\u221E",
+            };
+
+            NumberFormatTestHelper.TryFormatNumberTest(value, "Z1000000000", info, expected, formatCasingMatchesOutput: false);
+        }
+
+        [Theory]
         [InlineData(" ", "\u00A0")]
         [InlineData(" ", "\u202F")]
         [InlineData("\u00A0", " ")]

@@ -298,20 +298,21 @@ namespace System
         {
             var vlb = new ValueListBuilder<char>(stackalloc char[CharStackBufferSize]);
             NumberBuffer number = new NumberBuffer(NumberBufferKind.DecimalIeee754, stackalloc byte[TDecimal.BufferLength]);
-            string result = FormatDecimalIeee754<TDecimal, TValue, char>(ref vlb, ref number, value, format, info) ?? vlb.AsSpan().ToString();
+            string result = FormatDecimalIeee754<TDecimal, TValue, char>(ref vlb, ref number, value, format, info, out _) ?? vlb.AsSpan().ToString();
             vlb.Dispose();
             return result;
         }
 
         // The number buffer is created by the caller so that it shares a scope with the value list builder;
         // otherwise passing it on to the formatting helpers is a ref-safety error now that Number is not unsafe.
-        private static string? FormatDecimalIeee754<TDecimal, TValue, TChar>(ref ValueListBuilder<TChar> vlb, ref NumberBuffer number, TValue value, ReadOnlySpan<char> format, NumberFormatInfo info)
+        private static string? FormatDecimalIeee754<TDecimal, TValue, TChar>(ref ValueListBuilder<TChar> vlb, ref NumberBuffer number, TValue value, ReadOnlySpan<char> format, NumberFormatInfo info, out bool success)
             where TDecimal : unmanaged, IDecimalIeee754ParseAndFormatInfo<TDecimal, TValue>
             where TValue : unmanaged, IBinaryInteger<TValue>
             where TChar : unmanaged, IUtfChar<TChar>
         {
             Debug.Assert(typeof(TChar) == typeof(char) || typeof(TChar) == typeof(byte));
 
+            success = true;
             if (!TDecimal.IsFinite(value))
             {
                 if (TDecimal.IsNaN(value))
@@ -322,7 +323,7 @@ namespace System
                     }
                     else
                     {
-                        vlb.Append(info.NaNSymbolTChar<TChar>());
+                        success = vlb.TryAppend(info.NaNSymbolTChar<TChar>());
                         return null;
                     }
                 }
@@ -333,7 +334,7 @@ namespace System
                 }
                 else
                 {
-                    vlb.Append(TDecimal.IsNegative(value) ? info.NegativeInfinitySymbolTChar<TChar>() : info.PositiveInfinitySymbolTChar<TChar>());
+                    success = vlb.TryAppend(TDecimal.IsNegative(value) ? info.NegativeInfinitySymbolTChar<TChar>() : info.PositiveInfinitySymbolTChar<TChar>());
                     return null;
                 }
             }
@@ -352,16 +353,16 @@ namespace System
                         digits = -1;
                     }
 
-                    FormatGeneralAndRoundTripDecimalIeee754(ref vlb, ref number, (char)(fmt - ('G' - 'E')), digits, info);
+                    success = FormatGeneralAndRoundTripDecimalIeee754(ref vlb, ref number, (char)(fmt - ('G' - 'E')), digits, info);
                 }
                 else
                 {
-                    NumberToString(ref vlb, ref number, fmt, digits, info);
+                    success = NumberToString(ref vlb, ref number, fmt, digits, info);
                 }
             }
             else
             {
-                NumberToStringFormat(ref vlb, ref number, format, info);
+                success = NumberToStringFormat(ref vlb, ref number, format, info);
             }
 
             return null;
@@ -374,14 +375,15 @@ namespace System
         {
             Debug.Assert(typeof(TChar) == typeof(char) || typeof(TChar) == typeof(byte));
 
-            var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize]);
+            var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize], destination.Length);
             NumberBuffer number = new NumberBuffer(NumberBufferKind.DecimalIeee754, stackalloc byte[TDecimal.BufferLength]);
-            string? s = FormatDecimalIeee754<TDecimal, TValue, TChar>(ref vlb, ref number, value, format, info);
+            string? s = FormatDecimalIeee754<TDecimal, TValue, TChar>(ref vlb, ref number, value, format, info, out bool success);
 
             Debug.Assert(s is null || typeof(TChar) == typeof(char));
-            bool success = s != null ?
+            charsWritten = 0;
+            success = success && (s != null ?
                 TryCopyTo(s, destination, out charsWritten) :
-                vlb.TryCopyTo(destination, out charsWritten);
+                vlb.TryCopyTo(destination, out charsWritten));
 
             vlb.Dispose();
             return success;
@@ -397,7 +399,7 @@ namespace System
         /// therefore required whenever the quantum exponent is positive, and is otherwise picked using the same
         /// compactness heuristic as the binary floating-point types.
         /// </remarks>
-        private static void FormatGeneralAndRoundTripDecimalIeee754<TChar>(ref ValueListBuilder<TChar> vlb, ref NumberBuffer number, char expChar, int nMaxDigits, NumberFormatInfo info)
+        private static bool FormatGeneralAndRoundTripDecimalIeee754<TChar>(ref ValueListBuilder<TChar> vlb, ref NumberBuffer number, char expChar, int nMaxDigits, NumberFormatInfo info)
             where TChar : unmanaged, IUtfChar<TChar>
         {
             Debug.Assert(number.Kind == NumberBufferKind.DecimalIeee754);
@@ -409,9 +411,9 @@ namespace System
                 RoundNumber(ref number, nMaxDigits, isCorrectlyRounded: false);
             }
 
-            if (number.IsNegative)
+            if (number.IsNegative && !vlb.TryAppend(info.NegativeSignTChar<TChar>()))
             {
-                vlb.Append(info.NegativeSignTChar<TChar>());
+                return false;
             }
 
             int digitCount = number.DigitsCount;
@@ -429,6 +431,11 @@ namespace System
 
             if ((number.Scale > significantDigits) || (adjustedExponent < -4))
             {
+                if (!vlb.CanAppend((long)Math.Max(digitCount, 1) + (digitCount > 1 ? info.NumberDecimalSeparatorTChar<TChar>().Length : 0)))
+                {
+                    return false;
+                }
+
                 vlb.Append(TChar.CastFrom((digitCount != 0) ? (char)dig[0] : '0'));
 
                 if (digitCount > 1)
@@ -441,11 +448,20 @@ namespace System
                     }
                 }
 
-                FormatExponent(ref vlb, info, adjustedExponent, expChar, minDigits: 2, positiveSign: true);
-                return;
+                return FormatExponent(ref vlb, info, adjustedExponent, expChar, minDigits: 2, positiveSign: true);
             }
 
             int integerDigits = number.Scale;
+            long length = Math.Max(integerDigits, 1);
+            if (integerDigits < digitCount)
+            {
+                length += (long)info.NumberDecimalSeparatorTChar<TChar>().Length + digitCount - integerDigits;
+            }
+
+            if (!vlb.CanAppend(length))
+            {
+                return false;
+            }
 
             if (integerDigits > 0)
             {
@@ -475,6 +491,8 @@ namespace System
                     vlb.Append(TChar.CastFrom((char)dig[i]));
                 }
             }
+
+            return true;
         }
 
         public static string FormatDecimal(decimal value, ReadOnlySpan<char> format, NumberFormatInfo info)
@@ -511,18 +529,13 @@ namespace System
 
             DecimalToNumber(ref value, ref number);
 
-            var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize]);
-
-            if (fmt != 0)
-            {
-                NumberToString(ref vlb, ref number, fmt, digits, info);
-            }
-            else
-            {
+            var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize], destination.Length);
+            bool success = fmt != 0 ?
+                NumberToString(ref vlb, ref number, fmt, digits, info) :
                 NumberToStringFormat(ref vlb, ref number, format, info);
-            }
 
-            bool success = vlb.TryCopyTo(destination, out charsWritten);
+            charsWritten = 0;
+            success = success && vlb.TryCopyTo(destination, out charsWritten);
             vlb.Dispose();
             return success;
         }
@@ -714,7 +727,7 @@ namespace System
             }
         }
 
-        private static void FormatFloatingPointAsHex<TNumber, TChar>(ref ValueListBuilder<TChar> vlb, TNumber value, char fmt, int precision, NumberFormatInfo info)
+        private static bool FormatFloatingPointAsHex<TNumber, TChar>(ref ValueListBuilder<TChar> vlb, TNumber value, char fmt, int precision, NumberFormatInfo info)
             where TNumber : unmanaged, IBinaryFloatParseAndFormatInfo<TNumber>
             where TChar : unmanaged, IUtfChar<TChar>
         {
@@ -723,9 +736,14 @@ namespace System
 
             bool isNegative = TNumber.IsNegative(value);
 
-            if (isNegative)
+            if (isNegative && !vlb.TryAppend(info.NegativeSignTChar<TChar>()))
             {
-                vlb.Append(info.NegativeSignTChar<TChar>());
+                return false;
+            }
+
+            if (!vlb.CanAppend(3L + Math.Max(precision, 0) + (precision > 0 ? info.NumberDecimalSeparatorTChar<TChar>().Length : 0)))
+            {
+                return false;
             }
 
             vlb.Append(TChar.CastFrom('0'));
@@ -745,11 +763,16 @@ namespace System
                 }
 
                 // Exponent sign is always emitted ('+' or '-'), consistent with the 'E' format.
+                if (!vlb.CanAppend(3))
+                {
+                    return false;
+                }
+
                 vlb.Append(TChar.CastFrom(fmt == 'X' ? 'P' : 'p'));
                 vlb.Append(TChar.CastFrom('+'));
                 vlb.Append(TChar.CastFrom('0'));
 
-                return;
+                return true;
             }
 
             // ExtractFractionAndBiasedExponent returns (note: despite the name, the exponent is unbiased):
@@ -881,6 +904,11 @@ namespace System
 
                     if (trimmedDigits > 0)
                     {
+                        if (!vlb.CanAppend((long)trimmedDigits + info.NumberDecimalSeparatorTChar<TChar>().Length))
+                        {
+                            return false;
+                        }
+
                         vlb.Append(info.NumberDecimalSeparatorTChar<TChar>());
 
                         ulong shifted = significandBits << (64 - mantissaBits);
@@ -896,6 +924,11 @@ namespace System
             // Emit exponent: p+NNN or p-NNN
             // The exponent sign is always ASCII '+'/'-' per IEEE 754 §5.12.3,
             // independent of NumberFormatInfo (which only governs the leading value sign).
+            if (!vlb.CanAppend(2L + FormattingHelpers.CountDigits((uint)Math.Abs(actualExponent))))
+            {
+                return false;
+            }
+
             vlb.Append(TChar.CastFrom(fmt == 'X' ? 'P' : 'p'));
 
             if (actualExponent >= 0)
@@ -914,6 +947,7 @@ namespace System
             Span<TChar> exponentBuffer = vlb.AppendSpan(digitCount);
             int exponentPos = UInt32ToDecChars<TChar>(exponentBuffer, digitCount, (uint)actualExponent);
             Debug.Assert(exponentPos == 0);
+            return true;
         }
 
         public static string FormatFloat<TNumber>(TNumber value, string? format, NumberFormatInfo info)
@@ -921,7 +955,7 @@ namespace System
         {
             var vlb = new ValueListBuilder<char>(stackalloc char[CharStackBufferSize]);
             NumberBuffer number = new NumberBuffer(NumberBufferKind.FloatingPoint, stackalloc byte[TNumber.NumberBufferLength]);
-            string result = FormatFloat(ref vlb, ref number, value, format, info) ?? vlb.AsSpan().ToString();
+            string result = FormatFloat(ref vlb, ref number, value, format, info, out _) ?? vlb.AsSpan().ToString();
             vlb.Dispose();
             return result;
         }
@@ -932,14 +966,15 @@ namespace System
         {
             Debug.Assert(typeof(TChar) == typeof(char) || typeof(TChar) == typeof(byte));
 
-            var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize]);
+            var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize], destination.Length);
             NumberBuffer number = new NumberBuffer(NumberBufferKind.FloatingPoint, stackalloc byte[TNumber.NumberBufferLength]);
-            string? s = FormatFloat(ref vlb, ref number, value, format, info);
+            string? s = FormatFloat(ref vlb, ref number, value, format, info, out bool success);
 
             Debug.Assert(s is null || typeof(TChar) == typeof(char));
-            bool success = s != null ?
+            charsWritten = 0;
+            success = success && (s != null ?
                 TryCopyTo(s, destination, out charsWritten) :
-                vlb.TryCopyTo(destination, out charsWritten);
+                vlb.TryCopyTo(destination, out charsWritten));
 
             vlb.Dispose();
             return success;
@@ -948,14 +983,15 @@ namespace System
         /// <summary>Formats the specified value according to the specified format and info.</summary>
         /// <returns>
         /// Non-null if an existing string can be returned, in which case the builder will be unmodified.
-        /// Null if no existing string was returned, in which case the formatted output is in the builder.
+        /// Null if no existing string was returned, in which case the formatted output is in the builder when successful.
         /// </returns>
-        private static string? FormatFloat<TNumber, TChar>(ref ValueListBuilder<TChar> vlb, ref NumberBuffer number, TNumber value, ReadOnlySpan<char> format, NumberFormatInfo info)
+        private static string? FormatFloat<TNumber, TChar>(ref ValueListBuilder<TChar> vlb, ref NumberBuffer number, TNumber value, ReadOnlySpan<char> format, NumberFormatInfo info, out bool success)
             where TNumber : unmanaged, IBinaryFloatParseAndFormatInfo<TNumber>
             where TChar : unmanaged, IUtfChar<TChar>
         {
             Debug.Assert(typeof(TChar) == typeof(char) || typeof(TChar) == typeof(byte));
 
+            success = true;
             if (!TNumber.IsFinite(value))
             {
                 if (TNumber.IsNaN(value))
@@ -966,7 +1002,7 @@ namespace System
                     }
                     else
                     {
-                        vlb.Append(info.NaNSymbolTChar<TChar>());
+                        success = vlb.TryAppend(info.NaNSymbolTChar<TChar>());
                         return null;
                     }
                 }
@@ -977,7 +1013,7 @@ namespace System
                 }
                 else
                 {
-                    vlb.Append(TNumber.IsNegative(value) ? info.NegativeInfinitySymbolTChar<TChar>() : info.PositiveInfinitySymbolTChar<TChar>());
+                    success = vlb.TryAppend(TNumber.IsNegative(value) ? info.NegativeInfinitySymbolTChar<TChar>() : info.PositiveInfinitySymbolTChar<TChar>());
                     return null;
                 }
             }
@@ -987,7 +1023,7 @@ namespace System
             // Handle hex float formatting (X/x format specifier)
             if ((fmt | 0x20) == 'x')
             {
-                FormatFloatingPointAsHex(ref vlb, value, fmt, precision, info);
+                success = FormatFloatingPointAsHex(ref vlb, value, fmt, precision, info);
                 return null;
             }
 
@@ -1029,12 +1065,12 @@ namespace System
 
                     nMaxDigits = Math.Max(number.DigitsCount, TNumber.MaxRoundTripDigits);
                 }
-                NumberToString(ref vlb, ref number, fmt, nMaxDigits, info);
+                success = NumberToString(ref vlb, ref number, fmt, nMaxDigits, info);
             }
             else
             {
                 Debug.Assert(precision == TNumber.MaxPrecisionCustomFormat);
-                NumberToStringFormat(ref vlb, ref number, format, info);
+                success = NumberToStringFormat(ref vlb, ref number, format, info);
             }
             return null;
         }
@@ -1164,18 +1200,13 @@ namespace System
 
                     Int32ToNumber(value, ref number);
 
-                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize]);
-
-                    if (fmt != 0)
-                    {
-                        NumberToString(ref vlb, ref number, fmt, digits, info);
-                    }
-                    else
-                    {
+                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize], destination.Length);
+                    bool success = fmt != 0 ?
+                        NumberToString(ref vlb, ref number, fmt, digits, info) :
                         NumberToStringFormat(ref vlb, ref number, format, info);
-                    }
 
-                    bool success = vlb.TryCopyTo(destination, out charsWritten);
+                    charsWritten = 0;
+                    success = success && vlb.TryCopyTo(destination, out charsWritten);
                     vlb.Dispose();
                     return success;
                 }
@@ -1272,18 +1303,13 @@ namespace System
 
                     UInt32ToNumber(value, ref number);
 
-                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize]);
-
-                    if (fmt != 0)
-                    {
-                        NumberToString(ref vlb, ref number, fmt, digits, info);
-                    }
-                    else
-                    {
+                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize], destination.Length);
+                    bool success = fmt != 0 ?
+                        NumberToString(ref vlb, ref number, fmt, digits, info) :
                         NumberToStringFormat(ref vlb, ref number, format, info);
-                    }
 
-                    bool success = vlb.TryCopyTo(destination, out charsWritten);
+                    charsWritten = 0;
+                    success = success && vlb.TryCopyTo(destination, out charsWritten);
                     vlb.Dispose();
                     return success;
                 }
@@ -1388,18 +1414,13 @@ namespace System
 
                     Int64ToNumber(value, ref number);
 
-                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize]);
-
-                    if (fmt != 0)
-                    {
-                        NumberToString(ref vlb, ref number, fmt, digits, info);
-                    }
-                    else
-                    {
+                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize], destination.Length);
+                    bool success = fmt != 0 ?
+                        NumberToString(ref vlb, ref number, fmt, digits, info) :
                         NumberToStringFormat(ref vlb, ref number, format, info);
-                    }
 
-                    bool success = vlb.TryCopyTo(destination, out charsWritten);
+                    charsWritten = 0;
+                    success = success && vlb.TryCopyTo(destination, out charsWritten);
                     vlb.Dispose();
                     return success;
                 }
@@ -1496,18 +1517,13 @@ namespace System
 
                     UInt64ToNumber(value, ref number);
 
-                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize]);
-
-                    if (fmt != 0)
-                    {
-                        NumberToString(ref vlb, ref number, fmt, digits, info);
-                    }
-                    else
-                    {
+                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize], destination.Length);
+                    bool success = fmt != 0 ?
+                        NumberToString(ref vlb, ref number, fmt, digits, info) :
                         NumberToStringFormat(ref vlb, ref number, format, info);
-                    }
 
-                    bool success = vlb.TryCopyTo(destination, out charsWritten);
+                    charsWritten = 0;
+                    success = success && vlb.TryCopyTo(destination, out charsWritten);
                     vlb.Dispose();
                     return success;
                 }
@@ -1614,18 +1630,13 @@ namespace System
 
                     Int128ToNumber(value, ref number);
 
-                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize]);
-
-                    if (fmt != 0)
-                    {
-                        NumberToString(ref vlb, ref number, fmt, digits, info);
-                    }
-                    else
-                    {
+                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize], destination.Length);
+                    bool success = fmt != 0 ?
+                        NumberToString(ref vlb, ref number, fmt, digits, info) :
                         NumberToStringFormat(ref vlb, ref number, format, info);
-                    }
 
-                    bool success = vlb.TryCopyTo(destination, out charsWritten);
+                    charsWritten = 0;
+                    success = success && vlb.TryCopyTo(destination, out charsWritten);
                     vlb.Dispose();
                     return success;
                 }
@@ -1724,18 +1735,13 @@ namespace System
 
                     UInt128ToNumber(value, ref number);
 
-                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize]);
-
-                    if (fmt != 0)
-                    {
-                        NumberToString(ref vlb, ref number, fmt, digits, info);
-                    }
-                    else
-                    {
+                    var vlb = new ValueListBuilder<TChar>(stackalloc TChar[CharStackBufferSize], destination.Length);
+                    bool success = fmt != 0 ?
+                        NumberToString(ref vlb, ref number, fmt, digits, info) :
                         NumberToStringFormat(ref vlb, ref number, format, info);
-                    }
 
-                    bool success = vlb.TryCopyTo(destination, out charsWritten);
+                    charsWritten = 0;
+                    success = success && vlb.TryCopyTo(destination, out charsWritten);
                     vlb.Dispose();
                     return success;
                 }
