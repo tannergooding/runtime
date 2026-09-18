@@ -61,9 +61,9 @@ export function SystemJS_ScheduleFinalization(): void {
         return;
     }
     if (_ems_.DOTNET.lastScheduledFinalizationId) {
-        globalThis.clearTimeout(_ems_.DOTNET.lastScheduledFinalizationId);
-        _ems_.runtimeKeepalivePop();
-        _ems_.DOTNET.lastScheduledFinalizationId = undefined;
+        // Keep the existing turn: repeated notifications must not postpone
+        // finalization behind newly queued work.
+        return;
     }
     _ems_.DOTNET.lastScheduledFinalizationId = _ems_.safeSetTimeout(SystemJS_ScheduleFinalizationTick, 0);
 

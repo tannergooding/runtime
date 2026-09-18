@@ -431,7 +431,8 @@ namespace System.Threading
             Debug.Assert(this == CurrentThread);
             Debug.Assert(!RuntimeFeature.IsMultithreadingSupported || IsThreadPoolThread); // there are no dedicated threadpool threads on runtimes where we can't start threads
 
-            if (_mayNeedResetForThreadPool)
+            // Single-threaded hosts can dispatch work on the application thread.
+            if (_mayNeedResetForThreadPool && IsThreadPoolThread)
             {
                 ResetThreadPoolThreadSlow();
             }

@@ -10,6 +10,7 @@
   "type": "module",
   "types": "dotnet.d.ts",
   "scripts": {
+    "test": "node --test ./libs/System.Native.Browser/tests/*.test.js",
     "rollup:stub": "node rollup.stub.js",
     "rollup:cmake": "rollup -c --environment ",
     "rollup:release": "rollup -c --environment Configuration:Release,ProductVersion:11.0,ContinuousIntegrationBuild:false,RuntimeFlavor:CoreCLR",

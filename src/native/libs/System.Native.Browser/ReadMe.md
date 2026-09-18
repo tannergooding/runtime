@@ -18,3 +18,9 @@ JavaScript tools like `npm`, `tsc`, `rollup` are installed in `src/native/packag
 JS tools depend on `nodeJS` installation of Emscripten.
 Emscripten compilations is part of `/src/native/libs/CMakeLists.txt`
 Final static linking happens in `/src/native/corehost/browserhost/CMakeLists.txt`
+
+## Scheduler tests
+Run `npm test` from `src/native` after restoring its existing JavaScript dependencies.
+The tests compile the scheduler source and exercise it with a deterministic timer
+queue, including request coalescing, queue ordering, reentrant scheduling,
+shutdown, and runtime keepalive balance.

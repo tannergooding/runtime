@@ -47,7 +47,7 @@ bool FinalizerThread::IsCurrentThreadFinalizer()
 
 #ifdef TARGET_BROWSER
 // Browser provides this in its JS host (libSystem.Native.Browser scheduling.ts);
-// it queues a microtask that pumps SystemJS_ExecuteFinalizationCallback.
+// it schedules a timer that pumps SystemJS_ExecuteFinalizationCallback.
 extern "C" void SystemJS_ScheduleFinalization();
 #endif
 
@@ -57,9 +57,9 @@ extern "C" void SystemJS_ScheduleFinalization();
 extern "C" void WasiFinalizer_Schedule();
 #endif
 
-// Runs one FinalizerThreadWorkerIteration on the current thread. Body is
-// identical on browser and WASI; the surrounding entry-point shape differs:
-//   - Browser: raw wasm export invoked from a JS microtask after
+// Runs one FinalizerThreadWorkerIteration on the current thread.
+// The surrounding entry-point shape differs:
+//   - Browser: raw wasm export invoked from a JS timer after
 //     SystemJS_ScheduleFinalization enqueued it. Not a QCall.
 //   - WASI: QCall invoked from managed WasiEventLoop after
 //     WasiFinalizer_TryClearPending observes the flag.
@@ -73,12 +73,17 @@ static void RunFinalizerIterationOnCurrentThread()
     }
     CONTRACTL_END;
 
+#ifdef TARGET_BROWSER
+    // Share the explicit wait's guard so a finalizer cannot start a nested drain.
+    FinalizerThread::FinalizerThreadWait();
+#else // TARGET_WASI
     INSTALL_UNHANDLED_MANAGED_EXCEPTION_TRAP;
     {
         GCX_COOP();
         ManagedThreadBase::KickOff(FinalizerThread::FinalizerThreadWorkerIteration, NULL);
     }
     UNINSTALL_UNHANDLED_MANAGED_EXCEPTION_TRAP;
+#endif // TARGET_BROWSER
 }
 
 #ifdef TARGET_BROWSER

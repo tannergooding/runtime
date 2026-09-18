@@ -341,7 +341,9 @@ namespace System
         [UnmanagedCallersOnly]
         private static unsafe uint RunFinalizers()
         {
+#if !TARGET_WASM
             Thread currentThread = Thread.CurrentThread;
+#endif
 
             uint count = 0;
             while (true)
@@ -360,7 +362,11 @@ namespace System
                     // the handler returned "true" means the exception is now "handled" and we should continue.
                 }
 
+                // Wasm hosts borrow the application thread, not a dedicated
+                // finalizer thread whose settings can be reset.
+#if !TARGET_WASM
                 currentThread.ResetFinalizerThread();
+#endif
                 count++;
             }
 

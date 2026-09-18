@@ -98,6 +98,14 @@ namespace Fragment
                 }
                 requests[i] = new Request();
 
+                if (OperatingSystem.IsBrowser() && (totalReqs % NumRequests == 0))
+                {
+                    // Browser finalizers cannot run while this synchronous loop holds the JS thread.
+                    // Drain once per live-set-sized batch so dead requests can release their pins
+                    // and survivor arrays, without forcing collections.
+                    GC.WaitForPendingFinalizers();
+                }
+
                 if (instRequests == NumRequests)
                 {
                     if (nreqsToSteady == 0)
