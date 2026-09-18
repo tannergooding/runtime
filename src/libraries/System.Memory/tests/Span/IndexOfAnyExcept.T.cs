@@ -3,12 +3,63 @@
 
 using System.Buffers;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Xunit;
 
 namespace System.SpanTests
 {
+    public class IndexOfAnyExceptValueTypeTests
+    {
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(7)]
+        [InlineData(8)]
+        [InlineData(15)]
+        [InlineData(16)]
+        [InlineData(17)]
+        [InlineData(31)]
+        [InlineData(32)]
+        [InlineData(33)]
+        [InlineData(63)]
+        [InlineData(64)]
+        [InlineData(65)]
+        [InlineData(127)]
+        [InlineData(128)]
+        [InlineData(129)]
+        public static void ZeroSearch_BoundedMemory(int length)
+        {
+            Test<byte>(length);
+            Test<short>(length);
+            Test<int>(length);
+            Test<long>(length);
+
+            static void Test<T>(int length) where T : unmanaged, INumber<T>
+            {
+                foreach (PoisonPagePlacement placement in new[] { PoisonPagePlacement.Before, PoisonPagePlacement.After })
+                {
+                    using BoundedMemory<T> memory = BoundedMemory.Allocate<T>(length, placement);
+                    Span<T> span = memory.Span;
+                    span.Clear();
+                    Assert.Equal(-1, span.IndexOfAnyExcept(T.Zero));
+                    Assert.Equal(-1, span.LastIndexOfAnyExcept(T.Zero));
+
+                    for (int index = 0; index < length; index++)
+                    {
+                        span[index] = T.One;
+                        Assert.Equal(index, span.IndexOfAnyExcept(T.Zero));
+                        Assert.Equal(index, span.LastIndexOfAnyExcept(T.Zero));
+                        Assert.Equal(index, span.IndexOf(T.One));
+                        Assert.Equal(index, span.LastIndexOf(T.One));
+                        span[index] = T.Zero;
+                    }
+                }
+            }
+        }
+    }
+
     public class IndexOfAnyExceptTests_Byte : IndexOfAnyExceptTests<byte> { protected override byte Create(int value) => (byte)value; }
     public class IndexOfAnyExceptTests_Char : IndexOfAnyExceptTests<char> { protected override char Create(int value) => (char)value; }
     public class IndexOfAnyExceptTests_Int32 : IndexOfAnyExceptTests<int> { protected override int Create(int value) => value; }

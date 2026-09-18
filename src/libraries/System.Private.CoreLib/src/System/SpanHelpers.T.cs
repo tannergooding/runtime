@@ -3810,12 +3810,14 @@ namespace System
             // The generic vector APIs assume use for `IndexOfAnyExcept` where we
             // want "HasMatch" to mean any of the two elements don't match
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static bool HasMatch<TVector>(TVector left, TVector right)
                 where TVector : struct, ISimdVector<TVector, T>
             {
                 return !TVector.EqualsAll(left, right);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static TVector GetMatchMask<TVector>(TVector left, TVector right)
                 where TVector : struct, ISimdVector<TVector, T>
             {

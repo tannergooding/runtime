@@ -336,10 +336,31 @@ namespace System
             where TChar : unmanaged, IUtfChar<TChar>
         {
             // For compatibility, we need to allow trailing nulls at the end of a number string
-            var remainder = value.Slice(index);
+            if ((uint)index < (uint)value.Length && TChar.CastToUInt32(value[index]) == '\0')
+            {
+                return ConsumeNulls(value, index);
+            }
 
-            var nullsToConsume = remainder.IndexOfAnyExcept(TChar.CastFrom('\0'));
-            return index + ((nullsToConsume >= 0) ? nullsToConsume : remainder.Length);
+            return index;
+
+            static int ConsumeNulls(ReadOnlySpan<TChar> value, int index)
+            {
+                // A short run of nulls can precede a long remainder in partial parsing.
+                // Check four scalars before paying for a vector search of that remainder.
+                for (int i = 0; i < 4; i++)
+                {
+                    index++;
+                    if ((uint)index >= (uint)value.Length || TChar.CastToUInt32(value[index]) != '\0')
+                    {
+                        return index;
+                    }
+                }
+
+                ReadOnlySpan<TChar> remainder = value.Slice(index);
+                int nullsToConsume = remainder.IndexOfAnyExcept(TChar.CastFrom('\0'));
+
+                return index + ((nullsToConsume >= 0) ? nullsToConsume : remainder.Length);
+            }
         }
 
         private static bool IsWhite(uint ch) => (ch == 0x20) || ((ch - 0x09) <= (0x0D - 0x09));
