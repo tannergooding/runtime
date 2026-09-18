@@ -1781,7 +1781,10 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                 else if (intrin.op1->isContainedFltOrDblImmed())
                 {
                     // fmov reg, #imm8
-                    const double dataValue = intrin.op1->AsDblCon()->DconValue();
+                    double dataValue;
+                    bool   validImm = emitter::emitIns_valid_imm_for_fmov_bits(intrin.op1->AsDblCon()->RawBits(),
+                                                                               emitTypeSize(intrin.op1), &dataValue);
+                    assert(validImm);
                     GetEmitter()->emitIns_R_F(ins, emitTypeSize(intrin.baseType), targetReg, dataValue, INS_OPTS_NONE);
                 }
                 else if (varTypeIsFloating(intrin.baseType))
@@ -1840,7 +1843,10 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                 {
                     if (intrin.op1->isContainedFltOrDblImmed())
                     {
-                        const double dataValue = intrin.op1->AsDblCon()->DconValue();
+                        double dataValue;
+                        bool   validImm = emitter::emitIns_valid_imm_for_fmov_bits(intrin.op1->AsDblCon()->RawBits(),
+                                                                                   emitTypeSize(intrin.op1), &dataValue);
+                        assert(validImm);
                         GetEmitter()->emitIns_R_F(INS_fmov, emitSize, targetReg, dataValue, opt);
                     }
                     else if (intrin.id == NI_AdvSimd_Arm64_DuplicateToVector64)

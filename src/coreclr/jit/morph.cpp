@@ -341,22 +341,27 @@ GenTree* Compiler::fgMorphExpandCast(GenTreeCast* tree)
                         unreached();
                 }
 
-                    // WASM defines FEATURE_HW_INTRINSICS but gtNewSimdMinMaxNativeNode is
-                    // NYI there, so it uses scalar GT_INTRINSIC MaxNative/MinNative nodes
-                    // (which lower to native WebAssembly min/max) instead.
+                GenTree* minNode =
+                    (srcType == TYP_FLOAT) ? gtNewDconNodeF(static_cast<float>(smallMin)) : gtNewDconNodeD(smallMin);
+                GenTree* maxNode =
+                    (srcType == TYP_FLOAT) ? gtNewDconNodeF(static_cast<float>(smallMax)) : gtNewDconNodeD(smallMax);
+
+                // WASM defines FEATURE_HW_INTRINSICS but gtNewSimdMinMaxNativeNode is
+                // NYI there, so it uses scalar GT_INTRINSIC MaxNative/MinNative nodes
+                // (which lower to native WebAssembly min/max) instead.
 #if defined(FEATURE_HW_INTRINSICS) && !defined(TARGET_WASM)
-                oper = gtNewSimdMinMaxNativeNode(srcType, gtNewDconNode(smallMin, srcType), oper, srcType,
+                oper = gtNewSimdMinMaxNativeNode(srcType, minNode, oper, srcType,
                                                  /* simdSize */ 0, /* isMax */ true);
-                oper = gtNewSimdMinMaxNativeNode(srcType, gtNewDconNode(smallMax, srcType), oper, srcType,
+                oper = gtNewSimdMinMaxNativeNode(srcType, maxNode, oper, srcType,
                                                  /* simdSize */ 0, /* isMax */ false);
 #else  // TARGET_WASM
        // WASM f32.min/f64.min propagate NaN; use GT_INTRINSIC nodes which
        // lower to native WebAssembly min/max instructions.
                 const CORINFO_CONST_LOOKUP nullEntry = {IAT_VALUE};
-                oper = new (this, GT_INTRINSIC) GenTreeIntrinsic(srcType, gtNewDconNode(smallMin, srcType), oper,
-                                                                 NI_System_Math_MaxNative, nullptr R2RARG(nullEntry));
-                oper = new (this, GT_INTRINSIC) GenTreeIntrinsic(srcType, gtNewDconNode(smallMax, srcType), oper,
-                                                                 NI_System_Math_MinNative, nullptr R2RARG(nullEntry));
+                oper                                 = new (this, GT_INTRINSIC)
+                    GenTreeIntrinsic(srcType, minNode, oper, NI_System_Math_MaxNative, nullptr R2RARG(nullEntry));
+                oper = new (this, GT_INTRINSIC)
+                    GenTreeIntrinsic(srcType, maxNode, oper, NI_System_Math_MinNative, nullptr R2RARG(nullEntry));
 #endif // FEATURE_HW_INTRINSICS && !TARGET_WASM
             }
 #elif defined(TARGET_ARM) || defined(TARGET_RISCV64) || defined(TARGET_LOONGARCH64)
@@ -8001,7 +8006,7 @@ DONE_MORPHING_CHILDREN:
                     // DIV(NEG(a), C) => DIV(a, NEG(C)); for floating-point
                     tree->AsOp()->gtOp1 = op1->gtGetOp1();
 
-                    op2->AsDblCon()->SetDconValue(-op2->AsDblCon()->DconValue());
+                    op2->AsDblCon()->Negate();
                     fgUpdateConstTreeValueNumber(op2);
 
                     DEBUG_DESTROY_NODE(op1);
@@ -8014,25 +8019,31 @@ DONE_MORPHING_CHILDREN:
                     // Powers of two within range are always exactly represented,
                     // so multiplication by the reciprocal is safe in this scenario
 
-                    double divisor   = op2->AsDblCon()->DconValue();
-                    bool   transform = false;
+                    bool transform;
 
                     if (typ == TYP_DOUBLE)
                     {
-                        transform = FloatingPointUtils::hasPreciseReciprocal(divisor);
-                        divisor   = 1.0 / divisor;
+                        double divisor = op2->AsDblCon()->DconValue();
+                        transform      = FloatingPointUtils::hasPreciseReciprocal(divisor);
+                        if (transform)
+                        {
+                            op2->AsDblCon()->SetDconValue(1.0 / divisor);
+                        }
                     }
                     else
                     {
                         assert(typ == TYP_FLOAT);
-                        transform = FloatingPointUtils::hasPreciseReciprocal(forceCastToFloat(divisor));
-                        divisor   = forceCastToFloat(1.0 / divisor);
+                        float divisor = op2->AsDblCon()->FconValue();
+                        transform     = FloatingPointUtils::hasPreciseReciprocal(divisor);
+                        if (transform)
+                        {
+                            op2->AsDblCon()->SetFconValue(forceCastToFloat(1.0 / static_cast<double>(divisor)));
+                        }
                     }
 
                     if (transform)
                     {
                         tree->ChangeOper(GT_MUL, GenTree::PRESERVE_VN);
-                        op2->AsDblCon()->SetDconValue(divisor);
                         fgUpdateConstTreeValueNumber(op2);
 
                         oper = GT_MUL;
@@ -8113,7 +8124,7 @@ DONE_MORPHING_CHILDREN:
                     else
                     {
                         assert(op1op2->IsCnsFltOrDbl());
-                        op1op2->AsDblCon()->SetDconValue(-op1op2->AsDblCon()->DconValue());
+                        op1op2->AsDblCon()->Negate();
                     }
                     fgUpdateConstTreeValueNumber(op1op2);
 
@@ -9789,7 +9800,7 @@ GenTree* Compiler::fgOptimizeHWIntrinsic(GenTreeHWIntrinsic* node)
             {
                 for (unsigned i = 0; i < elementCount; i++)
                 {
-                    double val = op2Cns->GetElementFloating(TYP_DOUBLE, i);
+                    double val = op2Cns->GetElementFloating<double>(TYP_DOUBLE, i);
 
                     if (!FloatingPointUtils::hasPreciseReciprocal(val))
                     {
@@ -9804,7 +9815,7 @@ GenTree* Compiler::fgOptimizeHWIntrinsic(GenTreeHWIntrinsic* node)
 
                 for (unsigned i = 0; i < elementCount; i++)
                 {
-                    float val = forceCastToFloat(op2Cns->GetElementFloating(TYP_FLOAT, i));
+                    float val = op2Cns->GetElementFloating<float>(TYP_FLOAT, i);
 
                     if (!FloatingPointUtils::hasPreciseReciprocal(val))
                     {
@@ -9904,7 +9915,9 @@ GenTree* Compiler::fgOptimizeHWIntrinsic(GenTreeHWIntrinsic* node)
                 break;
             }
 
-            double multiplier = op2Cns->ToScalarFloating(simdBaseType);
+            double multiplier = (simdBaseType == TYP_FLOAT)
+                                    ? static_cast<double>(op2Cns->ToScalarFloating<float>(TYP_FLOAT))
+                                    : op2Cns->ToScalarFloating<double>(TYP_DOUBLE);
 
             if (multiplier == -1.0)
             {
@@ -10722,7 +10735,8 @@ GenTree* Compiler::fgOptimizeMultiply(GenTreeOp* mul)
 
     if (opts.OptimizationEnabled() && op2->IsCnsFltOrDbl())
     {
-        double multiplierValue = op2->AsDblCon()->DconValue();
+        double multiplierValue =
+            op2->TypeIs(TYP_FLOAT) ? static_cast<double>(op2->AsDblCon()->FconValue()) : op2->AsDblCon()->DconValue();
 
         if (multiplierValue == 1.0)
         {
@@ -10790,7 +10804,7 @@ GenTree* Compiler::fgOptimizeMultiply(GenTreeOp* mul)
             else
             {
                 assert(op2->IsCnsFltOrDbl());
-                op2->AsDblCon()->SetDconValue(-op2->AsDblCon()->DconValue());
+                op2->AsDblCon()->Negate();
             }
             fgUpdateConstTreeValueNumber(op2);
 

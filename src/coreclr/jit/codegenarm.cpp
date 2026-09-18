@@ -280,30 +280,28 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
 
         case GT_CNS_DBL:
         {
-            GenTreeDblCon* dblConst   = tree->AsDblCon();
-            double         constValue = dblConst->AsDblCon()->DconValue();
+            GenTreeDblCon* dblConst = tree->AsDblCon();
             // TODO-ARM-CQ: Do we have a faster/smaller way to generate 0.0 in thumb2 ISA ?
             if (targetType == TYP_FLOAT)
             {
                 // Get a temp integer register
                 regNumber tmpReg = internalRegisters.GetSingle(tree);
 
-                float f = forceCastToFloat(constValue);
-                instGen_Set_Reg_To_Imm(EA_4BYTE, tmpReg, *((int*)(&f)));
+                instGen_Set_Reg_To_Imm(EA_4BYTE, tmpReg, static_cast<int32_t>(dblConst->FconBits()));
                 GetEmitter()->emitIns_Mov(INS_vmov_i2f, EA_4BYTE, targetReg, tmpReg, /* canSkip */ false);
             }
             else
             {
                 assert(targetType == TYP_DOUBLE);
 
-                unsigned* cv = (unsigned*)&constValue;
+                uint64_t bits = dblConst->DconBits();
 
                 // Get two temp integer registers
                 regNumber tmpReg1 = internalRegisters.Extract(tree);
                 regNumber tmpReg2 = internalRegisters.GetSingle(tree);
 
-                instGen_Set_Reg_To_Imm(EA_4BYTE, tmpReg1, cv[0]);
-                instGen_Set_Reg_To_Imm(EA_4BYTE, tmpReg2, cv[1]);
+                instGen_Set_Reg_To_Imm(EA_4BYTE, tmpReg1, static_cast<uint32_t>(bits));
+                instGen_Set_Reg_To_Imm(EA_4BYTE, tmpReg2, static_cast<uint32_t>(bits >> 32));
 
                 GetEmitter()->emitIns_R_R_R(INS_vmov_i2d, EA_8BYTE, targetReg, tmpReg1, tmpReg2);
             }

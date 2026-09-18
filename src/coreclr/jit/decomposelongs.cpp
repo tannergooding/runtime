@@ -691,7 +691,16 @@ GenTree* DecomposeLongs::DecomposeCast(LIR::Use& use)
                 static_cast<int32_t>(FloatComparisonMode::OrderedGreaterThanOrEqualNonSignaling));
 
             GenTreeVecCon* ovfFloatingValue = m_compiler->gtNewVconNode(TYP_SIMD16);
-            ovfFloatingValue->EvaluateBroadcastInPlace(srcType, 9223372036854775808.0); // 2^63
+            // 2^63 is exactly representable in both floating-point formats.
+            if (srcType == TYP_FLOAT)
+            {
+                ovfFloatingValue->EvaluateBroadcastInPlace<float>(9223372036854775808.0f);
+            }
+            else
+            {
+                assert(srcType == TYP_DOUBLE);
+                ovfFloatingValue->EvaluateBroadcastInPlace<double>(9223372036854775808.0);
+            }
 
             srcClone         = m_compiler->gtClone(srcVector);
             GenTree* ovfMask = m_compiler->gtNewSimdHWIntrinsicNode(TYP_MASK, srcClone, ovfFloatingValue, compareMode,

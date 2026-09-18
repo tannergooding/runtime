@@ -2095,18 +2095,14 @@ void CodeGen::genCodeForConstant(GenTree* treeNode)
             }
             case TYP_FLOAT:
             {
-                ins                  = INS_f32_const;
-                GenTreeDblCon* con   = treeNode->AsDblCon();
-                double         value = con->DconValue();
-                memcpy(&bits, &value, sizeof(double));
+                ins  = INS_f32_const;
+                bits = treeNode->AsDblCon()->FconBits();
                 break;
             }
             case TYP_DOUBLE:
             {
-                ins                  = INS_f64_const;
-                GenTreeDblCon* con   = treeNode->AsDblCon();
-                double         value = con->DconValue();
-                memcpy(&bits, &value, sizeof(double));
+                ins  = INS_f64_const;
+                bits = static_cast<int64_t>(treeNode->AsDblCon()->DconBits());
                 break;
             }
             default:
@@ -2296,16 +2292,11 @@ void CodeGen::genCkfinite(GenTree* treeNode)
     // Compute "!(|x| < +Inf)". This is true for NaN and +/-Inf, false for
     // every finite value. We rely on wasm's IEEE-754 comparison semantics
     // where any comparison involving a NaN (other than "ne") returns 0.
-    //
-    // Note: IF_F32/IF_F64 both expect the +Inf constant as a double bit
-    // pattern (IF_F32 reinterprets and truncates to float during emission).
-    //
-    const int64_t infBits = 0x7FF0000000000000LL;
     if (targetType == TYP_FLOAT)
     {
         emit->emitIns_I(INS_local_get, EA_4BYTE, WasmRegToIndex(op1Reg));
         emit->emitIns(INS_f32_abs);
-        emit->emitIns_I(INS_f32_const, EA_4BYTE, infBits);
+        emit->emitIns_I(INS_f32_const, EA_4BYTE, 0x7F800000);
         emit->emitIns(INS_f32_lt);
     }
     else
@@ -2313,7 +2304,7 @@ void CodeGen::genCkfinite(GenTree* treeNode)
         assert(targetType == TYP_DOUBLE);
         emit->emitIns_I(INS_local_get, EA_8BYTE, WasmRegToIndex(op1Reg));
         emit->emitIns(INS_f64_abs);
-        emit->emitIns_I(INS_f64_const, EA_8BYTE, infBits);
+        emit->emitIns_I(INS_f64_const, EA_8BYTE, 0x7FF0000000000000LL);
         emit->emitIns(INS_f64_lt);
     }
     emit->emitIns(INS_i32_eqz);

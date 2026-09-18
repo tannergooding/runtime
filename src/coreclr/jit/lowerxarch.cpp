@@ -9345,15 +9345,13 @@ void Lowering::TryFoldCnsVecForEmbeddedBroadcast(GenTreeHWIntrinsic* parentNode,
     {
         case TYP_FLOAT:
         {
-            float scalar = cnsVec->gtSimdVal.f32[0];
-            constScalar  = m_compiler->gtNewDconNodeF(scalar);
+            constScalar = m_compiler->gtNewDconNodeFromBits(cnsVec->gtSimdVal.u32[0], TYP_FLOAT);
             break;
         }
 
         case TYP_DOUBLE:
         {
-            double scalar = cnsVec->gtSimdVal.f64[0];
-            constScalar   = m_compiler->gtNewDconNodeD(scalar);
+            constScalar = m_compiler->gtNewDconNodeFromBits(cnsVec->gtSimdVal.u64[0], TYP_DOUBLE);
             break;
         }
 
@@ -10504,16 +10502,14 @@ void Lowering::ContainCheckHWIntrinsic(GenTreeHWIntrinsic* node)
                                                 GenTreeHWIntrinsic* broadcastNode =
                                                     op2->AsHWIntrinsic()->Op(broadcastOpIndex)->AsHWIntrinsic();
                                                 GenTree* constNode = broadcastNode->Op(1);
-                                                int64_t  lval      = 0;
+                                                uint64_t lval      = 0;
 
                                                 assert(genTypeSize(constNode) == 4);
                                                 assert(tgtMaskSize == 2);
 
                                                 if (constNode->IsCnsFltOrDbl())
                                                 {
-                                                    float fval = FloatingPointUtils::convertToSingle(
-                                                        constNode->AsDblCon()->DconValue());
-                                                    lval = BitOperations::SingleToUInt32Bits(fval);
+                                                    lval = constNode->AsDblCon()->FconBits();
                                                 }
                                                 else
                                                 {
@@ -10521,7 +10517,8 @@ void Lowering::ContainCheckHWIntrinsic(GenTreeHWIntrinsic* node)
                                                     lval = static_cast<uint32_t>(constNode->AsIntCon()->IconValue());
                                                 }
 
-                                                GenTree* lconNode = m_compiler->gtNewLconNode((lval << 32) | lval);
+                                                GenTree* lconNode = m_compiler->gtNewLconNode(
+                                                    static_cast<int64_t>((lval << 32) | lval));
 
                                                 broadcastNode->SetSimdBaseType(TYP_LONG);
                                                 broadcastNode->Op(1) = lconNode;

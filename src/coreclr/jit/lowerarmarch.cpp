@@ -2048,8 +2048,7 @@ bool Lowering::IsValidConstForMovImm(GenTreeHWIntrinsic* node)
     else if (op1->IsCnsFltOrDbl())
     {
         assert(varTypeIsFloating(node->GetSimdBaseType()));
-        const double dataValue = op1->AsDblCon()->DconValue();
-        return m_compiler->GetEmitter()->emitIns_valid_imm_for_fmov(dataValue);
+        return emitter::emitIns_valid_imm_for_fmov_bits(op1->AsDblCon()->RawBits(), emitTypeSize(op1));
     }
 
     return false;

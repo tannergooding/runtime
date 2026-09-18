@@ -5539,8 +5539,12 @@ GenTree* Compiler::impIntrinsic(CORINFO_CLASS_HANDLE    clsHnd,
                 {
                     impPopStack();
 
-                    double f64Cns = op1->AsDblCon()->DconValue();
-                    retNode       = gtNewLconNode(*reinterpret_cast<int64_t*>(&f64Cns));
+                    // An implicit IL width conversion is numerical; the subsequent bitcast is not.
+                    if (op1->TypeIs(TYP_FLOAT))
+                    {
+                        op1 = gtNewDconNodeD(FloatingPointUtils::convertToDouble(op1->AsDblCon()->FconValue()));
+                    }
+                    retNode = gtNewLconNode(static_cast<int64_t>(op1->AsDblCon()->DconBits()));
                 }
 #if TARGET_64BIT
                 else
@@ -5562,8 +5566,8 @@ GenTree* Compiler::impIntrinsic(CORINFO_CLASS_HANDLE    clsHnd,
 
                 if (op1->IsIntegralConst())
                 {
-                    float f32Cns = BitOperations::UInt32BitsToSingle((uint32_t)op1->AsIntConCommon()->IconValue());
-                    retNode      = gtNewDconNodeF(f32Cns);
+                    retNode =
+                        gtNewDconNodeFromBits(static_cast<uint32_t>(op1->AsIntConCommon()->IconValue()), TYP_FLOAT);
                 }
                 else
                 {
@@ -5581,8 +5585,8 @@ GenTree* Compiler::impIntrinsic(CORINFO_CLASS_HANDLE    clsHnd,
                 {
                     impPopStack();
 
-                    int64_t i64Cns = op1->AsIntConCommon()->LngValue();
-                    retNode        = gtNewDconNodeD(*reinterpret_cast<double*>(&i64Cns));
+                    retNode =
+                        gtNewDconNodeFromBits(static_cast<uint64_t>(op1->AsIntConCommon()->LngValue()), TYP_DOUBLE);
                 }
 #if TARGET_64BIT
                 else
@@ -5603,8 +5607,11 @@ GenTree* Compiler::impIntrinsic(CORINFO_CLASS_HANDLE    clsHnd,
 
                 if (op1->IsCnsFltOrDbl())
                 {
-                    float f32Cns = FloatingPointUtils::convertToSingle(op1->AsDblCon()->DconValue());
-                    retNode      = gtNewIconNode((int32_t)BitOperations::SingleToUInt32Bits(f32Cns));
+                    if (op1->TypeIs(TYP_DOUBLE))
+                    {
+                        op1 = gtNewDconNodeF(FloatingPointUtils::convertToSingle(op1->AsDblCon()->DconValue()));
+                    }
+                    retNode = gtNewIconNode(static_cast<int32_t>(op1->AsDblCon()->FconBits()));
                 }
                 else
                 {
@@ -6108,14 +6115,12 @@ GenTree* Compiler::impSRCSUnsafeIntrinsic(NamedIntrinsic          intrinsic,
                 {
                     if (fromType == TYP_DOUBLE)
                     {
-                        double f64Cns = static_cast<double>(op1->AsDblCon()->DconValue());
-                        return gtNewLconNode(static_cast<int64_t>(BitOperations::DoubleToUInt64Bits(f64Cns)));
+                        return gtNewLconNode(static_cast<int64_t>(op1->AsDblCon()->DconBits()));
                     }
                     else
                     {
                         assert(fromType == TYP_FLOAT);
-                        float f32Cns = FloatingPointUtils::convertToSingle(op1->AsDblCon()->DconValue());
-                        return gtNewIconNode(static_cast<int32_t>(BitOperations::SingleToUInt32Bits(f32Cns)));
+                        return gtNewIconNode(static_cast<int32_t>(op1->AsDblCon()->FconBits()));
                     }
                 }
                 // TODO-CQ: We should support this on 32-bit via decomposition
@@ -6132,14 +6137,14 @@ GenTree* Compiler::impSRCSUnsafeIntrinsic(NamedIntrinsic          intrinsic,
                     if (toType == TYP_DOUBLE)
                     {
                         uint64_t u64Cns = static_cast<uint64_t>(op1->AsIntConCommon()->LngValue());
-                        return gtNewDconNodeD(BitOperations::UInt64BitsToDouble(u64Cns));
+                        return gtNewDconNodeFromBits(u64Cns, TYP_DOUBLE);
                     }
                     else
                     {
                         assert(toType == TYP_FLOAT);
 
                         uint32_t u32Cns = static_cast<uint32_t>(op1->AsIntConCommon()->IconValue());
-                        return gtNewDconNodeF(BitOperations::UInt32BitsToSingle(u32Cns));
+                        return gtNewDconNodeFromBits(u32Cns, TYP_FLOAT);
                     }
                 }
                 // TODO-CQ: We should support this on 32-bit via decomposition
@@ -11369,7 +11374,7 @@ GenTree* Compiler::impEstimateIntrinsic(CORINFO_METHOD_HANDLE method,
                 op1 = new (this, GT_INTRINSIC)
                     GenTreeIntrinsic(genActualType(callType), op1, NI_System_Math_Sqrt, nullptr R2RARG(entryPoint));
             }
-            return gtNewOperNode(GT_DIV, genActualType(callType), gtNewDconNode(1.0, callType), op1);
+            return gtNewOperNode(GT_DIV, genActualType(callType), gtNewOneConNode(callType), op1);
         }
 
         default:

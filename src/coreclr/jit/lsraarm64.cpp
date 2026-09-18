@@ -715,10 +715,10 @@ int LinearScan::BuildNode(GenTree* tree)
 
         case GT_CNS_DBL:
         {
-            GenTreeDblCon* dblConst   = tree->AsDblCon();
-            double         constValue = dblConst->AsDblCon()->DconValue();
+            GenTreeDblCon* dblConst = tree->AsDblCon();
 
-            if (emitter::emitIns_valid_imm_for_fmov(constValue))
+            if (dblConst->IsFloatPositiveZero() ||
+                emitter::emitIns_valid_imm_for_fmov_bits(dblConst->RawBits(), emitTypeSize(dblConst)))
             {
                 // Directly encode constant to instructions.
             }
@@ -759,7 +759,7 @@ int LinearScan::BuildNode(GenTree* tree)
                 {
                     case SimdScalableRepeated:
                     {
-                        if (!info.CanEncodeRepeated<emitter>(simdVal))
+                        if (!info.CanEncodeRepeated<emitter>(emitActualTypeSize(info.baseType)))
                         {
                             buildInternalIntRegisterDefForNode(tree);
                             buildInternalRegisterUses();
@@ -791,7 +791,7 @@ int LinearScan::BuildNode(GenTree* tree)
 
                     case SimdScalableScalar:
                     {
-                        if (!info.CanEncodeScalar<emitter>(simdVal, emitActualTypeSize(info.baseType)))
+                        if (!info.CanEncodeScalar<emitter>(emitActualTypeSize(info.baseType)))
                         {
                             buildInternalIntRegisterDefForNode(tree);
                             buildInternalRegisterUses();

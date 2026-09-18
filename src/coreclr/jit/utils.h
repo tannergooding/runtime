@@ -886,6 +886,26 @@ public:
 
     static bool isNaN(double val);
 
+    static bool isNaNBits(uint32_t bits)
+    {
+        return (bits & 0x7FFFFFFFU) > 0x7F800000U;
+    }
+
+    static bool isNaNBits(uint64_t bits)
+    {
+        return (bits & 0x7FFFFFFFFFFFFFFFULL) > 0x7FF0000000000000ULL;
+    }
+
+    static bool isNegativeZeroBits(uint32_t bits)
+    {
+        return bits == 0x80000000U;
+    }
+
+    static bool isNegativeZeroBits(uint64_t bits)
+    {
+        return bits == 0x8000000000000000ULL;
+    }
+
     static bool isNegativeZero(double val);
 
     static bool isPositiveZero(double val);

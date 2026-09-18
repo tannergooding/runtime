@@ -540,8 +540,7 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
             }
             else
             {
-                double               cns = tree->AsDblCon()->DconValue();
-                CORINFO_FIELD_HANDLE hnd = emit->emitFltOrDblConst(cns, size);
+                CORINFO_FIELD_HANDLE hnd = emit->emitFltOrDblConstBits(tree->AsDblCon()->RawBits(), size);
 
                 emit->emitIns_R_C(ins_Load(targetType), size, targetReg, hnd, 0);
             }
@@ -9406,7 +9405,7 @@ void CodeGen::genAmd64EmitterUnitTestsCCMP()
     // Test RC form
     // ============
 
-    CORINFO_FIELD_HANDLE hnd = theEmitter->emitFltOrDblConst(1.0f, EA_4BYTE);
+    CORINFO_FIELD_HANDLE hnd = theEmitter->emitFltOrDblConstBits(0x3F800000, EA_4BYTE);
     theEmitter->emitIns_R_C(INS_ccmpe, EA_4BYTE, REG_RAX, hnd, 0, INS_OPTS_EVEX_dfv_cf);
     theEmitter->emitIns_R_C(INS_ccmpe, EA_4BYTE, REG_RAX, hnd, 4, INS_OPTS_EVEX_dfv_cf);
 }

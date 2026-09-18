@@ -370,19 +370,17 @@ static bool isValidSimm32(ssize_t value)
 // isSingleInstructionFpImm: checks if the floating-point constant can be synthesized with one instruction
 //
 // Arguments:
-//    value   - the constant to be imm'ed
+//    bits    - raw bits of the constant to be imm'ed
 //    size    - size of the target immediate
 //    outBits - [out] the bits of the immediate
 //
 // Return Value:
 //    Whether the floating-point immediate can be synthesized with one instruction
 //
-static bool isSingleInstructionFpImm(double value, emitAttr size, int64_t* outBits)
+static bool isSingleInstructionFpImm(uint64_t bits, emitAttr size, int64_t* outBits)
 {
     assert(size == EA_4BYTE || size == EA_8BYTE);
-    *outBits = (size == EA_4BYTE)
-                   ? (int32_t)BitOperations::SingleToUInt32Bits(FloatingPointUtils::convertToSingle(value))
-                   : (int64_t)BitOperations::DoubleToUInt64Bits(value);
+    *outBits = (size == EA_4BYTE) ? static_cast<int32_t>(static_cast<uint32_t>(bits)) : static_cast<int64_t>(bits);
     return isValidSimm12(*outBits) || (((*outBits & 0xfff) == 0) && isValidSimm20(*outBits >> 12));
 }
 

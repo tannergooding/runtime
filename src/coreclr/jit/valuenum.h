@@ -452,10 +452,17 @@ private:
 
 public:
     // Given an constant value number return its value.
-    int    GetConstantInt32(ValueNum argVN);
-    INT64  GetConstantInt64(ValueNum argVN);
-    double GetConstantDouble(ValueNum argVN);
-    float  GetConstantSingle(ValueNum argVN);
+    int      GetConstantInt32(ValueNum argVN);
+    INT64    GetConstantInt64(ValueNum argVN);
+    double   GetConstantDouble(ValueNum argVN);
+    float    GetConstantSingle(ValueNum argVN);
+    uint32_t GetConstantSingleBits(ValueNum argVN);
+    uint64_t GetConstantDoubleBits(ValueNum argVN);
+
+    // These predicates require a floating-point constant VN and do not evaluate it as a floating value.
+    bool VNIsNaN(ValueNum argVN);
+    bool VNIsNegativeZero(ValueNum argVN);
+    bool VNIsPositiveZero(ValueNum argVN);
 
 #if defined(FEATURE_SIMD)
     simd_t   GetConstantSimd(ValueNum argVN);
@@ -489,6 +496,10 @@ private:
     ValueNum EvalBitCastForConstantArgs(var_types dstType, ValueNum arg0VN);
 
     ValueNum EvalUsingMathIdentity(var_types typ, VNFunc vnf, ValueNum vn0, ValueNum vn1);
+    ValueNum VNQuietNaN(ValueNum argVN);
+#ifdef FEATURE_SIMD
+    ValueNum VNQuietVectorNaN(var_types simdType, var_types simdBaseType, ValueNum argVN);
+#endif // FEATURE_SIMD
 
 // This is the constant value used for the default value of m_mapSelectBudget
 #define DEFAULT_MAP_SELECT_BUDGET 100 // used by JitVNMapSelBudget
@@ -548,6 +559,21 @@ public:
     ValueNum VNForLongCon(INT64 cnsVal);
     ValueNum VNForFloatCon(float cnsVal);
     ValueNum VNForDoubleCon(double cnsVal);
+    ValueNum VNForFloatConBits(uint32_t cnsBits);
+    ValueNum VNForDoubleConBits(uint64_t cnsBits);
+
+    template <typename T>
+    ValueNum VNForFloatCon(T cnsVal) = delete;
+
+    template <typename T>
+    ValueNum VNForDoubleCon(T cnsVal) = delete;
+
+    template <typename T, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+    ValueNum VNForFloatConBits(T cnsBits) = delete;
+
+    template <typename T, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+    ValueNum VNForDoubleConBits(T cnsBits) = delete;
+
     ValueNum VNForByrefCon(target_size_t byrefVal);
 
 #if defined(FEATURE_SIMD)
@@ -1318,18 +1344,22 @@ private:
 #ifdef DEBUG
                 if (!coerce)
                 {
-                    T val1 = reinterpret_cast<T*>(c->m_defs)[offset];
-                    T val2 = SafeGetConstantValue<T>(c, offset);
-
                     // Detect if there is a mismatch between the VN storage type and explicitly
-                    // passed-in type T.
+                    // passed-in type T. Do not compare floating values: retrieving a signaling
+                    // NaN through the host floating-point ABI can quiet it.
                     bool mismatch = false;
-                    if (varTypeIsFloating(c->m_typ))
+                    if (c->m_typ == TYP_FLOAT)
                     {
-                        mismatch = (memcmp(&val1, &val2, sizeof(val1)) != 0);
+                        mismatch = !std::is_same_v<T, float>;
+                    }
+                    else if (c->m_typ == TYP_DOUBLE)
+                    {
+                        mismatch = !std::is_same_v<T, double>;
                     }
                     else
                     {
+                        T val1   = reinterpret_cast<T*>(c->m_defs)[offset];
+                        T val2   = SafeGetConstantValue<T>(c, offset);
                         mismatch = (val1 != val2);
                     }
 
@@ -1795,17 +1825,10 @@ private:
     typedef SmallHashTable<ValueNum, FieldSeq*> FieldAddressToFieldSeqMap;
     FieldAddressToFieldSeqMap                   m_fieldAddressToFieldSeqMap;
 
-    struct LargePrimitiveKeyFuncsFloat : public JitLargePrimitiveKeyFuncs<float>
-    {
-        static bool Equals(float x, float y)
-        {
-            return *(unsigned*)&x == *(unsigned*)&y;
-        }
-    };
-
-    typedef VNMap<float, LargePrimitiveKeyFuncsFloat> FloatToValueNumMap;
-    FloatToValueNumMap*                               m_floatCnsMap;
-    FloatToValueNumMap*                               GetFloatCnsMap()
+    // Integer keys preserve signed zero and NaN payloads without floating-point ABI transport.
+    typedef VNMap<uint32_t, JitLargePrimitiveKeyFuncs<uint32_t>> FloatToValueNumMap;
+    FloatToValueNumMap*                                          m_floatCnsMap;
+    FloatToValueNumMap*                                          GetFloatCnsMap()
     {
         if (m_floatCnsMap == nullptr)
         {
@@ -1814,18 +1837,9 @@ private:
         return m_floatCnsMap;
     }
 
-    // In the JIT we need to distinguish -0.0 and 0.0 for optimizations.
-    struct LargePrimitiveKeyFuncsDouble : public JitLargePrimitiveKeyFuncs<double>
-    {
-        static bool Equals(double x, double y)
-        {
-            return *(int64_t*)&x == *(int64_t*)&y;
-        }
-    };
-
-    typedef VNMap<double, LargePrimitiveKeyFuncsDouble> DoubleToValueNumMap;
-    DoubleToValueNumMap*                                m_doubleCnsMap;
-    DoubleToValueNumMap*                                GetDoubleCnsMap()
+    typedef VNMap<uint64_t, JitLargePrimitiveKeyFuncs<uint64_t>> DoubleToValueNumMap;
+    DoubleToValueNumMap*                                         m_doubleCnsMap;
+    DoubleToValueNumMap*                                         GetDoubleCnsMap()
     {
         if (m_doubleCnsMap == nullptr)
         {
@@ -2346,9 +2360,17 @@ FORCEINLINE T ValueNumStore::SafeGetConstantValue(Chunk* c, unsigned offset)
         case TYP_LONG:
             return static_cast<T>(reinterpret_cast<VarTypConv<TYP_LONG>::Type*>(c->m_defs)[offset]);
         case TYP_FLOAT:
-            return static_cast<T>(reinterpret_cast<VarTypConv<TYP_FLOAT>::Lang*>(c->m_defs)[offset]);
+        {
+            float value;
+            memcpy(&value, &reinterpret_cast<VarTypConv<TYP_FLOAT>::Type*>(c->m_defs)[offset], sizeof(value));
+            return static_cast<T>(value);
+        }
         case TYP_DOUBLE:
-            return static_cast<T>(reinterpret_cast<VarTypConv<TYP_DOUBLE>::Lang*>(c->m_defs)[offset]);
+        {
+            double value;
+            memcpy(&value, &reinterpret_cast<VarTypConv<TYP_DOUBLE>::Type*>(c->m_defs)[offset], sizeof(value));
+            return static_cast<T>(value);
+        }
         default:
             assert(false);
             return (T)0;

@@ -2482,13 +2482,25 @@ emitter::code_t emitter::emitInsCode(instruction ins, insFormat fmt)
     return false;
 }
 
-// true if this 'imm' can be encoded as a input operand to a fmov instruction
-/*static*/ bool emitter::emitIns_valid_imm_for_fmov(double immDbl)
+// Check raw constant bits for an FMOV immediate, optionally returning numerical scratch for emission.
+/*static*/ bool emitter::emitIns_valid_imm_for_fmov_bits(uint64_t bits, emitAttr attr, double* immDbl)
 {
-    if (canEncodeFloatImm8(immDbl))
-        return true;
+    assert((attr == EA_4BYTE) || (attr == EA_8BYTE));
 
-    return false;
+    double value = (attr == EA_4BYTE)
+                       ? static_cast<double>(BitOperations::UInt32BitsToSingle(static_cast<uint32_t>(bits)))
+                       : BitOperations::UInt64BitsToDouble(bits);
+    if (!canEncodeFloatImm8(value))
+    {
+        return false;
+    }
+
+    if (immDbl != nullptr)
+    {
+        *immDbl = value;
+    }
+
+    return true;
 }
 
 // true if this 'imm' can be encoded as a input operand to an add instruction
@@ -3251,6 +3263,13 @@ emitter::code_t emitter::emitInsCode(instruction ins, insFormat fmt)
     {
         val  = -val;
         sign = 1;
+    }
+
+    // FMOV encodes magnitudes in [0.125, 31]. Reject NaNs and out-of-range
+    // values before scaling the mantissa and converting it to an integer.
+    if (!((val >= 0.125) && (val <= 31.0)))
+    {
+        return false;
     }
 
     int exp = 0;

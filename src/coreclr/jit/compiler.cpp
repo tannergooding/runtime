@@ -388,13 +388,6 @@ Compiler::Compiler(ArenaAllocator*       arena,
         m_memorySsaMap[memoryKind] = nullptr;
     }
 
-#ifdef DEBUG
-    if (!compIsForInlining())
-    {
-        compDoComponentUnitTestsOnce();
-    }
-#endif // DEBUG
-
     // check that HelperCallProperties are initialized
     assert(s_helperCallProperties.IsPure(CORINFO_HELP_GET_GCSTATIC_BASE));
 
@@ -1741,6 +1734,7 @@ void Compiler::compDoComponentUnitTestsOnce()
     if (!DidComponentUnitTests)
     {
         DidComponentUnitTests = true;
+        GenTreeDblCon::RunTests(this);
         ValueNumStore::RunTests(this);
         BitSetSupport::TestSuite(getAllocatorDebugOnly());
     }
@@ -6683,6 +6677,14 @@ int Compiler::compCompileHelper(CORINFO_MODULE_HANDLE classPtr,
     // compInitOptions will set the correct verbose flag.
 
     compInitOptions(compileFlags);
+
+#ifdef DEBUG
+    // GenTree construction requires compiler TLS and initialized options.
+    if (!compIsForInlining())
+    {
+        compDoComponentUnitTestsOnce();
+    }
+#endif // DEBUG
 
     if (!compIsForInlining() && !opts.altJit && opts.jitFlags->IsSet(JitFlags::JIT_FLAG_ALT_JIT))
     {

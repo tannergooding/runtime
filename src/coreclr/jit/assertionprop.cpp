@@ -1277,8 +1277,8 @@ AssertionIndex Compiler::optCreateAssertion(GenTree* op1, GenTree* op2, bool equ
             //
             case GT_CNS_DBL:
             {
-                double dblCns = op2->AsDblCon()->DconValue();
-                if (FloatingPointUtils::isNaN(dblCns))
+                GenTreeDblCon* constant = op2->AsDblCon();
+                if (constant->IsFloatNaN())
                 {
                     return NO_ASSERTION_INDEX;
                 }
@@ -1291,6 +1291,9 @@ AssertionIndex Compiler::optCreateAssertion(GenTree* op1, GenTree* op2, bool equ
                     return NO_ASSERTION_INDEX;
                 }
 
+                // Assertions express numerical equality and exclude NaNs, so widening here is lossless.
+                double dblCns =
+                    constant->TypeIs(TYP_FLOAT) ? static_cast<double>(constant->FconValue()) : constant->DconValue();
                 AssertionDsc dsc = AssertionDsc::CreateConstLclVarAssertion(this, lclNum, op1VN, dblCns, op2VN, equals);
                 return optAddAssertion(dsc);
             }
@@ -3063,35 +3066,41 @@ GenTree* Compiler::optVNBasedFoldConstExpr(BasicBlock* block, GenTree* parent, G
     {
         case TYP_FLOAT:
         {
-            float value = vnStore->ConstantValue<float>(vnCns);
+            uint32_t bits = vnStore->GetConstantSingleBits(vnCns);
 
             if (tree->TypeIs(TYP_INT))
             {
                 // Same sized reinterpretation of bits to integer
-                conValTree = gtNewIconNode(*(reinterpret_cast<int*>(&value)));
+                conValTree = gtNewIconNode(static_cast<int32_t>(bits));
+            }
+            else if (tree->TypeIs(TYP_FLOAT))
+            {
+                conValTree = gtNewDconNodeFromBits(bits, TYP_FLOAT);
             }
             else
             {
-                // Implicit conversion to float or double
-                assert(varTypeIsFloating(tree->TypeGet()));
-                conValTree = gtNewDconNode(FloatingPointUtils::convertToDouble(value), tree->TypeGet());
+                assert(tree->TypeIs(TYP_DOUBLE));
+                conValTree = gtNewDconNodeD(FloatingPointUtils::convertToDouble(vnStore->GetConstantSingle(vnCns)));
             }
             break;
         }
 
         case TYP_DOUBLE:
         {
-            double value = vnStore->ConstantValue<double>(vnCns);
+            uint64_t bits = vnStore->GetConstantDoubleBits(vnCns);
 
             if (tree->TypeIs(TYP_LONG))
             {
-                conValTree = gtNewLconNode(*(reinterpret_cast<INT64*>(&value)));
+                conValTree = gtNewLconNode(static_cast<int64_t>(bits));
+            }
+            else if (tree->TypeIs(TYP_DOUBLE))
+            {
+                conValTree = gtNewDconNodeFromBits(bits, TYP_DOUBLE);
             }
             else
             {
-                // Implicit conversion to float or double
-                assert(varTypeIsFloating(tree->TypeGet()));
-                conValTree = gtNewDconNode(value, tree->TypeGet());
+                assert(tree->TypeIs(TYP_FLOAT));
+                conValTree = gtNewDconNodeF(FloatingPointUtils::convertToSingle(vnStore->GetConstantDouble(vnCns)));
             }
             break;
         }
@@ -3133,7 +3142,7 @@ GenTree* Compiler::optVNBasedFoldConstExpr(BasicBlock* block, GenTree* parent, G
 
                     case TYP_DOUBLE:
                         // Same sized reinterpretation of bits to double
-                        conValTree = gtNewDconNodeD(*(reinterpret_cast<double*>(&value)));
+                        conValTree = gtNewDconNodeFromBits(static_cast<uint64_t>(value), TYP_DOUBLE);
                         break;
 
                     default:
@@ -3193,7 +3202,7 @@ GenTree* Compiler::optVNBasedFoldConstExpr(BasicBlock* block, GenTree* parent, G
 
                     case TYP_FLOAT:
                         // Same sized reinterpretation of bits to float
-                        conValTree = gtNewDconNodeF(BitOperations::UInt32BitsToSingle((uint32_t)value));
+                        conValTree = gtNewDconNodeFromBits(static_cast<uint32_t>(value), TYP_FLOAT);
                         break;
 
                     case TYP_DOUBLE:
@@ -3492,7 +3501,15 @@ GenTree* Compiler::optConstantAssertionProp(const AssertionDsc&  curAssertion,
             {
                 return nullptr;
             }
-            newTree->BashToConst(curAssertion.GetOp2().GetDoubleConstant(), tree->TypeGet());
+            if (tree->TypeIs(TYP_DOUBLE))
+            {
+                newTree->BashToConst(curAssertion.GetOp2().GetDoubleConstant());
+            }
+            else
+            {
+                assert(tree->TypeIs(TYP_FLOAT));
+                newTree->BashToConst(FloatingPointUtils::convertToSingle(curAssertion.GetOp2().GetDoubleConstant()));
+            }
             break;
 
 #if defined(FEATURE_HW_INTRINSICS)
@@ -4793,22 +4810,20 @@ GenTree* Compiler::optAssertionPropGlobal_RelOp(ASSERT_VALARG_TP assertions,
         }
         else if (op1->TypeIs(TYP_DOUBLE))
         {
-            double constant = vnStore->ConstantValue<double>(vnCns);
-            op1->BashToConst(constant);
+            op1->BashToFloatConBits(vnStore->GetConstantDoubleBits(vnCns), TYP_DOUBLE);
 
             // Nothing can be equal to NaN. So if IL had "op1 == NaN", then we already made op1 NaN,
             // which will yield a false correctly. Instead if IL had "op1 != NaN", then we already
             // made op1 NaN which will yield a true correctly. Note that this is irrespective of the
             // assertion we have made.
-            allowReverse = !FloatingPointUtils::isNaN(constant);
+            allowReverse = !vnStore->VNIsNaN(vnCns);
         }
         else if (op1->TypeIs(TYP_FLOAT))
         {
-            float constant = vnStore->ConstantValue<float>(vnCns);
-            op1->BashToConst(constant);
+            op1->BashToFloatConBits(vnStore->GetConstantSingleBits(vnCns), TYP_FLOAT);
 
             // See comments for TYP_DOUBLE.
-            allowReverse = !FloatingPointUtils::isNaN(constant);
+            allowReverse = !vnStore->VNIsNaN(vnCns);
         }
         else if (op1->TypeIs(TYP_REF))
         {
@@ -4865,8 +4880,8 @@ GenTree* Compiler::optAssertionPropGlobal_RelOp(ASSERT_VALARG_TP assertions,
             // point only on JTrue nodes, so if the condition held earlier, it will hold
             // now. We don't create OAK_EQUAL assertion on floating point from stores
             // because we depend on value num which would constant prop the NaN.
-            op1->BashToConst(0.0, op1->TypeGet());
-            op2->BashToConst(0.0, op2->TypeGet());
+            op1->BashToFloatConBits(0, op1->TypeGet());
+            op2->BashToFloatConBits(0, op2->TypeGet());
         }
         // Change the op1 LclVar to the op2 LclVar
         else

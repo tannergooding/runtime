@@ -1004,13 +1004,13 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
 
         case GT_CNS_DBL:
         {
-            emitter* emit       = GetEmitter();
-            emitAttr size       = emitActualTypeSize(tree);
-            double   constValue = tree->AsDblCon()->DconValue();
+            emitter* emit      = GetEmitter();
+            emitAttr size      = emitActualTypeSize(tree);
+            uint64_t constBits = tree->AsDblCon()->RawBits();
 
             assert(emitter::isFloatReg(targetReg));
             int64_t bits;
-            if (emitter::isSingleInstructionFpImm(constValue, size, &bits))
+            if (emitter::isSingleInstructionFpImm(constBits, size, &bits))
             {
                 regNumber temp = REG_ZERO;
                 if (bits != 0)
@@ -1034,7 +1034,7 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
 
             // We must load the FP constant from the constant pool
             // Emit a data section constant for the float or double constant.
-            CORINFO_FIELD_HANDLE hnd = emit->emitFltOrDblConst(constValue, size);
+            CORINFO_FIELD_HANDLE hnd = emit->emitFltOrDblConstBits(constBits, size);
 
             // Compute the address of the FP constant and load the data.
             emit->emitIns_R_C(size == EA_4BYTE ? INS_flw : INS_fld, size, targetReg, REG_NA, hnd);
@@ -3840,10 +3840,7 @@ void CodeGen::genCodeForTreeNode(GenTree* treeNode)
             break;
 
         case GT_CNS_INT:
-            if ((targetType == TYP_DOUBLE) || (targetType == TYP_FLOAT))
-            {
-                treeNode->gtOper = GT_CNS_DBL;
-            }
+            assert(!varTypeIsFloating(targetType));
             FALLTHROUGH;
         case GT_CNS_DBL:
             genSetRegToConst(targetReg, targetType, treeNode);

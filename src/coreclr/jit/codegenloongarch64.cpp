@@ -1023,13 +1023,13 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
 
         case GT_CNS_DBL:
         {
-            emitter* emit       = GetEmitter();
-            emitAttr size       = emitActualTypeSize(tree);
-            double   constValue = tree->AsDblCon()->DconValue();
+            emitter* emit = GetEmitter();
+            emitAttr size = emitActualTypeSize(tree);
+            uint64_t bits = tree->AsDblCon()->RawBits();
 
             // Make sure we use "addi.d reg, zero, 0x00"  only for positive zero (0.0)
             // and not for negative zero (-0.0)
-            if (*(int64_t*)&constValue == 0)
+            if (bits == 0)
             {
                 // A faster/smaller way to generate 0.0
                 // We will just zero out the entire vector register for both float and double
@@ -1042,7 +1042,7 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
 
                 // We must load the FP constant from the constant pool
                 // Emit a data section constant for the float or double constant.
-                CORINFO_FIELD_HANDLE hnd = emit->emitFltOrDblConst(constValue, size);
+                CORINFO_FIELD_HANDLE hnd = emit->emitFltOrDblConstBits(bits, size);
 
                 // Load the FP constant.
                 assert(targetReg >= REG_F0);
@@ -4000,10 +4000,7 @@ void CodeGen::genCodeForTreeNode(GenTree* treeNode)
             break;
 
         case GT_CNS_INT:
-            if ((targetType == TYP_DOUBLE) || (targetType == TYP_FLOAT))
-            {
-                treeNode->gtOper = GT_CNS_DBL;
-            }
+            assert(!varTypeIsFloating(targetType));
             FALLTHROUGH;
         case GT_CNS_DBL:
             genSetRegToConst(targetReg, targetType, treeNode);

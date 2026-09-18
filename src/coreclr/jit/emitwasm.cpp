@@ -1056,14 +1056,8 @@ size_t emitter::emitOutputInstr(insGroup* ig, instrDesc* id, BYTE** dp)
         case IF_F32:
         {
             dst += emitOutputOpcode(dst, ins);
-            // Reinterpret the bits as a double constant and then truncate it to f32,
-            //  then finally copy the raw truncated f32 bits to the output.
-            cnsval_ssize_t bits = emitGetInsSC(id);
-            double         value;
-            float          truncated;
-            memcpy(&value, &bits, sizeof(double));
-            truncated = FloatingPointUtils::convertToSingle(value);
-            dst += emitRawBytes(dst, &truncated, sizeof(float));
+            uint32_t bits = static_cast<uint32_t>(emitGetInsSC(id));
+            dst += emitRawBytes(dst, &bits, sizeof(bits));
             break;
         }
         case IF_F64:
@@ -1408,6 +1402,14 @@ void emitter::emitDispIns(
         break;
 
         case IF_F32:
+        {
+            uint32_t bits = static_cast<uint32_t>(emitGetInsSC(id));
+            float    value;
+            memcpy(&value, &bits, sizeof(value));
+            printf(" %f", static_cast<double>(value));
+        }
+        break;
+
         case IF_F64:
         {
             cnsval_ssize_t bits = emitGetInsSC(id);

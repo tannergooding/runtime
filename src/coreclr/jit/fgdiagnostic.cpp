@@ -345,7 +345,16 @@ void Compiler::fgDumpTree(FILE* fgxFile, GenTree* const tree)
     }
     else if (tree->IsCnsFltOrDbl())
     {
-        fprintf(fgxFile, "%g", tree->AsDblCon()->DconValue());
+        if (tree->IsFloatNaN())
+        {
+            fprintf(fgxFile, "NaN(0x%llx)", static_cast<unsigned long long>(tree->AsDblCon()->RawBits()));
+        }
+        else
+        {
+            double value = tree->TypeIs(TYP_FLOAT) ? static_cast<double>(tree->AsDblCon()->FconValue())
+                                                   : tree->AsDblCon()->DconValue();
+            fprintf(fgxFile, "%g", value);
+        }
     }
     else if (tree->IsLocal())
     {

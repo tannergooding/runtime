@@ -5891,16 +5891,12 @@ void Lowering::LowerRetStruct(GenTreeUnOp* ret)
             {
                 // ZeroObj assertion propagation can create INT zeros for DOUBLE returns.
                 assert((genTypeSize(retVal) == genTypeSize(nativeReturnType)) || retVal->IsIntegralConst(0));
-                int64_t value = retVal->AsIntCon()->IconValue();
-
+                uint64_t bits = static_cast<uint64_t>(retVal->AsIntCon()->IconValue());
                 if (nativeReturnType == TYP_FLOAT)
                 {
-                    retVal->BashToConst(*reinterpret_cast<float*>(&value));
+                    bits = static_cast<uint32_t>(bits);
                 }
-                else
-                {
-                    retVal->BashToConst(*reinterpret_cast<double*>(&value));
-                }
+                retVal->BashToFloatConBits(bits, nativeReturnType);
             }
             else
             {
@@ -10279,13 +10275,13 @@ bool Lowering::TryRemoveBitCast(GenTreeUnOp* node)
         {
             if (op->TypeIs(TYP_FLOAT))
             {
-                float floatVal = FloatingPointUtils::convertToSingle(op->AsDblCon()->DconValue());
-                memcpy(bits, &floatVal, sizeof(float));
+                uint32_t floatBits = op->AsDblCon()->FconBits();
+                memcpy(bits, &floatBits, sizeof(floatBits));
             }
             else
             {
-                double doubleVal = op->AsDblCon()->DconValue();
-                memcpy(bits, &doubleVal, sizeof(double));
+                uint64_t doubleBits = op->AsDblCon()->DconBits();
+                memcpy(bits, &doubleBits, sizeof(doubleBits));
             }
         }
 
@@ -10843,16 +10839,14 @@ static bool TryGetStoreCoalescingConstantBits(GenTree* value, uint64_t* bits)
     {
         if (value->TypeIs(TYP_FLOAT))
         {
-            float floatCns = static_cast<float>(value->AsDblCon()->DconValue());
-            *bits          = BitOperations::SingleToUInt32Bits(floatCns);
+            *bits = value->AsDblCon()->FconBits();
             return true;
         }
 
 #ifdef TARGET_64BIT
         // We only need the raw 64-bit payload for targets where the resulting 8-byte coalesced store is supported.
         assert(value->TypeIs(TYP_DOUBLE));
-        double doubleCns = value->AsDblCon()->DconValue();
-        *bits            = BitOperations::DoubleToUInt64Bits(doubleCns);
+        *bits = value->AsDblCon()->DconBits();
         return true;
 #endif
     }
@@ -12827,7 +12821,7 @@ void Lowering::TryRetypingFloatingPointStoreToIntegerStore(GenTree* store)
     //
     if (value->IsCnsFltOrDbl())
     {
-        double    dblCns = value->AsDblCon()->DconValue();
+        uint64_t  bits   = value->AsDblCon()->RawBits();
         ssize_t   intCns = 0;
         var_types type   = TYP_UNKNOWN;
         // XARCH: we can always contain the immediates.
@@ -12839,22 +12833,21 @@ void Lowering::TryRetypingFloatingPointStoreToIntegerStore(GenTree* store)
 #if defined(TARGET_XARCH) || defined(TARGET_ARM)
         bool shouldSwitchToInteger = true;
 #else // TARGET_ARM64 || TARGET_LOONGARCH64 || TARGET_RISCV64
-        bool shouldSwitchToInteger = FloatingPointUtils::isPositiveZero(dblCns);
+        bool shouldSwitchToInteger = (bits == 0);
 #endif
 
         if (shouldSwitchToInteger)
         {
             if (store->TypeIs(TYP_FLOAT))
             {
-                float fltCns = static_cast<float>(dblCns);
-                intCns       = *reinterpret_cast<INT32*>(&fltCns);
-                type         = TYP_INT;
+                intCns = static_cast<int32_t>(static_cast<uint32_t>(bits));
+                type   = TYP_INT;
             }
 #ifdef TARGET_64BIT
             else
             {
                 assert(store->TypeIs(TYP_DOUBLE));
-                intCns = *reinterpret_cast<INT64*>(&dblCns);
+                intCns = static_cast<int64_t>(bits);
                 type   = TYP_LONG;
             }
 #endif

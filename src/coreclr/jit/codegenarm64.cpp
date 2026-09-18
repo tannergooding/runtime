@@ -2320,18 +2320,19 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
 
         case GT_CNS_DBL:
         {
-            emitter* emit       = GetEmitter();
-            emitAttr size       = emitActualTypeSize(tree);
-            double   constValue = tree->AsDblCon()->DconValue();
+            emitter* emit = GetEmitter();
+            emitAttr size = emitActualTypeSize(tree);
+            uint64_t bits = tree->AsDblCon()->RawBits();
+            double   constValue;
 
             // Make sure we use "movi reg, 0x00"  only for positive zero (0.0) and not for negative zero (-0.0)
-            if (*(int64_t*)&constValue == 0)
+            if (bits == 0)
             {
                 // A faster/smaller way to generate 0.0
                 // We will just zero out the entire vector register for both float and double
                 emit->emitIns_R_I(INS_movi, EA_16BYTE, targetReg, 0x00, INS_OPTS_16B);
             }
-            else if (emitter::emitIns_valid_imm_for_fmov(constValue))
+            else if (emitter::emitIns_valid_imm_for_fmov_bits(bits, size, &constValue))
             {
                 // We can load the FP constant using the fmov FP-immediate for this constValue
                 emit->emitIns_R_F(INS_fmov, size, targetReg, constValue);
@@ -2343,7 +2344,7 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
 
                 // We must load the FP constant from the constant pool
                 // Emit a data section constant for the float or double constant.
-                CORINFO_FIELD_HANDLE hnd = emit->emitFltOrDblConst(constValue, size);
+                CORINFO_FIELD_HANDLE hnd = emit->emitFltOrDblConstBits(bits, size);
                 // For long address (default): `adrp + ldr + fmov` will be emitted.
                 // For short address (proven later), `ldr` will be emitted.
                 emit->emitIns_R_C(INS_ldr, size, targetReg, addrReg, hnd, 0);
@@ -2447,23 +2448,17 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
                         {
                             case SimdScalableRepeated:
                             {
-                                if (info.CanEncodeRepeated<emitter>(simdVal))
+                                double constValue;
+                                if (varTypeIsIntegral(baseType) &&
+                                    info.CanEncodeRepeated<emitter>(emitActualTypeSize(baseType)))
                                 {
-                                    if (varTypeIsIntegral(baseType))
-                                    {
-                                        emit->emitInsSve_R_I(INS_sve_dup, EA_SCALABLE, targetReg, info.indexImm, opt);
-                                    }
-                                    else if (baseType == TYP_FLOAT)
-                                    {
-                                        emit->emitIns_R_F(INS_sve_fdup, EA_SCALABLE, targetReg,
-                                                          simdVal.gtSimdScalableIndexF32[0], INS_OPTS_SCALABLE_S);
-                                    }
-                                    else
-                                    {
-                                        assert(baseType == TYP_DOUBLE);
-                                        emit->emitIns_R_F(INS_sve_fdup, EA_SCALABLE, targetReg,
-                                                          simdVal.gtSimdScalableIndexF64[0], INS_OPTS_SCALABLE_D);
-                                    }
+                                    emit->emitInsSve_R_I(INS_sve_dup, EA_SCALABLE, targetReg, info.indexImm, opt);
+                                }
+                                else if (varTypeIsFloating(baseType) &&
+                                         emitter::emitIns_valid_imm_for_fmov_bits(info.indexVal, emitTypeSize(baseType),
+                                                                                  &constValue))
+                                {
+                                    emit->emitIns_R_F(INS_sve_fdup, EA_SCALABLE, targetReg, constValue, opt);
                                 }
                                 else
                                 {
@@ -2516,19 +2511,12 @@ void CodeGen::genSetRegToConst(regNumber targetReg, var_types targetType, GenTre
                                 emit->emitInsSve_R_I(INS_sve_dup, EA_SCALABLE, targetReg, 0, opt);
 
                                 // Use NEON instructions to load the constant (to avoid using predicates)
-                                if (info.CanEncodeScalar<emitter>(simdVal, emitSize))
+                                double constValue;
+                                if (varTypeIsFloating(baseType) &&
+                                    emitter::emitIns_valid_imm_for_fmov_bits(info.indexVal, emitTypeSize(baseType),
+                                                                             &constValue))
                                 {
-                                    if (baseType == TYP_FLOAT)
-                                    {
-                                        emit->emitIns_R_F(INS_fmov, emitSize, targetReg,
-                                                          static_cast<double>(simdVal.gtSimdScalableIndexF32[0]));
-                                    }
-                                    else
-                                    {
-                                        assert(baseType == TYP_DOUBLE);
-                                        emit->emitIns_R_F(INS_fmov, emitSize, targetReg,
-                                                          simdVal.gtSimdScalableIndexF64[0]);
-                                    }
+                                    emit->emitIns_R_F(INS_fmov, emitSize, targetReg, constValue);
                                 }
                                 else
                                 {

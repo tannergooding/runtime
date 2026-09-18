@@ -1028,8 +1028,8 @@ static bool emitIns_valid_imm_for_mov(INT64 imm, emitAttr size);
 // true if this 'imm' can be encoded as a input operand to a vector movi instruction
 static bool emitIns_valid_imm_for_movi(INT64 imm, emitAttr size);
 
-// true if this 'immDbl' can be encoded as a input operand to a fmov instruction
-static bool emitIns_valid_imm_for_fmov(double immDbl);
+// true if these constant bits can be encoded as an FMOV immediate
+static bool emitIns_valid_imm_for_fmov_bits(uint64_t bits, emitAttr attr, double* immDbl = nullptr);
 
 // true if this 'imm' can be encoded as a input operand to an add instruction
 static bool emitIns_valid_imm_for_add(INT64 imm, emitAttr size = EA_8BYTE);

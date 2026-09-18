@@ -1873,12 +1873,26 @@ ValueNum ValueNumStore::VNForLongCon(INT64 cnsVal)
 
 ValueNum ValueNumStore::VNForFloatCon(float cnsVal)
 {
-    return VnForConst(cnsVal, GetFloatCnsMap(), TYP_FLOAT);
+    uint32_t bits;
+    memcpy(&bits, &cnsVal, sizeof(bits));
+    return VNForFloatConBits(bits);
 }
 
 ValueNum ValueNumStore::VNForDoubleCon(double cnsVal)
 {
-    return VnForConst(cnsVal, GetDoubleCnsMap(), TYP_DOUBLE);
+    uint64_t bits;
+    memcpy(&bits, &cnsVal, sizeof(bits));
+    return VNForDoubleConBits(bits);
+}
+
+ValueNum ValueNumStore::VNForFloatConBits(uint32_t cnsBits)
+{
+    return VnForConst(cnsBits, GetFloatCnsMap(), TYP_FLOAT);
+}
+
+ValueNum ValueNumStore::VNForDoubleConBits(uint64_t cnsBits)
+{
+    return VnForConst(cnsBits, GetDoubleCnsMap(), TYP_DOUBLE);
 }
 
 ValueNum ValueNumStore::VNForByrefCon(target_size_t cnsVal)
@@ -1986,13 +2000,13 @@ ValueNum ValueNumStore::VNForGenericCon(var_types typ, uint8_t* cnsVal)
         }
         case TYP_FLOAT:
         {
-            READ_VALUE(float);
-            return VNForFloatCon(val);
+            READ_VALUE(uint32_t);
+            return VNForFloatConBits(val);
         }
         case TYP_DOUBLE:
         {
-            READ_VALUE(double);
-            return VNForDoubleCon(val);
+            READ_VALUE(uint64_t);
+            return VNForDoubleConBits(val);
         }
         case TYP_REF:
         {
@@ -2340,15 +2354,15 @@ TSimd BroadcastConstantToSimd(ValueNumStore* vns, var_types baseType, ValueNum a
     {
         case TYP_FLOAT:
         {
-            float arg = vns->GetConstantSingle(argVN);
-            BroadcastConstantToSimd<TSimd, float>(&result, arg);
+            uint32_t arg = vns->GetConstantSingleBits(argVN);
+            BroadcastConstantToSimd<TSimd, uint32_t>(&result, arg);
             break;
         }
 
         case TYP_DOUBLE:
         {
-            double arg = vns->GetConstantDouble(argVN);
-            BroadcastConstantToSimd<TSimd, double>(&result, arg);
+            uint64_t arg = vns->GetConstantDoubleBits(argVN);
+            BroadcastConstantToSimd<TSimd, uint64_t>(&result, arg);
             break;
         }
 
@@ -2405,15 +2419,15 @@ simdscalable_t BroadcastConstantToSimdScalable(ValueNumStore* vns, var_types bas
     {
         case TYP_FLOAT:
         {
-            float arg = vns->GetConstantSingle(argVN);
-            BroadcastConstantToSimdScalable<float>(&result, baseType, arg);
+            uint32_t arg = vns->GetConstantSingleBits(argVN);
+            BroadcastConstantToSimdScalable<uint32_t>(&result, baseType, arg);
             break;
         }
 
         case TYP_DOUBLE:
         {
-            double arg = vns->GetConstantDouble(argVN);
-            BroadcastConstantToSimdScalable<double>(&result, baseType, arg);
+            uint64_t arg = vns->GetConstantDoubleBits(argVN);
+            BroadcastConstantToSimdScalable<uint64_t>(&result, baseType, arg);
             break;
         }
 
@@ -2531,40 +2545,28 @@ bool ValueNumStore::VNIsVectorNaN(var_types simdType, var_types simdBaseType, Va
 {
     assert(varTypeIsSIMD(simdType));
 
-    simd_t   vector       = GetConstantSimd(valVN);
-    uint32_t elementCount = GenTreeVecCon::ElementCount(genTypeSize(simdType), simdBaseType);
-
-    for (uint32_t i = 0; i < elementCount; i++)
-    {
-        double element = EvaluateGetElementFloating(simdBaseType, vector, i);
-
-        if (!FloatingPointUtils::isNaN(element))
-        {
-            return false;
-        }
-    }
-
-    return true;
+    unsigned simdSize = genTypeSize(simdType);
+    simd_t   result   = EvaluateSimdIsNaN(simdBaseType, GetConstantSimd(valVN), simdSize);
+    return EvaluateSimdAllWhereAllBitsSet(simdBaseType, result, simdSize);
 }
 
 bool ValueNumStore::VNIsVectorNegativeZero(var_types simdType, var_types simdBaseType, ValueNum valVN)
 {
     assert(varTypeIsSIMD(simdType));
 
-    simd_t   vector       = GetConstantSimd(valVN);
-    uint32_t elementCount = GenTreeVecCon::ElementCount(genTypeSize(simdType), simdBaseType);
+    unsigned simdSize = genTypeSize(simdType);
+    simd_t   result   = EvaluateSimdIsNegativeZero(simdBaseType, GetConstantSimd(valVN), simdSize);
+    return EvaluateSimdAllWhereAllBitsSet(simdBaseType, result, simdSize);
+}
 
-    for (uint32_t i = 0; i < elementCount; i++)
-    {
-        double element = EvaluateGetElementFloating(simdBaseType, vector, i);
+ValueNum ValueNumStore::VNQuietVectorNaN(var_types simdType, var_types simdBaseType, ValueNum argVN)
+{
+    assert(VNIsVectorNaN(simdType, simdBaseType, argVN));
 
-        if (!FloatingPointUtils::isNegativeZero(element))
-        {
-            return false;
-        }
-    }
+    simd_t vector = GetConstantSimd(argVN);
+    QuietSimdNaN(simdBaseType, &vector, genTypeSize(simdType));
 
-    return true;
+    return VNForGenericCon(simdType, reinterpret_cast<uint8_t*>(&vector));
 }
 #endif // FEATURE_SIMD
 
@@ -3931,13 +3933,13 @@ ValueNum ValueNumStore::EvalFuncForConstantArgs(var_types typ, VNFunc func, Valu
         }
         case TYP_FLOAT:
         {
-            float resVal = EvalOp<float>(func, ConstantValue<float>(arg0VN));
-            return VNForFloatCon(resVal);
+            assert(func == VNF_NEG);
+            return VNForFloatConBits(GetConstantSingleBits(arg0VN) ^ 0x80000000u);
         }
         case TYP_DOUBLE:
         {
-            double resVal = EvalOp<double>(func, ConstantValue<double>(arg0VN));
-            return VNForDoubleCon(resVal);
+            assert(func == VNF_NEG);
+            return VNForDoubleConBits(GetConstantDoubleBits(arg0VN) ^ 0x8000000000000000ull);
         }
         case TYP_REF:
         {
@@ -4055,6 +4057,62 @@ float ValueNumStore::GetConstantSingle(ValueNum argVN)
     assert(TypeOfVN(argVN) == TYP_FLOAT);
 
     return ConstantValue<float>(argVN);
+}
+
+uint32_t ValueNumStore::GetConstantSingleBits(ValueNum argVN)
+{
+    assert(IsVNConstant(argVN));
+    assert(TypeOfVN(argVN) == TYP_FLOAT);
+
+    Chunk* c = m_chunks.GetNoExpand(GetChunkNum(argVN));
+    return static_cast<uint32_t>(reinterpret_cast<VarTypConv<TYP_FLOAT>::Type*>(c->m_defs)[ChunkOffset(argVN)]);
+}
+
+uint64_t ValueNumStore::GetConstantDoubleBits(ValueNum argVN)
+{
+    assert(IsVNConstant(argVN));
+    assert(TypeOfVN(argVN) == TYP_DOUBLE);
+
+    Chunk* c = m_chunks.GetNoExpand(GetChunkNum(argVN));
+    return static_cast<uint64_t>(reinterpret_cast<VarTypConv<TYP_DOUBLE>::Type*>(c->m_defs)[ChunkOffset(argVN)]);
+}
+
+bool ValueNumStore::VNIsNaN(ValueNum argVN)
+{
+    if (TypeOfVN(argVN) == TYP_FLOAT)
+    {
+        return FloatingPointUtils::isNaNBits(GetConstantSingleBits(argVN));
+    }
+    return FloatingPointUtils::isNaNBits(GetConstantDoubleBits(argVN));
+}
+
+// An arithmetic fold returning a known NaN must quiet it without changing its other payload bits.
+ValueNum ValueNumStore::VNQuietNaN(ValueNum argVN)
+{
+    assert(VNIsNaN(argVN));
+    if (TypeOfVN(argVN) == TYP_FLOAT)
+    {
+        return VNForFloatConBits(GetConstantSingleBits(argVN) | 0x00400000u);
+    }
+    return VNForDoubleConBits(GetConstantDoubleBits(argVN) | 0x0008000000000000ull);
+}
+
+bool ValueNumStore::VNIsNegativeZero(ValueNum argVN)
+{
+    if (TypeOfVN(argVN) == TYP_FLOAT)
+    {
+        return FloatingPointUtils::isNegativeZeroBits(GetConstantSingleBits(argVN));
+    }
+    return FloatingPointUtils::isNegativeZeroBits(GetConstantDoubleBits(argVN));
+}
+
+bool ValueNumStore::VNIsPositiveZero(ValueNum argVN)
+{
+    if (TypeOfVN(argVN) == TYP_FLOAT)
+    {
+        return GetConstantSingleBits(argVN) == 0;
+    }
+    return GetConstantDoubleBits(argVN) == 0;
 }
 
 #if defined(FEATURE_SIMD)
@@ -4587,6 +4645,12 @@ ValueNum ValueNumStore::EvalCastForConstantArgs(var_types typ, VNFunc func, Valu
         }
         case TYP_FLOAT:
         {
+            if (castToType == TYP_FLOAT)
+            {
+                assert(typ == TYP_FLOAT);
+                return arg0VN;
+            }
+
             float arg0Val = GetConstantSingle(arg0VN);
             assert(!CheckedOps::CastFromFloatOverflows(arg0Val, castToType));
 
@@ -4616,9 +4680,6 @@ ValueNum ValueNumStore::EvalCastForConstantArgs(var_types typ, VNFunc func, Valu
                 case TYP_ULONG:
                     assert(typ == TYP_LONG);
                     return VNForLongCon(UINT64(arg0Val));
-                case TYP_FLOAT:
-                    assert(typ == TYP_FLOAT);
-                    return VNForFloatCon(arg0Val);
                 case TYP_DOUBLE:
                     assert(typ == TYP_DOUBLE);
                     return VNForDoubleCon(double(arg0Val));
@@ -4628,6 +4689,12 @@ ValueNum ValueNumStore::EvalCastForConstantArgs(var_types typ, VNFunc func, Valu
         }
         case TYP_DOUBLE:
         {
+            if (castToType == TYP_DOUBLE)
+            {
+                assert(typ == TYP_DOUBLE);
+                return arg0VN;
+            }
+
             double arg0Val = GetConstantDouble(arg0VN);
             assert(!CheckedOps::CastFromDoubleOverflows(arg0Val, castToType));
 
@@ -4660,9 +4727,6 @@ ValueNum ValueNumStore::EvalCastForConstantArgs(var_types typ, VNFunc func, Valu
                 case TYP_FLOAT:
                     assert(typ == TYP_FLOAT);
                     return VNForFloatCon(float(arg0Val));
-                case TYP_DOUBLE:
-                    assert(typ == TYP_DOUBLE);
-                    return VNForDoubleCon(arg0Val);
                 default:
                     unreached();
             }
@@ -4694,8 +4758,8 @@ ValueNum ValueNumStore::EvalBitCastForConstantArgs(var_types dstType, ValueNum a
     int           int32    = 0;
     int64_t       int64    = 0;
     target_size_t nuint    = 0;
-    float         float32  = 0;
-    double        float64  = 0;
+    uint32_t      float32  = 0;
+    uint64_t      float64  = 0;
     simd8_t       simd8    = {};
     unsigned char bytes[8] = {};
 
@@ -4719,11 +4783,11 @@ ValueNum ValueNumStore::EvalBitCastForConstantArgs(var_types dstType, ValueNum a
             memcpy(bytes, &nuint, sizeof(nuint));
             break;
         case TYP_FLOAT:
-            float32 = ConstantValue<float>(arg0VN);
+            float32 = GetConstantSingleBits(arg0VN);
             memcpy(bytes, &float32, sizeof(float32));
             break;
         case TYP_DOUBLE:
-            float64 = ConstantValue<double>(arg0VN);
+            float64 = GetConstantDoubleBits(arg0VN);
             memcpy(bytes, &float64, sizeof(float64));
             break;
 #if defined(FEATURE_SIMD)
@@ -4767,10 +4831,10 @@ ValueNum ValueNumStore::EvalBitCastForConstantArgs(var_types dstType, ValueNum a
             return VNForByrefCon(nuint);
         case TYP_FLOAT:
             memcpy(&float32, bytes, sizeof(float32));
-            return VNForFloatCon(float32);
+            return VNForFloatConBits(float32);
         case TYP_DOUBLE:
             memcpy(&float64, bytes, sizeof(float64));
-            return VNForDoubleCon(float64);
+            return VNForDoubleConBits(float64);
 #if defined(FEATURE_SIMD)
         case TYP_SIMD8:
             memcpy(&simd8, bytes, sizeof(simd8));
@@ -5496,29 +5560,17 @@ ValueNum ValueNumStore::EvalUsingMathIdentity(var_types typ, VNFunc func, ValueN
         }
         else
         {
-            double val;
-
-            if (typ == TYP_FLOAT)
-            {
-                val = GetConstantSingle(cnsVN);
-            }
-            else
-            {
-                assert(typ == TYP_DOUBLE);
-                val = GetConstantDouble(cnsVN);
-            }
-
             // Handle `x + NaN == NaN` and `NaN + x == NaN`
             // This is safe for all floats since we do not fault for sNaN
 
-            if (FloatingPointUtils::isNaN(val))
+            if (VNIsNaN(cnsVN))
             {
-                return cnsVN;
+                return VNQuietNaN(cnsVN);
             }
 
             // Handle `x + -0 == x` and `-0 + x == x`
 
-            if (FloatingPointUtils::isNegativeZero(val))
+            if (VNIsNegativeZero(cnsVN))
             {
                 return opVN;
             }
@@ -5609,29 +5661,17 @@ ValueNum ValueNumStore::EvalUsingMathIdentity(var_types typ, VNFunc func, ValueN
         }
         else
         {
-            double val;
-
-            if (typ == TYP_FLOAT)
-            {
-                val = GetConstantSingle(cnsVN);
-            }
-            else
-            {
-                assert(typ == TYP_DOUBLE);
-                val = GetConstantDouble(cnsVN);
-            }
-
             // Handle `x - NaN == NaN` and `NaN - x == NaN`
             // This is safe for all floats since we do not fault for sNaN
 
-            if (FloatingPointUtils::isNaN(val))
+            if (VNIsNaN(cnsVN))
             {
-                return cnsVN;
+                return VNQuietNaN(cnsVN);
             }
 
             // Handle `x - 0 == x`
 
-            if ((cnsVN == arg1VN) && FloatingPointUtils::isPositiveZero(val))
+            if ((cnsVN == arg1VN) && VNIsPositiveZero(cnsVN))
             {
                 return opVN;
             }
@@ -5668,24 +5708,12 @@ ValueNum ValueNumStore::EvalUsingMathIdentity(var_types typ, VNFunc func, ValueN
         }
         else
         {
-            double val;
-
-            if (typ == TYP_FLOAT)
-            {
-                val = GetConstantSingle(cnsVN);
-            }
-            else
-            {
-                assert(typ == TYP_DOUBLE);
-                val = GetConstantDouble(cnsVN);
-            }
-
             // Handle `x * NaN == NaN` and `NaN * x == NaN`
             // This is safe for all floats since we do not fault for sNaN
 
-            if (FloatingPointUtils::isNaN(val))
+            if (VNIsNaN(cnsVN))
             {
-                return cnsVN;
+                return VNQuietNaN(cnsVN);
             }
 
             // We cannot handle `x *  0 ==  0` or ` 0 * x ==  0` since `-0 *  0 == -0`
@@ -5734,24 +5762,12 @@ ValueNum ValueNumStore::EvalUsingMathIdentity(var_types typ, VNFunc func, ValueN
                 }
                 else if (varTypeIsFloating(typ))
                 {
-                    double val;
-
-                    if (typ == TYP_FLOAT)
-                    {
-                        val = GetConstantSingle(cnsVN);
-                    }
-                    else
-                    {
-                        assert(typ == TYP_DOUBLE);
-                        val = GetConstantDouble(cnsVN);
-                    }
-
                     // Handle `x / NaN == NaN` and `NaN / x == NaN`
                     // This is safe for all floats since we do not fault for sNaN
 
-                    if (FloatingPointUtils::isNaN(val))
+                    if (VNIsNaN(cnsVN))
                     {
-                        return cnsVN;
+                        return VNQuietNaN(cnsVN);
                     }
                 }
                 break;
@@ -6012,19 +6028,7 @@ ValueNum ValueNumStore::EvalUsingMathIdentity(var_types typ, VNFunc func, ValueN
                         break;
                     }
 
-                    double val;
-
-                    if (opTyp == TYP_FLOAT)
-                    {
-                        val = GetConstantSingle(cnsVN);
-                    }
-                    else
-                    {
-                        assert(opTyp == TYP_DOUBLE);
-                        val = GetConstantDouble(cnsVN);
-                    }
-
-                    if (FloatingPointUtils::isNaN(val))
+                    if (VNIsNaN(cnsVN))
                     {
                         // Comparison with NaN is always false
                         resultVN = ZeroVN;
@@ -6095,19 +6099,7 @@ ValueNum ValueNumStore::EvalUsingMathIdentity(var_types typ, VNFunc func, ValueN
                         break;
                     }
 
-                    double val;
-
-                    if (opTyp == TYP_FLOAT)
-                    {
-                        val = GetConstantSingle(cnsVN);
-                    }
-                    else
-                    {
-                        assert(opTyp == TYP_DOUBLE);
-                        val = GetConstantDouble(cnsVN);
-                    }
-
-                    if (FloatingPointUtils::isNaN(val))
+                    if (VNIsNaN(cnsVN))
                     {
                         // Comparison with NaN is always true
                         resultVN = VNOneForType(typ);
@@ -6154,19 +6146,7 @@ ValueNum ValueNumStore::EvalUsingMathIdentity(var_types typ, VNFunc func, ValueN
                         break;
                     }
 
-                    double val;
-
-                    if (opTyp == TYP_FLOAT)
-                    {
-                        val = GetConstantSingle(cnsVN);
-                    }
-                    else
-                    {
-                        assert(opTyp == TYP_DOUBLE);
-                        val = GetConstantDouble(cnsVN);
-                    }
-
-                    if (FloatingPointUtils::isNaN(val))
+                    if (VNIsNaN(cnsVN))
                     {
                         // Comparison with NaN is always false
                         resultVN = ZeroVN;
@@ -6247,19 +6227,7 @@ ValueNum ValueNumStore::EvalUsingMathIdentity(var_types typ, VNFunc func, ValueN
                         break;
                     }
 
-                    double val;
-
-                    if (opTyp == TYP_FLOAT)
-                    {
-                        val = GetConstantSingle(cnsVN);
-                    }
-                    else
-                    {
-                        assert(opTyp == TYP_DOUBLE);
-                        val = GetConstantDouble(cnsVN);
-                    }
-
-                    if (FloatingPointUtils::isNaN(val))
+                    if (VNIsNaN(cnsVN))
                     {
                         // Unordered comparison with NaN is always true
                         resultVN = VNOneForType(typ);
@@ -8190,14 +8158,12 @@ ValueNum EvaluateSimdGetElement(ValueNumStore* vns, var_types baseType, const TS
     {
         case TYP_FLOAT:
         {
-            float result = arg0.f32[arg1];
-            return vns->VNForFloatCon(static_cast<float>(result));
+            return vns->VNForFloatConBits(arg0.u32[arg1]);
         }
 
         case TYP_DOUBLE:
         {
-            double result = arg0.f64[arg1];
-            return vns->VNForDoubleCon(static_cast<double>(result));
+            return vns->VNForDoubleConBits(arg0.u64[arg1]);
         }
 
         case TYP_BYTE:
@@ -9121,7 +9087,7 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunBinary(
 
                     if (VNIsVectorNaN(type, baseType, cnsVN))
                     {
-                        return cnsVN;
+                        return VNQuietVectorNaN(type, baseType, cnsVN);
                     }
 
                     // Handle `x + -0 == x` and `-0 + x == x`
@@ -9174,7 +9140,7 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunBinary(
 
                     if (VNIsVectorNaN(type, baseType, cnsVN))
                     {
-                        return cnsVN;
+                        return VNQuietVectorNaN(type, baseType, cnsVN);
                     }
                 }
 
@@ -9348,7 +9314,7 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunBinary(
 
                     if (VNIsVectorNaN(type, baseType, cnsVN))
                     {
-                        return cnsVN;
+                        return VNQuietVectorNaN(type, baseType, cnsVN);
                     }
 
                     // We cannot handle `x *  0 ==  0` or ` 0 * x ==  0` since `-0 *  0 == -0`
@@ -9460,7 +9426,7 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunBinary(
 
                     if (VNIsVectorNaN(type, baseType, cnsVN))
                     {
-                        return cnsVN;
+                        return VNQuietVectorNaN(type, baseType, cnsVN);
                     }
 
                     // We cannot handle `x - -0 == x` since `-0 - -0 == 0`
@@ -9534,7 +9500,7 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunBinary(
                     {
                         if (VNIsVectorNaN(type, baseType, cnsVN))
                         {
-                            return cnsVN;
+                            return VNQuietVectorNaN(type, baseType, cnsVN);
                         }
                     }
                     else
@@ -9542,21 +9508,9 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunBinary(
                         assert(cnsVN == arg1VN);
                         ValueNum scalarVN = EvaluateSimdGetElement(this, TYP_SIMD8, baseType, arg1VN, 0);
 
-                        double val;
-
-                        if (baseType == TYP_FLOAT)
+                        if (VNIsNaN(scalarVN))
                         {
-                            val = GetConstantSingle(scalarVN);
-                        }
-                        else
-                        {
-                            assert(baseType == TYP_DOUBLE);
-                            val = GetConstantDouble(scalarVN);
-                        }
-
-                        if (FloatingPointUtils::isNaN(val))
-                        {
-                            return VNBroadcastForSimdType(type, baseType, scalarVN);
+                            return VNBroadcastForSimdType(type, baseType, VNQuietNaN(scalarVN));
                         }
                     }
 
@@ -9725,8 +9679,8 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunBinary(
     return VNForFunc(type, func, arg0VN, arg1VN, resultTypeVN);
 }
 
-ValueNum EvaluateSimdWithElementFloating(
-    ValueNumStore* vns, var_types simdType, var_types baseType, ValueNum arg0VN, int32_t arg1, double arg2)
+ValueNum EvaluateSimdWithElementBits(
+    ValueNumStore* vns, var_types simdType, var_types baseType, ValueNum arg0VN, int32_t arg1, uint64_t arg2)
 {
     assert(varTypeIsFloating(baseType));
     assert(vns->IsVNConstant(arg0VN));
@@ -9738,21 +9692,21 @@ ValueNum EvaluateSimdWithElementFloating(
         case TYP_SIMD8:
         {
             simd8_t result = {};
-            EvaluateWithElementFloating<simd8_t>(baseType, &result, vns->GetConstantSimd8(arg0VN), arg1, arg2);
+            EvaluateWithElementBits<simd8_t>(baseType, &result, vns->GetConstantSimd8(arg0VN), arg1, arg2);
             return vns->VNForSimd8Con(result);
         }
 
         case TYP_SIMD12:
         {
             simd12_t result = {};
-            EvaluateWithElementFloating<simd12_t>(baseType, &result, vns->GetConstantSimd12(arg0VN), arg1, arg2);
+            EvaluateWithElementBits<simd12_t>(baseType, &result, vns->GetConstantSimd12(arg0VN), arg1, arg2);
             return vns->VNForSimd12Con(result);
         }
 
         case TYP_SIMD16:
         {
             simd16_t result = {};
-            EvaluateWithElementFloating<simd16_t>(baseType, &result, vns->GetConstantSimd16(arg0VN), arg1, arg2);
+            EvaluateWithElementBits<simd16_t>(baseType, &result, vns->GetConstantSimd16(arg0VN), arg1, arg2);
             return vns->VNForSimd16Con(result);
         }
 
@@ -9760,14 +9714,14 @@ ValueNum EvaluateSimdWithElementFloating(
         case TYP_SIMD32:
         {
             simd32_t result = {};
-            EvaluateWithElementFloating<simd32_t>(baseType, &result, vns->GetConstantSimd32(arg0VN), arg1, arg2);
+            EvaluateWithElementBits<simd32_t>(baseType, &result, vns->GetConstantSimd32(arg0VN), arg1, arg2);
             return vns->VNForSimd32Con(result);
         }
 
         case TYP_SIMD64:
         {
             simd64_t result = {};
-            EvaluateWithElementFloating<simd64_t>(baseType, &result, vns->GetConstantSimd64(arg0VN), arg1, arg2);
+            EvaluateWithElementBits<simd64_t>(baseType, &result, vns->GetConstantSimd64(arg0VN), arg1, arg2);
             return vns->VNForSimd64Con(result);
         }
 #endif // TARGET_XARCH
@@ -9932,17 +9886,17 @@ ValueNum ValueNumStore::EvalHWIntrinsicFunTernary(
 
             if (varTypeIsFloating(baseType))
             {
-                double value;
+                uint64_t value;
 
                 if (baseType == TYP_FLOAT)
                 {
-                    value = GetConstantSingle(arg2VN);
+                    value = GetConstantSingleBits(arg2VN);
                 }
                 else
                 {
-                    value = GetConstantDouble(arg2VN);
+                    value = GetConstantDoubleBits(arg2VN);
                 }
-                return EvaluateSimdWithElementFloating(this, type, baseType, arg0VN, index, value);
+                return EvaluateSimdWithElementBits(this, type, baseType, arg0VN, index, value);
             }
             else
             {
@@ -10131,15 +10085,16 @@ ValueNum ValueNumStore::EvalMathFuncUnary(var_types typ, NamedIntrinsic gtMathFN
         {
             // Both operand and its result must be of the same floating point type.
             assert(typ == TypeOfVN(arg0VN));
+            if (gtMathFN == NI_System_Math_Abs)
+            {
+                return VNForDoubleConBits(GetConstantDoubleBits(arg0VN) & 0x7FFFFFFFFFFFFFFFull);
+            }
+
             double arg0Val = GetConstantDouble(arg0VN);
 
             double res = 0.0;
             switch (gtMathFN)
             {
-                case NI_System_Math_Abs:
-                    res = fabs(arg0Val);
-                    break;
-
                 case NI_System_Math_Acos:
                     res = acos(arg0Val);
                     break;
@@ -10239,15 +10194,16 @@ ValueNum ValueNumStore::EvalMathFuncUnary(var_types typ, NamedIntrinsic gtMathFN
         {
             // Both operand and its result must be of the same floating point type.
             assert(typ == TypeOfVN(arg0VN));
+            if (gtMathFN == NI_System_Math_Abs)
+            {
+                return VNForFloatConBits(GetConstantSingleBits(arg0VN) & 0x7FFFFFFFu);
+            }
+
             float arg0Val = GetConstantSingle(arg0VN);
 
             float res = 0.0f;
             switch (gtMathFN)
             {
-                case NI_System_Math_Abs:
-                    res = fabsf(arg0Val);
-                    break;
-
                 case NI_System_Math_Acos:
                     res = acosf(arg0Val);
                     break;
@@ -11754,6 +11710,80 @@ void ValueNumStore::RunTests(Compiler* comp)
     assert(vns->IsVNConstant(vnFor1D));
     assert(vns->ConstantValue<double>(vnFor1D) == 1.0);
 
+    const uint64_t patterns[][2] = {
+        {0x00000000u, 0x0000000000000000ull}, {0x80000000u, 0x8000000000000000ull},
+        {0x00000001u, 0x0000000000000001ull}, {0x007FFFFFu, 0x000FFFFFFFFFFFFFull},
+        {0x00800000u, 0x0010000000000000ull}, {0x3F800000u, 0x3FF0000000000000ull},
+        {0x7F7FFFFFu, 0x7FEFFFFFFFFFFFFFull}, {0x7F800000u, 0x7FF0000000000000ull},
+        {0xFF800000u, 0xFFF0000000000000ull}, {0x7F800001u, 0x7FF0000000000001ull},
+        {0xFF800001u, 0xFFF0000000000001ull}, {0x7FBFFFFFu, 0x7FF7FFFFFFFFFFFFull},
+        {0x7FC00001u, 0x7FF8000000000001ull}, {0xFFC00001u, 0xFFF8000000000001ull},
+        {0xFFFFFFFFu, 0xFFFFFFFFFFFFFFFFull},
+    };
+    for (unsigned width = 0; width < 2; width++)
+    {
+        var_types type      = (width == 0) ? TYP_FLOAT : TYP_DOUBLE;
+        var_types intType   = (width == 0) ? TYP_INT : TYP_LONG;
+        uint64_t  signBit   = (width == 0) ? 0x80000000ull : 0x8000000000000000ull;
+        uint64_t  infinity  = (width == 0) ? 0x7F800000ull : 0x7FF0000000000000ull;
+        uint64_t  quietBit  = (width == 0) ? 0x00400000ull : 0x0008000000000000ull;
+        ValueNum  unknown   = vns->VNForExpr(nullptr, type);
+        auto      vnForBits = [&](uint64_t bits) {
+            return (width == 0) ? vns->VNForFloatConBits(static_cast<uint32_t>(bits)) : vns->VNForDoubleConBits(bits);
+        };
+        for (unsigned i = 0; i < ArrLen(patterns); i++)
+        {
+            uint64_t bits       = patterns[i][width];
+            uint32_t singleBits = static_cast<uint32_t>(bits);
+            ValueNum vn         = vnForBits(bits);
+            assert(((width == 0) ? vns->GetConstantSingleBits(vn) : vns->GetConstantDoubleBits(vn)) == bits);
+            assert(vns->VNForGenericCon(type, (width == 0) ? reinterpret_cast<uint8_t*>(&singleBits)
+                                                           : reinterpret_cast<uint8_t*>(&bits)) == vn);
+            assert(vns->VNIsNaN(vn) == ((bits & ~signBit) > infinity));
+            assert(vns->VNIsPositiveZero(vn) == (bits == 0));
+            assert(vns->VNIsNegativeZero(vn) == (bits == signBit));
+            ValueNum bitCast = vns->EvalBitCastForConstantArgs(intType, vn);
+            assert(((width == 0) ? vns->ConstantValue<uint32_t>(bitCast) : vns->ConstantValue<uint64_t>(bitCast)) ==
+                   bits);
+            assert(vns->EvalBitCastForConstantArgs(type, bitCast) == vn);
+            assert(vns->EvalFuncForConstantArgs(type, VNF_NEG, vn) == vnForBits(bits ^ signBit));
+            if (vns->VNIsNaN(vn))
+            {
+                for (VNFunc func : {VNF_ADD, VNF_SUB, VNF_MUL, VNF_DIV})
+                {
+                    assert(vns->EvalUsingMathIdentity(type, func, vn, unknown) == vnForBits(bits | quietBit));
+                    assert(vns->EvalUsingMathIdentity(type, func, unknown, vn) == vnForBits(bits | quietBit));
+                }
+            }
+            for (unsigned j = 0; j < i; j++)
+            {
+                assert(vn != vnForBits(patterns[j][width]));
+            }
+#ifdef FEATURE_SIMD
+            ValueNum broadcast = vns->VNBroadcastForSimdType(TYP_SIMD16, type, vn);
+            simd16_t vector    = vns->GetConstantSimd16(broadcast);
+            for (unsigned j = 0; j < 16 / genTypeSize(type); j++)
+            {
+                assert(EvaluateGetElementBits(type, vector, j) == bits);
+            }
+            if (vns->VNIsNaN(vn))
+            {
+                vector = vns->GetConstantSimd16(vns->VNQuietVectorNaN(TYP_SIMD16, type, broadcast));
+                for (unsigned j = 0; j < 16 / genTypeSize(type); j++)
+                {
+                    assert(EvaluateGetElementBits(type, vector, j) == (bits | quietBit));
+                }
+                assert(vns->VNBroadcastForSimdType(TYP_SIMD16, type, vn) == broadcast);
+            }
+#endif // FEATURE_SIMD
+            assert(((width == 0) ? vns->GetConstantSingleBits(vn) : vns->GetConstantDoubleBits(vn)) == bits);
+        }
+    }
+    assert(vns->CoercedConstantValue<double>(vnFor1F) == 1.0);
+    assert(vns->CoercedConstantValue<float>(vnFor1D) == 1.0f);
+    assert(vns->CoercedConstantValue<int>(vnFor1F) == 1);
+    assert(vns->CoercedConstantValue<int>(vnFor1D) == 1);
+
     ValueNum vnRandom1   = vns->VNForExpr(nullptr, TYP_INT);
     ValueNum vnForFunc2a = vns->VNForFunc(TYP_INT, VNF_Add, vnFor1, vnRandom1);
     assert(vnForFunc2a == vns->VNForFunc(TYP_INT, VNF_Add, vnFor1, vnRandom1));
@@ -11764,7 +11794,9 @@ void ValueNumStore::RunTests(Compiler* comp)
     VNFuncApp fa2a;
     bool      b = vns->GetVNFunc(vnForFunc2a, &fa2a);
     assert(b);
-    assert(fa2a.FuncIs(VNF_Add) && fa2a.GetArity() == 2 && fa2a.GetArg(0) == vnFor1 && fa2a.GetArg(1) == vnRandom1);
+    assert(fa2a.FuncIs(VNF_Add) && fa2a.GetArity() == 2);
+    assert((fa2a.GetArg(0) == vnFor1 && fa2a.GetArg(1) == vnRandom1) ||
+           (fa2a.GetArg(0) == vnRandom1 && fa2a.GetArg(1) == vnFor1));
 
     ValueNum vnForFunc2b = vns->VNForFunc(TYP_INT, VNF_Add, vnFor1, vnFor100);
     assert(vnForFunc2b == vns->VNForFunc(TYP_INT, VNF_Add, vnFor1, vnFor100));
@@ -11773,7 +11805,7 @@ void ValueNumStore::RunTests(Compiler* comp)
     assert(vns->IsVNConstant(vnForFunc2b));
     assert(vns->ConstantValue<int>(vnForFunc2b) == 101);
 
-    // printf("Did ValueNumStore::RunTests.\n");
+    printf("Value number component tests passed.\n");
 }
 #endif // DEBUG
 
@@ -12817,14 +12849,13 @@ void Compiler::fgValueNumberTreeConst(GenTree* tree)
 
         case TYP_FLOAT:
         {
-            float f32Cns = FloatingPointUtils::convertToSingle(tree->AsDblCon()->DconValue());
-            tree->gtVNPair.SetBoth(vnStore->VNForFloatCon(f32Cns));
+            tree->gtVNPair.SetBoth(vnStore->VNForFloatConBits(tree->AsDblCon()->FconBits()));
             break;
         }
 
         case TYP_DOUBLE:
         {
-            tree->gtVNPair.SetBoth(vnStore->VNForDoubleCon(tree->AsDblCon()->DconValue()));
+            tree->gtVNPair.SetBoth(vnStore->VNForDoubleConBits(tree->AsDblCon()->DconBits()));
             break;
         }
 

@@ -1479,6 +1479,26 @@ TSimd EvaluateSimdIsNaN(var_types baseType, const TSimd& value, unsigned simdSiz
     return result;
 }
 
+// Quiet every element of an all-NaN vector returned by an arithmetic fold.
+inline void QuietSimdNaN(var_types baseType, simd_t* value, unsigned simdSize)
+{
+    assert(varTypeIsFloating(baseType));
+    if (baseType == TYP_FLOAT)
+    {
+        for (unsigned i = 0; i < simdSize / sizeof(float); i++)
+        {
+            value->u32[i] |= 0x00400000u;
+        }
+    }
+    else
+    {
+        for (unsigned i = 0; i < simdSize / sizeof(double); i++)
+        {
+            value->u64[i] |= 0x0008000000000000ull;
+        }
+    }
+}
+
 inline var_types GetSimdIntegralBaseType(var_types baseType)
 {
     if (baseType == TYP_FLOAT)
@@ -1557,18 +1577,18 @@ bool EvaluateSimdAllWhereAllBitsSet(var_types baseType, const TSimd& value, unsi
 }
 
 template <typename TSimd>
-double EvaluateGetElementFloating(var_types simdBaseType, const TSimd& arg0, int32_t arg1)
+uint64_t EvaluateGetElementBits(var_types simdBaseType, const TSimd& arg0, int32_t arg1)
 {
     switch (simdBaseType)
     {
         case TYP_FLOAT:
         {
-            return arg0.f32[arg1];
+            return arg0.u32[arg1];
         }
 
         case TYP_DOUBLE:
         {
-            return arg0.f64[arg1];
+            return arg0.u64[arg1];
         }
 
         default:
@@ -1631,7 +1651,7 @@ int64_t EvaluateGetElementIntegral(var_types simdBaseType, const TSimd& arg0, in
 }
 
 template <typename TSimd>
-void EvaluateWithElementFloating(var_types simdBaseType, TSimd* result, const TSimd& arg0, int32_t arg1, double arg2)
+void EvaluateWithElementBits(var_types simdBaseType, TSimd* result, const TSimd& arg0, int32_t arg1, uint64_t arg2)
 {
     *result = arg0;
 
@@ -1639,13 +1659,13 @@ void EvaluateWithElementFloating(var_types simdBaseType, TSimd* result, const TS
     {
         case TYP_FLOAT:
         {
-            result->f32[arg1] = static_cast<float>(arg2);
+            result->u32[arg1] = static_cast<uint32_t>(arg2);
             break;
         }
 
         case TYP_DOUBLE:
         {
-            result->f64[arg1] = arg2;
+            result->u64[arg1] = arg2;
             break;
         }
 
@@ -2772,8 +2792,8 @@ struct Arm64SimdScalableConstInfo
         return (baseType == TYP_LONG) || (baseType == TYP_ULONG) || (baseType == TYP_DOUBLE);
     }
 
-    template <typename TEmitter>
-    bool CanEncodeRepeated(const simdscalable_t& simdVal) const
+    template <typename TEmitter, typename TEmitAttr>
+    bool CanEncodeRepeated(TEmitAttr emitSize) const
     {
         if (varTypeIsIntegral(baseType))
         {
@@ -2781,13 +2801,8 @@ struct Arm64SimdScalableConstInfo
                                    TEmitter::template isValidSimm_MultipleOf<8, 256>(indexImm));
         }
 
-        if (baseType == TYP_FLOAT)
-        {
-            return TEmitter::canEncodeFloatImm8(simdVal.gtSimdScalableIndexF32[0]);
-        }
-
-        assert(baseType == TYP_DOUBLE);
-        return TEmitter::canEncodeFloatImm8(simdVal.gtSimdScalableIndexF64[0]);
+        assert(varTypeIsFloating(baseType));
+        return TEmitter::emitIns_valid_imm_for_fmov_bits(indexVal, emitSize);
     }
 
     template <typename TEmitter>
@@ -2821,7 +2836,7 @@ struct Arm64SimdScalableConstInfo
     }
 
     template <typename TEmitter, typename TEmitAttr>
-    bool CanEncodeScalar(const simdscalable_t& simdVal, TEmitAttr emitSize) const
+    bool CanEncodeScalar(TEmitAttr emitSize) const
     {
         if (varTypeIsIntegral(baseType))
         {
@@ -2829,13 +2844,8 @@ struct Arm64SimdScalableConstInfo
             return false;
         }
 
-        if (baseType == TYP_FLOAT)
-        {
-            return TEmitter::emitIns_valid_imm_for_fmov(simdVal.gtSimdScalableIndexF32[0]);
-        }
-
-        assert(baseType == TYP_DOUBLE);
-        return TEmitter::emitIns_valid_imm_for_fmov(simdVal.gtSimdScalableIndexF64[0]);
+        assert(varTypeIsFloating(baseType));
+        return TEmitter::emitIns_valid_imm_for_fmov_bits(indexVal, emitSize);
     }
 };
 

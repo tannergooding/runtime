@@ -3358,8 +3358,16 @@ public:
 
     GenTree* gtNewDconNodeF(float value);
     GenTree* gtNewDconNodeD(double value);
-    GenTree* gtNewDconNode(float value, var_types type) = delete; // use gtNewDconNodeF instead
-    GenTree* gtNewDconNode(double value, var_types type);
+    GenTree* gtNewDconNodeFromBits(uint64_t bits, var_types type);
+
+    template <typename T, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+    GenTree* gtNewDconNodeFromBits(T bits, var_types type) = delete;
+
+    template <typename T>
+    GenTree* gtNewDconNodeF(T value) = delete;
+
+    template <typename T>
+    GenTree* gtNewDconNodeD(T value) = delete;
 
     GenTree* gtNewSconNode(int CPX, CORINFO_MODULE_HANDLE scpHandle);
 
@@ -4127,6 +4135,9 @@ public:
     GenTree* gtBashTreeToConstInt(GenTree* tree, int32_t iconVal, FieldSeq* fieldSeq = nullptr);
     GenTree* gtBashTreeToConstLng(GenTree* tree, int64_t lconVal, FieldSeq* fieldSeq = nullptr);
     GenTree* gtBashTreeToConstDbl(GenTree* tree, double dconVal);
+    GenTree* gtBashTreeToConstFloatBits(GenTree* tree, uint64_t bits);
+    template <typename T, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+    GenTree* gtBashTreeToConstFloatBits(GenTree* tree, T bits) = delete;
 
     GenTree* gtFoldExprForOverflow(GenTree* tree);
 

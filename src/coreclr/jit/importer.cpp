@@ -6826,17 +6826,18 @@ void Compiler::impImportBlockCode(BasicBlock* block)
                 break;
 
             case CEE_LDC_R8:
-                cval.dblVal = getR8LittleEndian(codeAddr);
-                JITDUMP(" %#.17g", cval.dblVal);
-                impPushOnStack(gtNewDconNodeD(cval.dblVal), typeInfo(TYP_DOUBLE));
+                cval.lngVal = getI8LittleEndian(codeAddr);
+                JITDUMP(" bits 0x%016llx", static_cast<unsigned long long>(cval.lngVal));
+                impPushOnStack(gtNewDconNodeFromBits(static_cast<uint64_t>(cval.lngVal), TYP_DOUBLE),
+                               typeInfo(TYP_DOUBLE));
                 break;
 
             case CEE_LDC_R4:
             {
-                GenTree* dcon = gtNewDconNodeF(getR4LittleEndian(codeAddr));
-                cval.dblVal   = dcon->AsDblCon()->DconValue();
+                uint32_t bits = getU4LittleEndian(codeAddr);
+                GenTree* dcon = gtNewDconNodeFromBits(bits, TYP_FLOAT);
                 impPushOnStack(dcon, typeInfo(TYP_DOUBLE));
-                JITDUMP(" %#.17g", cval.dblVal);
+                JITDUMP(" bits 0x%08x", bits);
                 break;
             }
 

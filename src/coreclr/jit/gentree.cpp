@@ -3381,8 +3381,7 @@ AGAIN:
                 break;
             case GT_CNS_DBL:
             {
-                double dcon = tree->AsDblCon()->DconValue();
-                memcpy(&bits, &dcon, sizeof(dcon));
+                bits = tree->AsDblCon()->RawBits();
 #ifdef HOST_64BIT
                 add = bits;
 #else // 32-bit host
@@ -6297,7 +6296,8 @@ unsigned Compiler::gtSetEvalOrder(GenTree* tree)
                     costSz = 2 + 8;
                 }
 #elif defined(TARGET_ARM64)
-                if (tree->IsFloatPositiveZero() || emitter::emitIns_valid_imm_for_fmov(tree->AsDblCon()->DconValue()))
+                if (tree->IsFloatPositiveZero() ||
+                    emitter::emitIns_valid_imm_for_fmov_bits(tree->AsDblCon()->RawBits(), emitTypeSize(tree)))
                 {
                     // Zero and certain other immediates can be specially created with a single instruction
                     // These can be cheaply reconstituted but still take up 4-bytes of native codegen
@@ -9542,18 +9542,73 @@ GenTree* Compiler::gtNewLconNode(int64_t value)
 
 GenTree* Compiler::gtNewDconNodeF(float value)
 {
-    return gtNewDconNode(FloatingPointUtils::convertToDouble(value), TYP_FLOAT);
+    uint32_t bits;
+    memcpy(&bits, &value, sizeof(bits));
+    return gtNewDconNodeFromBits(bits, TYP_FLOAT);
 }
 
 GenTree* Compiler::gtNewDconNodeD(double value)
 {
-    return gtNewDconNode(value, TYP_DOUBLE);
+    value = FloatingPointUtils::normalize(value);
+    uint64_t bits;
+    memcpy(&bits, &value, sizeof(bits));
+    return gtNewDconNodeFromBits(bits, TYP_DOUBLE);
 }
 
-GenTree* Compiler::gtNewDconNode(double value, var_types type)
+GenTree* Compiler::gtNewDconNodeFromBits(uint64_t bits, var_types type)
 {
-    return new (this, GT_CNS_DBL) GenTreeDblCon(value, type);
+    return new (this, GT_CNS_DBL) GenTreeDblCon(bits, type);
 }
+
+#ifdef DEBUG
+void GenTreeDblCon::RunTests(Compiler* comp)
+{
+    static_assert(!std::is_constructible_v<GenTreeDblCon, float, var_types>);
+    static_assert(!std::is_constructible_v<GenTreeDblCon, double, var_types>);
+
+    const uint64_t patterns[][2] = {
+        {0x00000000U, 0x0000000000000000ULL}, {0x80000000U, 0x8000000000000000ULL},
+        {0x00000001U, 0x0000000000000001ULL}, {0x007FFFFFU, 0x000FFFFFFFFFFFFFULL},
+        {0x00800000U, 0x0010000000000000ULL}, {0x3F800000U, 0x3FF0000000000000ULL},
+        {0x7F7FFFFFU, 0x7FEFFFFFFFFFFFFFULL}, {0x7F800000U, 0x7FF0000000000000ULL},
+        {0xFF800000U, 0xFFF0000000000000ULL}, {0x7F800001U, 0x7FF0000000000001ULL},
+        {0xFF812345U, 0xFFF0123456789ABCULL}, {0x7FC00001U, 0x7FF8000000000001ULL},
+        {0xFFFFFFFFU, 0xFFFFFFFFFFFFFFFFULL},
+    };
+
+    for (unsigned width = 0; width < 2; width++)
+    {
+        var_types type    = (width == 0) ? TYP_FLOAT : TYP_DOUBLE;
+        uint64_t  signBit = (width == 0) ? 0x80000000ULL : 0x8000000000000000ULL;
+        for (const uint64_t* pattern : patterns)
+        {
+            uint64_t       bits = pattern[width];
+            GenTreeDblCon* node = comp->gtNewDconNodeFromBits(bits, type)->AsDblCon();
+            assert(node->RawBits() == bits);
+            assert(node->IsFloatPositiveZero() == (bits == 0));
+            assert(node->IsFloatNegativeZero() == (bits == signBit));
+            assert(node->IsCnsNonZeroFltOrDbl() == (bits != 0));
+
+            GenTreeDblCon* clone     = comp->gtClone(node)->AsDblCon();
+            GenTreeDblCon* exprClone = comp->gtCloneExpr(node)->AsDblCon();
+            assert(node->isBitwiseEqual(clone));
+            assert(node->isBitwiseEqual(exprClone));
+            assert(comp->gtHashValue(node) == comp->gtHashValue(clone));
+
+            clone->Negate();
+            assert(clone->RawBits() == (bits ^ signBit));
+            assert(!node->isBitwiseEqual(clone));
+            clone->Negate();
+            assert(node->isBitwiseEqual(clone));
+
+            clone->BashToConst(0);
+            clone->BashToFloatConBits(bits, type);
+            assert(node->isBitwiseEqual(clone->AsDblCon()));
+        }
+    }
+    printf("Floating-point constant component tests passed (26 patterns).\n");
+}
+#endif // DEBUG
 
 GenTree* Compiler::gtNewSconNode(int CPX, CORINFO_MODULE_HANDLE scpHandle)
 {
@@ -9729,7 +9784,7 @@ GenTree* Compiler::gtNewZeroConNode(var_types type)
         case TYP_FLOAT:
         case TYP_DOUBLE:
         {
-            return gtNewDconNode(0.0, type);
+            return gtNewDconNodeFromBits(0, type);
         }
 
         default:
@@ -9753,7 +9808,7 @@ GenTree* Compiler::gtNewOneConNode(var_types type, var_types simdBaseType /* = T
         else
         {
             assert(varTypeIsFloating(simdBaseType));
-            one = gtNewDconNode(1.0, simdBaseType);
+            one = gtNewOneConNode(simdBaseType);
         }
 
         return gtNewSimdCreateBroadcastNode(type, one, simdBaseType, SIZE_UNKNOWN);
@@ -9851,10 +9906,10 @@ GenTree* Compiler::gtNewOneConNode(var_types type, var_types simdBaseType /* = T
         }
 
         case TYP_FLOAT:
+            return gtNewDconNodeF(1.0f);
+
         case TYP_DOUBLE:
-        {
-            return gtNewDconNode(1.0, type);
-        }
+            return gtNewDconNodeD(1.0);
 
         default:
         {
@@ -9915,13 +9970,13 @@ GenTree* Compiler::gtNewGenericCon(var_types type, uint8_t* cnsVal)
         }
         case TYP_FLOAT:
         {
-            READ_VALUE(float);
-            return gtNewDconNodeF(val);
+            READ_VALUE(uint32_t);
+            return gtNewDconNodeFromBits(val, type);
         }
         case TYP_DOUBLE:
         {
-            READ_VALUE(double);
-            return gtNewDconNodeD(val);
+            READ_VALUE(uint64_t);
+            return gtNewDconNodeFromBits(val, type);
         }
         case TYP_REF:
         {
@@ -9981,13 +10036,9 @@ GenTree* Compiler::gtNewConWithPattern(var_types type, uint8_t pattern)
         case TYP_LONG:
             return gtNewLconNode(pattern * 0x0101010101010101LL);
         case TYP_FLOAT:
-            float floatPattern;
-            memset(&floatPattern, pattern, sizeof(floatPattern));
-            return gtNewDconNodeF(floatPattern);
+            return gtNewDconNodeFromBits(pattern * 0x01010101U, type);
         case TYP_DOUBLE:
-            double doublePattern;
-            memset(&doublePattern, pattern, sizeof(doublePattern));
-            return gtNewDconNodeD(doublePattern);
+            return gtNewDconNodeFromBits(pattern * 0x0101010101010101ULL, type);
         case TYP_REF:
         case TYP_BYREF:
             assert(pattern == 0);
@@ -11017,7 +11068,7 @@ GenTree* Compiler::gtClone(GenTree* tree, bool complexOK)
 
         case GT_CNS_DBL:
         {
-            copy = gtNewDconNode(tree->AsDblCon()->DconValue(), tree->TypeGet());
+            copy = gtNewDconNodeFromBits(tree->AsDblCon()->RawBits(), tree->TypeGet());
             break;
         }
 
@@ -11204,7 +11255,7 @@ GenTree* Compiler::gtCloneExpr(GenTree* tree)
 
             case GT_CNS_DBL:
             {
-                copy = gtNewDconNode(tree->AsDblCon()->DconValue(), tree->TypeGet());
+                copy = gtNewDconNodeFromBits(tree->AsDblCon()->RawBits(), tree->TypeGet());
                 goto DONE;
             }
 
@@ -13937,20 +13988,18 @@ void Compiler::gtDispConst(GenTree* tree)
 
         case GT_CNS_DBL:
         {
-            double dcon = tree->AsDblCon()->DconValue();
-            if (FloatingPointUtils::isNegativeZero(dcon))
+            if (tree->IsFloatNegativeZero())
             {
                 printf(" -0.00000");
             }
-            else if (FloatingPointUtils::isNaN(dcon))
+            else if (tree->IsFloatNaN())
             {
-                uint64_t bits;
-                static_assert(sizeof(bits) == sizeof(dcon));
-                memcpy(&bits, &dcon, sizeof(dcon));
-                printf(" %#.17g(0x%llx)\n", dcon, static_cast<unsigned long long>(bits));
+                printf(" NaN(0x%llx)", static_cast<unsigned long long>(tree->AsDblCon()->RawBits()));
             }
             else
             {
+                double dcon = tree->TypeIs(TYP_FLOAT) ? static_cast<double>(tree->AsDblCon()->FconValue())
+                                                      : tree->AsDblCon()->DconValue();
                 printf(" %#.17g", dcon);
             }
             break;
@@ -16740,7 +16789,15 @@ GenTree* Compiler::gtFoldExprSpecialFloating(GenTree* tree)
     }
 
     /* Get the constant value */
-    val = cons->AsDblCon()->DconValue();
+    val = cons->TypeIs(TYP_FLOAT) ? static_cast<double>(cons->AsDblCon()->FconValue()) : cons->AsDblCon()->DconValue();
+
+    // Folding an arithmetic operation with a known NaN must quiet it, unlike
+    // transporting that same constant through a move or a bitwise operation.
+    if (cons->IsFloatNaN() && tree->OperIs(GT_ADD, GT_SUB, GT_MUL, GT_DIV))
+    {
+        uint64_t quietBit = cons->TypeIs(TYP_FLOAT) ? 0x00400000ULL : 0x0008000000000000ULL;
+        cons              = gtNewDconNodeFromBits(cons->AsDblCon()->RawBits() | quietBit, cons->TypeGet());
+    }
 
     // Helper function that creates a new IntCon node and morphs it, if required
     auto NewMorphedIntConNode = [&](int value) -> GenTreeIntCon* {
@@ -17857,17 +17914,23 @@ GenTree* Compiler::gtFoldExprUnaryConstDbl(GenTreeUnOp* tree, GenTreeDblCon* dbl
 
     assert(dblCon == tree->gtGetOp1());
 
-    genTreeOps oper    = tree->OperGet();
-    double     dconVal = dblCon->DconValue();
+    genTreeOps oper = tree->OperGet();
+
+    if ((oper == GT_NEG) || ((oper == GT_CAST) && (tree->CastToType() == dblCon->TypeGet())))
+    {
+        uint64_t bits = dblCon->RawBits();
+        if (oper == GT_NEG)
+        {
+            bits ^= dblCon->TypeIs(TYP_FLOAT) ? 0x80000000ULL : 0x8000000000000000ULL;
+        }
+        return gtBashTreeToConstFloatBits(tree, bits);
+    }
+
+    double dconVal =
+        dblCon->TypeIs(TYP_FLOAT) ? FloatingPointUtils::convertToDouble(dblCon->FconValue()) : dblCon->DconValue();
 
     switch (oper)
     {
-        case GT_NEG:
-        {
-            dconVal = -dconVal;
-            break;
-        }
-
         case GT_CAST:
         {
             var_types castToType = tree->CastToType();
@@ -18659,15 +18722,11 @@ GenTree* Compiler::gtFoldExprBinaryConstDbl(GenTreeOp* tree, GenTreeDblCon* dblC
     assert(dblCon1 == tree->gtGetOp1());
     assert(dblCon2 == tree->gtGetOp2());
 
-    genTreeOps oper     = tree->OperGet();
-    double     dconVal1 = dblCon1->DconValue();
-    double     dconVal2 = dblCon2->DconValue();
-
-    if (tree->TypeIs(TYP_FLOAT))
-    {
-        dconVal1 = forceCastToFloat(dconVal1);
-        dconVal2 = forceCastToFloat(dconVal2);
-    }
+    genTreeOps oper = tree->OperGet();
+    // Retain the scalar folder's double intermediate precision. This is numerical
+    // evaluation, not constant transport; comparisons also select by operand type.
+    double dconVal1 = dblCon1->TypeIs(TYP_FLOAT) ? static_cast<double>(dblCon1->FconValue()) : dblCon1->DconValue();
+    double dconVal2 = dblCon2->TypeIs(TYP_FLOAT) ? static_cast<double>(dblCon2->FconValue()) : dblCon2->DconValue();
 
     assert(!tree->gtOverflowEx());
 
@@ -18850,17 +18909,18 @@ GenTree* Compiler::gtBashTreeToConstLng(GenTree* tree, int64_t lconVal, FieldSeq
 //
 GenTree* Compiler::gtBashTreeToConstDbl(GenTree* tree, double dconVal)
 {
+    uint64_t bits = tree->TypeIs(TYP_FLOAT) ? BitOperations::SingleToUInt32Bits(forceCastToFloat(dconVal))
+                                            : BitOperations::DoubleToUInt64Bits(FloatingPointUtils::normalize(dconVal));
+    return gtBashTreeToConstFloatBits(tree, bits);
+}
+
+GenTree* Compiler::gtBashTreeToConstFloatBits(GenTree* tree, uint64_t bits)
+{
     JITDUMP("\nFolding operator with constant nodes into a constant:\n");
     DISPTREE(tree);
 
     assert((GenTree::s_gtNodeSizes[GT_CNS_DBL] == TREE_NODE_SZ_SMALL) || (tree->gtDebugFlags & GTF_DEBUG_NODE_LARGE));
-
-    if (tree->TypeIs(TYP_FLOAT))
-    {
-        dconVal = forceCastToFloat(dconVal);
-    }
-
-    tree->BashToConst(dconVal, tree->TypeGet());
+    tree->BashToFloatConBits(bits, tree->TypeGet());
     fgUpdateConstTreeValueNumber(tree);
 
     JITDUMP("Bashed to constant:\n");
@@ -20827,25 +20887,25 @@ void GenTreeVecCon::EvaluateBinaryInPlace(genTreeOps oper, bool scalar, var_type
 }
 
 //------------------------------------------------------------------------
-// GenTreeVecCon::EvaluateBroadcastInPlace: Evaluates this constant using a broadcast
+// GenTreeVecCon::EvaluateBroadcastBitsInPlace: Broadcasts a floating-point representation without conversion
 //
 // Arguments:
 //    baseType - the base type of the constant being checked
-//    scalar   - the value to broadcast as part of the evaluation
+//    bits     - the bits to broadcast, zero-extended for float
 //
-void GenTreeVecCon::EvaluateBroadcastInPlace(var_types baseType, double scalar)
+void GenTreeVecCon::EvaluateBroadcastBitsInPlace(var_types baseType, uint64_t bits)
 {
     switch (baseType)
     {
         case TYP_FLOAT:
         {
-            EvaluateBroadcastInPlace<float>(static_cast<float>(scalar));
+            EvaluateBroadcastInPlace<uint32_t>(static_cast<uint32_t>(bits));
             break;
         }
 
         case TYP_DOUBLE:
         {
-            EvaluateBroadcastInPlace<double>(static_cast<double>(scalar));
+            EvaluateBroadcastInPlace<uint64_t>(bits);
             break;
         }
 
@@ -20989,6 +21049,21 @@ bool GenTreeVecCon::IsNaN(var_types simdBaseType) const
     unsigned simdSize = genTypeSize(gtType);
     simd_t   result   = EvaluateSimdIsNaN(simdBaseType, gtSimdVal, simdSize);
     return EvaluateSimdAllWhereAllBitsSet(simdBaseType, result, simdSize);
+}
+
+//------------------------------------------------------------------------
+// GenTreeVecCon::QuietNaNInPlace: Quiets an all-NaN vector returned by an arithmetic fold
+//
+// Arguments:
+//    simdBaseType - the base type of the constant
+//    simdSize     - the size of the SIMD value
+//
+void GenTreeVecCon::QuietNaNInPlace(var_types simdBaseType, unsigned simdSize)
+{
+    assert(IsNaN(simdBaseType));
+    assert(simdSize == genTypeSize(gtType));
+
+    QuietSimdNaN(simdBaseType, &gtSimdVal, simdSize);
 }
 
 //------------------------------------------------------------------------
@@ -24158,14 +24233,16 @@ GenTree* Compiler::gtNewSimdCvtNode(
         if (varTypeIsLong(simdTargetBaseType))
         {
             int64_t actualMaxVal = INT64_MAX;
-            maxVal               = gtNewDconNode(static_cast<double>(actualMaxVal), simdSourceBaseType);
+            maxVal               = (simdSourceBaseType == TYP_FLOAT) ? gtNewDconNodeF(static_cast<float>(actualMaxVal))
+                                                                     : gtNewDconNodeD(static_cast<double>(actualMaxVal));
             maxVal               = gtNewSimdCreateBroadcastNode(type, maxVal, simdSourceBaseType, simdSize);
             maxValDup = gtNewSimdCreateBroadcastNode(type, gtNewLconNode(actualMaxVal), simdTargetBaseType, simdSize);
         }
         else
         {
             ssize_t actualMaxVal = INT32_MAX;
-            maxVal               = gtNewDconNode(static_cast<double>(actualMaxVal), simdSourceBaseType);
+            maxVal               = (simdSourceBaseType == TYP_FLOAT) ? gtNewDconNodeF(static_cast<float>(actualMaxVal))
+                                                                     : gtNewDconNodeD(static_cast<double>(actualMaxVal));
             maxVal               = gtNewSimdCreateBroadcastNode(type, maxVal, simdSourceBaseType, simdSize);
             maxValDup = gtNewSimdCreateBroadcastNode(type, gtNewIconNode(actualMaxVal), simdTargetBaseType, simdSize);
         }
@@ -24861,13 +24938,11 @@ GenTree* Compiler::gtNewSimdCreateBroadcastNode(var_types type, GenTree* op1, va
             }
             else if (simdBaseType == TYP_FLOAT)
             {
-                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexF32[0] =
-                    static_cast<float>(op1->AsDblCon()->DconValue());
+                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexU32[0] = op1->AsDblCon()->FconBits();
             }
             else if (simdBaseType == TYP_DOUBLE)
             {
-                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexF64[0] =
-                    static_cast<double>(op1->AsDblCon()->DconValue());
+                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexU64[0] = op1->AsDblCon()->DconBits();
             }
             else
             {
@@ -24932,22 +25007,22 @@ GenTree* Compiler::gtNewSimdCreateBroadcastNode(var_types type, GenTree* op1, va
 
                 case TYP_FLOAT:
                 {
-                    float cnsVal = static_cast<float>(op1->AsDblCon()->DconValue());
+                    uint32_t cnsVal = op1->AsDblCon()->FconBits();
 
                     for (unsigned i = 0; i < (simdSize / 4); i++)
                     {
-                        vecCon->gtSimdVal.f32[i] = cnsVal;
+                        vecCon->gtSimdVal.u32[i] = cnsVal;
                     }
                     break;
                 }
 
                 case TYP_DOUBLE:
                 {
-                    double cnsVal = static_cast<double>(op1->AsDblCon()->DconValue());
+                    uint64_t cnsVal = op1->AsDblCon()->DconBits();
 
                     for (unsigned i = 0; i < (simdSize / 8); i++)
                     {
-                        vecCon->gtSimdVal.f64[i] = cnsVal;
+                        vecCon->gtSimdVal.u64[i] = cnsVal;
                     }
                     break;
                 }
@@ -24996,13 +25071,11 @@ GenTree* Compiler::gtNewSimdCreateScalarNode(var_types type, GenTree* op1, var_t
             }
             else if (simdBaseType == TYP_FLOAT)
             {
-                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexF32[0] =
-                    static_cast<float>(op1->AsDblCon()->DconValue());
+                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexU32[0] = op1->AsDblCon()->FconBits();
             }
             else if (simdBaseType == TYP_DOUBLE)
             {
-                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexF64[0] =
-                    static_cast<double>(op1->AsDblCon()->DconValue());
+                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexU64[0] = op1->AsDblCon()->DconBits();
             }
             else
             {
@@ -25052,15 +25125,15 @@ GenTree* Compiler::gtNewSimdCreateScalarNode(var_types type, GenTree* op1, var_t
 
                 case TYP_FLOAT:
                 {
-                    float cnsVal             = static_cast<float>(op1->AsDblCon()->DconValue());
-                    vecCon->gtSimdVal.f32[0] = cnsVal;
+                    uint32_t cnsVal          = op1->AsDblCon()->FconBits();
+                    vecCon->gtSimdVal.u32[0] = cnsVal;
                     break;
                 }
 
                 case TYP_DOUBLE:
                 {
-                    double cnsVal            = static_cast<double>(op1->AsDblCon()->DconValue());
-                    vecCon->gtSimdVal.f64[0] = cnsVal;
+                    uint64_t cnsVal          = op1->AsDblCon()->DconBits();
+                    vecCon->gtSimdVal.u64[0] = cnsVal;
                     break;
                 }
 
@@ -25127,13 +25200,11 @@ GenTree* Compiler::gtNewSimdCreateScalarUnsafeNode(var_types type,
             }
             else if (simdBaseType == TYP_FLOAT)
             {
-                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexF32[0] =
-                    static_cast<float>(op1->AsDblCon()->DconValue());
+                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexU32[0] = op1->AsDblCon()->FconBits();
             }
             else if (simdBaseType == TYP_DOUBLE)
             {
-                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexF64[0] =
-                    static_cast<double>(op1->AsDblCon()->DconValue());
+                scalableVecCon->gtSimdScalableVal.gtSimdScalableIndexU64[0] = op1->AsDblCon()->DconBits();
             }
             else
             {
@@ -25198,22 +25269,22 @@ GenTree* Compiler::gtNewSimdCreateScalarUnsafeNode(var_types type,
 
                 case TYP_FLOAT:
                 {
-                    float cnsVal = static_cast<float>(op1->AsDblCon()->DconValue());
+                    uint32_t cnsVal = op1->AsDblCon()->FconBits();
 
                     for (unsigned i = 0; i < (simdSize / 4); i++)
                     {
-                        vecCon->gtSimdVal.f32[i] = cnsVal;
+                        vecCon->gtSimdVal.u32[i] = cnsVal;
                     }
                     break;
                 }
 
                 case TYP_DOUBLE:
                 {
-                    double cnsVal = static_cast<double>(op1->AsDblCon()->DconValue());
+                    uint64_t cnsVal = op1->AsDblCon()->DconBits();
 
                     for (unsigned i = 0; i < (simdSize / 8); i++)
                     {
-                        vecCon->gtSimdVal.f64[i] = cnsVal;
+                        vecCon->gtSimdVal.u64[i] = cnsVal;
                     }
                     break;
                 }
@@ -25404,12 +25475,12 @@ GenTree* Compiler::gtNewSimdCreateSequenceNode(
                 if (op1->OperIsConst())
                 {
                     assert(op1->IsCnsFltOrDbl());
-                    start     = static_cast<float>(op1->AsDblCon()->DconValue());
+                    start     = op1->AsDblCon()->FconValue();
                     isPartial = false;
                 }
 
                 assert(op2->IsCnsFltOrDbl());
-                float step = static_cast<float>(op2->AsDblCon()->DconValue());
+                float step = op2->AsDblCon()->FconValue();
 
                 for (uint32_t index = 0; index < simdLength; index++)
                 {
@@ -25425,12 +25496,12 @@ GenTree* Compiler::gtNewSimdCreateSequenceNode(
                 if (op1->OperIsConst())
                 {
                     assert(op1->IsCnsFltOrDbl());
-                    start     = static_cast<double>(op1->AsDblCon()->DconValue());
+                    start     = op1->AsDblCon()->DconValue();
                     isPartial = false;
                 }
 
                 assert(op2->IsCnsFltOrDbl());
-                double step = static_cast<double>(op2->AsDblCon()->DconValue());
+                double step = op2->AsDblCon()->DconValue();
 
                 for (uint32_t index = 0; index < simdLength; index++)
                 {
@@ -26700,7 +26771,7 @@ GenTree* Compiler::gtNewSimdMinMaxNode(var_types type,
                     if (isScalar)
                     {
                         GenTreeVecCon* vecCon = gtNewVconNode(type);
-                        vecCon->EvaluateBroadcastInPlace(simdBaseType, cnsNode->AsDblCon()->DconValue());
+                        vecCon->EvaluateBroadcastBitsInPlace(simdBaseType, cnsNode->AsDblCon()->RawBits());
 
                         op1 = vecCon;
                         op2 = gtNewSimdCreateScalarUnsafeNode(type, op2, simdBaseType, simdSize);
@@ -27938,12 +28009,12 @@ GenTree* Compiler::gtNewSimdCreateGeometricSequenceNode(
 
         if (simdBaseType == TYP_FLOAT)
         {
-            float initial    = isPartial ? 1.0f : static_cast<float>(op1->AsDblCon()->DconValue());
-            float multiplier = static_cast<float>(op2->AsDblCon()->DconValue());
+            float initial    = isPartial ? 1.0f : op1->AsDblCon()->FconValue();
+            float multiplier = op2->AsDblCon()->FconValue();
 
             for (uint32_t index = 0; index < simdCount; index++)
             {
-                vecCon->SetElementFloating(simdBaseType, index, initial * powf(multiplier, static_cast<float>(index)));
+                vecCon->gtSimdVal.f32[index] = initial * powf(multiplier, static_cast<float>(index));
             }
         }
         else
@@ -27955,7 +28026,7 @@ GenTree* Compiler::gtNewSimdCreateGeometricSequenceNode(
 
             for (uint32_t index = 0; index < simdCount; index++)
             {
-                vecCon->SetElementFloating(simdBaseType, index, initial * pow(multiplier, static_cast<double>(index)));
+                vecCon->gtSimdVal.f64[index] = initial * pow(multiplier, static_cast<double>(index));
             }
         }
     }
@@ -28030,12 +28101,12 @@ GenTree* Compiler::gtNewSimdCreateAlternatingSequenceNode(
         {
             assert(varTypeIsFloating(simdBaseType));
 
-            double even = op1->AsDblCon()->DconValue();
-            double odd  = op2->AsDblCon()->DconValue();
+            uint64_t even = op1->AsDblCon()->RawBits();
+            uint64_t odd  = op2->AsDblCon()->RawBits();
             for (uint32_t index = 1; index < simdCount; index += 2)
             {
-                vecCon->SetElementFloating(simdBaseType, index - 1, even);
-                vecCon->SetElementFloating(simdBaseType, index, odd);
+                vecCon->SetElementBits(simdBaseType, index - 1, even);
+                vecCon->SetElementBits(simdBaseType, index, odd);
             }
         }
 
@@ -30601,7 +30672,7 @@ GenTree* Compiler::gtNewSimdUnOpNode(
             if (varTypeIsFloating(simdBaseType))
             {
                 // op1 ^ -0.0
-                GenTree* negZero = gtNewDconNode(-0.0, simdBaseType);
+                GenTree* negZero = (simdBaseType == TYP_FLOAT) ? gtNewDconNodeF(-0.0f) : gtNewDconNodeD(-0.0);
                 negZero          = gtNewSimdCreateBroadcastNode(type, negZero, simdBaseType, simdSize);
                 return gtNewSimdBinOpNode(GT_XOR, type, op1, negZero, simdBaseType, simdSize);
             }
@@ -35840,9 +35911,9 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
 
                     if (varTypeIsFloating(retType))
                     {
-                        double result = cnsNode->AsVecCon()->ToScalarFloating(simdBaseType);
+                        uint64_t result = cnsNode->AsVecCon()->ToScalarBits(simdBaseType);
 
-                        resultNode = gtNewDconNode(result, retType);
+                        resultNode = gtNewDconNodeFromBits(result, retType);
                     }
                     else
                     {
@@ -36112,9 +36183,9 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
 
                         if (varTypeIsFloating(retType))
                         {
-                            double result = cnsNode->AsVecCon()->GetElementFloating(simdBaseType, index);
+                            uint64_t result = cnsNode->AsVecCon()->GetElementBits(simdBaseType, index);
 
-                            resultNode = gtNewDconNode(result, retType);
+                            resultNode = gtNewDconNodeFromBits(result, retType);
                         }
                         else
                         {
@@ -36145,8 +36216,8 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
 
                         if (varTypeIsFloating(simdBaseType))
                         {
-                            double scalar = otherNode->AsVecCon()->ToScalarFloating(simdBaseType);
-                            otherNode->AsVecCon()->EvaluateBroadcastInPlace(simdBaseType, scalar);
+                            uint64_t scalar = otherNode->AsVecCon()->ToScalarBits(simdBaseType);
+                            otherNode->AsVecCon()->EvaluateBroadcastBitsInPlace(simdBaseType, scalar);
                         }
                         else
                         {
@@ -36290,6 +36361,7 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
 
                         if (cnsNode->IsVectorNaN(simdBaseType))
                         {
+                            cnsNode->AsVecCon()->QuietNaNInPlace(simdBaseType, simdSize);
                             resultNode = gtWrapWithSideEffects(cnsNode, otherNode, GTF_ALL_EFFECT);
                             break;
                         }
@@ -36359,6 +36431,7 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
 
                         if (cnsNode->IsVectorNaN(simdBaseType))
                         {
+                            cnsNode->AsVecCon()->QuietNaNInPlace(simdBaseType, simdSize);
                             resultNode = gtWrapWithSideEffects(cnsNode, otherNode, GTF_ALL_EFFECT);
                             break;
                         }
@@ -36549,6 +36622,7 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
 
                         if (cnsNode->IsVectorNaN(simdBaseType))
                         {
+                            cnsNode->AsVecCon()->QuietNaNInPlace(simdBaseType, simdSize);
                             resultNode = gtWrapWithSideEffects(cnsNode, otherNode, GTF_ALL_EFFECT);
                             break;
                         }
@@ -36724,6 +36798,7 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
 
                         if (cnsNode->IsVectorNaN(simdBaseType))
                         {
+                            cnsNode->AsVecCon()->QuietNaNInPlace(simdBaseType, simdSize);
                             resultNode = gtWrapWithSideEffects(cnsNode, otherNode, GTF_ALL_EFFECT);
                             break;
                         }
@@ -36812,6 +36887,7 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
                         {
                             if (cnsNode->IsVectorNaN(simdBaseType))
                             {
+                                cnsNode->AsVecCon()->QuietNaNInPlace(simdBaseType, simdSize);
                                 resultNode = gtWrapWithSideEffects(cnsNode, otherNode, GTF_ALL_EFFECT);
                                 break;
                             }
@@ -36819,12 +36895,16 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
                         else
                         {
                             assert(cnsNode == op2);
-                            double val = cnsNode->AsVecCon()->GetElementFloating(simdBaseType, 0);
+                            uint64_t bits  = cnsNode->AsVecCon()->GetElementBits(simdBaseType, 0);
+                            bool     isNaN = (simdBaseType == TYP_FLOAT)
+                                                 ? ((bits & 0x7FFFFFFF) > 0x7F800000)
+                                                 : ((bits & 0x7FFFFFFFFFFFFFFF) > 0x7FF0000000000000);
 
-                            if (FloatingPointUtils::isNaN(val))
+                            if (isNaN)
                             {
+                                bits |= (simdBaseType == TYP_FLOAT) ? 0x00400000ULL : 0x0008000000000000ULL;
                                 cnsNode->gtType = retType;
-                                cnsNode->AsVecCon()->EvaluateBroadcastInPlace(simdBaseType, val);
+                                cnsNode->AsVecCon()->EvaluateBroadcastBitsInPlace(simdBaseType, bits);
 
                                 resultNode = gtWrapWithSideEffects(cnsNode, otherNode, GTF_ALL_EFFECT);
                                 break;
@@ -37028,8 +37108,8 @@ GenTree* Compiler::gtFoldExprHWIntrinsic(GenTreeHWIntrinsic* tree)
 
                 if (varTypeIsFloating(simdBaseType))
                 {
-                    double value = op3->AsDblCon()->DconValue();
-                    cnsNode->AsVecCon()->SetElementFloating(simdBaseType, index, value);
+                    uint64_t value = op3->AsDblCon()->RawBits();
+                    cnsNode->AsVecCon()->SetElementBits(simdBaseType, index, value);
                     resultNode = cnsNode;
                 }
                 else

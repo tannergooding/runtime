@@ -2109,8 +2109,8 @@ void GenTree::BashToConst(T value, var_types type /* = TYP_UNDEF */)
     var_types typeOfValue = TYP_UNDEF;
     if (std::is_floating_point<T>::value)
     {
-        assert((type == TYP_UNDEF) || varTypeIsFloating(type));
         typeOfValue = std::is_same<T, float>::value ? TYP_FLOAT : TYP_DOUBLE;
+        assert((type == TYP_UNDEF) || (type == typeOfValue));
     }
     else
     {
@@ -2165,12 +2165,28 @@ void GenTree::BashToConst(T value, var_types type /* = TYP_UNDEF */)
 
         case GT_CNS_DBL:
             assert(varTypeIsFloating(type));
-            AsDblCon()->SetDconValue(static_cast<double>(value));
+            if (type == TYP_FLOAT)
+            {
+                AsDblCon()->SetFconValue(static_cast<float>(value));
+            }
+            else
+            {
+                AsDblCon()->SetDconValue(static_cast<double>(value));
+            }
             break;
 
         default:
             unreached();
     }
+}
+
+inline void GenTree::BashToFloatConBits(uint64_t bits, var_types type)
+{
+    assert(varTypeIsFloating(type));
+    SetOper(GT_CNS_DBL);
+    gtFlags &= GTF_NODE_MASK;
+    gtType = type;
+    AsDblCon()->SetRawBits(bits);
 }
 
 //------------------------------------------------------------------------
@@ -2184,7 +2200,7 @@ inline void GenTree::BashToZeroConst(var_types type)
 {
     if (varTypeIsFloating(type))
     {
-        BashToConst(0.0, type);
+        BashToFloatConBits(0, type);
     }
     else
     {

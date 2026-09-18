@@ -2123,6 +2123,7 @@ public:
 
     void ChangeType(var_types newType)
     {
+        assert(!IsCnsFltOrDbl() || (gtType == newType));
         var_types oldType = gtType;
         gtType            = newType;
         GenTree* node     = this;
@@ -2132,13 +2133,17 @@ public:
             if (node->gtType != newType)
             {
                 assert(node->gtType == oldType);
+                assert(!node->IsCnsFltOrDbl());
                 node->gtType = newType;
             }
         }
     }
 
     template <typename T>
-    void           BashToConst(T value, var_types type = TYP_UNDEF);
+    void BashToConst(T value, var_types type = TYP_UNDEF);
+    void BashToFloatConBits(uint64_t bits, var_types type);
+    template <typename T, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+    void           BashToFloatConBits(T bits, var_types type) = delete;
     void           BashToZeroConst(var_types type);
     GenTreeLclVar* BashToLclVar(Compiler* comp, unsigned lclNum);
 
@@ -3629,37 +3634,114 @@ inline void GenTreeIntConCommon::SetValueTruncating(T value)
     }
 }
 
-/* gtDblCon -- double  constant (GT_CNS_DBL) */
+/* gtDblCon -- floating-point constant (GT_CNS_DBL) */
 
 struct GenTreeDblCon : public GenTree
 {
 private:
-    double gtDconVal;
+    // gtType selects the active member. Transport must use the bit accessors:
+    // even passing a float by value can quiet a signaling NaN on an x87 host.
+    union
+    {
+        float  gtFconVal;
+        double gtDconVal;
+    };
 
 public:
+#ifdef DEBUG
+    static void RunTests(Compiler* comp);
+#endif
+
+    float FconValue() const
+    {
+        assert(TypeIs(TYP_FLOAT));
+        return gtFconVal;
+    }
+
     double DconValue() const
     {
+        assert(TypeIs(TYP_DOUBLE));
         return gtDconVal;
+    }
+
+    uint32_t FconBits() const
+    {
+        assert(TypeIs(TYP_FLOAT));
+        uint32_t bits;
+        memcpy(&bits, &gtFconVal, sizeof(bits));
+        return bits;
+    }
+
+    uint64_t DconBits() const
+    {
+        assert(TypeIs(TYP_DOUBLE));
+        uint64_t bits;
+        memcpy(&bits, &gtDconVal, sizeof(bits));
+        return bits;
+    }
+
+    uint64_t RawBits() const
+    {
+        return TypeIs(TYP_FLOAT) ? FconBits() : DconBits();
+    }
+
+    void SetFconValue(float value)
+    {
+        assert(TypeIs(TYP_FLOAT));
+        gtFconVal = value;
     }
 
     void SetDconValue(double value)
     {
+        assert(TypeIs(TYP_DOUBLE));
         gtDconVal = FloatingPointUtils::normalize(value);
+    }
+
+    template <typename T>
+    void SetFconValue(T value) = delete;
+
+    template <typename T>
+    void SetDconValue(T value) = delete;
+
+    void SetRawBits(uint64_t bits)
+    {
+        if (TypeIs(TYP_FLOAT))
+        {
+            assert(bits <= UINT32_MAX);
+            uint32_t floatBits = static_cast<uint32_t>(bits);
+            gtFconVal          = 0.0f;
+            memcpy(&gtFconVal, &floatBits, sizeof(floatBits));
+        }
+        else
+        {
+            assert(TypeIs(TYP_DOUBLE));
+            gtDconVal = 0.0;
+            memcpy(&gtDconVal, &bits, sizeof(bits));
+        }
+    }
+
+    template <typename T, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+    void SetRawBits(T bits) = delete;
+
+    void Negate()
+    {
+        SetRawBits(RawBits() ^ (TypeIs(TYP_FLOAT) ? 0x80000000ULL : 0x8000000000000000ULL));
     }
 
     bool isBitwiseEqual(GenTreeDblCon* other)
     {
-        uint64_t bits      = *(uint64_t*)(&gtDconVal);
-        uint64_t otherBits = *(uint64_t*)(&(other->gtDconVal));
-        return (bits == otherBits);
+        return (TypeGet() == other->TypeGet()) && (RawBits() == other->RawBits());
     }
 
-    GenTreeDblCon(double val, var_types type = TYP_DOUBLE)
+    GenTreeDblCon(uint64_t bits, var_types type)
         : GenTree(GT_CNS_DBL, type)
     {
-        assert(varTypeIsFloating(type));
-        SetDconValue(val);
+        SetRawBits(bits);
     }
+
+    template <typename T, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+    GenTreeDblCon(T bits, var_types type) = delete;
+
 #if DEBUGGABLE_GENTREE
     GenTreeDblCon()
         : GenTree()
@@ -7121,7 +7203,7 @@ struct GenTreeVecCon : public GenTree
             {
                 if (arg->IsCnsFltOrDbl())
                 {
-                    simdVal.f32[argIdx] = static_cast<float>(arg->AsDblCon()->DconValue());
+                    simdVal.u32[argIdx] = arg->AsDblCon()->FconBits();
                     return true;
                 }
                 else
@@ -7137,7 +7219,7 @@ struct GenTreeVecCon : public GenTree
             {
                 if (arg->IsCnsFltOrDbl())
                 {
-                    simdVal.f64[argIdx] = static_cast<double>(arg->AsDblCon()->DconValue());
+                    simdVal.u64[argIdx] = arg->AsDblCon()->DconBits();
                     return true;
                 }
                 else
@@ -7217,17 +7299,18 @@ struct GenTreeVecCon : public GenTree
         }
     }
 
-    void EvaluateBroadcastInPlace(var_types baseType, double scalar);
+    void EvaluateBroadcastBitsInPlace(var_types baseType, uint64_t bits);
+    void EvaluateBroadcastInPlace(var_types baseType, double scalar) = delete;
     void EvaluateBroadcastInPlace(var_types baseType, int64_t scalar);
 
-    void SetElementFloating(var_types simdBaseType, int32_t index, double value)
+    void SetElementBits(var_types simdBaseType, int32_t index, uint64_t value)
     {
         switch (gtType)
         {
             case TYP_SIMD8:
             {
                 simd8_t result = {};
-                EvaluateWithElementFloating<simd8_t>(simdBaseType, &result, gtSimd8Val, index, value);
+                EvaluateWithElementBits<simd8_t>(simdBaseType, &result, gtSimd8Val, index, value);
                 gtSimd8Val = result;
                 break;
             }
@@ -7235,7 +7318,7 @@ struct GenTreeVecCon : public GenTree
             case TYP_SIMD12:
             {
                 simd12_t result = {};
-                EvaluateWithElementFloating<simd12_t>(simdBaseType, &result, gtSimd12Val, index, value);
+                EvaluateWithElementBits<simd12_t>(simdBaseType, &result, gtSimd12Val, index, value);
                 gtSimd12Val = result;
                 break;
             }
@@ -7243,7 +7326,7 @@ struct GenTreeVecCon : public GenTree
             case TYP_SIMD16:
             {
                 simd16_t result = {};
-                EvaluateWithElementFloating<simd16_t>(simdBaseType, &result, gtSimd16Val, index, value);
+                EvaluateWithElementBits<simd16_t>(simdBaseType, &result, gtSimd16Val, index, value);
                 gtSimd16Val = result;
                 break;
             }
@@ -7252,7 +7335,7 @@ struct GenTreeVecCon : public GenTree
             case TYP_SIMD32:
             {
                 simd32_t result = {};
-                EvaluateWithElementFloating<simd32_t>(simdBaseType, &result, gtSimd32Val, index, value);
+                EvaluateWithElementBits<simd32_t>(simdBaseType, &result, gtSimd32Val, index, value);
                 gtSimd32Val = result;
                 break;
             }
@@ -7260,7 +7343,7 @@ struct GenTreeVecCon : public GenTree
             case TYP_SIMD64:
             {
                 simd64_t result = {};
-                EvaluateWithElementFloating<simd64_t>(simdBaseType, &result, gtSimd64Val, index, value);
+                EvaluateWithElementBits<simd64_t>(simdBaseType, &result, gtSimd64Val, index, value);
                 gtSimd64Val = result;
                 break;
             }
@@ -7425,6 +7508,8 @@ struct GenTreeVecCon : public GenTree
 
     bool IsNaN(var_types simdBaseType) const;
 
+    void QuietNaNInPlace(var_types simdBaseType, unsigned simdSize);
+
     bool IsNegativeZero(var_types simdBaseType) const;
 
     bool ContainsNaN(var_types simdBaseType) const;
@@ -7477,34 +7562,34 @@ struct GenTreeVecCon : public GenTree
         }
     }
 
-    double GetElementFloating(var_types simdBaseType, int32_t index) const
+    uint64_t GetElementBits(var_types simdBaseType, int32_t index) const
     {
         switch (gtType)
         {
             case TYP_SIMD8:
             {
-                return EvaluateGetElementFloating<simd8_t>(simdBaseType, gtSimd8Val, index);
+                return EvaluateGetElementBits<simd8_t>(simdBaseType, gtSimd8Val, index);
             }
 
             case TYP_SIMD12:
             {
-                return EvaluateGetElementFloating<simd12_t>(simdBaseType, gtSimd12Val, index);
+                return EvaluateGetElementBits<simd12_t>(simdBaseType, gtSimd12Val, index);
             }
 
             case TYP_SIMD16:
             {
-                return EvaluateGetElementFloating<simd16_t>(simdBaseType, gtSimd16Val, index);
+                return EvaluateGetElementBits<simd16_t>(simdBaseType, gtSimd16Val, index);
             }
 
 #if defined(TARGET_XARCH)
             case TYP_SIMD32:
             {
-                return EvaluateGetElementFloating<simd32_t>(simdBaseType, gtSimd32Val, index);
+                return EvaluateGetElementBits<simd32_t>(simdBaseType, gtSimd32Val, index);
             }
 
             case TYP_SIMD64:
             {
-                return EvaluateGetElementFloating<simd64_t>(simdBaseType, gtSimd64Val, index);
+                return EvaluateGetElementBits<simd64_t>(simdBaseType, gtSimd64Val, index);
             }
 #endif // TARGET_XARCH
 
@@ -7553,9 +7638,32 @@ struct GenTreeVecCon : public GenTree
         }
     }
 
-    double ToScalarFloating(var_types simdBaseType) const
+    template <typename T>
+    T GetElementFloating(var_types simdBaseType, int32_t index) const
     {
-        return GetElementFloating(simdBaseType, 0);
+        static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Floating-point type required");
+        assert(simdBaseType == (std::is_same_v<T, float> ? TYP_FLOAT : TYP_DOUBLE));
+
+        uint64_t bits = GetElementBits(simdBaseType, index);
+        if constexpr (std::is_same_v<T, float>)
+        {
+            return BitOperations::UInt32BitsToSingle(static_cast<uint32_t>(bits));
+        }
+        else
+        {
+            return BitOperations::UInt64BitsToDouble(bits);
+        }
+    }
+
+    template <typename T>
+    T ToScalarFloating(var_types simdBaseType) const
+    {
+        return GetElementFloating<T>(simdBaseType, 0);
+    }
+
+    uint64_t ToScalarBits(var_types simdBaseType) const
+    {
+        return GetElementBits(simdBaseType, 0);
     }
 
     int64_t ToScalarIntegral(var_types simdBaseType) const
@@ -7589,9 +7697,13 @@ struct GenTreeVecCon : public GenTree
         switch (simdBaseType)
         {
             case TYP_FLOAT:
+            {
+                return GetElementBits(simdBaseType, index) == 0x3F800000;
+            }
+
             case TYP_DOUBLE:
             {
-                return GetElementFloating(simdBaseType, index) == 1;
+                return GetElementBits(simdBaseType, index) == 0x3FF0000000000000;
             }
 
             default:
@@ -9718,22 +9830,7 @@ inline bool GenTree::IsIntegralConst(ssize_t constVal) const
 //
 inline bool GenTree::IsFloatAllBitsSet() const
 {
-    if (IsCnsFltOrDbl())
-    {
-        double constValue = AsDblCon()->DconValue();
-
-        if (TypeIs(TYP_FLOAT))
-        {
-            return FloatingPointUtils::isAllBitsSet(static_cast<float>(constValue));
-        }
-        else
-        {
-            assert(TypeIs(TYP_DOUBLE));
-            return FloatingPointUtils::isAllBitsSet(constValue);
-        }
-    }
-
-    return false;
+    return IsCnsFltOrDbl() && (AsDblCon()->RawBits() == (TypeIs(TYP_FLOAT) ? UINT32_MAX : UINT64_MAX));
 }
 
 //-------------------------------------------------------------------
@@ -9747,8 +9844,8 @@ inline bool GenTree::IsFloatNaN() const
 {
     if (IsCnsFltOrDbl())
     {
-        double constValue = AsDblCon()->DconValue();
-        return FloatingPointUtils::isNaN(constValue);
+        return TypeIs(TYP_FLOAT) ? FloatingPointUtils::isNaNBits(AsDblCon()->FconBits())
+                                 : FloatingPointUtils::isNaNBits(AsDblCon()->DconBits());
     }
 
     return false;
@@ -9765,8 +9862,8 @@ inline bool GenTree::IsFloatNegativeZero() const
 {
     if (IsCnsFltOrDbl())
     {
-        double constValue = AsDblCon()->DconValue();
-        return FloatingPointUtils::isNegativeZero(constValue);
+        return TypeIs(TYP_FLOAT) ? FloatingPointUtils::isNegativeZeroBits(AsDblCon()->FconBits())
+                                 : FloatingPointUtils::isNegativeZeroBits(AsDblCon()->DconBits());
     }
 
     return false;
@@ -9786,8 +9883,7 @@ inline bool GenTree::IsFloatPositiveZero() const
         // This implementation is almost identical to IsCnsNonZeroFltOrDbl
         // but it is easier to parse out
         // rather than using !IsCnsNonZeroFltOrDbl.
-        double constValue = AsDblCon()->DconValue();
-        return FloatingPointUtils::isPositiveZero(constValue);
+        return AsDblCon()->RawBits() == 0;
     }
 
     return false;
@@ -10656,8 +10752,7 @@ inline bool GenTree::IsCnsNonZeroFltOrDbl() const
 {
     if (IsCnsFltOrDbl())
     {
-        double constValue = AsDblCon()->DconValue();
-        return *(int64_t*)&constValue != 0;
+        return AsDblCon()->RawBits() != 0;
     }
 
     return false;

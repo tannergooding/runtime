@@ -1199,7 +1199,7 @@ CodeGen::OperandDesc CodeGen::genOperandDesc(instruction ins, GenTree* op)
                 break;
 
             case GT_CNS_DBL:
-                return OperandDesc(emit->emitFltOrDblConst(op->AsDblCon()->DconValue(), emitTypeSize(op)));
+                return OperandDesc(emit->emitFltOrDblConstBits(op->AsDblCon()->RawBits(), emitTypeSize(op)));
 
             case GT_CNS_INT:
             {

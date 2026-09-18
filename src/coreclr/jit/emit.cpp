@@ -8177,36 +8177,35 @@ CORINFO_FIELD_HANDLE emitter::emitBlkConst(const void* cnsAddr, unsigned cnsSize
 }
 
 //------------------------------------------------------------------------
-// emitFltOrDblConst: Create a float or double data section constant.
+// emitFltOrDblConstBits: Create a float or double data section constant from its raw bits.
 //
 // Arguments:
-//    constValue - constant value
+//    bits       - constant bits, with float bits in the low 32 bits
 //    attr       - constant size
 //
 // Return Value:
 //    A field handle representing the data offset to access the constant.
 //
 // Notes:
-//    If attr is EA_4BYTE then the double value is converted to a float value.
 //    If attr is EA_8BYTE then 8 byte alignment is automatically requested.
 //
-CORINFO_FIELD_HANDLE emitter::emitFltOrDblConst(double constValue, emitAttr attr)
+CORINFO_FIELD_HANDLE emitter::emitFltOrDblConstBits(uint64_t bits, emitAttr attr)
 {
     assert((attr == EA_4BYTE) || (attr == EA_8BYTE));
 
     void*     cnsAddr;
-    float     f;
+    uint32_t  floatBits;
     var_types dataType;
 
     if (attr == EA_4BYTE)
     {
-        f        = FloatingPointUtils::convertToSingle(constValue);
-        cnsAddr  = &f;
-        dataType = TYP_FLOAT;
+        floatBits = static_cast<uint32_t>(bits);
+        cnsAddr   = &floatBits;
+        dataType  = TYP_FLOAT;
     }
     else
     {
-        cnsAddr  = &constValue;
+        cnsAddr  = &bits;
         dataType = TYP_DOUBLE;
     }
 

@@ -145,7 +145,7 @@ int LinearScan::BuildNode(GenTree* tree)
         {
             emitAttr size = emitActualTypeSize(tree);
             int64_t  bits;
-            if (emitter::isSingleInstructionFpImm(tree->AsDblCon()->DconValue(), size, &bits) && bits != 0)
+            if (emitter::isSingleInstructionFpImm(tree->AsDblCon()->RawBits(), size, &bits) && bits != 0)
             {
                 buildInternalIntRegisterDefForNode(tree);
                 buildInternalRegisterUses();

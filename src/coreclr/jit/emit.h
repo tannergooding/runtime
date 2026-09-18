@@ -2860,7 +2860,7 @@ private:
     }
 #endif // TARGET_AMD64
 
-    CORINFO_FIELD_HANDLE emitFltOrDblConst(double constValue, emitAttr attr);
+    CORINFO_FIELD_HANDLE emitFltOrDblConstBits(uint64_t bits, emitAttr attr);
 #if defined(FEATURE_SIMD)
     CORINFO_FIELD_HANDLE emitSimd8Const(simd8_t constValue);
     CORINFO_FIELD_HANDLE emitSimd16Const(simd16_t constValue);
