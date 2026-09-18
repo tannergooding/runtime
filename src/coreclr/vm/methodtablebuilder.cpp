@@ -9389,6 +9389,20 @@ MethodTableBuilder::ValidateExplicitLayout(
             numInstanceFieldBytes = S_UINT32(1);
         }
     }
+    else if (IsBlittable() && bmtLayout->classSize != 0)
+    {
+        // The declared size covers this class's fields, in addition to the base class.
+        S_UINT32 specifiedInstanceSize = dwInstanceSliceOffset + S_UINT32(bmtLayout->classSize);
+        if (specifiedInstanceSize.IsOverflow())
+        {
+            BuildMethodTableThrowException(IDS_CLASSLOAD_GENERAL);
+        }
+
+        if (!numInstanceFieldBytes.IsOverflow() && specifiedInstanceSize.Value() > numInstanceFieldBytes.Value())
+        {
+            numInstanceFieldBytes = specifiedInstanceSize;
+        }
+    }
 
     // The GC requires that all valuetypes containing orefs be sized to a multiple of TARGET_POINTER_SIZE.
     if (bmtGCSeries->numSeries != 0)

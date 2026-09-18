@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Internal.TypeSystem;
+using Internal.TypeSystem.Interop;
 
 namespace TypeSystemTests
 {
@@ -27,6 +28,8 @@ namespace TypeSystemTests
                 layout.ThreadGcStatics.Size = LayoutInt.Zero;
             }
         }
+
+        protected override bool IsBlittableType(MetadataType type) => MarshalUtils.IsBlittableType(type);
 
         protected override ComputedInstanceFieldLayout ComputeInstanceFieldLayout(MetadataType type, int numInstanceFields)
         {

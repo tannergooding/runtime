@@ -20,7 +20,7 @@ public static class Runtime_100220
             Assert.Equal(16, ObjectSize<MyClassAuto>());
             Assert.Equal(16, ObjectSize<MyClass1000Exp>());
             Assert.Equal(16, ObjectSize<MyClass1000Seq>());
-            Assert.Equal(16, ObjectSize<MyClass1000NoGcExp>());
+            Assert.Equal(1000, ObjectSize<MyClass1000NoGcExp>());
             Assert.Equal(1000, ObjectSize<MyClass1000NoGcSeq>());
             Assert.Equal(24, ObjectSize<BaseClassSeq>());
             Assert.Equal(40, ObjectSize<SubclassSeq>());
@@ -41,7 +41,7 @@ public static class Runtime_100220
             Assert.Equal(8, ObjectSize<MyClassAuto>());
             Assert.Equal(12, ObjectSize<MyClass1000Exp>());
             Assert.Equal(8, ObjectSize<MyClass1000Seq>());
-            Assert.Equal(12, ObjectSize<MyClass1000NoGcExp>());
+            Assert.Equal(1000, ObjectSize<MyClass1000NoGcExp>());
             Assert.Equal(1000, ObjectSize<MyClass1000NoGcSeq>());
             Assert.Equal(20, ObjectSize<BaseClassSeq>());
             Assert.Equal(36, ObjectSize<SubclassSeq>());
@@ -59,6 +59,24 @@ public static class Runtime_100220
 
         // Field offsets:
         Assert.Equal("(5, 3, 4, 1, 2, 6)", FieldOffsets(new SubclassSubclassSeq { A = 1, B = 2, C = 3, D = 4, E = 5, F = 6 }).ToString());
+
+        AssertExplicitClassSize<ExplicitByte100>(100);
+        AssertExplicitClassSize<ExplicitEmpty100>(100);
+        AssertExplicitClassSize<ExplicitUnicode100>(100);
+        AssertExplicitClassSize<ExplicitNested100>(100);
+        AssertExplicitClassSize<ExplicitOverlapping100>(100);
+        Assert.Equal(104, ObjectSize<ExplicitDerived100>());
+        AssertExplicitClassSize<ExplicitUndersized>(8);
+        Assert.InRange(ObjectSize<ExplicitBool100>(), 1, IntPtr.Size);
+        Assert.Equal(100, Marshal.SizeOf<ExplicitBool100>());
+    }
+
+    private static void AssertExplicitClassSize<T>(int expectedSize) where T : new()
+    {
+        int expectedDataSize = (Math.Max(expectedSize, IntPtr.Size) + IntPtr.Size - 1) & -IntPtr.Size;
+        // CoreCLR includes allocation padding in the reported data size; NativeAOT does not.
+        Assert.InRange(ObjectSize<T>(), expectedSize, expectedDataSize);
+        Assert.Equal(expectedSize, Marshal.SizeOf<T>());
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -147,6 +165,74 @@ public static class Runtime_100220
     {
         private nint a;
         private byte b;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitByte100
+    {
+        [FieldOffset(0)]
+        public byte Value;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitEmpty100
+    {
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100, CharSet = CharSet.Unicode)]
+    public class ExplicitUnicode100
+    {
+        [FieldOffset(0)]
+        public char Value;
+    }
+
+    public struct BlittableFields
+    {
+        public int A;
+        public byte B;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitNested100
+    {
+        [FieldOffset(0)]
+        public BlittableFields Value;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitOverlapping100
+    {
+        [FieldOffset(0)]
+        public int A;
+        [FieldOffset(0)]
+        public byte B;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public class ExplicitSizeBase
+    {
+        public int Value;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitDerived100 : ExplicitSizeBase
+    {
+        [FieldOffset(0)]
+        public byte Next;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 1)]
+    public class ExplicitUndersized
+    {
+        [FieldOffset(7)]
+        public byte Value;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitBool100
+    {
+        [FieldOffset(0)]
+        public bool Value;
     }
 
     private struct MyStructAuto

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
+using System.Text;
 
 using Internal.TypeSystem;
 
@@ -76,7 +77,35 @@ namespace TypeSystemTests
         public void TestExplicitTypeLayoutWithSize()
         {
             var explicitSizeType = _testModule.GetType("Explicit"u8, "ExplicitSize"u8);
-            Assert.Equal(32, explicitSizeType.InstanceByteCount.AsInt);
+            Assert.Equal(48, explicitSizeType.InstanceByteCount.AsInt);
+        }
+
+        [Theory]
+        [InlineData(TargetArchitecture.X64)]
+        [InlineData(TargetArchitecture.X86)]
+        public void TestExplicitClassSize(TargetArchitecture architecture)
+        {
+            var context = new TestTypeSystemContext(architecture);
+            ModuleDesc module = context.CreateModuleForSimpleName("CoreTestAssembly");
+            context.SetSystemModule(module);
+
+            AssertInstanceSize("ExplicitByte100", 100);
+            AssertInstanceSize("ExplicitEmpty100", 100);
+            AssertInstanceSize("ExplicitUnicode100", 100);
+            AssertInstanceSize("ExplicitNested100", 100);
+            AssertInstanceSize("ExplicitOverlapping100", 100);
+            AssertInstanceSize("ExplicitDerived100", 104);
+            AssertInstanceSize("ExplicitUndersized", 8);
+            AssertInstanceSize("ExplicitBool100", 1);
+
+            void AssertInstanceSize(string name, int expectedSize)
+            {
+                MetadataType type = module.GetType("Explicit"u8, Encoding.UTF8.GetBytes(name));
+                int pointerSize = context.Target.PointerSize;
+                int expectedByteCount = pointerSize + expectedSize;
+                Assert.Equal(expectedByteCount, type.InstanceByteCountUnaligned.AsInt);
+                Assert.Equal((expectedByteCount + pointerSize - 1) & -pointerSize, type.InstanceByteCount.AsInt);
+            }
         }
 
         [Fact]

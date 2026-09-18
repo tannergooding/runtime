@@ -88,6 +88,74 @@ namespace Explicit
         public byte Omg;
     }
 
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitByte100
+    {
+        [FieldOffset(0)]
+        public byte Value;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitEmpty100
+    {
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100, CharSet = CharSet.Unicode)]
+    public class ExplicitUnicode100
+    {
+        [FieldOffset(0)]
+        public char Value;
+    }
+
+    public struct BlittableFields
+    {
+        public int A;
+        public byte B;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitNested100
+    {
+        [FieldOffset(0)]
+        public BlittableFields Value;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitOverlapping100
+    {
+        [FieldOffset(0)]
+        public int A;
+        [FieldOffset(0)]
+        public byte B;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public class ExplicitSizeBase
+    {
+        public int Value;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitDerived100 : ExplicitSizeBase
+    {
+        [FieldOffset(0)]
+        public byte Next;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 1)]
+    public class ExplicitUndersized
+    {
+        [FieldOffset(7)]
+        public byte Value;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 100)]
+    public class ExplicitBool100
+    {
+        [FieldOffset(0)]
+        public bool Value;
+    }
+
     [StructLayout(LayoutKind.Explicit)]
     public class ExplicitEmptyClass
     {

@@ -604,6 +604,8 @@ namespace ILCompiler
             }
         }
 
+        protected override bool IsBlittableType(MetadataType type) => MarshalUtils.IsBlittableType(type);
+
         protected override ComputedInstanceFieldLayout ComputeInstanceFieldLayout(MetadataType type, int numInstanceFields)
         {
             ClassLayoutMetadata layoutMetadata = type.GetClassLayout();

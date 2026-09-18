@@ -133,6 +133,14 @@ namespace System.Runtime.InteropServices
         Auto = 3, // 0x00000000,
     }
 
+    public enum CharSet
+    {
+        None = 1,
+        Ansi = 2,
+        Unicode = 3,
+        Auto = 4,
+    }
+
     public sealed class StructLayoutAttribute : Attribute
     {
         internal LayoutKind _val;
@@ -145,6 +153,7 @@ namespace System.Runtime.InteropServices
         public LayoutKind Value { get { return _val; } }
         public int Pack;
         public int Size;
+        public CharSet CharSet;
     }
 
     public sealed class FieldOffsetAttribute : Attribute

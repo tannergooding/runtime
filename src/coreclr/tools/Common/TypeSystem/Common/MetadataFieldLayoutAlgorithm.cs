@@ -166,6 +166,8 @@ namespace Internal.TypeSystem
 
         protected abstract ComputedInstanceFieldLayout ComputeInstanceFieldLayout(MetadataType type, int numInstanceFields);
 
+        protected abstract bool IsBlittableType(MetadataType type);
+
         public override ComputedStaticFieldLayout ComputeStaticFieldLayout(DefType defType, StaticLayoutKind layoutKind)
         {
             MetadataType type = (MetadataType)defType;
@@ -1196,7 +1198,7 @@ namespace Internal.TypeSystem
                 return layoutMetadata.PackingSize;
         }
 
-        private static SizeAndAlignment ComputeInstanceSize(MetadataType type, LayoutInt instanceSize, LayoutInt alignment, int classLayoutSize, out SizeAndAlignment byteCount)
+        private SizeAndAlignment ComputeInstanceSize(MetadataType type, LayoutInt instanceSize, LayoutInt alignment, int classLayoutSize, out SizeAndAlignment byteCount)
         {
             SizeAndAlignment result;
 
@@ -1225,9 +1227,11 @@ namespace Internal.TypeSystem
                     instanceSize = LayoutInt.AlignUp(instanceSize, alignment, target);
                 }
             }
-            else if (classLayoutSize != 0 && type.IsSequentialLayout && !type.ContainsGCPointers)
+            else if (classLayoutSize != 0
+                && ((type.IsSequentialLayout && !type.ContainsGCPointers)
+                    || (type.IsExplicitLayout && IsBlittableType(type))))
             {
-                // For classes, we respect classLayoutSize only for SequentialLayout + no gc fields
+                // The declared size covers this class's fields, in addition to the base class.
                 LayoutInt specifiedInstanceSize = type.BaseType.InstanceByteCountUnaligned + new LayoutInt(classLayoutSize);
                 instanceSize = LayoutInt.Max(specifiedInstanceSize, instanceSize);
             }
