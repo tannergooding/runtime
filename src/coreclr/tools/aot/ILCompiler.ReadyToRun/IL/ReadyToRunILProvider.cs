@@ -11,6 +11,8 @@ using Internal.TypeSystem;
 using Internal.TypeSystem.Ecma;
 
 using Internal.IL.Stubs;
+using Internal.JitInterface;
+using Internal.ReadyToRunConstants;
 using System.Buffers.Binary;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -73,6 +75,36 @@ namespace Internal.IL
         /// </summary>
         private MethodIL TryGetIntrinsicMethodIL(MethodDesc method)
         {
+            if (method.Signature.IsStatic && HardwareIntrinsicHelpers.IsHardwareIntrinsic(method))
+            {
+                ReadyToRunCompilerContext context = (ReadyToRunCompilerContext)method.Context;
+                InstructionSet isa = InstructionSetParser.LookupPlatformIntrinsicInstructionSet(context.Target.Architecture, method.OwningType);
+                if (context.InstructionSetSupport.IsInstructionSetGuarded(isa))
+                {
+                    MethodDesc runtimeCheck = context.SystemModule
+                        .GetKnownType("System.Runtime.CompilerServices"u8, "RuntimeHelpers"u8)
+                        .GetKnownMethod("IsInstructionSetSupported"u8, null);
+                    var emitter = new ILEmitter();
+                    ILCodeStream code = emitter.NewCodeStream();
+                    code.EmitLdc((int)isa.R2RInstructionSet(context.Target.Architecture).Value);
+                    code.Emit(ILOpcode.call, emitter.NewToken(runtimeCheck));
+                    if (method.Name != "get_IsSupported"u8)
+                    {
+                        ILCodeLabel supported = emitter.NewCodeLabel();
+                        code.Emit(ILOpcode.brtrue, supported);
+                        code.EmitCallThrowHelper(emitter, context.GetHelperEntryPoint("ThrowHelpers"u8, "ThrowPlatformNotSupportedException"u8));
+                        code.EmitLabel(supported);
+                        for (int argument = 0; argument < method.Signature.Length; argument++)
+                        {
+                            code.EmitLdArg(argument);
+                        }
+                        code.Emit(ILOpcode.call, emitter.NewToken(method));
+                    }
+                    code.Emit(ILOpcode.ret);
+                    return emitter.Link(method);
+                }
+            }
+
             var mdType = method.OwningType as MetadataType;
             if (mdType == null)
                 return null;
@@ -211,7 +243,7 @@ namespace Internal.IL
         {
             if (method is EcmaMethod ecmaMethod)
             {
-                if (method.IsIntrinsic)
+                if (method.IsIntrinsic || HardwareIntrinsicHelpers.IsHardwareIntrinsic(method))
                 {
                     MethodIL result = TryGetIntrinsicMethodIL(method);
                     if (result != null)

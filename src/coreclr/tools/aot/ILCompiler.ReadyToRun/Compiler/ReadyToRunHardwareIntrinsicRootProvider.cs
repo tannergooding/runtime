@@ -19,7 +19,7 @@ namespace ILCompiler
             InstructionSetSupport specifiedInstructionSet = context.InstructionSetSupport;
             TargetArchitecture targetArch = context.Target.Architecture;
 
-            foreach (InstructionSet instructionSet in specifiedInstructionSet.SupportedFlags)
+            foreach (InstructionSet instructionSet in specifiedInstructionSet.OptimisticFlags)
             {
                 foreach (MetadataType hardwareIntrinsicType in InstructionSetParser.LookupPlatformIntrinsicTypes(context, instructionSet))
                 {

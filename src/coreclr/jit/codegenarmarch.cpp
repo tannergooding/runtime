@@ -1704,7 +1704,8 @@ instruction CodeGen::genGetVolatileLdStIns(instruction   currentIns,
 
     // RCPC1 (arm64 v8.3+) offers a bit more relaxed memory ordering than ldar. Which is sufficient for
     // .NET memory model's requirements, see https://github.com/dotnet/runtime/issues/67374
-    const bool hasRcpc1 = m_compiler->compOpportunisticallyDependsOn(InstructionSet_Rcpc);
+    const bool hasRcpc1 = ((currentIns == INS_ldrb) || (currentIns == INS_ldrh) || (currentIns == INS_ldr)) &&
+                          m_compiler->compOpportunisticallyDependsOn(InstructionSet_Rcpc);
     switch (currentIns)
     {
             // Loads

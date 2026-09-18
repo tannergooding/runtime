@@ -12455,6 +12455,21 @@ NamedIntrinsic Compiler::lookupNamedIntrinsic(CORINFO_METHOD_HANDLE method)
                             result =
                                 HWIntrinsicInfo::lookupId(this, &sig, className, methodName, enclosingClassNames[0],
                                                           enclosingClassNames[1], isXplatIntrinsic);
+
+                            if (isPlatformMatchedIntrinsic && (result > NI_HW_INTRINSIC_START) &&
+                                (result < NI_HW_INTRINSIC_END) &&
+                                opts.jitFlags->IsSet(JitFlags::JIT_FLAG_DYNAMIC_ISA_CHECKS) &&
+                                !gtIsRecursiveCall(method, false))
+                            {
+                                // Use the API's ISA, not the lowered ID (for example AVX10 can map
+                                // to AVX512). Only a checked body's self-call may expand without it.
+                                CORINFO_InstructionSet apiIsa =
+                                    lookupIsa(className, enclosingClassNames[0], enclosingClassNames[1]);
+                                if (!compExactlyDependsOn(apiIsa))
+                                {
+                                    result = NI_System_Runtime_Intrinsics_Intrinsic;
+                                }
+                            }
                         }
 #endif // FEATURE_HW_INTRINSICS
 

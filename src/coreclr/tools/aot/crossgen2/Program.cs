@@ -94,25 +94,17 @@ namespace ILCompiler
             // they mismatch in required ISAs or computed layouts of structs. On targets that allow
             // runtime code generation we keep Vector<T> usage optimistic so we never hard code a
             // dependency that could invalidate the entire image. On targets that do not allow
-            // runtime code generation, we do not want an ISA mismatch to invalidate any code
-            // in the image. There we make Vector<T> non-optimistic and hard code the ISA support
-            // to avoid falling back to the interpreter.
+            // runtime code generation, Vector<T> must have a fixed layout. Optional hardware
+            // intrinsics can still light up behind runtime guards, but unguarded speculation
+            // must not invalidate methods and force interpretation.
             bool isVectorTOptimistic = targetAllowsRuntimeCodeGeneration;
             bool allowOptimistic = _command.OptimizationMode != OptimizationMode.PreferSize;
-
-            if (!targetAllowsRuntimeCodeGeneration)
-            {
-                allowOptimistic = false;
-            }
 
             InstructionSetSupport instructionSetSupport = Helpers.ConfigureInstructionSetSupport(Get(_command.InstructionSet), Get(_command.MaxVectorTBitWidth), isVectorTOptimistic, targetArchitecture, targetOS,
                 SR.InstructionSetMustNotBe, SR.InstructionSetInvalidImplication, logger,
                 allowOptimistic: allowOptimistic,
                 isReadyToRun: true);
-            if (!targetAllowsRuntimeCodeGeneration)
-            {
-                instructionSetSupport = Helpers.GetFixedInstructionSetSupport(instructionSetSupport);
-            }
+            instructionSetSupport = instructionSetSupport.WithReadyToRunPolicy(targetAllowsRuntimeCodeGeneration);
 
             SharedGenericsMode genericsMode = SharedGenericsMode.CanonicalReferenceTypes;
             var targetDetails = new TargetDetails(targetArchitecture, targetOS, targetAbi, instructionSetSupport.GetVectorTSimdVector());

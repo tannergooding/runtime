@@ -427,6 +427,8 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_Rdm);
         if (resultflags.HasInstructionSet(InstructionSet_Fp16) && !resultflags.HasInstructionSet(InstructionSet_AdvSimd))
             resultflags.RemoveInstructionSet(InstructionSet_Fp16);
+        if (resultflags.HasInstructionSet(InstructionSet_Rcpc2) && !resultflags.HasInstructionSet(InstructionSet_Rcpc))
+            resultflags.RemoveInstructionSet(InstructionSet_Rcpc2);
         if (resultflags.HasInstructionSet(InstructionSet_Sha1) && !resultflags.HasInstructionSet(InstructionSet_ArmBase))
             resultflags.RemoveInstructionSet(InstructionSet_Sha1);
         if (resultflags.HasInstructionSet(InstructionSet_Sha256) && !resultflags.HasInstructionSet(InstructionSet_ArmBase))

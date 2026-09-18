@@ -2014,6 +2014,27 @@ extern "C" int32_t QCALLTYPE ReflectionInvocation_SizeOf(QCall::TypeHandle pType
     return handle.GetSize();
 }
 
+extern "C" uint64_t QCALLTYPE RuntimeHelpers_GetInstructionSetSupport(int32_t firstInstructionSet)
+{
+    QCALL_CONTRACT_NO_GC_TRANSITION;
+
+    _ASSERTE((firstInstructionSet == 0) || (firstInstructionSet == 64));
+    CORJIT_FLAGS flags = ExecutionManager::GetEEJitManager()->GetCPUCompileFlags();
+    uint64_t result = 0;
+
+    for (int32_t bit = 0; bit < 64; bit++)
+    {
+        CORINFO_InstructionSet isa =
+            InstructionSetFromR2RInstructionSet(static_cast<ReadyToRunInstructionSet>(firstInstructionSet + bit));
+        if ((isa != InstructionSet_ILLEGAL) && flags.IsSet(isa))
+        {
+            result |= UINT64_C(1) << bit;
+        }
+    }
+
+    return result;
+}
+
 extern "C" void QCALLTYPE ReflectionInvocation_GetBoxInfo(
     QCall::TypeHandle pType,
     PCODE* ppfnAllocator,

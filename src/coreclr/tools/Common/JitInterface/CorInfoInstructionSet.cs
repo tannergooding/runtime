@@ -572,6 +572,8 @@ namespace Internal.JitInterface
                             resultflags.AddInstructionSet(InstructionSet.ARM64_AdvSimd);
                         if (resultflags.HasInstructionSet(InstructionSet.ARM64_Fp16))
                             resultflags.AddInstructionSet(InstructionSet.ARM64_AdvSimd);
+                        if (resultflags.HasInstructionSet(InstructionSet.ARM64_Rcpc2))
+                            resultflags.AddInstructionSet(InstructionSet.ARM64_Rcpc);
                         if (resultflags.HasInstructionSet(InstructionSet.ARM64_Sha1))
                             resultflags.AddInstructionSet(InstructionSet.ARM64_ArmBase);
                         if (resultflags.HasInstructionSet(InstructionSet.ARM64_Sha256))
@@ -883,6 +885,8 @@ namespace Internal.JitInterface
                             resultflags.AddInstructionSet(InstructionSet.ARM64_Rdm);
                         if (resultflags.HasInstructionSet(InstructionSet.ARM64_AdvSimd))
                             resultflags.AddInstructionSet(InstructionSet.ARM64_Fp16);
+                        if (resultflags.HasInstructionSet(InstructionSet.ARM64_Rcpc))
+                            resultflags.AddInstructionSet(InstructionSet.ARM64_Rcpc2);
                         if (resultflags.HasInstructionSet(InstructionSet.ARM64_ArmBase))
                             resultflags.AddInstructionSet(InstructionSet.ARM64_Sha1);
                         if (resultflags.HasInstructionSet(InstructionSet.ARM64_ArmBase))

@@ -39,20 +39,27 @@ For AOT compilation, the situation is far more complex. This is due to the follo
 3. It must be exceedingly difficult to misuse the AOT compilation tool to violate principle 1.
 
 ## Crossgen2 model of hardware intrinsic usage
-There are 2 sets of instruction sets known to the compiler.
-- The baseline instruction set which defaults to x86-64-v2 (SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, and POPCNT), but may be adjusted via compiler option.
-- The optimistic instruction set which defaults to (AES, GFNI, SHA, WAITPKG, and X86SERIALIZE).
+The compiler distinguishes three permissions for instruction-set use:
+- Required support is the image baseline. These instructions may be used unconditionally. The default depends on the target; for example, non-Apple xarch ReadyToRun defaults to x86-64-v3.
+- Guarded support permits explicit platform intrinsics behind runtime `IsSupported` checks, without an unconditional method-level ISA dependency.
+- Speculative support permits the compiler to introduce optional instructions unconditionally, recording a method-level dependency so the runtime can reject that code when necessary.
 
-Code will be compiled using the optimistic instruction set to drive compilation, but any use of an instruction set beyond the baseline instruction set will be recorded, as will any attempt to use an instruction set beyond the optimistic set if that attempted use has a semantic effect. If the baseline instruction set includes `Avx2` then the size and characteristics of of `Vector<T>` is known. Any other decisions about ABI may also be encoded. For instance, it is likely that the ABI of `Vector256<T>` and `Vector512<T>` will vary based on the presence/absence of `Avx` support.
+The existing optimistic set remains the set of instructions the compiler can emit. Targets that allow runtime code generation retain the existing speculative policy. On targets without runtime code generation, optional candidates with managed intrinsic classes receive guarded support, while optional compiler-only candidates are disabled. Guarded eligibility does not extend beyond the curated optimistic candidates: an `IsSupported` property alone does not make changes to vector width, encoding, or ABI safe.
+
+For guarded platform intrinsics, crossgen2 supplies `IsSupported` bodies that query cached VM feature masks using stable ReadyToRun instruction-set IDs. The masks reflect effective runtime support, including feature-disable configuration. Intrinsic entrypoints also check support and throw `PlatformNotSupportedException` when unavailable. Calls use these checked bodies, which may be inlined, rather than expanding an unchecked instruction at an arbitrary call site. Only the checked body's recursive intrinsic call expands without an ISA dependency.
+
+Targets without runtime code generation retain guarded light-up but disable optional speculation. They also require a fixed `Vector<T>` layout and precompiled intrinsic fallback entrypoints for indirect calls. Required image support and layout constraints still apply; dynamic ISA checks do not make those constraints optional.
+
+Architecture groups in `InstructionSetDesc.txt` describe version guarantees. Implication edges describe instruction-family dependencies, such as `Rcpc2` implying `Rcpc`; they do not connect otherwise independent features merely because an architecture version guarantees both.
 
 - Any code which uses `Vector<T>` will not be compiled AOT unless the size of `Vector<T>` is known.
 - Any code which passes a `Vector256<T>` or `Vector512<T>` as a parameter on a Linux or Mac machine will not be compiled AOT unless the support for the `Avx` instruction set is known.
 - Non-platform intrinsics which require more hardware support than the optimistic supported hardware capability will not take advantage of that capability. MethodImplOptions.AggressiveOptimization may be used to disable compilation of this sub-par code.
-- Code which takes advantage of instructions sets in the optimistic set will not be used on a machine which only supports the baseline instruction set.
+- Code with speculative ISA dependencies will not be used on a machine lacking those instructions. Guarded intrinsic paths instead retain their runtime check and fallback.
 - Code which attempts to use instruction sets outside of the optimistic set will generate code that will not be used on machines with support for the instruction set.
 
 #### Characteristics which result from rules
-- Code which uses platform intrinsics within the optimistic instruction set will generate good code.
+- Code which uses guarded platform intrinsics can retain its R2R body on baseline hardware, at the cost of a runtime check rather than a folded constant.
 - Code which relies on platform intrinsics not within the baseline or optimistic set will cause runtime jit and startup time concerns if used on hardware which does support the instruction set.
 - `Vector<T>` code has runtime jit and startup time concerns unless the baseline is raised to include `Avx2`.
 

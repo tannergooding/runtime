@@ -32,6 +32,98 @@ public class R2RTestSuites
         _output = output;
     }
 
+    [ConditionalTheory(typeof(TestPaths), nameof(TestPaths.IsHardwareIntrinsicTarget))]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GuardedInstructionSetsUseTargetRuntimePolicy(bool allowsRuntimeCodeGeneration)
+    {
+        var assembly = new CompiledAssembly
+        {
+            AssemblyName = "GuardedInstructionSets",
+            SourceResourceNames = ["InstructionSets/GuardedInstructionSets.cs"],
+        };
+
+        new R2RTestRunner(_output).Run(new R2RTestCase(
+            nameof(GuardedInstructionSetsUseTargetRuntimePolicy),
+            [
+                new(assembly.AssemblyName, [new CrossgenAssembly(assembly)])
+                {
+                    Options = [Crossgen2Option.Optimize],
+                    AdditionalArgs = [$"--target-allows-runtime-code-generation:{allowsRuntimeCodeGeneration}"],
+                    Validate = Validate,
+                },
+            ]));
+
+        void Validate(ReadyToRunReader reader)
+        {
+            List<ReadyToRunMethod> methods = R2RAssert.GetAllMethods(reader);
+            bool hasDynamicSupport = reader.ImportSections.SelectMany(section => section.Entries).Any(
+                entry => entry.Signature.ToString(new SignatureFormattingOptions())
+                    .Contains(".Aes.get_IsSupported()", StringComparison.Ordinal));
+            Assert.Equal(!allowsRuntimeCodeGeneration, hasDynamicSupport);
+
+            foreach (string name in new[] { "Supported", "Transform", "IndirectTransform", "Crc64" })
+            {
+                ReadyToRunMethod method = Assert.Single(methods,
+                    m => m.SignatureString.Contains($".{name}(", StringComparison.Ordinal));
+                Assert.NotEmpty(method.RuntimeFunctions);
+                if (!allowsRuntimeCodeGeneration)
+                {
+                    Assert.False(HasIsaFixup(method));
+                }
+            }
+
+            ReadyToRunMethod transform = Assert.Single(methods,
+                method => method.SignatureString.Contains(".Transform(", StringComparison.Ordinal));
+            Assert.Equal(allowsRuntimeCodeGeneration, HasIsaFixup(transform));
+
+            ReadyToRunMethod store = Assert.Single(methods,
+                method => method.SignatureString.Contains(".VolatileStore(", StringComparison.Ordinal));
+            Assert.False(HasIsaFixup(store));
+
+            if (TestPaths.TargetArchitecture == "arm64" && TestPaths.TargetOS == "linux")
+            {
+                ReadyToRunMethod load = Assert.Single(methods,
+                    method => method.SignatureString.Contains(".VolatileLoad(", StringComparison.Ordinal));
+                Assert.Equal(allowsRuntimeCodeGeneration, HasIsaFixup(load));
+            }
+        }
+
+        static bool HasIsaFixup(ReadyToRunMethod method)
+        {
+            return method.Fixups is not null &&
+                method.Fixups.Any(fixup => fixup.Signature.FixupKind == ReadyToRunFixupKind.Check_InstructionSetSupport);
+        }
+    }
+
+    [ConditionalFact(typeof(TestPaths), nameof(TestPaths.IsXarchTarget))]
+    public void GuardedInstructionSetsCheckTheApiBeforeRemapping()
+    {
+        var assembly = new CompiledAssembly
+        {
+            AssemblyName = "GuardedInstructionSets",
+            SourceResourceNames = ["InstructionSets/GuardedInstructionSets.cs"],
+        };
+
+        new R2RTestRunner(_output).Run(new R2RTestCase(
+            nameof(GuardedInstructionSetsCheckTheApiBeforeRemapping),
+            [
+                new(assembly.AssemblyName, [new CrossgenAssembly(assembly)])
+                {
+                    Options = [Crossgen2Option.Optimize],
+                    AdditionalArgs = ["--instruction-set:avx512", "--target-allows-runtime-code-generation:false"],
+                    Validate = reader =>
+                    {
+                        Assert.Contains(R2RAssert.GetAllMethods(reader),
+                            method => method.SignatureString.Contains(".RemappedAbs(", StringComparison.Ordinal));
+                        Assert.Contains(reader.ImportSections.SelectMany(section => section.Entries),
+                            entry => entry.Signature.ToString(new SignatureFormattingOptions())
+                                .Contains(".Avx10v1.Abs(", StringComparison.Ordinal));
+                    },
+                },
+            ]));
+    }
+
     [ConditionalFact(typeof(TestPaths), nameof(TestPaths.IsNotWasmTarget))]
     public void BasicCrossModuleInlining()
     {

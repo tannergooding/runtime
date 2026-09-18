@@ -4802,6 +4802,12 @@ namespace Internal.JitInterface
                 flags.Set(flag);
 
             flags.InstructionSetFlags.Add(_compilation.InstructionSetSupport.OptimisticFlags);
+#if READYTORUN
+            if (!_compilation.InstructionSetSupport.GuardedFlags.IsEmpty())
+            {
+                flags.Set(CorJitFlag.CORJIT_FLAG_DYNAMIC_ISA_CHECKS);
+            }
+#endif
 
             // Set the rest of the flags that don't make sense to expose publicly.
             flags.Set(CorJitFlag.CORJIT_FLAG_AOT);
@@ -5033,6 +5039,14 @@ namespace Internal.JitInterface
             instructionSet = InstructionSetFlags.ConvertToImpliedInstructionSetForVectorInstructionSets(_compilation.TypeSystemContext.Target.Architecture, instructionSet);
 
             Debug.Assert(!_compilation.InstructionSetSupport.NonSpecifiableFlags.HasInstructionSet(instructionSet));
+
+            // Explicit intrinsics can be emitted behind a dynamic IsSupported check. Returning
+            // false denies unguarded compiler use and constant folding without recording an
+            // unconditional dependency on the ISA.
+            if (supportEnabled && _compilation.InstructionSetSupport.IsInstructionSetGuarded(instructionSet))
+            {
+                return false;
+            }
 
             if (supportEnabled)
             {

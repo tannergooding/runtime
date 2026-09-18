@@ -18,19 +18,21 @@ namespace ILCompiler
         private readonly InstructionSetFlags _supportedInstructionSets;
         private readonly InstructionSetFlags _unsupportedInstructionSets;
         private readonly InstructionSetFlags _nonSpecifiableInstructionSets;
+        private readonly InstructionSetFlags _guardedInstructionSets;
 
         public InstructionSetSupport(InstructionSetFlags supportedInstructionSets, InstructionSetFlags unsupportedInstructionSets, TargetArchitecture architecture) :
             this(supportedInstructionSets, unsupportedInstructionSets, supportedInstructionSets, default(InstructionSetFlags), architecture)
         {
         }
 
-        public InstructionSetSupport(InstructionSetFlags supportedInstructionSets, InstructionSetFlags unsupportedInstructionSets, InstructionSetFlags optimisticInstructionSets, InstructionSetFlags nonSpecifiableInstructionSets, TargetArchitecture architecture)
+        public InstructionSetSupport(InstructionSetFlags supportedInstructionSets, InstructionSetFlags unsupportedInstructionSets, InstructionSetFlags optimisticInstructionSets, InstructionSetFlags nonSpecifiableInstructionSets, TargetArchitecture architecture, InstructionSetFlags guardedInstructionSets = default)
         {
             _supportedInstructionSets = supportedInstructionSets;
             _unsupportedInstructionSets = unsupportedInstructionSets;
             _optimisticInstructionSets = optimisticInstructionSets;
             _targetArchitecture = architecture;
             _nonSpecifiableInstructionSets = nonSpecifiableInstructionSets;
+            _guardedInstructionSets = guardedInstructionSets;
         }
 
         public bool IsInstructionSetSupported(InstructionSet instructionSet)
@@ -46,6 +48,66 @@ namespace ILCompiler
         public bool IsInstructionSetExplicitlyUnsupported(InstructionSet instructionSet)
         {
             return _unsupportedInstructionSets.HasInstructionSet(instructionSet);
+        }
+
+        public bool IsInstructionSetGuarded(InstructionSet instructionSet)
+        {
+            return _guardedInstructionSets.HasInstructionSet(instructionSet);
+        }
+
+        public bool IsInstructionSetSpeculativelySupported(InstructionSet instructionSet)
+        {
+            return IsInstructionSetOptimisticallySupported(instructionSet) && !IsInstructionSetGuarded(instructionSet);
+        }
+
+        public InstructionSetFlags GuardedFlags => _guardedInstructionSets;
+
+        public InstructionSetSupport WithReadyToRunPolicy(bool targetAllowsRuntimeCodeGeneration)
+        {
+            if (targetAllowsRuntimeCodeGeneration)
+            {
+                return this;
+            }
+
+            InstructionSetFlags guarded = default;
+            InstructionSetFlags optimistic = _optimisticInstructionSets;
+            InstructionSetFlags unsupported = _unsupportedInstructionSets;
+
+            // Start with the existing, codegen-safe optimistic candidates, not every ISA the
+            // architecture can describe. An IsSupported property alone does not make an ISA
+            // safe for conditional codegen (for example, changing the vector register width).
+            foreach (var info in InstructionSetFlags.ArchitectureToValidInstructionSets(_targetArchitecture))
+            {
+                if (info.ManagedName.Length != 0 &&
+                    optimistic.HasInstructionSet(info.InstructionSet) &&
+                    !_supportedInstructionSets.HasInstructionSet(info.InstructionSet))
+                {
+                    guarded.AddInstructionSet(info.InstructionSet);
+                }
+            }
+            guarded.Set64BitInstructionSetVariants(_targetArchitecture);
+
+            optimistic = _supportedInstructionSets;
+            optimistic.Add(guarded);
+
+            foreach (var info in InstructionSetFlags.ArchitectureToValidInstructionSets(_targetArchitecture))
+            {
+                if (info.Specifiable && !optimistic.HasInstructionSet(info.InstructionSet))
+                {
+                    unsupported.AddInstructionSet(info.InstructionSet);
+                }
+            }
+
+            unsupported.ExpandInstructionSetByReverseImplication(_targetArchitecture);
+            unsupported.Set64BitInstructionSetVariants(_targetArchitecture);
+
+            if (_targetArchitecture is TargetArchitecture.X86 or TargetArchitecture.ARM)
+            {
+                unsupported.Set64BitInstructionSetVariantsUnconditionally(_targetArchitecture);
+            }
+
+            return new InstructionSetSupport(_supportedInstructionSets, unsupported, optimistic,
+                _nonSpecifiableInstructionSets, _targetArchitecture, guarded);
         }
 
         public InstructionSetFlags OptimisticFlags => _optimisticInstructionSets;

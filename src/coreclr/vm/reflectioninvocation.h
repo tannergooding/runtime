@@ -89,5 +89,6 @@ extern "C" void QCALLTYPE ReflectionInvocation_GetBoxInfo(
 extern "C" void QCALLTYPE Enum_GetValuesAndNames(QCall::TypeHandle pEnumType, QCall::ObjectHandleOnStack pReturnValues, QCall::ObjectHandleOnStack pReturnNames, BOOL fGetNames, QCallExceptionStatus* qcallError);
 
 extern "C" int32_t QCALLTYPE ReflectionInvocation_SizeOf(QCall::TypeHandle pType);
+extern "C" uint64_t QCALLTYPE RuntimeHelpers_GetInstructionSetSupport(int32_t firstInstructionSet);
 
 #endif // _REFLECTIONINVOCATION_H_

@@ -262,6 +262,7 @@ implication        ,ARM64 ,Crc32      ,ArmBase
 implication        ,ARM64 ,Dp         ,AdvSimd
 implication        ,ARM64 ,Rdm        ,AdvSimd
 implication        ,ARM64 ,Fp16       ,AdvSimd
+implication        ,ARM64 ,Rcpc2      ,Rcpc
 implication        ,ARM64 ,Sha1       ,ArmBase
 implication        ,ARM64 ,Sha256     ,ArmBase
 implication        ,ARM64 ,Vector64   ,AdvSimd

@@ -1325,13 +1325,14 @@ NamedIntrinsic HWIntrinsicInfo::lookupId(Compiler*         comp,
         if (isIsaSupported && comp->compSupportsHWIntrinsic(isa) &&
             (vectorByteLength <= comp->getPreferredVectorByteLength()))
         {
-            if (!comp->IsTargetAbi(CORINFO_NATIVEAOT_ABI) || comp->compExactlyDependsOn(isa))
+            const bool hasDynamicChecks = comp->IsTargetAbi(CORINFO_NATIVEAOT_ABI) ||
+                                          comp->opts.jitFlags->IsSet(JitFlags::JIT_FLAG_DYNAMIC_ISA_CHECKS);
+            if (!hasDynamicChecks || comp->compExactlyDependsOn(isa))
             {
                 return NI_IsSupported_True;
             }
             else if (isSupportedProp)
             {
-                assert(comp->IsTargetAbi(CORINFO_NATIVEAOT_ABI));
                 return NI_IsSupported_Dynamic;
             }
         }

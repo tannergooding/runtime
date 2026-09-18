@@ -15,6 +15,26 @@ namespace System.Runtime.CompilerServices
 {
     public static partial class RuntimeHelpers
     {
+        // R2R uses stable instruction-set IDs rather than the JIT's version-specific flag
+        // positions. These cached masks reflect VM configuration as well as CPU support.
+        private static class InstructionSetSupport
+        {
+            internal static readonly ulong Lower = GetInstructionSetSupport(0);
+            internal static readonly ulong Upper = GetInstructionSetSupport(64);
+        }
+
+        [LibraryImport(QCall, EntryPoint = "RuntimeHelpers_GetInstructionSetSupport")]
+        [SuppressGCTransition]
+        private static partial ulong GetInstructionSetSupport(int firstInstructionSet);
+
+        internal static bool IsInstructionSetSupported(int instructionSet)
+        {
+            Debug.Assert((uint)instructionSet < 128);
+            ulong flags = instructionSet < 64 ? InstructionSetSupport.Lower : InstructionSetSupport.Upper;
+
+            return (flags & (1UL << (instructionSet & 63))) != 0;
+        }
+
         [Intrinsic]
         public static unsafe void InitializeArray(Array array, RuntimeFieldHandle fldHandle)
         {

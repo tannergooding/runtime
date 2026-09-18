@@ -32,6 +32,9 @@ internal static class TestPaths
 
     public static bool IsNotWasmTarget => !IsWasmTarget;
 
+    public static bool IsHardwareIntrinsicTarget => TargetArchitecture is "x64" or "x86" or "arm64";
+    public static bool IsXarchTarget => TargetArchitecture is "x64" or "x86";
+
     public static bool IsArmTarget => TargetArchitecture is "arm" or "armel";
 
     public static bool IsWindowsTarget => TargetOS is "windows" or "win";
